@@ -1,0 +1,167 @@
+{
+	"version": 24,
+	"artboards": [
+		{
+			"name": "Artboard",
+			"translation": [
+				0,
+				0
+			],
+			"width": 120,
+			"height": 120,
+			"origin": [
+				0,
+				0
+			],
+			"clipContents": true,
+			"color": [
+				0.364705890417099,
+                0.364705890417099,
+                0.364705890417099,
+                1
+			],
+			"nodes": [
+				{
+					"name": "Check Icon Group",
+					"translation": [
+						60,
+						60
+					],
+					"rotation": 0,
+					"scale": [
+						1,
+						0.993499755859375
+					],
+					"opacity": 1,
+					"isCollapsed": false,
+					"clips": [],
+					"type": "node"
+				},
+				{
+					"name": "Check",
+					"parent": 0,
+					"translation": [
+						-35,
+						5
+					],
+					"rotation": 0,
+					"scale": [
+						1,
+						1
+					],
+					"opacity": 1,
+					"isCollapsed": false,
+					"clips": [],
+					"isVisible": true,
+					"blendMode": 3,
+					"drawOrder": 10,
+					"transformAffectsStroke": false,
+					"type": "shape"
+				},
+				{
+					"name": "Path",
+					"parent": 1,
+					"translation": [
+						0,
+						0
+					],
+					"rotation": 0,
+					"scale": [
+						1,
+						1
+					],
+					"opacity": 1,
+					"isCollapsed": false,
+					"clips": [],
+					"bones": [],
+					"isVisible": true,
+					"isClosed": false,
+					"points": [
+						{
+							"pointType": 0,
+							"translation": [
+								0,
+								0
+							],
+							"radius": 0
+						},
+						{
+							"pointType": 0,
+							"translation": [
+								19.999998092651367,
+								20
+							],
+							"radius": 0
+						},
+						{
+							"pointType": 0,
+							"translation": [
+								70,
+								-30
+							],
+							"radius": 0
+						}
+					],
+					"type": "path"
+				},
+				{
+					"name": "Color",
+					"parent": 1,
+					"opacity": 1,
+					"color": [
+						0.364705890417099,
+                        0.364705890417099,
+                        0.364705890417099,
+                        1
+					],
+					"width": 8,
+					"cap": 1,
+					"join": 0,
+					"trim": 1,
+					"start": 0,
+					"end": 1,
+					"offset": 0,
+					"type": "colorStroke"
+				}
+			],
+			"animations": [
+				{
+					"name": "Untitled",
+					"fps": 60,
+					"duration": 0.25,
+					"isLooping": false,
+					"keyed": [
+						{
+							"component": 1
+						},
+						{
+							"component": 3,
+							"strokeEnd": [
+								[
+									{
+										"time": 0.016666666666666666,
+										"interpolatorType": 2,
+										"cubicX1": 0.5591397849462365,
+										"cubicY1": 0,
+										"cubicX2": 0.3279569892473118,
+										"cubicY2": 1,
+										"value": 0
+									},
+									{
+										"time": 0.25,
+										"interpolatorType": 1,
+										"value": 1
+									}
+								]
+							]
+						}
+					],
+					"animationStart": 0,
+					"animationEnd": 0.25,
+					"type": "animation"
+				}
+			],
+			"type": "artboard"
+		}
+	]
+}
