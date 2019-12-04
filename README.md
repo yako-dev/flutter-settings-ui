@@ -1,4 +1,4 @@
-# Status Alert for Flutter
+# Settings UI for Flutter
 
 [![pub package](https://img.shields.io/badge/pub-0.1.0-blueviolet.svg)](https://pub.dev/packages/settings_ui)
 
@@ -31,10 +31,9 @@ import 'package:settings_ui/settings_ui.dart';
 <br>
 <br>
 
-## Apple Podcasts vs Status Alert:
-<img src="https://raw.githubusercontent.com/yako-dev/flutter-status-alert/master/assets/apple_podcasts_subscribed_animation.gif" height="500px">  <img src="https://raw.githubusercontent.com/yako-dev/flutter-status-alert/master/assets/status_alert_subscribed_animation.gif" height="500px">
+## Settings UI supports dark mode:
+<img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master/assets/dark_mode_animation.gif" height="400px">
 <br>
-
 
 
 ## License
