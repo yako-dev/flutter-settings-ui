@@ -9,12 +9,14 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
+      title: 'Settings UI Demo',
       theme: ThemeData(
         primarySwatch: Colors.deepPurple,
         brightness: Brightness.light,
       ),
       darkTheme: ThemeData(
+        primarySwatch: Colors.deepPurple,
+        accentColor: Colors.deepPurple,
         brightness: Brightness.dark,
       ),
       home: SettingsScreen(),

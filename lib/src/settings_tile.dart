@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:settings_ui/src/cupertino_settings_item.dart';
 
 enum _SettingsTileType { simple, switchTile }
 
@@ -36,6 +39,35 @@ class SettingsTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (Platform.isIOS) {
+      return iosTile();
+    } else if (Platform.isAndroid) {
+      return androidTile();
+    }
+  }
+
+  Widget iosTile() {
+    if (_tileType == _SettingsTileType.simple) {
+      return CupertinoSettingsItem(
+        type: SettingsItemType.modal,
+        label: title,
+        value: subtitle,
+        hasDetails: true,
+        leading: leading,
+        onPress: onTap,
+      );
+    } else if (_tileType == _SettingsTileType.switchTile) {
+      return CupertinoSettingsItem(
+        type: SettingsItemType.toggle,
+        label: title,
+        leading: leading,
+        switchValue: switchValue,
+        onToggle: onToggle,
+      );
+    }
+  }
+
+  Widget androidTile() {
     if (_tileType == _SettingsTileType.simple) {
       return ListTile(
         title: Text(title),

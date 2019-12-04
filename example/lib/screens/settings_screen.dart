@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
 
+import 'languages_screen.dart';
+
 class SettingsScreen extends StatefulWidget {
   @override
   _SettingsScreenState createState() => _SettingsScreenState();
@@ -22,10 +24,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 title: 'Language',
                 subtitle: 'English',
                 leading: Icon(Icons.language),
-                onTap: () {},
+                onTap: () {
+                  Navigator.of(context).push(MaterialPageRoute(
+                      builder: (BuildContext context) => LanguagesScreen()));
+                },
               ),
               SettingsTile(
-                  title: 'Envitonment',
+                  title: 'Environment',
                   subtitle: 'Production',
                   leading: Icon(Icons.cloud_queue)),
             ],
