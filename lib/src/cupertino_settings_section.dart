@@ -18,58 +18,7 @@ class CupertinoSettingsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    List<Widget> dividedItems = items;
-    if (items.length > 1) {
-      dividedItems = dividedItems.map<Widget>((Widget item) {
-        if (dividedItems.last == item) {
-          return item;
-        } else {
-          final leftPadding =
-              (item as SettingsTile).leading == null ? 15.0 : 54.0;
-
-//          return Column(
-//            children: <Widget>[
-//              item,
-//              // Add inner dividers.
-//              Row(
-//                children: <Widget>[
-//                  Container(
-//                    width: leftPadding,
-//                    height: 0.3,
-//                    color: Theme.of(context).brightness == Brightness.light
-//                        ? Colors.white
-//                        : Colors.black,
-//                  ),
-//                  Container(
-//                    height: 0.3,
-//                    color: Theme.of(context).brightness == Brightness.light
-//                        ? borderColor
-//                        : borderLightColor,
-//                  ),
-//                ],
-//              ),
-//            ],
-//          );
-          return Stack(
-            children: <Widget>[
-              Positioned(
-                bottom: 1.0,
-                right: 0.0,
-                left: leftPadding,
-                child: new Container(
-                  color: Colors.white,
-                  height: 1,
-                ),
-              ),
-              item,
-            ],
-          );
-        }
-      }).toList();
-    }
-
     final List<Widget> columnChildren = [];
-
     if (header != null) {
       columnChildren.add(DefaultTextStyle(
         style: TextStyle(
@@ -88,10 +37,27 @@ class CupertinoSettingsSection extends StatelessWidget {
       ));
     }
 
+    List<Widget> itemsWithDividers = [];
+    for (int i = 0; i < items.length; i++) {
+      final leftPadding =
+          (items[i] as SettingsTile).leading == null ? 15.0 : 54.0;
+      if (i < items.length - 1) {
+        itemsWithDividers.add(items[i]);
+        itemsWithDividers.add(Divider(
+          height: 0.3,
+          indent: leftPadding,
+        ));
+      } else {
+        itemsWithDividers.add(items[i]);
+      }
+    }
+
     columnChildren.add(
       Container(
         decoration: BoxDecoration(
-          color: CupertinoColors.white,
+          color: Theme.of(context).brightness == Brightness.light
+              ? CupertinoColors.white
+              : iosTileDarkColor,
           border: Border(
             top: const BorderSide(
               color: borderColor,
@@ -105,7 +71,7 @@ class CupertinoSettingsSection extends StatelessWidget {
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: dividedItems,
+          children: itemsWithDividers,
         ),
       ),
     );
