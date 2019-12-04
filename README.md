@@ -32,7 +32,7 @@ import 'package:settings_ui/settings_ui.dart';
 <br>
 
 ## Settings UI supports dark mode:
-<img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master/assets/dark_mode_animation.gif" height="400px">
+<img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master/assets/dark_mode_animation.gif" height="600px">
 <br>
 
 
