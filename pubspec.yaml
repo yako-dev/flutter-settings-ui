@@ -1,8 +1,7 @@
 name: settings_ui
-description: A new Flutter package project.
-version: 0.0.1
-author:
-homepage:
+description: Create native settings for Flutter app in minutes.
+version: 0.1.0
+homepage: https://github.com/yako-dev/flutter-settings-ui
 
 environment:
   sdk: ">=2.2.2 <3.0.0"
