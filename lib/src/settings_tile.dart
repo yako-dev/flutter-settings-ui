@@ -41,13 +41,21 @@ class SettingsTile extends StatelessWidget {
   Widget build(BuildContext context) {
     if (Platform.isIOS) {
       return iosTile();
-    } else if (Platform.isAndroid) {
+    } else {
       return androidTile();
     }
   }
 
   Widget iosTile() {
-    if (_tileType == _SettingsTileType.simple) {
+    if (_tileType == _SettingsTileType.switchTile) {
+      return CupertinoSettingsItem(
+        type: SettingsItemType.toggle,
+        label: title,
+        leading: leading,
+        switchValue: switchValue,
+        onToggle: onToggle,
+      );
+    } else {
       return CupertinoSettingsItem(
         type: SettingsItemType.modal,
         label: title,
@@ -56,32 +64,24 @@ class SettingsTile extends StatelessWidget {
         leading: leading,
         onPress: onTap,
       );
-    } else if (_tileType == _SettingsTileType.switchTile) {
-      return CupertinoSettingsItem(
-        type: SettingsItemType.toggle,
-        label: title,
-        leading: leading,
-        switchValue: switchValue,
-        onToggle: onToggle,
-      );
     }
   }
 
   Widget androidTile() {
-    if (_tileType == _SettingsTileType.simple) {
-      return ListTile(
-        title: Text(title),
-        subtitle: subtitle != null ? Text(subtitle) : null,
-        leading: leading,
-        onTap: onTap,
-      );
-    } else if (_tileType == _SettingsTileType.switchTile) {
+    if (_tileType == _SettingsTileType.switchTile) {
       return SwitchListTile(
         secondary: leading,
         value: switchValue,
         onChanged: onToggle,
         title: Text(title),
         subtitle: subtitle != null ? Text(subtitle) : null,
+      );
+    } else {
+      return ListTile(
+        title: Text(title),
+        subtitle: subtitle != null ? Text(subtitle) : null,
+        leading: leading,
+        onTap: onTap,
       );
     }
   }

@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:settings_ui/src/cupertino_settings_section.dart';
 import 'package:settings_ui/src/settings_tile.dart';
 
+// ignore: must_be_immutable
 class SettingsSection extends StatelessWidget {
   final String title;
   final List<SettingsTile> tiles;
