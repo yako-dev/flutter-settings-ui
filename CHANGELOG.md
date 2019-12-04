@@ -1,3 +1,3 @@
-## [0.0.1] - TODO: Add release date.
+## [0.1.0] - [December 4, 2019]
 
-* TODO: Describe initial release.
+* Initial release with basic SettingsTile and SettingsTile.switchTile.
