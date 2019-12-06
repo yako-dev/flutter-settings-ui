@@ -61,11 +61,11 @@ class CupertinoSettingsSection extends StatelessWidget {
           border: Border(
             top: const BorderSide(
               color: borderColor,
-              width: 0.0,
+              width: 0.3,
             ),
             bottom: const BorderSide(
               color: borderColor,
-              width: 0.0,
+              width: 0.3,
             ),
           ),
         ),
