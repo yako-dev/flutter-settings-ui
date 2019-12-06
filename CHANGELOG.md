@@ -1,3 +1,7 @@
+## [0.2.0] - [December 6, 2019]
+
+* Added onTap color change for cupertino tiles.
+
 ## [0.1.1] - [December 4, 2019]
 
 * Slight updates.
