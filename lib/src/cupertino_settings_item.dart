@@ -175,16 +175,45 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
           widget.onPress();
         }
       },
+      onTapUp: (_) {
+        setState(() {
+          pressed = false;
+        });
+      },
+      onTapDown: (_) {
+        setState(() {
+          pressed = true;
+        });
+      },
+      onTapCancel: () {
+        setState(() {
+          pressed = false;
+        });
+      },
       child: Container(
-        color: Theme.of(context).brightness == Brightness.light
-            ? Colors.white
-            : iosTileDarkColor,
+        color: calculateBackgroundColor(context),
         height: widget.subtitle == null ? 44.0 : 57.0,
         child: Row(
           children: rowChildren,
         ),
       ),
     );
+  }
+
+  Color calculateBackgroundColor(BuildContext context) {
+    if (Theme.of(context).brightness == Brightness.light) {
+      if (pressed) {
+        return iosPressedTileColorLight;
+      } else {
+        return Colors.white;
+      }
+    } else {
+      if (pressed) {
+        return iosPressedTileColorDark;
+      } else {
+        return iosTileDarkColor;
+      }
+    }
   }
 
   Color _iconColor(ThemeData theme, ListTileTheme tileTheme) {
