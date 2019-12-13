@@ -10,6 +10,7 @@ class SettingsTile extends StatelessWidget {
   final String title;
   final String subtitle;
   final Widget leading;
+  final Widget trailing;
   final VoidCallback onTap;
   final Function(bool value) onToggle;
   final bool switchValue;
@@ -20,6 +21,7 @@ class SettingsTile extends StatelessWidget {
     @required this.title,
     this.subtitle,
     this.leading,
+    this.trailing,
     this.onTap,
   })  : _tileType = _SettingsTileType.simple,
         onToggle = null,
@@ -31,6 +33,7 @@ class SettingsTile extends StatelessWidget {
     @required this.title,
     this.subtitle,
     this.leading,
+    this.trailing,
     @required this.onToggle,
     @required this.switchValue,
   })  : _tileType = _SettingsTileType.switchTile,
@@ -60,7 +63,8 @@ class SettingsTile extends StatelessWidget {
         type: SettingsItemType.modal,
         label: title,
         value: subtitle,
-        hasDetails: true,
+        trailing: trailing,
+        hasDetails: false,
         leading: leading,
         onPress: onTap,
       );
@@ -81,6 +85,7 @@ class SettingsTile extends StatelessWidget {
         title: Text(title),
         subtitle: subtitle != null ? Text(subtitle) : null,
         leading: leading,
+        trailing: trailing,
         onTap: onTap,
       );
     }
