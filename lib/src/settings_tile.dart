@@ -13,6 +13,7 @@ class SettingsTile extends StatelessWidget {
   final VoidCallback onTap;
   final Function(bool value) onToggle;
   final bool switchValue;
+  final bool enabled;
   final _SettingsTileType _tileType;
 
   const SettingsTile({
@@ -21,6 +22,7 @@ class SettingsTile extends StatelessWidget {
     this.subtitle,
     this.leading,
     this.onTap,
+    this.enabled = true,
   })  : _tileType = _SettingsTileType.simple,
         onToggle = null,
         switchValue = null,
@@ -31,6 +33,7 @@ class SettingsTile extends StatelessWidget {
     @required this.title,
     this.subtitle,
     this.leading,
+    this.enabled = true,
     @required this.onToggle,
     @required this.switchValue,
   })  : _tileType = _SettingsTileType.switchTile,
@@ -72,7 +75,8 @@ class SettingsTile extends StatelessWidget {
       return SwitchListTile(
         secondary: leading,
         value: switchValue,
-        onChanged: onToggle,
+        onChanged: enabled ? onToggle : null,
+        selected: enabled,
         title: Text(title),
         subtitle: subtitle != null ? Text(subtitle) : null,
       );
@@ -81,6 +85,7 @@ class SettingsTile extends StatelessWidget {
         title: Text(title),
         subtitle: subtitle != null ? Text(subtitle) : null,
         leading: leading,
+        enabled: enabled,
         onTap: onTap,
       );
     }

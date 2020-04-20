@@ -10,6 +10,7 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   bool lockInBackground = true;
+  bool passwordEnabled = true;
 
   @override
   Widget build(BuildContext context) {
@@ -53,6 +54,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onToggle: (bool value) {
                   setState(() {
                     lockInBackground = value;
+                    passwordEnabled = value;
                   });
                 },
               ),
@@ -63,6 +65,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   switchValue: false),
               SettingsTile.switchTile(
                 title: 'Change password',
+                enabled: passwordEnabled,
                 leading: Icon(Icons.lock),
                 switchValue: true,
                 onToggle: (bool value) {},
