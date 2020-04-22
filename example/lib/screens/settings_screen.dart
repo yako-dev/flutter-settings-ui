@@ -10,7 +10,7 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   bool lockInBackground = true;
-  bool passwordEnabled = true;
+  bool notificationsEnabled = true;
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +54,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onToggle: (bool value) {
                   setState(() {
                     lockInBackground = value;
-                    passwordEnabled = value;
+                    notificationsEnabled = value;
                   });
                 },
               ),
@@ -65,8 +65,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   switchValue: false),
               SettingsTile.switchTile(
                 title: 'Change password',
-                enabled: passwordEnabled,
+                enabled: true,
                 leading: Icon(Icons.lock),
+                switchValue: true,
+                onToggle: (bool value) {},
+              ),
+              SettingsTile.switchTile(
+                title: 'Enable Notifications',
+                enabled: true,
+                leading: Icon(Icons.notifications_active),
+                switchValue: true,
+                onToggle: (bool value) {
+                  setState(() {
+                    notificationsEnabled = value;
+                  });
+                },
+              ),
+              // Change this icon before committing.
+              SettingsTile.switchTile(
+                title: 'Vibrate on notifications',
+                enabled: notificationsEnabled,
+                leading: Icon(Icons.graphic_eq),
                 switchValue: true,
                 onToggle: (bool value) {},
               ),
