@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:settings_ui/src/cupertino_settings_item.dart';
@@ -10,6 +11,7 @@ class SettingsTile extends StatelessWidget {
   final String title;
   final String subtitle;
   final Widget leading;
+  final Widget trailing;
   final VoidCallback onTap;
   final Function(bool value) onToggle;
   final bool switchValue;
@@ -21,6 +23,7 @@ class SettingsTile extends StatelessWidget {
     @required this.title,
     this.subtitle,
     this.leading,
+    this.trailing,
     this.onTap,
     this.enabled = true,
   })  : _tileType = _SettingsTileType.simple,
@@ -34,6 +37,7 @@ class SettingsTile extends StatelessWidget {
     this.subtitle,
     this.leading,
     this.enabled = true,
+    this.trailing,
     @required this.onToggle,
     @required this.switchValue,
   })  : _tileType = _SettingsTileType.switchTile,
@@ -42,7 +46,7 @@ class SettingsTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (Platform.isIOS) {
+    if (kIsWeb || Platform.isIOS) {
       return iosTile();
     } else {
       return androidTile();
@@ -63,7 +67,8 @@ class SettingsTile extends StatelessWidget {
         type: SettingsItemType.modal,
         label: title,
         value: subtitle,
-        hasDetails: true,
+        trailing: trailing,
+        hasDetails: false,
         leading: leading,
         onPress: onTap,
       );
@@ -86,6 +91,7 @@ class SettingsTile extends StatelessWidget {
         subtitle: subtitle != null ? Text(subtitle) : null,
         leading: leading,
         enabled: enabled,
+        trailing: trailing,
         onTap: onTap,
       );
     }

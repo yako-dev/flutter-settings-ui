@@ -18,6 +18,7 @@ class CupertinoSettingsItem extends StatefulWidget {
     @required this.label,
     this.subtitle,
     this.leading,
+    this.trailing,
     this.value,
     this.hasDetails = false,
     this.enabled = true,
@@ -30,6 +31,7 @@ class CupertinoSettingsItem extends StatefulWidget {
   final String label;
   final String subtitle;
   final Widget leading;
+  final Widget trailing;
   final SettingsItemType type;
   final String value;
   final bool hasDetails;
@@ -146,7 +148,17 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
           );
         }
 
-        if (widget.hasDetails) {
+        if (widget.trailing != null) {
+          rightRowChildren.add(
+            Padding(
+              padding: const EdgeInsets.only(
+                top: 0.5,
+                left: 2.25,
+              ),
+              child: widget.trailing,
+            ),
+          );
+        } else {
           rightRowChildren.add(
             Padding(
               padding: const EdgeInsets.only(
