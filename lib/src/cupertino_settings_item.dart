@@ -229,13 +229,13 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
       if (pressed) {
         return iosPressedTileColorLight;
       } else {
-        return Colors.white;
+        return widget.enabled ? Colors.white : CupertinoColors.lightBackgroundGray;
       }
     } else {
       if (pressed) {
         return iosPressedTileColorDark;
       } else {
-        return iosTileDarkColor;
+        return widget.enabled ? iosTileDarkColor : CupertinoColors.darkBackgroundGray;
       }
     }
   }

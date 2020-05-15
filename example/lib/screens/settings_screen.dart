@@ -45,7 +45,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ],
           ),
           SettingsSection(
-            title: 'Secutiry',
+            title: 'Security',
             tiles: [
               SettingsTile.switchTile(
                 title: 'Lock app in background',
@@ -74,14 +74,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 title: 'Enable Notifications',
                 enabled: true,
                 leading: Icon(Icons.notifications_active),
-                switchValue: true,
+                switchValue: notificationsEnabled,
                 onToggle: (bool value) {
                   setState(() {
                     notificationsEnabled = value;
                   });
                 },
               ),
-              // Change this icon before committing.
               SettingsTile.switchTile(
                 title: 'Vibrate on notifications',
                 enabled: notificationsEnabled,
