@@ -21,6 +21,7 @@ class CupertinoSettingsItem extends StatefulWidget {
     this.trailing,
     this.value,
     this.hasDetails = false,
+    this.enabled = true,
     this.onPress,
     this.switchValue = false,
     this.onToggle,
@@ -34,6 +35,7 @@ class CupertinoSettingsItem extends StatefulWidget {
   final SettingsItemType type;
   final String value;
   final bool hasDetails;
+  final bool enabled;
   final PressOperationCallback onPress;
   final bool switchValue;
   final Function(bool value) onToggle;
@@ -78,7 +80,11 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
     if (widget.subtitle == null) {
       titleSection = Padding(
         padding: EdgeInsets.only(top: 1.5),
-        child: Text(widget.label, style: TextStyle(fontSize: 16)),
+        child: Text(widget.label,
+            style: TextStyle(
+              fontSize: 16,
+              color: widget.enabled ? null : CupertinoColors.inactiveGray,
+            )),
       );
     } else {
       titleSection = Column(
@@ -116,10 +122,14 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
             padding: const EdgeInsets.only(right: 11.0),
             child: CupertinoSwitch(
               value: widget.switchValue,
-              activeColor: Theme.of(context).accentColor,
-              onChanged: (bool value) {
-                widget.onToggle(value);
-              },
+              activeColor: widget.enabled
+                  ? Theme.of(context).accentColor
+                  : CupertinoColors.inactiveGray,
+              onChanged: !widget.enabled
+                  ? null
+                  : (bool value) {
+                      widget.onToggle(value);
+                    },
             ),
           ),
         );
@@ -183,24 +193,30 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () {
-        if (widget.onPress != null) {
+        if (widget.onPress != null && widget.enabled) {
           widget.onPress();
         }
       },
       onTapUp: (_) {
-        setState(() {
-          pressed = false;
-        });
+        if (widget.enabled) {
+          setState(() {
+            pressed = false;
+          });
+        }
       },
       onTapDown: (_) {
-        setState(() {
-          pressed = true;
-        });
+        if (widget.enabled) {
+          setState(() {
+            pressed = true;
+          });
+        }
       },
       onTapCancel: () {
-        setState(() {
-          pressed = false;
-        });
+        if (widget.enabled) {
+          setState(() {
+            pressed = false;
+          });
+        }
       },
       child: Container(
         color: calculateBackgroundColor(context),

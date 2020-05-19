@@ -15,6 +15,7 @@ class SettingsTile extends StatelessWidget {
   final VoidCallback onTap;
   final Function(bool value) onToggle;
   final bool switchValue;
+  final bool enabled;
   final _SettingsTileType _tileType;
 
   const SettingsTile({
@@ -24,6 +25,7 @@ class SettingsTile extends StatelessWidget {
     this.leading,
     this.trailing,
     this.onTap,
+    this.enabled = true,
   })  : _tileType = _SettingsTileType.simple,
         onToggle = null,
         switchValue = null,
@@ -34,6 +36,7 @@ class SettingsTile extends StatelessWidget {
     @required this.title,
     this.subtitle,
     this.leading,
+    this.enabled = true,
     this.trailing,
     @required this.onToggle,
     @required this.switchValue,
@@ -53,6 +56,7 @@ class SettingsTile extends StatelessWidget {
   Widget iosTile() {
     if (_tileType == _SettingsTileType.switchTile) {
       return CupertinoSettingsItem(
+        enabled: enabled,
         type: SettingsItemType.toggle,
         label: title,
         leading: leading,
@@ -61,6 +65,7 @@ class SettingsTile extends StatelessWidget {
       );
     } else {
       return CupertinoSettingsItem(
+        enabled: enabled,
         type: SettingsItemType.modal,
         label: title,
         value: subtitle,
@@ -77,7 +82,7 @@ class SettingsTile extends StatelessWidget {
       return SwitchListTile(
         secondary: leading,
         value: switchValue,
-        onChanged: onToggle,
+        onChanged: enabled ? onToggle : null,
         title: Text(title),
         subtitle: subtitle != null ? Text(subtitle) : null,
       );
@@ -86,6 +91,7 @@ class SettingsTile extends StatelessWidget {
         title: Text(title),
         subtitle: subtitle != null ? Text(subtitle) : null,
         leading: leading,
+        enabled: enabled,
         trailing: trailing,
         onTap: onTap,
       );

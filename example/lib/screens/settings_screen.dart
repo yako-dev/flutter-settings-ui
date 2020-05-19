@@ -10,6 +10,7 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   bool lockInBackground = true;
+  bool notificationsEnabled = true;
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +45,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ],
           ),
           SettingsSection(
-            title: 'Secutiry',
+            title: 'Security',
             tiles: [
               SettingsTile.switchTile(
                 title: 'Lock app in background',
@@ -53,6 +54,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onToggle: (bool value) {
                   setState(() {
                     lockInBackground = value;
+                    notificationsEnabled = value;
                   });
                 },
               ),
@@ -66,6 +68,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 leading: Icon(Icons.lock),
                 switchValue: true,
                 onToggle: (bool value) {},
+              ),
+              SettingsTile.switchTile(
+                title: 'Enable Notifications',
+                enabled: notificationsEnabled,
+                leading: Icon(Icons.notifications_active),
+                switchValue: true,
+                onToggle: (value) {},
               ),
             ],
           ),
