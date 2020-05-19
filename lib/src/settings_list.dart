@@ -4,15 +4,20 @@ import 'package:settings_ui/src/settings_section.dart';
 
 class SettingsList extends StatelessWidget {
   final List<SettingsSection> sections;
+  final Color backgroundColor;
 
-  const SettingsList({Key key, this.sections}) : super(key: key);
+  const SettingsList({
+    Key key,
+    this.sections,
+    this.backgroundColor,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Container(
       color: Theme.of(context).brightness == Brightness.light
           ? backgroundGray
-          : Colors.black,
+          : backgroundColor ?? Colors.black,
       child: ListView.builder(
         itemCount: sections.length,
         itemBuilder: (context, index) {
