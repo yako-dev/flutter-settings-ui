@@ -83,7 +83,6 @@ class SettingsTile extends StatelessWidget {
         secondary: leading,
         value: switchValue,
         onChanged: enabled ? onToggle : null,
-        selected: enabled,
         title: Text(title),
         subtitle: subtitle != null ? Text(subtitle) : null,
       );

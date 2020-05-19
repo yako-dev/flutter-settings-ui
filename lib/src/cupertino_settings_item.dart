@@ -80,7 +80,11 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
     if (widget.subtitle == null) {
       titleSection = Padding(
         padding: EdgeInsets.only(top: 1.5),
-        child: Text(widget.label, style: TextStyle(fontSize: 16)),
+        child: Text(widget.label,
+            style: TextStyle(
+              fontSize: 16,
+              color: widget.enabled ? null : CupertinoColors.inactiveGray,
+            )),
       );
     } else {
       titleSection = Column(
@@ -229,13 +233,13 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
       if (pressed) {
         return iosPressedTileColorLight;
       } else {
-        return widget.enabled ? Colors.white : CupertinoColors.lightBackgroundGray;
+        return Colors.white;
       }
     } else {
       if (pressed) {
         return iosPressedTileColorDark;
       } else {
-        return widget.enabled ? iosTileDarkColor : CupertinoColors.darkBackgroundGray;
+        return iosTileDarkColor;
       }
     }
   }

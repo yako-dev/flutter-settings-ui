@@ -65,28 +65,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   switchValue: false),
               SettingsTile.switchTile(
                 title: 'Change password',
-                enabled: true,
                 leading: Icon(Icons.lock),
                 switchValue: true,
                 onToggle: (bool value) {},
               ),
               SettingsTile.switchTile(
                 title: 'Enable Notifications',
-                enabled: true,
-                leading: Icon(Icons.notifications_active),
-                switchValue: notificationsEnabled,
-                onToggle: (bool value) {
-                  setState(() {
-                    notificationsEnabled = value;
-                  });
-                },
-              ),
-              SettingsTile.switchTile(
-                title: 'Vibrate on notifications',
                 enabled: notificationsEnabled,
-                leading: Icon(Icons.graphic_eq),
+                leading: Icon(Icons.notifications_active),
                 switchValue: true,
-                onToggle: (bool value) {},
+                onToggle: (value) {},
               ),
             ],
           ),
