@@ -81,6 +81,7 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
       titleSection = Padding(
         padding: EdgeInsets.only(top: 1.5),
         child: Text(widget.label,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               fontSize: 16,
               color: widget.enabled ? null : CupertinoColors.inactiveGray,
