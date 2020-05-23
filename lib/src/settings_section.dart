@@ -10,12 +10,14 @@ import 'package:settings_ui/src/settings_tile.dart';
 class SettingsSection extends StatelessWidget {
   final String title;
   final List<SettingsTile> tiles;
+  final TextStyle titleTextStyle;
   bool showBottomDivider = false;
 
   SettingsSection({
     Key key,
     this.tiles,
     this.title,
+    this.titleTextStyle,
   }) : super(key: key);
 
   @override
@@ -29,8 +31,15 @@ class SettingsSection extends StatelessWidget {
   }
 
   Widget iosSection() {
-    return CupertinoSettingsSection(tiles,
-        header: title == null ? null : Text(title));
+    return CupertinoSettingsSection(
+      tiles,
+      header: title == null
+          ? null
+          : Text(
+              title,
+              style: titleTextStyle,
+            ),
+    );
   }
 
   Widget androidSection(BuildContext context) {
@@ -41,9 +50,11 @@ class SettingsSection extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               child: Text(
                 title,
-                style: TextStyle(
-                    color: Theme.of(context).accentColor,
-                    fontWeight: FontWeight.bold),
+                style: titleTextStyle ??
+                    TextStyle(
+                      color: Theme.of(context).accentColor,
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
             ),
       ListView.separated(
