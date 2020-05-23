@@ -17,15 +17,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Scaffold(
       appBar: AppBar(title: Text('Settings UI')),
       body: SettingsList(
-        backgroundColor: Colors.orange,
+        // backgroundColor: Colors.orange,
         sections: [
           SettingsSection(
             title: 'Common',
+            // titleTextStyle: TextStyle(fontSize: 30),
             tiles: [
               SettingsTile(
                 title: 'Language',
                 subtitle: 'English',
                 leading: Icon(Icons.language),
+                titleTextStyle: TextStyle(fontSize: 20),
+                subtitleTextStyle: TextStyle(color: Colors.green),
                 onTap: () {
                   Navigator.of(context).push(MaterialPageRoute(
                       builder: (BuildContext context) => LanguagesScreen()));
@@ -52,6 +55,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 title: 'Lock app in background',
                 leading: Icon(Icons.phonelink_lock),
                 switchValue: lockInBackground,
+                switchActiveColor: Colors.green,
                 onToggle: (bool value) {
                   setState(() {
                     lockInBackground = value;
