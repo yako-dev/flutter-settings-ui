@@ -14,10 +14,12 @@ class SettingsList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final fallbackColor = Theme.of(context).brightness == Brightness.light
+        ? backgroundGray
+        : Colors.black;
+
     return Container(
-      color: Theme.of(context).brightness == Brightness.light
-          ? backgroundGray
-          : backgroundColor ?? Colors.black,
+      color: backgroundColor ?? fallbackColor,
       child: ListView.builder(
         itemCount: sections.length,
         itemBuilder: (context, index) {
