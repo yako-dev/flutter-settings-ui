@@ -195,8 +195,20 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
       behavior: HitTestBehavior.opaque,
       onTap: () {
         if (widget.onPress != null && widget.enabled) {
+          setState(() {
+            pressed = true;
+          });
+          
           widget.onPress();
+          
+          Future.delayed(const Duration(milliseconds: 100), () {
+            setState(() {
+              pressed = false;
+            });
+          });
         }
+
+
       },
       onTapUp: (_) {
         if (widget.enabled) {
