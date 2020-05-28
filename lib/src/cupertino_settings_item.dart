@@ -54,9 +54,12 @@ class CupertinoSettingsItem extends StatefulWidget {
 
 class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
   bool pressed = false;
+  bool _checked;
 
   @override
   Widget build(BuildContext context) {
+    _checked = widget.switchValue;
+    
     final ThemeData theme = Theme.of(context);
     final ListTileTheme tileTheme = ListTileTheme.of(context);
     IconThemeData iconThemeData;
@@ -90,10 +93,11 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
         padding: EdgeInsets.only(top: 1.5),
         child: Text(widget.label,
             overflow: TextOverflow.ellipsis,
-            style: widget.labelTextStyle ?? TextStyle(
-              fontSize: 16,
-              color: widget.enabled ? null : CupertinoColors.inactiveGray,
-            )),
+            style: widget.labelTextStyle ??
+                TextStyle(
+                  fontSize: 16,
+                  color: widget.enabled ? null : CupertinoColors.inactiveGray,
+                )),
       );
     } else {
       titleSection = Column(
@@ -104,10 +108,11 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
           const Padding(padding: EdgeInsets.only(top: 4.0)),
           Text(
             widget.subtitle,
-            style: widget.subtitleTextStyle ?? TextStyle(
-              fontSize: 12.0,
-              letterSpacing: -0.2,
-            ),
+            style: widget.subtitleTextStyle ??
+                TextStyle(
+                  fontSize: 12.0,
+                  letterSpacing: -0.2,
+                ),
           )
         ],
       );
@@ -154,8 +159,9 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
               ),
               child: Text(
                 widget.value,
-                style: widget.valueTextStyle ?? TextStyle(
-                    color: CupertinoColors.inactiveGray, fontSize: 16),
+                style: widget.valueTextStyle ??
+                    TextStyle(
+                        color: CupertinoColors.inactiveGray, fontSize: 16),
               ),
             ),
           );
@@ -204,6 +210,12 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
       onTap: () {
         if (widget.onPress != null && widget.enabled) {
           widget.onPress();
+        }
+        if (widget.type == SettingsItemType.toggle) {
+          setState(() {
+            _checked = !_checked;
+            widget.onToggle(_checked);
+          });
         }
       },
       onTapUp: (_) {
