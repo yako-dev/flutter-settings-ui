@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -59,12 +57,16 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
   @override
   Widget build(BuildContext context) {
     _checked = widget.switchValue;
-    
+
     final ThemeData theme = Theme.of(context);
     final ListTileTheme tileTheme = ListTileTheme.of(context);
     IconThemeData iconThemeData;
     if (widget.leading != null)
-      iconThemeData = IconThemeData(color: _iconColor(theme, tileTheme));
+      iconThemeData = IconThemeData(
+        color: widget.enabled
+            ? _iconColor(theme, tileTheme)
+            : CupertinoColors.inactiveGray,
+      );
 
     Widget leadingIcon;
     if (widget.leading != null) {
