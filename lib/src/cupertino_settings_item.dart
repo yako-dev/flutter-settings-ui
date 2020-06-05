@@ -8,7 +8,7 @@ enum SettingsItemType {
   modal,
 }
 
-typedef Future<void> PressOperationCallback();
+typedef void PressOperationCallback();
 
 class CupertinoSettingsItem extends StatefulWidget {
   const CupertinoSettingsItem({
