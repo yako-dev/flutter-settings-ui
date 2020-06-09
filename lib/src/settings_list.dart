@@ -16,7 +16,7 @@ class SettingsList extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: Theme.of(context).brightness == Brightness.light
-          ? backgroundGray
+          ? backgroundColor ?? backgroundGray
           : backgroundColor ?? Colors.black,
       child: ListView.builder(
         itemCount: sections.length,
