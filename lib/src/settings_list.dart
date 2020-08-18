@@ -7,6 +7,8 @@ class SettingsList extends StatelessWidget {
   final ScrollPhysics physics;
   final List<SettingsSection> sections;
   final Color backgroundColor;
+  final Color lightBackgroundColor;
+  final Color darkBackgroundColor;
 
   const SettingsList({
     Key key,
@@ -14,14 +16,16 @@ class SettingsList extends StatelessWidget {
     this.backgroundColor,
     this.physics,
     this.shrinkWrap,
+    this.lightBackgroundColor,
+    this.darkBackgroundColor,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Container(
       color: Theme.of(context).brightness == Brightness.light
-          ? backgroundGray
-          : backgroundColor ?? Colors.black,
+          ? backgroundColor ?? lightBackgroundColor ?? backgroundGray
+          : backgroundColor ?? darkBackgroundColor ?? Colors.black,
       child: ListView.builder(
         physics: physics,
         shrinkWrap: shrinkWrap,
