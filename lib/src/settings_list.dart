@@ -15,7 +15,7 @@ class SettingsList extends StatelessWidget {
     this.sections,
     this.backgroundColor,
     this.physics,
-    this.shrinkWrap,
+    this.shrinkWrap = false,
     this.lightBackgroundColor,
     this.darkBackgroundColor,
   }) : super(key: key);

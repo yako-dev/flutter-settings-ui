@@ -4,12 +4,14 @@ import 'package:flutter/material.dart';
 
 import 'screens/settings_screen.dart';
 
-void main() => runApp(
-      DevicePreview(
-        enabled: !kReleaseMode,
-        builder: (context) => MyApp(),
-      ),
-    );
+void main() {
+  runApp(
+    DevicePreview(
+      enabled: kIsWeb ? false : !kReleaseMode,
+      builder: (_) => MyApp(),
+    ),
+  );
+}
 
 class MyApp extends StatelessWidget {
   @override
