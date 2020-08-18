@@ -16,6 +16,9 @@ class SettingsTile extends StatelessWidget {
   final Function(bool value) onToggle;
   final bool switchValue;
   final bool enabled;
+  final TextStyle titleTextStyle;
+  final TextStyle subtitleTextStyle;
+  final Color switchActiveColor;
   final _SettingsTileType _tileType;
 
   const SettingsTile({
@@ -25,7 +28,10 @@ class SettingsTile extends StatelessWidget {
     this.leading,
     this.trailing,
     this.onTap,
+    this.titleTextStyle,
+    this.subtitleTextStyle,
     this.enabled = true,
+    this.switchActiveColor,
   })  : _tileType = _SettingsTileType.simple,
         onToggle = null,
         switchValue = null,
@@ -40,6 +46,9 @@ class SettingsTile extends StatelessWidget {
     this.trailing,
     @required this.onToggle,
     @required this.switchValue,
+    this.titleTextStyle,
+    this.subtitleTextStyle,
+    this.switchActiveColor,
   })  : _tileType = _SettingsTileType.switchTile,
         onTap = null,
         super(key: key);
@@ -62,6 +71,10 @@ class SettingsTile extends StatelessWidget {
         leading: leading,
         switchValue: switchValue,
         onToggle: onToggle,
+        labelTextStyle: titleTextStyle,
+        switchActiveColor: switchActiveColor,
+        subtitleTextStyle: subtitleTextStyle,
+        valueTextStyle: subtitleTextStyle,
       );
     } else {
       return CupertinoSettingsItem(
@@ -73,6 +86,9 @@ class SettingsTile extends StatelessWidget {
         hasDetails: false,
         leading: leading,
         onPress: onTap,
+        labelTextStyle: titleTextStyle,
+        subtitleTextStyle: subtitleTextStyle,
+        valueTextStyle: subtitleTextStyle,
       );
     }
   }
@@ -82,14 +98,17 @@ class SettingsTile extends StatelessWidget {
       return SwitchListTile(
         secondary: leading,
         value: switchValue,
+        activeColor: switchActiveColor,
         onChanged: enabled ? onToggle : null,
-        title: Text(title),
-        subtitle: subtitle != null ? Text(subtitle) : null,
+        title: Text(title, style: titleTextStyle),
+        subtitle:
+            subtitle != null ? Text(subtitle, style: subtitleTextStyle) : null,
       );
     } else {
       return ListTile(
-        title: Text(title),
-        subtitle: subtitle != null ? Text(subtitle) : null,
+        title: Text(title, style: titleTextStyle),
+        subtitle:
+            subtitle != null ? Text(subtitle, style: subtitleTextStyle) : null,
         leading: leading,
         enabled: enabled,
         trailing: trailing,
