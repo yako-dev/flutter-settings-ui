@@ -194,8 +194,21 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () {
-        if (widget.onPress != null && widget.enabled) {
-          widget.onPress();
+        if ((widget.onPress != null || widget.onToggle != null) &&
+            widget.enabled) {
+          setState(() {
+            pressed = true;
+          });
+
+          if (widget.onPress != null) {
+            widget.onPress();
+          }
+
+          Future.delayed(const Duration(milliseconds: 100), () {
+            setState(() {
+              pressed = false;
+            });
+          });
         }
       },
       onTapUp: (_) {
