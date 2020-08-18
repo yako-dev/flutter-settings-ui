@@ -1,3 +1,10 @@
+## [0.4.0] - [August 18, 2020]
+
+* Custom colors support for SettingsList
+* Allow physics and shrinkWrap on SettingsList
+* CupertinoSettingsItemButton ripple effect
+* Device preview disabled for Flutter Web 
+
 ## [0.3.0] - [May 19, 2020]
 
 * Change background color for dark theme in SettingsList with backgroundColor attribute.
