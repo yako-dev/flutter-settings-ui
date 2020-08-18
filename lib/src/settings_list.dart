@@ -3,6 +3,8 @@ import 'package:settings_ui/src/colors.dart';
 import 'package:settings_ui/src/settings_section.dart';
 
 class SettingsList extends StatelessWidget {
+  final bool shrinkWrap;
+  final ScrollPhysics physics;
   final List<SettingsSection> sections;
   final Color backgroundColor;
   final Color lightBackgroundColor;
@@ -12,6 +14,8 @@ class SettingsList extends StatelessWidget {
     Key key,
     this.sections,
     this.backgroundColor,
+    this.physics,
+    this.shrinkWrap,
     this.lightBackgroundColor,
     this.darkBackgroundColor,
   }) : super(key: key);
@@ -23,6 +27,8 @@ class SettingsList extends StatelessWidget {
           ? backgroundColor ?? lightBackgroundColor ?? backgroundGray
           : backgroundColor ?? darkBackgroundColor ?? Colors.black,
       child: ListView.builder(
+        physics: physics,
+        shrinkWrap: shrinkWrap,
         itemCount: sections.length,
         itemBuilder: (context, index) {
           SettingsSection current = sections[index];
