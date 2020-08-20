@@ -3,22 +3,21 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:settings_ui/src/abstract_section.dart';
 import 'package:settings_ui/src/cupertino_settings_section.dart';
 import 'package:settings_ui/src/settings_tile.dart';
 
 // ignore: must_be_immutable
-class SettingsSection extends StatelessWidget {
-  final String title;
+class SettingsSection extends AbstractSection {
   final List<SettingsTile> tiles;
   final TextStyle titleTextStyle;
-  bool showBottomDivider = false;
 
   SettingsSection({
     Key key,
+    String title,
     this.tiles,
-    this.title,
     this.titleTextStyle,
-  }) : super(key: key);
+  }) : super(key: key, title: title);
 
   @override
   Widget build(BuildContext context) {
@@ -33,12 +32,7 @@ class SettingsSection extends StatelessWidget {
   Widget iosSection() {
     return CupertinoSettingsSection(
       tiles,
-      header: title == null
-          ? null
-          : Text(
-              title,
-              style: titleTextStyle,
-            ),
+      header: title == null ? null : Text(title, style: titleTextStyle),
     );
   }
 

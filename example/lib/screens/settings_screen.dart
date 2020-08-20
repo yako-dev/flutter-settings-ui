@@ -27,17 +27,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 title: 'Language',
                 subtitle: 'English',
                 leading: Icon(Icons.language),
-                titleTextStyle: TextStyle(fontSize: 20),
-                subtitleTextStyle: TextStyle(color: Colors.green),
                 onTap: () {
                   Navigator.of(context).push(MaterialPageRoute(
                       builder: (BuildContext context) => LanguagesScreen()));
                 },
               ),
               SettingsTile(
-                  title: 'Environment',
-                  subtitle: 'Production',
-                  leading: Icon(Icons.cloud_queue)),
+                title: 'Environment',
+                subtitle: 'Production',
+                leading: Icon(Icons.cloud_queue),
+                onTap: () => print('e'),
+              ),
             ],
           ),
           SettingsSection(
@@ -55,7 +55,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 title: 'Lock app in background',
                 leading: Icon(Icons.phonelink_lock),
                 switchValue: lockInBackground,
-                switchActiveColor: Colors.green,
                 onToggle: (bool value) {
                   setState(() {
                     lockInBackground = value;
@@ -92,7 +91,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   title: 'Open source licenses',
                   leading: Icon(Icons.collections_bookmark)),
             ],
-          )
+          ),
+          CustomSection(
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(top: 22, bottom: 8),
+                  child: Image.asset(
+                    'assets/settings.png',
+                    height: 50,
+                    width: 50,
+                    color: Color(0xFF777777),
+                  ),
+                ),
+                Text(
+                  'Version: 2.4.0 (287)',
+                  style: TextStyle(color: Color(0xFF777777)),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
