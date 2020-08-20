@@ -1,9 +1,10 @@
-## [0.4.0] - [August 18, 2020]
+## [0.4.0] - [August 21, 2020]
 
 * Custom colors support for SettingsList
 * Allow physics and shrinkWrap on SettingsList
 * CupertinoSettingsItemButton ripple effect
 * Device preview disabled for Flutter Web 
+* CustomSection implementation (possibility to add your own widget)
 
 ## [0.3.0] - [May 19, 2020]
 
