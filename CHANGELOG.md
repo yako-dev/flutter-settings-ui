@@ -1,3 +1,7 @@
+## [0.4.1] - [August 21, 2020]
+
+* Use Target Platform to determine which Settings UI to show
+
 ## [0.4.0] - [August 21, 2020]
 
 * Custom colors support for SettingsList
