@@ -1,7 +1,3 @@
-## [0.4.1] - [August 21, 2020]
-
-* Use Target Platform to determine which Settings UI to show
-
 ## [0.4.0] - [August 21, 2020]
 
 * Custom colors support for SettingsList
@@ -9,6 +5,7 @@
 * CupertinoSettingsItemButton ripple effect
 * Device preview disabled for Flutter Web 
 * CustomSection implementation (possibility to add your own widget)
+* Use Target Platform to determine which Settings UI to show
 
 ## [0.3.0] - [May 19, 2020]
 
