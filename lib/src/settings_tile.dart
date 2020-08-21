@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:settings_ui/src/cupertino_settings_item.dart';
+import 'package:settings_ui/src/extensions.dart';
 
 enum _SettingsTileType { simple, switchTile }
 
@@ -55,7 +56,8 @@ class SettingsTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (kIsWeb || Platform.isIOS) {
+    TargetPlatform platform = Theme.of(context).platform;
+    if (platform.isIOS) {
       return iosTile();
     } else {
       return androidTile();

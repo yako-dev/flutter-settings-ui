@@ -6,6 +6,7 @@ import 'package:flutter/widgets.dart';
 import 'package:settings_ui/src/abstract_section.dart';
 import 'package:settings_ui/src/cupertino_settings_section.dart';
 import 'package:settings_ui/src/settings_tile.dart';
+import 'package:settings_ui/src/extensions.dart';
 
 // ignore: must_be_immutable
 class SettingsSection extends AbstractSection {
@@ -21,9 +22,10 @@ class SettingsSection extends AbstractSection {
 
   @override
   Widget build(BuildContext context) {
-    if (kIsWeb || Platform.isIOS)
+    TargetPlatform platform = Theme.of(context).platform;
+    if (platform.isIOS)
       return iosSection();
-    else if (Platform.isAndroid)
+    else if (platform.isAndroid)
       return androidSection(context);
     else
       return androidSection(context);
