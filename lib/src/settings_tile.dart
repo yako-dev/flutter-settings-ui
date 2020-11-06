@@ -21,6 +21,7 @@ class SettingsTile extends StatelessWidget {
   final TextStyle subtitleTextStyle;
   final Color switchActiveColor;
   final _SettingsTileType _tileType;
+  final Color inactiveTrackColor;
 
   const SettingsTile({
     Key key,
@@ -50,6 +51,7 @@ class SettingsTile extends StatelessWidget {
     this.titleTextStyle,
     this.subtitleTextStyle,
     this.switchActiveColor,
+    this.inactiveTrackColor,
   })  : _tileType = _SettingsTileType.switchTile,
         onTap = null,
         super(key: key);
@@ -105,6 +107,7 @@ class SettingsTile extends StatelessWidget {
         title: Text(title, style: titleTextStyle),
         subtitle:
             subtitle != null ? Text(subtitle, style: subtitleTextStyle) : null,
+        inactiveTrackColor: inactiveTrackColor,
       );
     } else {
       return ListTile(
