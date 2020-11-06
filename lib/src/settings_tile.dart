@@ -34,6 +34,7 @@ class SettingsTile extends StatelessWidget {
     this.subtitleTextStyle,
     this.enabled = true,
     this.switchActiveColor,
+    this.inactiveTrackColor,
   })  : _tileType = _SettingsTileType.simple,
         onToggle = null,
         switchValue = null,
