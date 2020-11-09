@@ -27,6 +27,7 @@ class CupertinoSettingsItem extends StatefulWidget {
     this.subtitleTextStyle,
     this.valueTextStyle,
     this.switchActiveColor,
+    this.switchInactiveColor,
   })  : assert(label != null),
         assert(type != null);
 
@@ -45,6 +46,7 @@ class CupertinoSettingsItem extends StatefulWidget {
   final TextStyle subtitleTextStyle;
   final TextStyle valueTextStyle;
   final Color switchActiveColor;
+  final Color switchInactiveColor;
 
   @override
   State<StatefulWidget> createState() => new CupertinoSettingsItemState();
@@ -140,7 +142,7 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
               value: widget.switchValue,
               activeColor: widget.enabled
                   ? (widget.switchActiveColor ?? Theme.of(context).accentColor)
-                  : CupertinoColors.inactiveGray,
+                  : (widget.switchInactiveColor ?? CupertinoColors.inactiveGray),
               onChanged: !widget.enabled
                   ? null
                   : (bool value) {
