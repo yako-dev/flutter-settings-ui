@@ -78,6 +78,7 @@ class SettingsTile extends StatelessWidget {
         onToggle: onToggle,
         labelTextStyle: titleTextStyle,
         switchActiveColor: switchActiveColor,
+        switchInactiveColor: inactiveTrackColor,
         subtitleTextStyle: subtitleTextStyle,
         valueTextStyle: subtitleTextStyle,
       );
