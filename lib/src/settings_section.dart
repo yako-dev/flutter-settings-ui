@@ -58,7 +58,7 @@ class SettingsSection extends AbstractSection {
         shrinkWrap: true,
         itemCount: tiles.length,
         separatorBuilder: (BuildContext context, int index) =>
-            Divider(height: 1),
+            Divider(color: Colors.white38),
         itemBuilder: (BuildContext context, int index) {
           return tiles[index];
         },
