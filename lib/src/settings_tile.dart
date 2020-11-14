@@ -101,25 +101,35 @@ class SettingsTile extends StatelessWidget {
 
   Widget androidTile() {
     if (_tileType == _SettingsTileType.switchTile) {
-      return SwitchListTile(
-        secondary: leading,
-        value: switchValue,
-        activeColor: switchActiveColor,
-        onChanged: enabled ? onToggle : null,
-        title: Text(title, style: titleTextStyle),
-        subtitle:
-            subtitle != null ? Text(subtitle, style: subtitleTextStyle) : null,
-        inactiveTrackColor: inactiveTrackColor,
-      );
+      return InkWell(
+          onTap: onTap,
+          focusColor: Colors.white24,
+          child: SwitchListTile(
+            secondary: leading,
+            value: switchValue,
+            activeColor: switchActiveColor,
+            onChanged: enabled ? onToggle : null,
+            title: Text(title, style: titleTextStyle),
+            subtitle: subtitle != null ? Text(
+                subtitle, style: subtitleTextStyle) : null,
+            inactiveTrackColor: inactiveTrackColor,
+          ));
     } else {
-      return ListTile(
-        title: Text(title, style: titleTextStyle),
-        subtitle:
-            subtitle != null ? Text(subtitle, style: subtitleTextStyle) : null,
-        leading: leading,
-        enabled: enabled,
-        trailing: trailing,
+      return InkWell(
         onTap: onTap,
+        focusColor: Colors.white24,
+        child: ListTile(
+          title: Text(title, style: titleTextStyle),
+          subtitle: subtitle != null
+              ? Text(subtitle, style: subtitleTextStyle)
+              : null,
+          leading: leading,
+          enabled: enabled,
+          trailing: trailing,
+          hoverColor: Colors.white24,
+          focusColor: Colors.white24,
+          //onTap: onTap,
+        ),
       );
     }
   }
