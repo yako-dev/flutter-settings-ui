@@ -43,7 +43,7 @@ class SettingsSection extends AbstractSection {
       title == null
           ? Container()
           : Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(72,16,16,16),
               child: Text(
                 title,
                 style: titleTextStyle ??
@@ -53,17 +53,15 @@ class SettingsSection extends AbstractSection {
                     ),
               ),
             ),
-      ListView.separated(
+      ListView.builder(
         physics: NeverScrollableScrollPhysics(),
         shrinkWrap: true,
         itemCount: tiles.length,
-        separatorBuilder: (BuildContext context, int index) =>
-            Divider(color: Colors.white38),
         itemBuilder: (BuildContext context, int index) {
           return tiles[index];
         },
       ),
-      if (showBottomDivider) Divider(height: 1)
+      if (!showBottomDivider) Divider(color: Colors.white38),
     ]);
   }
 }
