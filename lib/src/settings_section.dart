@@ -12,11 +12,15 @@ import 'defines.dart';
 class SettingsSection extends AbstractSection {
   final List<SettingsTile> tiles;
   final TextStyle titleTextStyle;
+  final Widget subtitle;
+  final EdgeInsetsGeometry subtitlePadding;
 
   SettingsSection({
     Key key,
     String title,
     EdgeInsetsGeometry titlePadding = defaultTitlePadding,
+    this.subtitle,
+    this.subtitlePadding = defaultTitlePadding,
     this.tiles,
     this.titleTextStyle,
   })  : assert(titlePadding != null),
@@ -37,26 +41,42 @@ class SettingsSection extends AbstractSection {
   Widget iosSection() {
     return CupertinoSettingsSection(
       tiles,
-      header: title == null ? null : Text(title, style: titleTextStyle),
+      header: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (title != null) Text(title, style: titleTextStyle),
+          if (subtitle != null)
+            Padding(
+              padding: subtitlePadding,
+              child: subtitle,
+            ),
+        ],
+      ),
       headerPadding: titlePadding,
     );
   }
 
   Widget androidSection(BuildContext context) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      title == null
-          ? const SizedBox.shrink()
-          : Padding(
-              padding: titlePadding,
-              child: Text(
-                title,
-                style: titleTextStyle ??
-                    TextStyle(
-                      color: Theme.of(context).accentColor,
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-            ),
+      if (title != null)
+        Padding(
+          padding: titlePadding,
+          child: Text(
+            title,
+            style: titleTextStyle ??
+                TextStyle(
+                  color: Theme.of(context).accentColor,
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+        ),
+      if (subtitle != null)
+        Padding(
+          padding: subtitlePadding,
+          child: subtitle,
+        ),
       ListView.separated(
         physics: NeverScrollableScrollPhysics(),
         shrinkWrap: true,
