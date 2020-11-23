@@ -31,11 +31,9 @@ class SettingsSection extends AbstractSection {
     final platform = Theme.of(context).platform;
     if (platform.isIOS(context)) {
       return iosSection();
-    }
-    if (platform.isAndroid(context)) {
+    } else {
       return androidSection(context);
     }
-    return androidSection(context);
   }
 
   Widget iosSection() {

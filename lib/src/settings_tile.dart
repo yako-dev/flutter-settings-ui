@@ -57,8 +57,9 @@ class SettingsTile extends StatelessWidget {
     final platform = Theme.of(context).platform;
     if (platform.isIOS(context)) {
       return iosTile();
+    } else {
+      return androidTile();
     }
-    return androidTile();
   }
 
   Widget iosTile() {
