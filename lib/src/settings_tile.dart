@@ -8,7 +8,9 @@ enum _SettingsTileType { simple, switchTile }
 
 class SettingsTile extends StatelessWidget {
   final String title;
+  final int titleMaxLines;
   final String subtitle;
+  final int subtitleMaxLines;
   final Widget leading;
   final Widget trailing;
   final VoidCallback onTap;
@@ -23,7 +25,9 @@ class SettingsTile extends StatelessWidget {
   const SettingsTile({
     Key key,
     @required this.title,
+    this.titleMaxLines,
     this.subtitle,
+    this.subtitleMaxLines,
     this.leading,
     this.trailing,
     this.onTap,
@@ -34,12 +38,16 @@ class SettingsTile extends StatelessWidget {
   })  : _tileType = _SettingsTileType.simple,
         onToggle = null,
         switchValue = null,
+        assert(titleMaxLines == null || titleMaxLines > 0),
+        assert(subtitleMaxLines == null || subtitleMaxLines > 0),
         super(key: key);
 
   const SettingsTile.switchTile({
     Key key,
     @required this.title,
+    this.titleMaxLines,
     this.subtitle,
+    this.subtitleMaxLines,
     this.leading,
     this.enabled = true,
     this.trailing,
@@ -50,6 +58,8 @@ class SettingsTile extends StatelessWidget {
     this.switchActiveColor,
   })  : _tileType = _SettingsTileType.switchTile,
         onTap = null,
+        assert(titleMaxLines == null || titleMaxLines > 0),
+        assert(subtitleMaxLines == null || subtitleMaxLines > 0),
         super(key: key);
 
   @override
@@ -68,6 +78,7 @@ class SettingsTile extends StatelessWidget {
         enabled: enabled,
         type: SettingsItemType.toggle,
         label: title,
+        labelMaxLines: titleMaxLines,
         leading: leading,
         switchValue: switchValue,
         onToggle: onToggle,
@@ -81,7 +92,9 @@ class SettingsTile extends StatelessWidget {
         enabled: enabled,
         type: SettingsItemType.modal,
         label: title,
+        labelMaxLines: titleMaxLines,
         value: subtitle,
+        subtitleMaxLines: subtitleMaxLines,
         trailing: trailing,
         hasDetails: false,
         leading: leading,
@@ -100,15 +113,32 @@ class SettingsTile extends StatelessWidget {
         value: switchValue,
         activeColor: switchActiveColor,
         onChanged: enabled ? onToggle : null,
-        title: Text(title, style: titleTextStyle),
-        subtitle:
-            subtitle != null ? Text(subtitle, style: subtitleTextStyle) : null,
+        title: Text(
+          title,
+          style: titleTextStyle,
+          maxLines: titleMaxLines,
+          overflow: TextOverflow.ellipsis,
+        ),
+        subtitle: subtitle != null
+            ? Text(
+                subtitle,
+                style: subtitleTextStyle,
+                maxLines: subtitleMaxLines,
+                overflow: TextOverflow.ellipsis,
+              )
+            : null,
       );
     } else {
       return ListTile(
         title: Text(title, style: titleTextStyle),
-        subtitle:
-            subtitle != null ? Text(subtitle, style: subtitleTextStyle) : null,
+        subtitle: subtitle != null
+            ? Text(
+                subtitle,
+                style: subtitleTextStyle,
+                maxLines: subtitleMaxLines,
+                overflow: TextOverflow.ellipsis,
+              )
+            : null,
         leading: leading,
         enabled: enabled,
         trailing: trailing,

@@ -12,6 +12,7 @@ import 'defines.dart';
 class SettingsSection extends AbstractSection {
   final List<SettingsTile> tiles;
   final TextStyle titleTextStyle;
+  final int maxLines;
   final Widget subtitle;
   final EdgeInsetsGeometry subtitlePadding;
 
@@ -19,11 +20,13 @@ class SettingsSection extends AbstractSection {
     Key key,
     String title,
     EdgeInsetsGeometry titlePadding = defaultTitlePadding,
+    this.maxLines,
     this.subtitle,
     this.subtitlePadding = defaultTitlePadding,
     this.tiles,
     this.titleTextStyle,
   })  : assert(titlePadding != null),
+        assert(maxLines == null || maxLines > 0),
         super(key: key, title: title, titlePadding: titlePadding);
 
   @override
@@ -44,7 +47,13 @@ class SettingsSection extends AbstractSection {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (title != null) Text(title, style: titleTextStyle),
+          if (title != null)
+            Text(
+              title,
+              style: titleTextStyle,
+              maxLines: maxLines,
+              overflow: TextOverflow.ellipsis,
+            ),
           if (subtitle != null)
             Padding(
               padding: subtitlePadding,
@@ -68,6 +77,8 @@ class SettingsSection extends AbstractSection {
                   color: Theme.of(context).accentColor,
                   fontWeight: FontWeight.bold,
                 ),
+            maxLines: maxLines,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       if (subtitle != null)
