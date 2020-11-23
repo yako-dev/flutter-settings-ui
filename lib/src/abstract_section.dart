@@ -6,6 +6,7 @@ import 'package:flutter/widgets.dart';
 abstract class AbstractSection extends StatelessWidget {
   bool showBottomDivider = false;
   final String title;
+  final EdgeInsetsGeometry titlePadding;
 
-  AbstractSection({Key key, this.title}) : super(key: key);
+  AbstractSection({Key key, this.title, this.titlePadding}) : super(key: key);
 }

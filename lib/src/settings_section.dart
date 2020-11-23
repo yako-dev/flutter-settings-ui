@@ -6,6 +6,8 @@ import 'package:settings_ui/src/cupertino_settings_section.dart';
 import 'package:settings_ui/src/settings_tile.dart';
 import 'package:settings_ui/src/extensions.dart';
 
+import 'defines.dart';
+
 // ignore: must_be_immutable
 class SettingsSection extends AbstractSection {
   final List<SettingsTile> tiles;
@@ -14,9 +16,11 @@ class SettingsSection extends AbstractSection {
   SettingsSection({
     Key key,
     String title,
+    EdgeInsetsGeometry titlePadding = defaultTitlePadding,
     this.tiles,
     this.titleTextStyle,
-  }) : super(key: key, title: title);
+  })  : assert(titlePadding != null),
+        super(key: key, title: title, titlePadding: titlePadding);
 
   @override
   Widget build(BuildContext context) {
@@ -33,15 +37,16 @@ class SettingsSection extends AbstractSection {
     return CupertinoSettingsSection(
       tiles,
       header: title == null ? null : Text(title, style: titleTextStyle),
+      headerPadding: titlePadding,
     );
   }
 
   Widget androidSection(BuildContext context) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       title == null
-          ? Container()
+          ? const SizedBox.shrink()
           : Padding(
-              padding: const EdgeInsets.all(16),
+              padding: titlePadding,
               child: Text(
                 title,
                 style: titleTextStyle ??

@@ -8,7 +8,7 @@ class CustomSection extends AbstractSection {
   CustomSection({
     Key key,
     @required this.child,
-  }) : super(key: key, title: null);
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
