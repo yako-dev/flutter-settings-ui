@@ -3,17 +3,21 @@ import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
 
 import 'colors.dart';
+import 'defines.dart';
 
 class CupertinoSettingsSection extends StatelessWidget {
   const CupertinoSettingsSection(
     this.items, {
     this.header,
+    this.headerPadding = defaultTitlePadding,
     this.footer,
-  }) : assert(items != null);
+  })  : assert(items != null),
+        assert(headerPadding != null);
 
   final List<Widget> items;
 
   final Widget header;
+  final EdgeInsetsGeometry headerPadding;
   final Widget footer;
 
   @override
@@ -27,11 +31,7 @@ class CupertinoSettingsSection extends StatelessWidget {
           letterSpacing: -0.5,
         ),
         child: Padding(
-          padding: EdgeInsets.only(
-            left: 15.0,
-            right: 15.0,
-            bottom: 6.0,
-          ),
+          padding: headerPadding,
           child: header,
         ),
       ));
