@@ -29,7 +29,7 @@ import 'package:settings_ui/settings_ui.dart';
                 title: 'Language',
                 subtitle: 'English',
                 leading: Icon(Icons.language),
-                onTap: () {},
+                onPressed: (BuildContext context) {},
               ),
               SettingsTile.switchTile(
                 title: 'Use fingerprint',
