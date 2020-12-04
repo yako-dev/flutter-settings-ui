@@ -1,6 +1,6 @@
 # Settings UI for Flutter
 
-[![pub package](https://img.shields.io/badge/pub-0.4.0-blueviolet.svg)](https://pub.dev/packages/settings_ui)
+[![Pub Version](https://img.shields.io/pub/v/settings_ui?color=blueviolet)](https://pub.dev/packages/settings_ui)
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master/assets/flutter_settings_ui_logo.png" height="500px">
@@ -11,7 +11,7 @@
 In your pubspec.yaml
 ```yaml
 dependencies:
-  settings_ui: ^0.4.0
+  settings_ui: ^0.5.0
 ```
 ```dart
 import 'package:settings_ui/settings_ui.dart';

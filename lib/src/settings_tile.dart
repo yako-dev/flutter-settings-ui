@@ -14,6 +14,7 @@ class SettingsTile extends StatelessWidget {
   final Widget leading;
   final Widget trailing;
   final VoidCallback onTap;
+  final Function(BuildContext context) onPressed;
   final Function(bool value) onToggle;
   final bool switchValue;
   final bool enabled;
@@ -30,10 +31,11 @@ class SettingsTile extends StatelessWidget {
     this.subtitleMaxLines,
     this.leading,
     this.trailing,
-    this.onTap,
+    @Deprecated('Use onPressed instead') this.onTap,
     this.titleTextStyle,
     this.subtitleTextStyle,
     this.enabled = true,
+    this.onPressed,
     this.switchActiveColor,
   })  : _tileType = _SettingsTileType.simple,
         onToggle = null,
@@ -58,6 +60,7 @@ class SettingsTile extends StatelessWidget {
     this.switchActiveColor,
   })  : _tileType = _SettingsTileType.switchTile,
         onTap = null,
+        onPressed = null,
         assert(titleMaxLines == null || titleMaxLines > 0),
         assert(subtitleMaxLines == null || subtitleMaxLines > 0),
         super(key: key);
@@ -66,13 +69,13 @@ class SettingsTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final platform = Theme.of(context).platform;
     if (platform.isIOS(context)) {
-      return iosTile();
+      return iosTile(context);
     } else {
-      return androidTile();
+      return androidTile(context);
     }
   }
 
-  Widget iosTile() {
+  Widget iosTile(BuildContext context) {
     if (_tileType == _SettingsTileType.switchTile) {
       return CupertinoSettingsItem(
         enabled: enabled,
@@ -98,7 +101,7 @@ class SettingsTile extends StatelessWidget {
         trailing: trailing,
         hasDetails: false,
         leading: leading,
-        onPress: onTap,
+        onPress: onTapFunction(context),
         labelTextStyle: titleTextStyle,
         subtitleTextStyle: subtitleTextStyle,
         valueTextStyle: subtitleTextStyle,
@@ -106,7 +109,7 @@ class SettingsTile extends StatelessWidget {
     }
   }
 
-  Widget androidTile() {
+  Widget androidTile(BuildContext context) {
     if (_tileType == _SettingsTileType.switchTile) {
       return SwitchListTile(
         secondary: leading,
@@ -142,8 +145,22 @@ class SettingsTile extends StatelessWidget {
         leading: leading,
         enabled: enabled,
         trailing: trailing,
-        onTap: onTap,
+        onTap: onTapFunction(context),
       );
     }
+  }
+
+  Function onTapFunction(BuildContext context) {
+    Function onTapFunction = null;
+    if (onTap != null || onPressed != null) {
+      onTapFunction = () {
+        if (onPressed != null) {
+          onPressed.call(context);
+        } else {
+          onTap.call();
+        }
+      };
+    }
+    return onTapFunction;
   }
 }

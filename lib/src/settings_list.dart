@@ -34,9 +34,9 @@ class SettingsList extends StatelessWidget {
           itemBuilder: (context, index) {
             AbstractSection current = sections[index];
             AbstractSection futureOne;
-            try {
+            if (index + 1 != sections.length) {
               futureOne = sections[index + 1];
-            } catch (e) {}
+            }
 
             // Add divider if title is null
             if (futureOne != null && futureOne.title != null) {

@@ -230,21 +230,25 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
       onTap: () {
         if ((widget.onPress != null || widget.onToggle != null) &&
             widget.enabled) {
-          setState(() {
-            pressed = true;
-          });
+          if (mounted) {
+            setState(() {
+              pressed = true;
+            });
+          }
 
           if (widget.onPress != null) {
             widget.onPress();
           }
 
           Future.delayed(const Duration(milliseconds: 100), () {
-            setState(() {
-              pressed = false;
-            });
+            if (mounted) {
+              setState(() {
+                pressed = false;
+              });
+            }
           });
         }
-        if (widget.type == SettingsItemType.toggle) {
+        if (widget.type == SettingsItemType.toggle && mounted) {
           setState(() {
             _checked = !_checked;
             widget.onToggle(_checked);
@@ -252,21 +256,21 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
         }
       },
       onTapUp: (_) {
-        if (widget.enabled) {
+        if (widget.enabled && mounted) {
           setState(() {
             pressed = false;
           });
         }
       },
       onTapDown: (_) {
-        if (widget.enabled) {
+        if (widget.enabled && mounted) {
           setState(() {
             pressed = true;
           });
         }
       },
       onTapCancel: () {
-        if (widget.enabled) {
+        if (widget.enabled && mounted) {
           setState(() {
             pressed = false;
           });

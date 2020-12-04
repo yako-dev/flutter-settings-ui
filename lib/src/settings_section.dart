@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:settings_ui/src/abstract_section.dart';
 import 'package:settings_ui/src/cupertino_settings_section.dart';
-import 'package:settings_ui/src/settings_tile.dart';
 import 'package:settings_ui/src/extensions.dart';
+import 'package:settings_ui/src/settings_tile.dart';
 
 import 'defines.dart';
 
