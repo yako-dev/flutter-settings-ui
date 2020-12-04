@@ -49,12 +49,12 @@ class SettingsTile extends StatelessWidget {
     this.trailing,
     @required this.onToggle,
     @required this.switchValue,
+    this.onTap,
     this.titleTextStyle,
     this.subtitleTextStyle,
     this.switchActiveColor,
     this.inactiveTrackColor,
   })  : _tileType = _SettingsTileType.switchTile,
-        onTap = null,
         super(key: key);
 
   @override
@@ -136,7 +136,6 @@ class SettingsTile extends StatelessWidget {
               trailing: trailing,
               hoverColor: Colors.white24,
               focusColor: Colors.white24,
-              //onTap: onTap,
             ),
           ),
         ),
