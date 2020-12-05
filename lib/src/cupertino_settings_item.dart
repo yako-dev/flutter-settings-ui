@@ -14,7 +14,9 @@ class CupertinoSettingsItem extends StatefulWidget {
   const CupertinoSettingsItem({
     @required this.type,
     @required this.label,
+    this.labelMaxLines,
     this.subtitle,
+    this.subtitleMaxLines,
     this.leading,
     this.trailing,
     this.value,
@@ -29,10 +31,14 @@ class CupertinoSettingsItem extends StatefulWidget {
     this.switchActiveColor,
     this.switchInactiveColor,
   })  : assert(label != null),
-        assert(type != null);
+        assert(type != null),
+        assert(labelMaxLines == null || labelMaxLines > 0),
+        assert(subtitleMaxLines == null || subtitleMaxLines > 0);
 
   final String label;
+  final int labelMaxLines;
   final String subtitle;
+  final int subtitleMaxLines;
   final Widget leading;
   final Widget trailing;
   final SettingsItemType type;
@@ -95,23 +101,33 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
     if (widget.subtitle == null) {
       titleSection = Padding(
         padding: EdgeInsets.only(top: 1.5),
-        child: Text(widget.label,
-            overflow: TextOverflow.ellipsis,
-            style: widget.labelTextStyle ??
-                TextStyle(
-                  fontSize: 16,
-                  color: widget.enabled ? null : CupertinoColors.inactiveGray,
-                )),
+        child: Text(
+          widget.label,
+          maxLines: widget.labelMaxLines,
+          overflow: TextOverflow.ellipsis,
+          style: widget.labelTextStyle ??
+              TextStyle(
+                fontSize: 16,
+                color: widget.enabled ? null : CupertinoColors.inactiveGray,
+              ),
+        ),
       );
     } else {
       titleSection = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           const Padding(padding: EdgeInsets.only(top: 8.5)),
-          Text(widget.label, style: widget.labelTextStyle),
+          Text(
+            widget.label,
+            maxLines: widget.labelMaxLines,
+            overflow: TextOverflow.ellipsis,
+            style: widget.labelTextStyle,
+          ),
           const Padding(padding: EdgeInsets.only(top: 4.0)),
           Text(
             widget.subtitle,
+            maxLines: widget.subtitleMaxLines,
+            overflow: TextOverflow.ellipsis,
             style: widget.subtitleTextStyle ??
                 TextStyle(
                   fontSize: 12.0,
@@ -165,7 +181,9 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
                 widget.value,
                 style: widget.valueTextStyle ??
                     TextStyle(
-                        color: CupertinoColors.inactiveGray, fontSize: 16),
+                      color: CupertinoColors.inactiveGray,
+                      fontSize: 16,
+                    ),
               ),
             ),
           );
@@ -214,21 +232,25 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
       onTap: () {
         if ((widget.onPress != null || widget.onToggle != null) &&
             widget.enabled) {
-          setState(() {
-            pressed = true;
-          });
+          if (mounted) {
+            setState(() {
+              pressed = true;
+            });
+          }
 
           if (widget.onPress != null) {
             widget.onPress();
           }
 
           Future.delayed(const Duration(milliseconds: 100), () {
-            setState(() {
-              pressed = false;
-            });
+            if (mounted) {
+              setState(() {
+                pressed = false;
+              });
+            }
           });
         }
-        if (widget.type == SettingsItemType.toggle) {
+        if (widget.type == SettingsItemType.toggle && mounted) {
           setState(() {
             _checked = !_checked;
             widget.onToggle(_checked);
@@ -236,21 +258,21 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
         }
       },
       onTapUp: (_) {
-        if (widget.enabled) {
+        if (widget.enabled && mounted) {
           setState(() {
             pressed = false;
           });
         }
       },
       onTapDown: (_) {
-        if (widget.enabled) {
+        if (widget.enabled && mounted) {
           setState(() {
             pressed = true;
           });
         }
       },
       onTapCancel: () {
-        if (widget.enabled) {
+        if (widget.enabled && mounted) {
           setState(() {
             pressed = false;
           });

@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -10,10 +8,13 @@ enum _SettingsTileType { simple, switchTile }
 
 class SettingsTile extends StatelessWidget {
   final String title;
+  final int titleMaxLines;
   final String subtitle;
+  final int subtitleMaxLines;
   final Widget leading;
   final Widget trailing;
   final VoidCallback onTap;
+  final Function(BuildContext context) onPressed;
   final Function(bool value) onToggle;
   final bool switchValue;
   final bool enabled;
@@ -26,24 +27,31 @@ class SettingsTile extends StatelessWidget {
   const SettingsTile({
     Key key,
     @required this.title,
+    this.titleMaxLines,
     this.subtitle,
+    this.subtitleMaxLines,
     this.leading,
     this.trailing,
-    this.onTap,
+    @Deprecated('Use onPressed instead') this.onTap,
     this.titleTextStyle,
     this.subtitleTextStyle,
     this.enabled = true,
+    this.onPressed,
     this.switchActiveColor,
   })  : _tileType = _SettingsTileType.simple,
         onToggle = null,
         switchValue = null,
         inactiveTrackColor = null,
+        assert(titleMaxLines == null || titleMaxLines > 0),
+        assert(subtitleMaxLines == null || subtitleMaxLines > 0),
         super(key: key);
 
   const SettingsTile.switchTile({
     Key key,
     @required this.title,
+    this.titleMaxLines,
     this.subtitle,
+    this.subtitleMaxLines,
     this.leading,
     this.enabled = true,
     this.trailing,
@@ -55,24 +63,28 @@ class SettingsTile extends StatelessWidget {
     this.inactiveTrackColor,
   })  : _tileType = _SettingsTileType.switchTile,
         onTap = null,
+        onPressed = null,
+        assert(titleMaxLines == null || titleMaxLines > 0),
+        assert(subtitleMaxLines == null || subtitleMaxLines > 0),
         super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final platform = Theme.of(context).platform;
-    if (platform.isIOS) {
-      return iosTile();
+    if (platform.isIOS(context)) {
+      return iosTile(context);
     } else {
-      return androidTile();
+      return androidTile(context);
     }
   }
 
-  Widget iosTile() {
+  Widget iosTile(BuildContext context) {
     if (_tileType == _SettingsTileType.switchTile) {
       return CupertinoSettingsItem(
         enabled: enabled,
         type: SettingsItemType.toggle,
         label: title,
+        labelMaxLines: titleMaxLines,
         leading: leading,
         switchValue: switchValue,
         onToggle: onToggle,
@@ -87,11 +99,13 @@ class SettingsTile extends StatelessWidget {
         enabled: enabled,
         type: SettingsItemType.modal,
         label: title,
+        labelMaxLines: titleMaxLines,
         value: subtitle,
+        subtitleMaxLines: subtitleMaxLines,
         trailing: trailing,
         hasDetails: false,
         leading: leading,
-        onPress: onTap,
+        onPress: onTapFunction(context),
         labelTextStyle: titleTextStyle,
         subtitleTextStyle: subtitleTextStyle,
         valueTextStyle: subtitleTextStyle,
@@ -99,47 +113,59 @@ class SettingsTile extends StatelessWidget {
     }
   }
 
-  Widget androidTile() {
+  Widget androidTile(BuildContext context) {
     if (_tileType == _SettingsTileType.switchTile) {
-      return Container(
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: onTap,
-            focusColor: Colors.white24,
-            child: SwitchListTile(
-              secondary: leading,
-              value: switchValue,
-              activeColor: switchActiveColor,
-              onChanged: enabled ? onToggle : null,
-              title: Text(title, style: titleTextStyle),
-              subtitle: subtitle != null ? Text(
-                  subtitle, style: subtitleTextStyle) : null,
-              inactiveTrackColor: inactiveTrackColor,
-            ),
-          ),
+      return SwitchListTile(
+        secondary: leading,
+        value: switchValue,
+        activeColor: switchActiveColor,
+        inactiveTrackColor: inactiveTrackColor,
+        onChanged: enabled ? onToggle : null,
+        title: Text(
+          title,
+          style: titleTextStyle,
+          maxLines: titleMaxLines,
+          overflow: TextOverflow.ellipsis,
         ),
+        subtitle: subtitle != null
+            ? Text(
+                subtitle,
+                style: subtitleTextStyle,
+                maxLines: subtitleMaxLines,
+                overflow: TextOverflow.ellipsis,
+              )
+            : null,
       );
     } else {
-      return Container(
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: onTap,
-            child: ListTile(
-              title: Text(title, style: titleTextStyle),
-              subtitle: subtitle != null
-                  ? Text(subtitle, style: subtitleTextStyle)
-                  : null,
-              leading: leading,
-              enabled: enabled,
-              trailing: trailing,
-              hoverColor: Colors.white24,
-              focusColor: Colors.white24,
-            ),
-          ),
-        ),
+      return ListTile(
+        title: Text(title, style: titleTextStyle),
+        subtitle: subtitle != null
+            ? Text(
+                subtitle,
+                style: subtitleTextStyle,
+                maxLines: subtitleMaxLines,
+                overflow: TextOverflow.ellipsis,
+              )
+            : null,
+        leading: leading,
+        enabled: enabled,
+        trailing: trailing,
+        onTap: onTapFunction(context),
       );
     }
+  }
+
+  Function onTapFunction(BuildContext context) {
+    Function onTapFunction = null;
+    if (onTap != null || onPressed != null) {
+      onTapFunction = () {
+        if (onPressed != null) {
+          onPressed.call(context);
+        } else {
+          onTap.call();
+        }
+      };
+    }
+    return onTapFunction;
   }
 }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 extension TargetExtensions on TargetPlatform {
-  bool get isIOS => this == TargetPlatform.iOS;
-  bool get isAndroid => this == TargetPlatform.android;
+  bool isIOS(BuildContext context) =>
+      Theme.of(context).platform == TargetPlatform.iOS;
+  bool isAndroid(BuildContext context) =>
+      Theme.of(context).platform == TargetPlatform.android;
 }

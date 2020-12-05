@@ -1,3 +1,8 @@
+## [0.5.0] - [December 4, 2020]
+* Ripple effect for Android
+* Ability to setup padding and subtitle for sections
+* New onPressed(context) parameter for SettingsTile, onTap() is deprecated from now on.
+
 ## [0.4.0] - [August 21, 2020]
 
 * Custom colors support for SettingsList
