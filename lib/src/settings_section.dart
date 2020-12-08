@@ -94,7 +94,7 @@ class SettingsSection extends AbstractSection {
           return tiles[index];
         },
       ),
-      if (!showBottomDivider) Divider(color: Colors.white38),
+      if (showBottomDivider) Divider(height: 1)
     ]);
   }
 }
