@@ -34,6 +34,7 @@ class CupertinoSettingsItem extends StatefulWidget {
   })  : assert(label != null),
         assert(type != null),
         assert(iosChevron != null),
+        assert(iosChevronColor != null),
         assert(labelMaxLines == null || labelMaxLines > 0),
         assert(subtitleMaxLines == null || subtitleMaxLines > 0);
 

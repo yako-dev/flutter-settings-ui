@@ -1,8 +1,11 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:settings_ui/src/cupertino_settings_item.dart';
 import 'package:settings_ui/src/extensions.dart';
+
+import 'colors.dart';
 
 enum _SettingsTileType { simple, switchTile }
 
@@ -13,6 +16,8 @@ class SettingsTile extends StatelessWidget {
   final int subtitleMaxLines;
   final Widget leading;
   final Widget trailing;
+  final IconData iosChevron;
+  final Color iosChevronColor;
   final VoidCallback onTap;
   final Function(BuildContext context) onPressed;
   final Function(bool value) onToggle;
@@ -31,6 +36,8 @@ class SettingsTile extends StatelessWidget {
     this.subtitleMaxLines,
     this.leading,
     this.trailing,
+    this.iosChevron = CupertinoIcons.forward,
+    this.iosChevronColor = mediumGrayColor,
     @Deprecated('Use onPressed instead') this.onTap,
     this.titleTextStyle,
     this.subtitleTextStyle,
@@ -42,6 +49,8 @@ class SettingsTile extends StatelessWidget {
         switchValue = null,
         assert(titleMaxLines == null || titleMaxLines > 0),
         assert(subtitleMaxLines == null || subtitleMaxLines > 0),
+        assert(iosChevron != null),
+        assert(iosChevronColor != null),
         super(key: key);
 
   const SettingsTile.switchTile({
@@ -61,6 +70,8 @@ class SettingsTile extends StatelessWidget {
   })  : _tileType = _SettingsTileType.switchTile,
         onTap = null,
         onPressed = null,
+        iosChevron = null,
+        iosChevronColor = null,
         assert(titleMaxLines == null || titleMaxLines > 0),
         assert(subtitleMaxLines == null || subtitleMaxLines > 0),
         super(key: key);
@@ -99,6 +110,8 @@ class SettingsTile extends StatelessWidget {
         value: subtitle,
         subtitleMaxLines: subtitleMaxLines,
         trailing: trailing,
+        iosChevron: iosChevron,
+        iosChevronColor: iosChevronColor,
         hasDetails: false,
         leading: leading,
         onPress: onTapFunction(context),
