@@ -164,17 +164,14 @@ class SettingsTile extends StatelessWidget {
     }
   }
 
-  Function onTapFunction(BuildContext context) {
-    Function onTapFunction = null;
-    if (onTap != null || onPressed != null) {
-      onTapFunction = () {
-        if (onPressed != null) {
-          onPressed.call(context);
-        } else {
-          onTap.call();
-        }
-      };
-    }
-    return onTapFunction;
-  }
+  Function onTapFunction(BuildContext context) =>
+      onTap != null || onPressed != null
+          ? () {
+              if (onPressed != null) {
+                onPressed.call(context);
+              } else {
+                onTap.call();
+              }
+            }
+          : null;
 }
