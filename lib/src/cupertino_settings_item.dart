@@ -21,6 +21,7 @@ class CupertinoSettingsItem extends StatefulWidget {
     this.trailing,
     this.iosChevron = CupertinoIcons.forward,
     this.iosChevronColor = mediumGrayColor,
+    this.iosChevronSize = 21.0,
     this.value,
     this.hasDetails = false,
     this.enabled = true,
@@ -33,8 +34,6 @@ class CupertinoSettingsItem extends StatefulWidget {
     this.switchActiveColor,
   })  : assert(label != null),
         assert(type != null),
-        assert(iosChevron != null),
-        assert(iosChevronColor != null),
         assert(labelMaxLines == null || labelMaxLines > 0),
         assert(subtitleMaxLines == null || subtitleMaxLines > 0);
 
@@ -46,6 +45,7 @@ class CupertinoSettingsItem extends StatefulWidget {
   final Widget trailing;
   final IconData iosChevron;
   final Color iosChevronColor;
+  final double iosChevronSize;
   final SettingsItemType type;
   final String value;
   final bool hasDetails;
@@ -203,7 +203,7 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
               child: widget.trailing,
             ),
           );
-        } else {
+        } else if (widget.iosChevron != null ){
           rightRowChildren.add(
             Padding(
               padding: const EdgeInsets.only(
@@ -213,7 +213,7 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
               child: Icon(
                 widget.iosChevron,
                 color: widget.iosChevronColor,
-                size: 21.0,
+                size: widget.iosChevronSize,
               ),
             ),
           );
