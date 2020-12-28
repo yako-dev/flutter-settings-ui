@@ -92,9 +92,8 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
     if (leadingIcon != null) {
       rowChildren.add(
         Padding(
-          padding: const EdgeInsets.only(
-            left: 15.0,
-            bottom: 2.0,
+          padding: const EdgeInsetsDirectional.only(
+            start: 15.0,
           ),
           child: leadingIcon,
         ),
@@ -107,7 +106,6 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
         padding: EdgeInsets.only(top: 1.5),
         child: Text(
           widget.label,
-          maxLines: widget.labelMaxLines,
           overflow: TextOverflow.ellipsis,
           style: widget.labelTextStyle ??
               TextStyle(
@@ -123,7 +121,6 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
           const Padding(padding: EdgeInsets.only(top: 8.5)),
           Text(
             widget.label,
-            maxLines: widget.labelMaxLines,
             overflow: TextOverflow.ellipsis,
             style: widget.labelTextStyle,
           ),
@@ -143,13 +140,12 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
     }
 
     rowChildren.add(
-      Expanded(
-        child: Padding(
-          padding: const EdgeInsets.only(
-            left: 15.0,
-          ),
-          child: titleSection,
+      Padding(
+        padding: const EdgeInsetsDirectional.only(
+          start: 15.0,
+          end: 15.0,
         ),
+        child: titleSection,
       ),
     );
 
@@ -157,7 +153,7 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
       case SettingsItemType.toggle:
         rowChildren.add(
           Padding(
-            padding: const EdgeInsets.only(right: 11.0),
+            padding: const EdgeInsetsDirectional.only(end: 11.0),
             child: CupertinoSwitch(
               value: widget.switchValue,
               activeColor: widget.enabled
@@ -176,18 +172,22 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
         final List<Widget> rightRowChildren = [];
         if (widget.value != null) {
           rightRowChildren.add(
-            Padding(
-              padding: const EdgeInsets.only(
-                top: 1.5,
-                right: 2.25,
-              ),
-              child: Text(
-                widget.value,
-                style: widget.valueTextStyle ??
-                    TextStyle(
-                      color: CupertinoColors.inactiveGray,
-                      fontSize: 16,
-                    ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsetsDirectional.only(
+                  top: 1.5,
+                  end: 2.25,
+                ),
+                child: Text(
+                  widget.value,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.end,
+                  style: widget.valueTextStyle ??
+                      TextStyle(
+                        color: CupertinoColors.inactiveGray,
+                        fontSize: 16,
+                      ),
+                ),
               ),
             ),
           );
@@ -196,19 +196,21 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
         if (widget.trailing != null) {
           rightRowChildren.add(
             Padding(
-              padding: const EdgeInsets.only(
+              padding: const EdgeInsetsDirectional.only(
                 top: 0.5,
-                left: 2.25,
+                start: 2.25,
               ),
               child: widget.trailing,
             ),
           );
-        } else if (widget.iosChevron != null ){
+        }
+
+        if (widget.iosChevron != null) {
           rightRowChildren.add(
             Padding(
-              padding: const EdgeInsets.only(
+              padding: const EdgeInsetsDirectional.only(
                 top: 0.5,
-                left: 2.25,
+                start: 2.25,
               ),
               child: Icon(
                 widget.iosChevron,
@@ -219,15 +221,16 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
           );
         }
 
-        rightRowChildren.add(Padding(
-          padding: const EdgeInsets.only(right: 8.5),
-        ));
+        rightRowChildren.add(const SizedBox(width: 8.5));
 
-        rowChildren.add(
-          Row(
+        rowChildren.add(Expanded(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.end,
             children: rightRowChildren,
           ),
-        );
+        ));
+
         break;
     }
 

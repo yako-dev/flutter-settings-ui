@@ -109,7 +109,6 @@ class SettingsTile extends StatelessWidget {
         label: title,
         labelMaxLines: titleMaxLines,
         value: subtitle,
-        subtitleMaxLines: subtitleMaxLines,
         trailing: trailing,
         iosChevron: iosChevron,
         iosChevronColor: iosChevronColor,
