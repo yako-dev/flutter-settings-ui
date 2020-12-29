@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'colors.dart';
+import 'defines.dart';
 
 enum SettingsItemType {
   toggle,
@@ -19,9 +20,8 @@ class CupertinoSettingsItem extends StatefulWidget {
     this.subtitleMaxLines,
     this.leading,
     this.trailing,
-    this.iosChevron = CupertinoIcons.forward,
-    this.iosChevronColor = mediumGrayColor,
-    this.iosChevronSize = 21.0,
+    this.iosChevron = defaultCupertinoForwardIcon,
+    this.iosChevronPadding = defaultCupertinoForwardPadding,
     this.value,
     this.hasDetails = false,
     this.enabled = true,
@@ -43,9 +43,8 @@ class CupertinoSettingsItem extends StatefulWidget {
   final int subtitleMaxLines;
   final Widget leading;
   final Widget trailing;
-  final IconData iosChevron;
-  final Color iosChevronColor;
-  final double iosChevronSize;
+  final Icon iosChevron;
+  final EdgeInsetsGeometry iosChevronPadding;
   final SettingsItemType type;
   final String value;
   final bool hasDetails;
@@ -207,29 +206,26 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
 
         if (widget.iosChevron != null) {
           rightRowChildren.add(
-            Padding(
-              padding: const EdgeInsetsDirectional.only(
-                top: 0.5,
-                start: 2.25,
-              ),
-              child: Icon(
-                widget.iosChevron,
-                color: widget.iosChevronColor,
-                size: widget.iosChevronSize,
-              ),
-            ),
+            widget.iosChevronPadding == null
+                ? widget.iosChevron
+                : Padding(
+                    padding: widget.iosChevronPadding,
+                    child: widget.iosChevron,
+                  ),
           );
         }
 
         rightRowChildren.add(const SizedBox(width: 8.5));
 
-        rowChildren.add(Expanded(
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: rightRowChildren,
+        rowChildren.add(
+          Expanded(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: rightRowChildren,
+            ),
           ),
-        ));
+        );
 
         break;
     }
@@ -295,26 +291,23 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
     );
   }
 
-  Color calculateBackgroundColor(BuildContext context) {
-    if (Theme.of(context).brightness == Brightness.light) {
-      if (pressed) {
-        return iosPressedTileColorLight;
-      } else {
-        return Colors.white;
-      }
-    } else {
-      if (pressed) {
-        return iosPressedTileColorDark;
-      } else {
-        return iosTileDarkColor;
-      }
-    }
-  }
+  Color calculateBackgroundColor(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.light
+          ? pressed
+              ? iosPressedTileColorLight
+              : Colors.white
+          : pressed
+              ? iosPressedTileColorDark
+              : iosTileDarkColor;
 
   Color _iconColor(ThemeData theme, ListTileTheme tileTheme) {
-    if (tileTheme?.selectedColor != null) return tileTheme.selectedColor;
+    if (tileTheme?.selectedColor != null) {
+      return tileTheme.selectedColor;
+    }
 
-    if (tileTheme?.iconColor != null) return tileTheme.iconColor;
+    if (tileTheme?.iconColor != null) {
+      return tileTheme.iconColor;
+    }
 
     switch (theme.brightness) {
       case Brightness.light:
