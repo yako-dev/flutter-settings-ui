@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/widgets.dart';
 
+import 'colors.dart';
+
 const defaultTitlePadding = EdgeInsets.only(
   left: 15.0,
   right: 15.0,
@@ -10,6 +12,7 @@ const defaultTitlePadding = EdgeInsets.only(
 const defaultCupertinoForwardIcon = const Icon(
   CupertinoIcons.forward,
   size: 21.0,
+  color: mediumGrayColor,
 );
 
 const defaultCupertinoForwardPadding = const EdgeInsetsDirectional.only(
