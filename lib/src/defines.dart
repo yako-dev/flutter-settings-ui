@@ -9,12 +9,12 @@ const defaultTitlePadding = EdgeInsets.only(
   bottom: 6.0,
 );
 
-const defaultCupertinoForwardIcon = const Icon(
+const defaultCupertinoForwardIcon = Icon(
   CupertinoIcons.forward,
   size: 21.0,
   color: mediumGrayColor,
 );
 
-const defaultCupertinoForwardPadding = const EdgeInsetsDirectional.only(
+const defaultCupertinoForwardPadding = EdgeInsetsDirectional.only(
   start: 2.25,
 );
