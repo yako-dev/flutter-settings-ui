@@ -1,5 +1,5 @@
 ## [0.5.1] - [December 28, 2020]
-* Add two properties to set the forward chevron and color in iOS
+* Added iosChevron and iosChevronPadding for forward chevron and color in iOS.
 
 ## [0.5.0] - [December 4, 2020]
 * Ripple effect for Android
