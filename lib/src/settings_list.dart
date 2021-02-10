@@ -9,6 +9,7 @@ class SettingsList extends StatelessWidget {
   final Color backgroundColor;
   final Color lightBackgroundColor;
   final Color darkBackgroundColor;
+  final EdgeInsetsGeometry contentPadding;
 
   const SettingsList({
     Key key,
@@ -18,6 +19,7 @@ class SettingsList extends StatelessWidget {
     this.shrinkWrap = false,
     this.lightBackgroundColor,
     this.darkBackgroundColor,
+    this.contentPadding,
   }) : super(key: key);
 
   @override
@@ -30,6 +32,7 @@ class SettingsList extends StatelessWidget {
         child: ListView.builder(
           physics: physics,
           shrinkWrap: shrinkWrap,
+          padding: contentPadding,
           itemCount: sections.length,
           itemBuilder: (context, index) {
             AbstractSection current = sections[index];

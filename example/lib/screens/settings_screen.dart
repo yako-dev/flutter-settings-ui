@@ -22,6 +22,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget buildSettingsList() {
     return SettingsList(
+      contentPadding: EdgeInsets.symmetric(horizontal: 180),
       sections: [
         SettingsSection(
           title: 'Common',

@@ -2,6 +2,7 @@
 * Fixed subtitle for iOS
 * Added iosChevron and iosChevronPadding for forward chevron and color in iOS.
 * CupertinoSettingsItem toggle on disabled fix
+* Content padding implementation
 
 ## [0.5.0] - [December 4, 2020]
 * Ripple effect for Android
