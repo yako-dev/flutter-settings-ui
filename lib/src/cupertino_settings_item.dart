@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'colors.dart';
+import 'defines.dart';
 
 enum SettingsItemType {
   toggle,
@@ -19,6 +20,8 @@ class CupertinoSettingsItem extends StatefulWidget {
     this.subtitleMaxLines,
     this.leading,
     this.trailing,
+    this.iosChevron = defaultCupertinoForwardIcon,
+    this.iosChevronPadding = defaultCupertinoForwardPadding,
     this.value,
     this.hasDetails = false,
     this.enabled = true,
@@ -40,6 +43,8 @@ class CupertinoSettingsItem extends StatefulWidget {
   final int subtitleMaxLines;
   final Widget leading;
   final Widget trailing;
+  final Icon iosChevron;
+  final EdgeInsetsGeometry iosChevronPadding;
   final SettingsItemType type;
   final String value;
   final bool hasDetails;
@@ -86,9 +91,8 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
     if (leadingIcon != null) {
       rowChildren.add(
         Padding(
-          padding: const EdgeInsets.only(
-            left: 15.0,
-            bottom: 2.0,
+          padding: const EdgeInsetsDirectional.only(
+            start: 15.0,
           ),
           child: leadingIcon,
         ),
@@ -101,7 +105,6 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
         padding: EdgeInsets.only(top: 1.5),
         child: Text(
           widget.label,
-          maxLines: widget.labelMaxLines,
           overflow: TextOverflow.ellipsis,
           style: widget.labelTextStyle ??
               TextStyle(
@@ -117,7 +120,6 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
           const Padding(padding: EdgeInsets.only(top: 8.5)),
           Text(
             widget.label,
-            maxLines: widget.labelMaxLines,
             overflow: TextOverflow.ellipsis,
             style: widget.labelTextStyle,
           ),
@@ -137,13 +139,12 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
     }
 
     rowChildren.add(
-      Expanded(
-        child: Padding(
-          padding: const EdgeInsets.only(
-            left: 15.0,
-          ),
-          child: titleSection,
+      Padding(
+        padding: const EdgeInsetsDirectional.only(
+          start: 15.0,
+          end: 15.0,
         ),
+        child: titleSection,
       ),
     );
 
@@ -151,7 +152,7 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
       case SettingsItemType.toggle:
         rowChildren.add(
           Padding(
-            padding: const EdgeInsets.only(right: 11.0),
+            padding: const EdgeInsetsDirectional.only(end: 11.0),
             child: CupertinoSwitch(
               value: widget.switchValue,
               activeColor: widget.enabled
@@ -170,18 +171,22 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
         final List<Widget> rightRowChildren = [];
         if (widget.value != null) {
           rightRowChildren.add(
-            Padding(
-              padding: const EdgeInsets.only(
-                top: 1.5,
-                right: 2.25,
-              ),
-              child: Text(
-                widget.value,
-                style: widget.valueTextStyle ??
-                    TextStyle(
-                      color: CupertinoColors.inactiveGray,
-                      fontSize: 16,
-                    ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsetsDirectional.only(
+                  top: 1.5,
+                  end: 2.25,
+                ),
+                child: Text(
+                  widget.value,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.end,
+                  style: widget.valueTextStyle ??
+                      TextStyle(
+                        color: CupertinoColors.inactiveGray,
+                        fontSize: 16,
+                      ),
+                ),
               ),
             ),
           );
@@ -190,38 +195,38 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
         if (widget.trailing != null) {
           rightRowChildren.add(
             Padding(
-              padding: const EdgeInsets.only(
+              padding: const EdgeInsetsDirectional.only(
                 top: 0.5,
-                left: 2.25,
+                start: 2.25,
               ),
               child: widget.trailing,
             ),
           );
-        } else {
+        }
+
+        if (widget.iosChevron != null) {
           rightRowChildren.add(
-            Padding(
-              padding: const EdgeInsets.only(
-                top: 0.5,
-                left: 2.25,
-              ),
-              child: Icon(
-                CupertinoIcons.forward,
-                color: mediumGrayColor,
-                size: 21.0,
-              ),
-            ),
+            widget.iosChevronPadding == null
+                ? widget.iosChevron
+                : Padding(
+                    padding: widget.iosChevronPadding,
+                    child: widget.iosChevron,
+                  ),
           );
         }
 
-        rightRowChildren.add(Padding(
-          padding: const EdgeInsets.only(right: 8.5),
-        ));
+        rightRowChildren.add(const SizedBox(width: 8.5));
 
         rowChildren.add(
-          Row(
-            children: rightRowChildren,
+          Expanded(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: rightRowChildren,
+            ),
           ),
         );
+
         break;
     }
 
@@ -286,26 +291,23 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
     );
   }
 
-  Color calculateBackgroundColor(BuildContext context) {
-    if (Theme.of(context).brightness == Brightness.light) {
-      if (pressed) {
-        return iosPressedTileColorLight;
-      } else {
-        return Colors.white;
-      }
-    } else {
-      if (pressed) {
-        return iosPressedTileColorDark;
-      } else {
-        return iosTileDarkColor;
-      }
-    }
-  }
+  Color calculateBackgroundColor(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.light
+          ? pressed
+              ? iosPressedTileColorLight
+              : Colors.white
+          : pressed
+              ? iosPressedTileColorDark
+              : iosTileDarkColor;
 
   Color _iconColor(ThemeData theme, ListTileTheme tileTheme) {
-    if (tileTheme?.selectedColor != null) return tileTheme.selectedColor;
+    if (tileTheme?.selectedColor != null) {
+      return tileTheme.selectedColor;
+    }
 
-    if (tileTheme?.iconColor != null) return tileTheme.iconColor;
+    if (tileTheme?.iconColor != null) {
+      return tileTheme.iconColor;
+    }
 
     switch (theme.brightness) {
       case Brightness.light:

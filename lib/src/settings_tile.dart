@@ -1,8 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:settings_ui/src/cupertino_settings_item.dart';
 import 'package:settings_ui/src/extensions.dart';
+
+import 'defines.dart';
 
 enum _SettingsTileType { simple, switchTile }
 
@@ -13,6 +14,8 @@ class SettingsTile extends StatelessWidget {
   final int subtitleMaxLines;
   final Widget leading;
   final Widget trailing;
+  final Icon iosChevron;
+  final EdgeInsetsGeometry iosChevronPadding;
   final VoidCallback onTap;
   final Function(BuildContext context) onPressed;
   final Function(bool value) onToggle;
@@ -31,6 +34,8 @@ class SettingsTile extends StatelessWidget {
     this.subtitleMaxLines,
     this.leading,
     this.trailing,
+    this.iosChevron = defaultCupertinoForwardIcon,
+    this.iosChevronPadding = defaultCupertinoForwardPadding,
     @Deprecated('Use onPressed instead') this.onTap,
     this.titleTextStyle,
     this.subtitleTextStyle,
@@ -61,6 +66,8 @@ class SettingsTile extends StatelessWidget {
   })  : _tileType = _SettingsTileType.switchTile,
         onTap = null,
         onPressed = null,
+        iosChevron = null,
+        iosChevronPadding = null,
         assert(titleMaxLines == null || titleMaxLines > 0),
         assert(subtitleMaxLines == null || subtitleMaxLines > 0),
         super(key: key);
@@ -100,8 +107,9 @@ class SettingsTile extends StatelessWidget {
         label: title,
         labelMaxLines: titleMaxLines,
         value: subtitle,
-        subtitleMaxLines: subtitleMaxLines,
         trailing: trailing,
+        iosChevron: iosChevron,
+        iosChevronPadding: iosChevronPadding,
         hasDetails: false,
         leading: leading,
         onPress: onTapFunction(context),
@@ -153,17 +161,14 @@ class SettingsTile extends StatelessWidget {
     }
   }
 
-  Function onTapFunction(BuildContext context) {
-    Function onTapFunction = null;
-    if (onTap != null || onPressed != null) {
-      onTapFunction = () {
-        if (onPressed != null) {
-          onPressed.call(context);
-        } else {
-          onTap.call();
-        }
-      };
-    }
-    return onTapFunction;
-  }
+  Function onTapFunction(BuildContext context) =>
+      onTap != null || onPressed != null
+          ? () {
+              if (onPressed != null) {
+                onPressed.call(context);
+              } else {
+                onTap.call();
+              }
+            }
+          : null;
 }
