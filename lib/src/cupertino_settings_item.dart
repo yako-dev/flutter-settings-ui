@@ -139,12 +139,14 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
     }
 
     rowChildren.add(
-      Padding(
-        padding: const EdgeInsetsDirectional.only(
-          start: 15.0,
-          end: 15.0,
+      Expanded(
+        child: Padding(
+          padding: const EdgeInsetsDirectional.only(
+            start: 15.0,
+            end: 15.0,
+          ),
+          child: titleSection,
         ),
-        child: titleSection,
       ),
     );
 
@@ -171,22 +173,20 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
         final List<Widget> rightRowChildren = [];
         if (widget.value != null) {
           rightRowChildren.add(
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsetsDirectional.only(
-                  top: 1.5,
-                  end: 2.25,
-                ),
-                child: Text(
-                  widget.value,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.end,
-                  style: widget.valueTextStyle ??
-                      TextStyle(
-                        color: CupertinoColors.inactiveGray,
-                        fontSize: 16,
-                      ),
-                ),
+            Padding(
+              padding: const EdgeInsetsDirectional.only(
+                top: 1.5,
+                end: 2.25,
+              ),
+              child: Text(
+                widget.value,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.end,
+                style: widget.valueTextStyle ??
+                    TextStyle(
+                      color: CupertinoColors.inactiveGray,
+                      fontSize: 16,
+                    ),
               ),
             ),
           );
@@ -218,12 +218,10 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
         rightRowChildren.add(const SizedBox(width: 8.5));
 
         rowChildren.add(
-          Expanded(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: rightRowChildren,
-            ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: rightRowChildren,
           ),
         );
 

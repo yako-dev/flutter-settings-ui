@@ -1,4 +1,5 @@
-## [0.5.1] - [December 28, 2020]
+## [0.6.0] - [February 10, 2021]
+* Fixed subtitle for iOS
 * Added iosChevron and iosChevronPadding for forward chevron and color in iOS.
 
 ## [0.5.0] - [December 4, 2020]
