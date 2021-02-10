@@ -1,6 +1,7 @@
 ## [0.6.0] - [February 10, 2021]
 * Fixed subtitle for iOS
 * Added iosChevron and iosChevronPadding for forward chevron and color in iOS.
+* CupertinoSettingsItem toggle on disabled fix
 
 ## [0.5.0] - [December 4, 2020]
 * Ripple effect for Android
