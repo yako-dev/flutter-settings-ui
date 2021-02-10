@@ -64,6 +64,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               SettingsTile.switchTile(
                   title: 'Use fingerprint',
+                  subtitle:
+                      'Allow application to access stored fingerprint IDs.',
                   leading: Icon(Icons.fingerprint),
                   onToggle: (bool value) {},
                   switchValue: false),

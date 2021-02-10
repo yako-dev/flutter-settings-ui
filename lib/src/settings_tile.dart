@@ -83,12 +83,15 @@ class SettingsTile extends StatelessWidget {
         label: title,
         labelMaxLines: titleMaxLines,
         leading: leading,
+        subtitle: subtitle,
+        subtitleMaxLines: subtitleMaxLines,
         switchValue: switchValue,
         onToggle: onToggle,
         labelTextStyle: titleTextStyle,
         switchActiveColor: switchActiveColor,
         subtitleTextStyle: subtitleTextStyle,
         valueTextStyle: subtitleTextStyle,
+        trailing: trailing,
       );
     } else {
       return CupertinoSettingsItem(
