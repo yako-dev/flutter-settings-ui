@@ -251,11 +251,14 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
             }
           });
         }
-        if (widget.type == SettingsItemType.toggle && mounted) {
-          setState(() {
-            _checked = !_checked;
-            widget.onToggle(_checked);
-          });
+        
+        if (widget.type == SettingsItemType.toggle && widget.enabled) {
+          if (mounted) {
+            setState(() {
+              _checked = !_checked;
+              widget.onToggle(_checked);
+            });
+          }
         }
       },
       onTapUp: (_) {
