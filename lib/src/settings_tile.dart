@@ -1,7 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:settings_ui/src/cupertino_settings_item.dart';
-import 'package:settings_ui/src/extensions.dart';
 
 import 'defines.dart';
 
@@ -74,8 +75,7 @@ class SettingsTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final platform = Theme.of(context).platform;
-    if (platform.isIOS(context)) {
+    if (Platform.isIOS || Platform.isMacOS) {
       return iosTile(context);
     } else {
       return androidTile(context);

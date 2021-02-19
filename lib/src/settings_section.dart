@@ -1,7 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:settings_ui/src/abstract_section.dart';
 import 'package:settings_ui/src/cupertino_settings_section.dart';
-import 'package:settings_ui/src/extensions.dart';
 import 'package:settings_ui/src/settings_tile.dart';
 
 import 'defines.dart';
@@ -29,8 +30,7 @@ class SettingsSection extends AbstractSection {
 
   @override
   Widget build(BuildContext context) {
-    final platform = Theme.of(context).platform;
-    if (platform.isIOS(context)) {
+    if (Platform.isIOS || Platform.isMacOS) {
       return iosSection();
     } else {
       return androidSection(context);
