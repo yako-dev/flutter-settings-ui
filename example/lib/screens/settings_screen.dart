@@ -22,7 +22,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget buildSettingsList() {
     return SettingsList(
-      contentPadding: EdgeInsets.symmetric(horizontal: 180),
       sections: [
         SettingsSection(
           title: 'Common',
@@ -95,6 +94,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
             SettingsTile(
                 title: 'Open source licenses',
                 leading: Icon(Icons.collections_bookmark)),
+            SettingsTile(
+              title: 'Blabla',
+              trailing: Icon(Icons.keyboard_arrow_right),
+              onPressed: (value) {},
+              leading: Icon(Icons.food_bank_outlined),
+            ),
           ],
         ),
         CustomSection(

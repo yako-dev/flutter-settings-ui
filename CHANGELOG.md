@@ -1,3 +1,8 @@
+## [0.7.0] - [February 26, 2021]
+* Fixed double trailing on iOS devices
+* Support for MacOS
+* Fixed padding in the project example
+
 ## [0.6.0] - [February 10, 2021]
 * Fixed subtitle for iOS
 * Added iosChevron and iosChevronPadding for forward chevron and color in iOS.
