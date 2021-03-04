@@ -24,8 +24,7 @@ class SettingsSection extends AbstractSection {
     this.subtitlePadding = defaultTitlePadding,
     this.tiles,
     this.titleTextStyle,
-  })  : assert(titlePadding != null),
-        assert(maxLines == null || maxLines > 0),
+  })  : assert(maxLines == null || maxLines > 0),
         super(key: key, title: title, titlePadding: titlePadding);
 
   @override

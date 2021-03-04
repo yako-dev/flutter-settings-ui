@@ -11,8 +11,7 @@ class CupertinoSettingsSection extends StatelessWidget {
     this.header,
     this.headerPadding = defaultTitlePadding,
     this.footer,
-  })  : assert(items != null),
-        assert(headerPadding != null);
+  });
 
   final List<Widget> items;
 
