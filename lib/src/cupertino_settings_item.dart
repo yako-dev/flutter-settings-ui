@@ -204,7 +204,7 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
           );
         }
 
-        if (widget.iosChevron != null) {
+        if (widget.trailing == null && widget.iosChevron != null) {
           rightRowChildren.add(
             widget.iosChevronPadding == null
                 ? widget.iosChevron
