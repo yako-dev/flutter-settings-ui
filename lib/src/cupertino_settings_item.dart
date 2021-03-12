@@ -228,6 +228,8 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
         break;
     }
 
+    bool largeScreen = MediaQuery.of(context).size.width >= 768 ? true : false;
+
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () {
@@ -283,7 +285,11 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
         }
       },
       child: Container(
-        color: calculateBackgroundColor(context),
+        decoration: BoxDecoration(
+          borderRadius:
+              largeScreen ? BorderRadius.all(Radius.circular(20)) : null,
+          color: calculateBackgroundColor(context),
+        ),
         height: widget.subtitle == null ? 44.0 : 57.0,
         child: Row(
           children: rowChildren,
