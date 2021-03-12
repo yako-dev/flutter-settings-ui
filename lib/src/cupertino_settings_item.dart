@@ -7,6 +7,7 @@ import 'defines.dart';
 enum SettingsItemType {
   toggle,
   modal,
+  slider,
 }
 
 typedef void PressOperationCallback();
@@ -32,6 +33,15 @@ class CupertinoSettingsItem extends StatefulWidget {
     this.subtitleTextStyle,
     this.valueTextStyle,
     this.switchActiveColor,
+    this.sliderValue,
+    this.onChanged,
+    this.onChangeStart,
+    this.onChangeEnd,
+    this.min,
+    this.max,
+    this.divisions,
+    this.activeColor,
+    this.thumbColor,
   })  : assert(label != null),
         assert(type != null),
         assert(labelMaxLines == null || labelMaxLines > 0),
@@ -56,6 +66,17 @@ class CupertinoSettingsItem extends StatefulWidget {
   final TextStyle subtitleTextStyle;
   final TextStyle valueTextStyle;
   final Color switchActiveColor;
+
+  /// Values for Slider
+  final double sliderValue;
+  final ValueChanged<double> onChanged;
+  final ValueChanged<double> onChangeStart;
+  final ValueChanged<double> onChangeEnd;
+  final double min;
+  final double max;
+  final int divisions;
+  final Color activeColor;
+  final Color thumbColor;
 
   @override
   State<StatefulWidget> createState() => new CupertinoSettingsItemState();
@@ -100,42 +121,55 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
     }
 
     Widget titleSection;
-    if (widget.subtitle == null) {
-      titleSection = Padding(
-        padding: EdgeInsets.only(top: 1.5),
-        child: Text(
-          widget.label,
-          overflow: TextOverflow.ellipsis,
-          style: widget.labelTextStyle ??
-              TextStyle(
-                fontSize: 16,
-                color: widget.enabled ? null : CupertinoColors.inactiveGray,
-              ),
-        ),
-      );
-    } else {
-      titleSection = Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          const Padding(padding: EdgeInsets.only(top: 8.5)),
-          Text(
+    if (widget.type != SettingsItemType.slider) {
+      if (widget.subtitle == null) {
+        titleSection = Padding(
+          padding: EdgeInsets.only(top: 1.5),
+          child: Text(
             widget.label,
             overflow: TextOverflow.ellipsis,
-            style: widget.labelTextStyle,
-          ),
-          const Padding(padding: EdgeInsets.only(top: 4.0)),
-          Text(
-            widget.subtitle,
-            maxLines: widget.subtitleMaxLines,
-            overflow: TextOverflow.ellipsis,
-            style: widget.subtitleTextStyle ??
+            style: widget.labelTextStyle ??
                 TextStyle(
-                  fontSize: 12.0,
-                  letterSpacing: -0.2,
+                  fontSize: 16,
+                  color: widget.enabled ? null : CupertinoColors.inactiveGray,
                 ),
-          )
-        ],
-      );
+          ),
+        );
+      } else {
+        titleSection = Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            const Padding(padding: EdgeInsets.only(top: 8.5)),
+            Text(
+              widget.label,
+              overflow: TextOverflow.ellipsis,
+              style: widget.labelTextStyle,
+            ),
+            const Padding(padding: EdgeInsets.only(top: 4.0)),
+            Text(
+              widget.subtitle,
+              maxLines: widget.subtitleMaxLines,
+              overflow: TextOverflow.ellipsis,
+              style: widget.subtitleTextStyle ??
+                  TextStyle(
+                    fontSize: 12.0,
+                    letterSpacing: -0.2,
+                  ),
+            )
+          ],
+        );
+      }
+    } else {
+      titleSection = CupertinoSlider(
+          value: widget.sliderValue,
+          divisions: widget.divisions,
+          activeColor: widget.activeColor,
+          thumbColor: widget.thumbColor,
+          min: widget.min,
+          max: widget.max,
+          onChanged: widget.onChanged,
+          onChangeStart: widget.onChangeStart,
+          onChangeEnd: widget.onChangeEnd);
     }
 
     rowChildren.add(
@@ -151,6 +185,27 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
     );
 
     switch (widget.type) {
+      case SettingsItemType.slider:
+        if (widget.trailing != null) {
+          Widget trailingIcon = IconTheme.merge(
+            data: IconThemeData(
+              color: widget.enabled
+                  ? _iconColor(theme, tileTheme)
+                  : CupertinoColors.inactiveGray,
+            ),
+            child: widget.trailing,
+          );
+
+          rowChildren.add(
+            Padding(
+              padding: const EdgeInsetsDirectional.only(
+                  top: 0.5, start: 2.25, end: 11.0),
+              child: trailingIcon,
+            ),
+          );
+        }
+        ;
+        break;
       case SettingsItemType.toggle:
         rowChildren.add(
           Padding(
@@ -225,6 +280,8 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
           ),
         );
 
+        break;
+      case SettingsItemType.slider:
         break;
     }
 
