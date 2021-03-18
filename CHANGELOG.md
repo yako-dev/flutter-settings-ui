@@ -1,3 +1,6 @@
+## [1.0.0-nullsafety.1] - [February 26, 2021]
+* Null safety preview release
+
 ## [0.7.0] - [February 26, 2021]
 * Fixed double trailing on iOS devices
 * Support for MacOS
