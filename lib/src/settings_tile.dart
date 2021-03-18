@@ -10,26 +10,26 @@ enum _SettingsTileType { simple, switchTile }
 
 class SettingsTile extends StatelessWidget {
   final String title;
-  final int titleMaxLines;
-  final String subtitle;
-  final int subtitleMaxLines;
-  final Widget leading;
-  final Widget trailing;
-  final Icon iosChevron;
-  final EdgeInsetsGeometry iosChevronPadding;
-  final VoidCallback onTap;
-  final Function(BuildContext context) onPressed;
-  final Function(bool value) onToggle;
-  final bool switchValue;
+  final int? titleMaxLines;
+  final String? subtitle;
+  final int? subtitleMaxLines;
+  final Widget? leading;
+  final Widget? trailing;
+  final Icon? iosChevron;
+  final EdgeInsetsGeometry? iosChevronPadding;
+  final VoidCallback? onTap;
+  final Function(BuildContext context)? onPressed;
+  final Function(bool value)? onToggle;
+  final bool? switchValue;
   final bool enabled;
-  final TextStyle titleTextStyle;
-  final TextStyle subtitleTextStyle;
-  final Color switchActiveColor;
+  final TextStyle? titleTextStyle;
+  final TextStyle? subtitleTextStyle;
+  final Color? switchActiveColor;
   final _SettingsTileType _tileType;
 
   const SettingsTile({
-    Key key,
-    @required this.title,
+    Key? key,
+    required this.title,
     this.titleMaxLines,
     this.subtitle,
     this.subtitleMaxLines,
@@ -51,16 +51,16 @@ class SettingsTile extends StatelessWidget {
         super(key: key);
 
   const SettingsTile.switchTile({
-    Key key,
-    @required this.title,
+    Key? key,
+    required this.title,
     this.titleMaxLines,
     this.subtitle,
     this.subtitleMaxLines,
     this.leading,
     this.enabled = true,
     this.trailing,
-    @required this.onToggle,
-    @required this.switchValue,
+    required this.onToggle,
+    required this.switchValue,
     this.titleTextStyle,
     this.subtitleTextStyle,
     this.switchActiveColor,
@@ -112,7 +112,7 @@ class SettingsTile extends StatelessWidget {
         iosChevronPadding: iosChevronPadding,
         hasDetails: false,
         leading: leading,
-        onPress: onTapFunction(context),
+        onPress: onTapFunction(context) as void Function()?,
         labelTextStyle: titleTextStyle,
         subtitleTextStyle: subtitleTextStyle,
         valueTextStyle: subtitleTextStyle,
@@ -124,7 +124,7 @@ class SettingsTile extends StatelessWidget {
     if (_tileType == _SettingsTileType.switchTile) {
       return SwitchListTile(
         secondary: leading,
-        value: switchValue,
+        value: switchValue!,
         activeColor: switchActiveColor,
         onChanged: enabled ? onToggle : null,
         title: Text(
@@ -135,7 +135,7 @@ class SettingsTile extends StatelessWidget {
         ),
         subtitle: subtitle != null
             ? Text(
-                subtitle,
+                subtitle!,
                 style: subtitleTextStyle,
                 maxLines: subtitleMaxLines,
                 overflow: TextOverflow.ellipsis,
@@ -147,7 +147,7 @@ class SettingsTile extends StatelessWidget {
         title: Text(title, style: titleTextStyle),
         subtitle: subtitle != null
             ? Text(
-                subtitle,
+                subtitle!,
                 style: subtitleTextStyle,
                 maxLines: subtitleMaxLines,
                 overflow: TextOverflow.ellipsis,
@@ -156,18 +156,18 @@ class SettingsTile extends StatelessWidget {
         leading: leading,
         enabled: enabled,
         trailing: trailing,
-        onTap: onTapFunction(context),
+        onTap: onTapFunction(context) as void Function()?,
       );
     }
   }
 
-  Function onTapFunction(BuildContext context) =>
+  Function? onTapFunction(BuildContext context) =>
       onTap != null || onPressed != null
           ? () {
               if (onPressed != null) {
-                onPressed.call(context);
+                onPressed!.call(context);
               } else {
-                onTap.call();
+                onTap!.call();
               }
             }
           : null;
