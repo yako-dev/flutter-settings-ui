@@ -19,28 +19,28 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
             SettingsTile(
               title: "English",
               trailing: trailingWidget(0),
-              onTap: () {
+              onPressed: (BuildContext context) {
                 changeLanguage(0);
               },
             ),
             SettingsTile(
               title: "Spanish",
               trailing: trailingWidget(1),
-              onTap: () {
+              onPressed: (BuildContext context) {
                 changeLanguage(1);
               },
             ),
             SettingsTile(
               title: "Chinese",
               trailing: trailingWidget(2),
-              onTap: () {
+              onPressed: (BuildContext context) {
                 changeLanguage(2);
               },
             ),
             SettingsTile(
               title: "German",
               trailing: trailingWidget(3),
-              onTap: () {
+              onPressed: (BuildContext context) {
                 changeLanguage(3);
               },
             ),
