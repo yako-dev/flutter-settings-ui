@@ -25,7 +25,8 @@ class CupertinoSettingsSection extends StatelessWidget {
     if (header != null) {
       columnChildren.add(DefaultTextStyle(
         style: TextStyle(
-          color: CupertinoColors.inactiveGray,
+          color: Colors.grey.shade700,
+          fontWeight: FontWeight.w400,
           fontSize: 13.5,
           letterSpacing: -0.5,
         ),
@@ -44,6 +45,7 @@ class CupertinoSettingsSection extends StatelessWidget {
         itemsWithDividers.add(items[i]);
         itemsWithDividers.add(Divider(
           height: 0.3,
+          color: Colors.grey.shade400,
           indent: leftPadding,
         ));
       } else {
@@ -51,29 +53,42 @@ class CupertinoSettingsSection extends StatelessWidget {
       }
     }
 
-    columnChildren.add(
-      Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).brightness == Brightness.light
-              ? CupertinoColors.white
-              : iosTileDarkColor,
-          border: Border(
-            top: const BorderSide(
-              color: borderColor,
-              width: 0.3,
+    bool largeScreen = MediaQuery.of(context).size.width >= 768 ? true : false;
+
+    columnChildren.add(largeScreen
+        ? Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.all(Radius.circular(20)),
+              color: Theme.of(context).brightness == Brightness.light
+                  ? CupertinoColors.white
+                  : iosTileDarkColor,
             ),
-            bottom: const BorderSide(
-              color: borderColor,
-              width: 0.3,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: itemsWithDividers,
             ),
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: itemsWithDividers,
-        ),
-      ),
-    );
+          )
+        : Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).brightness == Brightness.light
+                  ? CupertinoColors.white
+                  : iosTileDarkColor,
+              border: Border(
+                top: const BorderSide(
+                  color: borderColor,
+                  width: 0.3,
+                ),
+                bottom: const BorderSide(
+                  color: borderColor,
+                  width: 0.3,
+                ),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: itemsWithDividers,
+            ),
+          ));
 
     if (footer != null) {
       columnChildren.add(DefaultTextStyle(
@@ -94,9 +109,12 @@ class CupertinoSettingsSection extends StatelessWidget {
     }
 
     return Padding(
-      padding: EdgeInsets.only(
-        top: header == null ? 35.0 : 22.0,
-      ),
+      padding: largeScreen
+          ? EdgeInsets.only(
+              top: header == null ? 35.0 : 22.0, left: 22, right: 22)
+          : EdgeInsets.only(
+              top: header == null ? 35.0 : 22.0,
+            ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: columnChildren,
