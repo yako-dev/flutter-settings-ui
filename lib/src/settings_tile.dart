@@ -75,7 +75,9 @@ class SettingsTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (Platform.isIOS || Platform.isMacOS) {
+    if (kIsWeb) {
+      return iosTile(context);
+    } else if (Platform.isIOS || Platform.isMacOS) {
       return iosTile(context);
     } else {
       return androidTile(context);
