@@ -4,15 +4,15 @@ import 'package:settings_ui/src/colors.dart';
 
 class SettingsList extends StatelessWidget {
   final bool shrinkWrap;
-  final ScrollPhysics physics;
-  final List<AbstractSection> sections;
-  final Color backgroundColor;
-  final Color lightBackgroundColor;
-  final Color darkBackgroundColor;
-  final EdgeInsetsGeometry contentPadding;
+  final ScrollPhysics? physics;
+  final List<AbstractSection>? sections;
+  final Color? backgroundColor;
+  final Color? lightBackgroundColor;
+  final Color? darkBackgroundColor;
+  final EdgeInsetsGeometry? contentPadding;
 
   const SettingsList({
-    Key key,
+    Key? key,
     this.sections,
     this.backgroundColor,
     this.physics,
@@ -33,12 +33,12 @@ class SettingsList extends StatelessWidget {
           physics: physics,
           shrinkWrap: shrinkWrap,
           padding: contentPadding,
-          itemCount: sections.length,
+          itemCount: sections!.length,
           itemBuilder: (context, index) {
-            AbstractSection current = sections[index];
-            AbstractSection futureOne;
-            if (index + 1 != sections.length) {
-              futureOne = sections[index + 1];
+            AbstractSection current = sections![index];
+            AbstractSection? futureOne;
+            if (index + 1 != sections!.length) {
+              futureOne = sections![index + 1];
             }
 
             // Add divider if title is null

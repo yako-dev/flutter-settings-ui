@@ -14,8 +14,8 @@ typedef void PressOperationCallback();
 
 class CupertinoSettingsItem extends StatefulWidget {
   const CupertinoSettingsItem({
-    @required this.type,
-    @required this.label,
+    required this.type,
+    required this.label,
     this.labelMaxLines,
     this.subtitle,
     this.subtitleMaxLines,
@@ -48,24 +48,24 @@ class CupertinoSettingsItem extends StatefulWidget {
         assert(subtitleMaxLines == null || subtitleMaxLines > 0);
 
   final String label;
-  final int labelMaxLines;
-  final String subtitle;
-  final int subtitleMaxLines;
-  final Widget leading;
-  final Widget trailing;
-  final Icon iosChevron;
-  final EdgeInsetsGeometry iosChevronPadding;
+  final int? labelMaxLines;
+  final String? subtitle;
+  final int? subtitleMaxLines;
+  final Widget? leading;
+  final Widget? trailing;
+  final Icon? iosChevron;
+  final EdgeInsetsGeometry? iosChevronPadding;
   final SettingsItemType type;
-  final String value;
+  final String? value;
   final bool hasDetails;
   final bool enabled;
-  final PressOperationCallback onPress;
-  final bool switchValue;
-  final Function(bool value) onToggle;
-  final TextStyle labelTextStyle;
-  final TextStyle subtitleTextStyle;
-  final TextStyle valueTextStyle;
-  final Color switchActiveColor;
+  final PressOperationCallback? onPress;
+  final bool? switchValue;
+  final Function(bool value)? onToggle;
+  final TextStyle? labelTextStyle;
+  final TextStyle? subtitleTextStyle;
+  final TextStyle? valueTextStyle;
+  final Color? switchActiveColor;
 
   /// Values for Slider
   final double sliderValue;
@@ -84,15 +84,18 @@ class CupertinoSettingsItem extends StatefulWidget {
 
 class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
   bool pressed = false;
-  bool _checked;
+  bool? _checked;
 
   @override
   Widget build(BuildContext context) {
     _checked = widget.switchValue;
 
+    /// The width of iPad. This is used to make circular borders on iPad and web
+    final isLargeScreen = MediaQuery.of(context).size.width >= 768;
+
     final ThemeData theme = Theme.of(context);
     final ListTileTheme tileTheme = ListTileTheme.of(context);
-    IconThemeData iconThemeData;
+    late IconThemeData iconThemeData;
     if (widget.leading != null)
       iconThemeData = IconThemeData(
         color: widget.enabled
@@ -100,11 +103,11 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
             : CupertinoColors.inactiveGray,
       );
 
-    Widget leadingIcon;
+    Widget? leadingIcon;
     if (widget.leading != null) {
       leadingIcon = IconTheme.merge(
         data: iconThemeData,
-        child: widget.leading,
+        child: widget.leading!,
       );
     }
 
@@ -128,7 +131,14 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
           child: Text(
             widget.label,
             overflow: TextOverflow.ellipsis,
-            style: widget.labelTextStyle ??
+            style: widget.labelTextStyle,
+          ),
+          const Padding(padding: EdgeInsets.only(top: 4.0)),
+          Text(
+            widget.subtitle!,
+            maxLines: widget.subtitleMaxLines,
+            overflow: TextOverflow.ellipsis,
+            style: widget.subtitleTextStyle ??
                 TextStyle(
                   fontSize: 16,
                   color: widget.enabled ? null : CupertinoColors.inactiveGray,
@@ -211,21 +221,21 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
           Padding(
             padding: const EdgeInsetsDirectional.only(end: 11.0),
             child: CupertinoSwitch(
-              value: widget.switchValue,
+              value: widget.switchValue!,
               activeColor: widget.enabled
                   ? (widget.switchActiveColor ?? Theme.of(context).accentColor)
                   : CupertinoColors.inactiveGray,
               onChanged: !widget.enabled
                   ? null
                   : (bool value) {
-                      widget.onToggle(value);
+                      widget.onToggle!(value);
                     },
             ),
           ),
         );
         break;
       case SettingsItemType.modal:
-        final List<Widget> rightRowChildren = [];
+        final List<Widget?> rightRowChildren = [];
         if (widget.value != null) {
           rightRowChildren.add(
             Padding(
@@ -234,7 +244,7 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
                 end: 2.25,
               ),
               child: Text(
-                widget.value,
+                widget.value!,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.end,
                 style: widget.valueTextStyle ??
@@ -264,7 +274,7 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
             widget.iosChevronPadding == null
                 ? widget.iosChevron
                 : Padding(
-                    padding: widget.iosChevronPadding,
+                    padding: widget.iosChevronPadding!,
                     child: widget.iosChevron,
                   ),
           );
@@ -276,7 +286,7 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
           Row(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.end,
-            children: rightRowChildren,
+            children: rightRowChildren as List<Widget>,
           ),
         );
 
@@ -284,8 +294,6 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
       case SettingsItemType.slider:
         break;
     }
-
-    bool largeScreen = MediaQuery.of(context).size.width >= 768 ? true : false;
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -299,7 +307,7 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
           }
 
           if (widget.onPress != null) {
-            widget.onPress();
+            widget.onPress!();
           }
 
           Future.delayed(const Duration(milliseconds: 100), () {
@@ -314,8 +322,8 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
         if (widget.type == SettingsItemType.toggle && widget.enabled) {
           if (mounted) {
             setState(() {
-              _checked = !_checked;
-              widget.onToggle(_checked);
+              _checked = !_checked!;
+              widget.onToggle!(_checked!);
             });
           }
         }
@@ -344,7 +352,7 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
       child: Container(
         decoration: BoxDecoration(
           borderRadius:
-              largeScreen ? BorderRadius.all(Radius.circular(20)) : null,
+              isLargeScreen ? BorderRadius.all(Radius.circular(20)) : null,
           color: calculateBackgroundColor(context),
         ),
         height: widget.subtitle == null ? 44.0 : 57.0,
@@ -364,12 +372,12 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
               ? iosPressedTileColorDark
               : iosTileDarkColor;
 
-  Color _iconColor(ThemeData theme, ListTileTheme tileTheme) {
-    if (tileTheme?.selectedColor != null) {
+  Color? _iconColor(ThemeData theme, ListTileTheme tileTheme) {
+    if (tileTheme.selectedColor != null) {
       return tileTheme.selectedColor;
     }
 
-    if (tileTheme?.iconColor != null) {
+    if (tileTheme.iconColor != null) {
       return tileTheme.iconColor;
     }
 
@@ -379,7 +387,5 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
       case Brightness.dark:
         return null; // null - use current icon theme color
     }
-    assert(theme.brightness != null);
-    return null;
   }
 }
