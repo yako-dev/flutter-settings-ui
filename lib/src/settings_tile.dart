@@ -29,15 +29,15 @@ class SettingsTile extends StatelessWidget {
   final _SettingsTileType _tileType;
 
   // Values for Slider
-  final double value;
-  final ValueChanged<double> onChanged;
-  final ValueChanged<double> onChangeStart;
-  final ValueChanged<double> onChangeEnd;
-  final double min;
-  final double max;
-  final int divisions;
-  final Color activeColor;
-  final Color thumbColor;
+  final double? sliderValue;
+  final ValueChanged<double>? sliderOnChanged;
+  final ValueChanged<double>? sliderOnChangeStart;
+  final ValueChanged<double>? sliderOnChangeEnd;
+  final double? sliderMin;
+  final double? sliderMax;
+  final int? sliderDivisions;
+  final Color? sliderActiveColor;
+  final Color? sliderThumbColor;
 
   const SettingsTile({
     Key? key,
@@ -54,7 +54,16 @@ class SettingsTile extends StatelessWidget {
     this.subtitleTextStyle,
     this.enabled = true,
     this.onPressed,
-    this.switchActiveColor, this.value, this.onChanged, this.onChangeStart, this.onChangeEnd, this.min, this.max, this.divisions, this.activeColor, this.thumbColor,
+    this.switchActiveColor,
+    this.sliderValue = 0.5,
+    this.sliderOnChanged,
+    this.sliderOnChangeStart,
+    this.sliderOnChangeEnd,
+    this.sliderMin = 0,
+    this.sliderMax = 1,
+    this.sliderDivisions,
+    this.sliderActiveColor,
+    this.sliderThumbColor = Colors.blue,
   })  : _tileType = _SettingsTileType.simple,
         onToggle = null,
         switchValue = null,
@@ -75,7 +84,16 @@ class SettingsTile extends StatelessWidget {
     required this.switchValue,
     this.titleTextStyle,
     this.subtitleTextStyle,
-    this.switchActiveColor, this.value, this.onChanged, this.onChangeStart, this.onChangeEnd, this.min, this.max, this.divisions, this.activeColor, this.thumbColor,
+    this.switchActiveColor,
+    this.sliderValue = 0.5,
+    this.sliderOnChanged,
+    this.sliderOnChangeStart,
+    this.sliderOnChangeEnd,
+    this.sliderMin,
+    this.sliderMax,
+    this.sliderDivisions,
+    this.sliderActiveColor,
+    this.sliderThumbColor,
   })  : _tileType = _SettingsTileType.switchTile,
         onTap = null,
         onPressed = null,
@@ -86,35 +104,35 @@ class SettingsTile extends StatelessWidget {
         super(key: key);
 
   const SettingsTile.sliderTile({
-    Key key,
+    Key? key,
+    required this.title,
     this.titleMaxLines,
     this.leading,
     this.enabled = true,
     this.trailing,
-    @required this.value,
-    @required this.onChanged,
-    this.onChangeStart,
-    this.onChangeEnd,
-    this.min = 0.0,
-    this.max = 1.0,
-    this.divisions,
-    this.activeColor,
-    this.thumbColor = CupertinoColors.white,
     this.titleTextStyle,
     this.subtitleTextStyle,
-    this.switchActiveColor, this.title, this.subtitle, this.subtitleMaxLines, this.onToggle, this.switchValue,
+    this.switchActiveColor,
+    this.subtitle,
+    this.subtitleMaxLines,
+    this.onToggle,
+    this.switchValue,
+    this.sliderValue,
+    this.sliderOnChanged,
+    this.sliderOnChangeStart,
+    this.sliderOnChangeEnd,
+    this.sliderMin,
+    this.sliderMax,
+    this.sliderDivisions,
+    this.sliderActiveColor,
+    this.sliderThumbColor,
   })  : _tileType = _SettingsTileType.sliderTile,
         onTap = null,
         onPressed = null,
         iosChevron = null,
         iosChevronPadding = null,
         assert(titleMaxLines == null || titleMaxLines > 0),
-        assert(value != null),
-        assert(min != null),
-        assert(max != null),
-        assert(value >= min && value <= max),
-        assert(divisions == null || divisions > 0),
-        assert(thumbColor != null),
+        assert(sliderDivisions == null || sliderDivisions > 0),
         super(key: key);
 
   @override
@@ -145,15 +163,15 @@ class SettingsTile extends StatelessWidget {
         subtitleTextStyle: subtitleTextStyle,
         valueTextStyle: subtitleTextStyle,
         trailing: trailing,
-        sliderValue: value,
-        max: max,
-        min: min,
-        thumbColor: thumbColor,
-        activeColor: activeColor,
-        onChangeStart: onChangeStart,
-        onChangeEnd: onChangeEnd,
-        onChanged: onChanged,
-        divisions: divisions,
+        sliderValue: sliderValue,
+        sliderMax: sliderMax,
+        sliderMin: sliderMin,
+        sliderThumbColor: sliderThumbColor,
+        sliderActiveColor: sliderActiveColor,
+        sliderOnChangeStart: sliderOnChangeStart,
+        sliderOnChangeEnd: sliderOnChangeEnd,
+        sliderOnChanged: sliderOnChanged,
+        sliderDivisions: sliderDivisions,
       );
     } else if (_tileType == _SettingsTileType.switchTile) {
       return CupertinoSettingsItem(
@@ -217,24 +235,25 @@ class SettingsTile extends StatelessWidget {
     } else if (_tileType == _SettingsTileType.sliderTile) {
       return ListTile(
         title: Slider(
-          value: value,
-          min: min,
-          max: max,
-          onChangeStart: onChangeStart,
-          onChangeEnd: onChangeEnd,
-          onChanged: onChanged,),
+          value: sliderValue ?? 0,
+          min: sliderMin ?? 0,
+          max: sliderMax ?? 1,
+          onChangeStart: sliderOnChangeStart,
+          onChangeEnd: sliderOnChangeEnd,
+          onChanged: sliderOnChanged,
+        ),
         subtitle: subtitle != null
             ? Text(
-          subtitle,
-          style: subtitleTextStyle,
-          maxLines: subtitleMaxLines,
-          overflow: TextOverflow.ellipsis,
-        )
+                subtitle!,
+                style: subtitleTextStyle,
+                maxLines: subtitleMaxLines,
+                overflow: TextOverflow.ellipsis,
+              )
             : null,
         leading: leading,
         enabled: enabled,
         trailing: trailing,
-        onTap: onTapFunction(context),
+        onTap: onTapFunction(context) as void Function()?,
       );
     } else {
       return ListTile(

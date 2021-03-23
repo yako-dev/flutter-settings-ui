@@ -34,17 +34,15 @@ class CupertinoSettingsItem extends StatefulWidget {
     this.valueTextStyle,
     this.switchActiveColor,
     this.sliderValue,
-    this.onChanged,
-    this.onChangeStart,
-    this.onChangeEnd,
-    this.min,
-    this.max,
-    this.divisions,
-    this.activeColor,
-    this.thumbColor,
-  })  : assert(label != null),
-        assert(type != null),
-        assert(labelMaxLines == null || labelMaxLines > 0),
+    this.sliderOnChanged,
+    this.sliderOnChangeStart,
+    this.sliderOnChangeEnd,
+    this.sliderMin = 0,
+    this.sliderMax = 1,
+    this.sliderDivisions,
+    this.sliderActiveColor,
+    this.sliderThumbColor = Colors.blue,
+  })  : assert(labelMaxLines == null || labelMaxLines > 0),
         assert(subtitleMaxLines == null || subtitleMaxLines > 0);
 
   final String label;
@@ -67,16 +65,16 @@ class CupertinoSettingsItem extends StatefulWidget {
   final TextStyle? valueTextStyle;
   final Color? switchActiveColor;
 
-  /// Values for Slider
-  final double sliderValue;
-  final ValueChanged<double> onChanged;
-  final ValueChanged<double> onChangeStart;
-  final ValueChanged<double> onChangeEnd;
-  final double min;
-  final double max;
-  final int divisions;
-  final Color activeColor;
-  final Color thumbColor;
+  // Values for Slider
+  final double? sliderValue;
+  final ValueChanged<double>? sliderOnChanged;
+  final ValueChanged<double>? sliderOnChangeStart;
+  final ValueChanged<double>? sliderOnChangeEnd;
+  final double? sliderMin;
+  final double? sliderMax;
+  final int? sliderDivisions;
+  final Color? sliderActiveColor;
+  final Color? sliderThumbColor;
 
   @override
   State<StatefulWidget> createState() => new CupertinoSettingsItemState();
@@ -131,13 +129,6 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
           child: Text(
             widget.label,
             overflow: TextOverflow.ellipsis,
-            style: widget.labelTextStyle,
-          ),
-          const Padding(padding: EdgeInsets.only(top: 4.0)),
-          Text(
-            widget.subtitle!,
-            maxLines: widget.subtitleMaxLines,
-            overflow: TextOverflow.ellipsis,
             style: widget.subtitleTextStyle ??
                 TextStyle(
                   fontSize: 16,
@@ -153,13 +144,6 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
             Text(
               widget.label,
               overflow: TextOverflow.ellipsis,
-              style: widget.labelTextStyle,
-            ),
-            const Padding(padding: EdgeInsets.only(top: 4.0)),
-            Text(
-              widget.subtitle,
-              maxLines: widget.subtitleMaxLines,
-              overflow: TextOverflow.ellipsis,
               style: widget.subtitleTextStyle ??
                   TextStyle(
                     fontSize: 12.0,
@@ -171,15 +155,15 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
       }
     } else {
       titleSection = CupertinoSlider(
-          value: widget.sliderValue,
-          divisions: widget.divisions,
-          activeColor: widget.activeColor,
-          thumbColor: widget.thumbColor,
-          min: widget.min,
-          max: widget.max,
-          onChanged: widget.onChanged,
-          onChangeStart: widget.onChangeStart,
-          onChangeEnd: widget.onChangeEnd);
+          value: widget.sliderValue ?? 0,
+          divisions: widget.sliderDivisions,
+          activeColor: widget.sliderActiveColor,
+          thumbColor: widget.sliderThumbColor ?? Colors.blue,
+          min: widget.sliderMin ?? 0,
+          max: widget.sliderMax ?? 1,
+          onChanged: widget.sliderOnChanged,
+          onChangeStart: widget.sliderOnChangeStart,
+          onChangeEnd: widget.sliderOnChangeEnd);
     }
 
     rowChildren.add(
@@ -203,7 +187,7 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
                   ? _iconColor(theme, tileTheme)
                   : CupertinoColors.inactiveGray,
             ),
-            child: widget.trailing,
+            child: widget.trailing!,
           );
 
           rowChildren.add(
