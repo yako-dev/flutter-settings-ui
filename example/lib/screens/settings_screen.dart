@@ -11,6 +11,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   bool lockInBackground = true;
   bool notificationsEnabled = true;
+  var brightnessSlider = 40.0;
 
   @override
   Widget build(BuildContext context) {
@@ -40,6 +41,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: 'Environment',
               subtitle: 'Production',
               leading: Icon(Icons.cloud_queue),
+            ),
+            SettingsTile.sliderTile(
+              leading: Icon(Icons.brightness_low),
+              trailing: Icon(Icons.brightness_high),
+              sliderValue: brightnessSlider,
+              sliderMin: 1,
+              sliderMax: 100,
+              sliderOnChanged: (double value) {
+                print('slider value: $value');
+                setState(() {
+                  brightnessSlider = value;
+                });
+              }, title: 'Brightness',
             ),
           ],
         ),
