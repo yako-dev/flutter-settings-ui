@@ -1,12 +1,13 @@
 import 'dart:io';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:settings_ui/src/cupertino_settings_item.dart';
 
 import 'defines.dart';
 
-enum _SettingsTileType { simple, switchTile }
+enum _SettingsTileType { simple, switchTile, sliderTile }
 
 class SettingsTile extends StatelessWidget {
   final String title;
@@ -27,6 +28,17 @@ class SettingsTile extends StatelessWidget {
   final Color? switchActiveColor;
   final _SettingsTileType _tileType;
 
+  // Values for Slider
+  final double? sliderValue;
+  final ValueChanged<double>? sliderOnChanged;
+  final ValueChanged<double>? sliderOnChangeStart;
+  final ValueChanged<double>? sliderOnChangeEnd;
+  final double? sliderMin;
+  final double? sliderMax;
+  final int? sliderDivisions;
+  final Color? sliderActiveColor;
+  final Color? sliderThumbColor;
+
   const SettingsTile({
     Key? key,
     required this.title,
@@ -43,6 +55,15 @@ class SettingsTile extends StatelessWidget {
     this.enabled = true,
     this.onPressed,
     this.switchActiveColor,
+    this.sliderValue,
+    this.sliderOnChanged,
+    this.sliderOnChangeStart,
+    this.sliderOnChangeEnd,
+    this.sliderMin,
+    this.sliderMax,
+    this.sliderDivisions,
+    this.sliderActiveColor,
+    this.sliderThumbColor,
   })  : _tileType = _SettingsTileType.simple,
         onToggle = null,
         switchValue = null,
@@ -64,6 +85,15 @@ class SettingsTile extends StatelessWidget {
     this.titleTextStyle,
     this.subtitleTextStyle,
     this.switchActiveColor,
+    this.sliderValue = 0.5,
+    this.sliderOnChanged,
+    this.sliderOnChangeStart,
+    this.sliderOnChangeEnd,
+    this.sliderMin,
+    this.sliderMax,
+    this.sliderDivisions,
+    this.sliderActiveColor,
+    this.sliderThumbColor,
   })  : _tileType = _SettingsTileType.switchTile,
         onTap = null,
         onPressed = null,
@@ -71,6 +101,38 @@ class SettingsTile extends StatelessWidget {
         iosChevronPadding = null,
         assert(titleMaxLines == null || titleMaxLines > 0),
         assert(subtitleMaxLines == null || subtitleMaxLines > 0),
+        super(key: key);
+
+  const SettingsTile.sliderTile({
+    Key? key,
+    this.title = '',
+    this.titleMaxLines,
+    this.leading,
+    this.enabled = true,
+    this.trailing,
+    this.titleTextStyle,
+    this.subtitleTextStyle,
+    this.switchActiveColor,
+    this.subtitle,
+    this.subtitleMaxLines,
+    this.onToggle,
+    this.switchValue,
+    required this.sliderValue,
+    this.sliderOnChanged,
+    this.sliderOnChangeStart,
+    this.sliderOnChangeEnd,
+    this.sliderMin,
+    this.sliderMax,
+    this.sliderDivisions,
+    this.sliderActiveColor,
+    this.sliderThumbColor,
+  })  : _tileType = _SettingsTileType.sliderTile,
+        onTap = null,
+        onPressed = null,
+        iosChevron = null,
+        iosChevronPadding = null,
+        assert(titleMaxLines == null || titleMaxLines > 0),
+        assert(sliderDivisions == null || sliderDivisions > 0),
         super(key: key);
 
   @override
@@ -85,7 +147,33 @@ class SettingsTile extends StatelessWidget {
   }
 
   Widget iosTile(BuildContext context) {
-    if (_tileType == _SettingsTileType.switchTile) {
+    if (_tileType == _SettingsTileType.sliderTile) {
+      return CupertinoSettingsItem(
+        enabled: enabled,
+        type: SettingsItemType.slider,
+        label: title,
+        labelMaxLines: titleMaxLines,
+        leading: leading,
+        subtitle: subtitle,
+        subtitleMaxLines: subtitleMaxLines,
+        switchValue: switchValue,
+        onToggle: onToggle,
+        labelTextStyle: titleTextStyle,
+        switchActiveColor: switchActiveColor,
+        subtitleTextStyle: subtitleTextStyle,
+        valueTextStyle: subtitleTextStyle,
+        trailing: trailing,
+        sliderValue: sliderValue,
+        sliderMax: sliderMax,
+        sliderMin: sliderMin,
+        sliderThumbColor: sliderThumbColor,
+        sliderActiveColor: sliderActiveColor,
+        sliderOnChangeStart: sliderOnChangeStart,
+        sliderOnChangeEnd: sliderOnChangeEnd,
+        sliderOnChanged: sliderOnChanged,
+        sliderDivisions: sliderDivisions,
+      );
+    } else if (_tileType == _SettingsTileType.switchTile) {
       return CupertinoSettingsItem(
         enabled: enabled,
         type: SettingsItemType.toggle,
@@ -144,6 +232,52 @@ class SettingsTile extends StatelessWidget {
               )
             : null,
       );
+    } else if (_tileType == _SettingsTileType.sliderTile) {
+      if (title.isNotEmpty) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0, left: 72.0),
+              child: Text(
+                title,
+                style: titleTextStyle,
+                maxLines: titleMaxLines,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            ListTile(
+              title: Slider(
+                value: sliderValue ?? 0,
+                min: sliderMin ?? 0,
+                max: sliderMax ?? 1,
+                onChangeStart: sliderOnChangeStart,
+                onChangeEnd: sliderOnChangeEnd,
+                onChanged: sliderOnChanged,
+              ),
+              leading: leading,
+              enabled: enabled,
+              trailing: trailing,
+              onTap: onTapFunction(context) as void Function()?,
+            ),
+          ],
+        );
+      } else {
+        return ListTile(
+          title: Slider(
+            value: sliderValue ?? 0,
+            min: sliderMin ?? 0,
+            max: sliderMax ?? 1,
+            onChangeStart: sliderOnChangeStart,
+            onChangeEnd: sliderOnChangeEnd,
+            onChanged: sliderOnChanged,
+          ),
+          leading: leading,
+          enabled: enabled,
+          trailing: trailing,
+          onTap: onTapFunction(context) as void Function()?,
+        );
+      }
     } else {
       return ListTile(
         title: Text(title, style: titleTextStyle),
