@@ -43,6 +43,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               leading: Icon(Icons.cloud_queue),
             ),
             SettingsTile.sliderTile(
+              title: 'Brightness',
               leading: Icon(Icons.brightness_low),
               trailing: Icon(Icons.brightness_high),
               sliderValue: brightnessSlider,
@@ -53,7 +54,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 setState(() {
                   brightnessSlider = value;
                 });
-              }, title: 'Brightness',
+              },
             ),
           ],
         ),
