@@ -55,15 +55,15 @@ class SettingsTile extends StatelessWidget {
     this.enabled = true,
     this.onPressed,
     this.switchActiveColor,
-    this.sliderValue = 0.5,
+    this.sliderValue,
     this.sliderOnChanged,
     this.sliderOnChangeStart,
     this.sliderOnChangeEnd,
-    this.sliderMin = 0,
-    this.sliderMax = 1,
+    this.sliderMin,
+    this.sliderMax,
     this.sliderDivisions,
     this.sliderActiveColor,
-    this.sliderThumbColor = Colors.blue,
+    this.sliderThumbColor,
   })  : _tileType = _SettingsTileType.simple,
         onToggle = null,
         switchValue = null,
@@ -105,7 +105,7 @@ class SettingsTile extends StatelessWidget {
 
   const SettingsTile.sliderTile({
     Key? key,
-    required this.title,
+    this.title = '',
     this.titleMaxLines,
     this.leading,
     this.enabled = true,
@@ -117,7 +117,7 @@ class SettingsTile extends StatelessWidget {
     this.subtitleMaxLines,
     this.onToggle,
     this.switchValue,
-    this.sliderValue,
+    required this.sliderValue,
     this.sliderOnChanged,
     this.sliderOnChangeStart,
     this.sliderOnChangeEnd,
@@ -233,28 +233,51 @@ class SettingsTile extends StatelessWidget {
             : null,
       );
     } else if (_tileType == _SettingsTileType.sliderTile) {
-      return ListTile(
-        title: Slider(
-          value: sliderValue ?? 0,
-          min: sliderMin ?? 0,
-          max: sliderMax ?? 1,
-          onChangeStart: sliderOnChangeStart,
-          onChangeEnd: sliderOnChangeEnd,
-          onChanged: sliderOnChanged,
-        ),
-        subtitle: subtitle != null
-            ? Text(
-                subtitle!,
-                style: subtitleTextStyle,
-                maxLines: subtitleMaxLines,
+      if (title.isNotEmpty) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0, left: 72.0),
+              child: Text(
+                title,
+                style: titleTextStyle,
+                maxLines: titleMaxLines,
                 overflow: TextOverflow.ellipsis,
-              )
-            : null,
-        leading: leading,
-        enabled: enabled,
-        trailing: trailing,
-        onTap: onTapFunction(context) as void Function()?,
-      );
+              ),
+            ),
+            ListTile(
+              title: Slider(
+                value: sliderValue ?? 0,
+                min: sliderMin ?? 0,
+                max: sliderMax ?? 1,
+                onChangeStart: sliderOnChangeStart,
+                onChangeEnd: sliderOnChangeEnd,
+                onChanged: sliderOnChanged,
+              ),
+              leading: leading,
+              enabled: enabled,
+              trailing: trailing,
+              onTap: onTapFunction(context) as void Function()?,
+            ),
+          ],
+        );
+      } else {
+        return ListTile(
+          title: Slider(
+            value: sliderValue ?? 0,
+            min: sliderMin ?? 0,
+            max: sliderMax ?? 1,
+            onChangeStart: sliderOnChangeStart,
+            onChangeEnd: sliderOnChangeEnd,
+            onChanged: sliderOnChanged,
+          ),
+          leading: leading,
+          enabled: enabled,
+          trailing: trailing,
+          onTap: onTapFunction(context) as void Function()?,
+        );
+      }
     } else {
       return ListTile(
         title: Text(title, style: titleTextStyle),

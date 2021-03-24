@@ -37,11 +37,11 @@ class CupertinoSettingsItem extends StatefulWidget {
     this.sliderOnChanged,
     this.sliderOnChangeStart,
     this.sliderOnChangeEnd,
-    this.sliderMin = 0,
-    this.sliderMax = 1,
+    this.sliderMin,
+    this.sliderMax,
     this.sliderDivisions,
     this.sliderActiveColor,
-    this.sliderThumbColor = Colors.blue,
+    this.sliderThumbColor,
   })  : assert(labelMaxLines == null || labelMaxLines > 0),
         assert(subtitleMaxLines == null || subtitleMaxLines > 0);
 
@@ -144,6 +144,13 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
             Text(
               widget.label,
               overflow: TextOverflow.ellipsis,
+              style: widget.labelTextStyle,
+            ),
+            const Padding(padding: EdgeInsets.only(top: 4.0)),
+            Text(
+              widget.subtitle!,
+              maxLines: widget.subtitleMaxLines,
+              overflow: TextOverflow.ellipsis,
               style: widget.subtitleTextStyle ??
                   TextStyle(
                     fontSize: 12.0,
@@ -154,16 +161,46 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
         );
       }
     } else {
-      titleSection = CupertinoSlider(
-          value: widget.sliderValue ?? 0,
-          divisions: widget.sliderDivisions,
-          activeColor: widget.sliderActiveColor,
-          thumbColor: widget.sliderThumbColor ?? Colors.blue,
-          min: widget.sliderMin ?? 0,
-          max: widget.sliderMax ?? 1,
-          onChanged: widget.sliderOnChanged,
-          onChangeStart: widget.sliderOnChangeStart,
-          onChangeEnd: widget.sliderOnChangeEnd);
+      if (widget.label.isEmpty) {
+        titleSection = CupertinoSlider(
+            value: widget.sliderValue ?? 0,
+            divisions: widget.sliderDivisions,
+            activeColor: widget.sliderActiveColor,
+            thumbColor: widget.sliderThumbColor ?? Colors.white,
+            min: widget.sliderMin ?? 0,
+            max: widget.sliderMax ?? 1,
+            onChanged: widget.sliderOnChanged,
+            onChangeStart: widget.sliderOnChangeStart,
+            onChangeEnd: widget.sliderOnChangeEnd);
+      } else {
+        titleSection = Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            if (widget.label.isNotEmpty)
+              const Padding(padding: EdgeInsets.only(top: 4)),
+            if (widget.label.isNotEmpty)
+              Text(
+                widget.label,
+                overflow: TextOverflow.ellipsis,
+                style: widget.labelTextStyle,
+              ),
+            Expanded(
+              child: CupertinoSlider(
+                  value: widget.sliderValue ?? 0,
+                  divisions: widget.sliderDivisions,
+                  activeColor: widget.sliderActiveColor,
+                  thumbColor: widget.sliderThumbColor ?? Colors.white,
+                  min: widget.sliderMin ?? 0,
+                  max: widget.sliderMax ?? 1,
+                  onChanged: widget.sliderOnChanged,
+                  onChangeStart: widget.sliderOnChangeStart,
+                  onChangeEnd: widget.sliderOnChangeEnd),
+            ),
+            if (widget.label.isNotEmpty)
+              const Padding(padding: EdgeInsets.only(top: 8.5)),
+          ],
+        );
+      }
     }
 
     rowChildren.add(
@@ -339,12 +376,21 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
               isLargeScreen ? BorderRadius.all(Radius.circular(20)) : null,
           color: calculateBackgroundColor(context),
         ),
-        height: widget.subtitle == null ? 44.0 : 57.0,
+        height: calculateHeight(),
         child: Row(
           children: rowChildren,
         ),
       ),
     );
+  }
+
+  double calculateHeight() {
+    if (widget.subtitle != null) return 57.0;
+    if (widget.type == SettingsItemType.slider) {
+      if (widget.label.isEmpty) return 44.0;
+      return 57.0;
+    }
+    return 44.0;
   }
 
   Color calculateBackgroundColor(BuildContext context) =>
