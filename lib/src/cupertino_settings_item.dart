@@ -297,7 +297,6 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
         ),
         height: widget.subtitle == null ? 44.0 : 57.0,
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: rowChildren,
         ),
       ),
