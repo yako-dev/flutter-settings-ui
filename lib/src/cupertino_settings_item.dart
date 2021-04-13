@@ -104,56 +104,50 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
     final Widget titleSection;
 
     if (widget.subtitle == null) {
-      titleSection = Padding(
+      titleSection = Text(
+        widget.label,
+        overflow: TextOverflow.ellipsis,
+        style: widget.labelTextStyle ??
+            TextStyle(
+              fontSize: 16,
+              color: widget.enabled ? null : CupertinoColors.inactiveGray,
+            ),
+      );
+    } else {
+      titleSection = Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            widget.label,
+            overflow: TextOverflow.ellipsis,
+            style: widget.labelTextStyle,
+          ),
+          const SizedBox(height: 2.5),
+          Text(
+            widget.subtitle!,
+            maxLines: widget.subtitleMaxLines,
+            overflow: TextOverflow.ellipsis,
+            style: widget.subtitleTextStyle ??
+                TextStyle(
+                  fontSize: 12.0,
+                  letterSpacing: -0.2,
+                ),
+          ),
+        ],
+      );
+    }
+
+    rowChildren.add(Expanded(
+      child: Padding(
         padding: const EdgeInsetsDirectional.only(
           start: 15.0,
           end: 15.0,
         ),
-        child: Text(
-          widget.label,
-          overflow: TextOverflow.ellipsis,
-          style: widget.labelTextStyle ??
-              TextStyle(
-                fontSize: 16,
-                color: widget.enabled ? null : CupertinoColors.inactiveGray,
-              ),
-        ),
-      );
-    } else {
-      titleSection = Expanded(
-        child: Padding(
-          padding: const EdgeInsetsDirectional.only(
-            start: 15.0,
-            end: 15.0,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Text(
-                widget.label,
-                overflow: TextOverflow.ellipsis,
-                style: widget.labelTextStyle,
-              ),
-              const SizedBox(height: 2.5),
-              Text(
-                widget.subtitle!,
-                maxLines: widget.subtitleMaxLines,
-                overflow: TextOverflow.ellipsis,
-                style: widget.subtitleTextStyle ??
-                    TextStyle(
-                      fontSize: 12.0,
-                      letterSpacing: -0.2,
-                    ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    rowChildren.add(titleSection);
+        child: titleSection,
+      ),
+    ));
 
     switch (widget.type) {
       case SettingsItemType.toggle:
