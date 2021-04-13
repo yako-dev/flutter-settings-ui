@@ -1,3 +1,7 @@
+## [1.0.0-nullsafety.2] - [February 26, 2021]
+* Enable web support
+* Round borders for web and iPad settings tiles
+
 ## [1.0.0-nullsafety.1] - [February 26, 2021]
 * Null safety preview release
 
