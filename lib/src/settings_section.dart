@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:settings_ui/src/abstract_section.dart';
@@ -30,12 +28,19 @@ class SettingsSection extends AbstractSection {
 
   @override
   Widget build(BuildContext context) {
-    if (kIsWeb) {
-      return iosSection();
-    } else if (Platform.isIOS || Platform.isMacOS) {
-      return iosSection();
-    } else {
-      return androidSection(context);
+    final platform = Theme.of(context).platform;
+
+    switch (platform) {
+      case TargetPlatform.iOS:
+      case TargetPlatform.macOS:
+        return iosSection();
+
+      case TargetPlatform.android:
+      case TargetPlatform.fuchsia:
+        return androidSection(context);
+
+      default:
+        return iosSection();
     }
   }
 

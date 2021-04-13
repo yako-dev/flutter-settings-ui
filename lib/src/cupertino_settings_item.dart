@@ -11,6 +11,8 @@ enum SettingsItemType {
 
 typedef void PressOperationCallback();
 
+const _spacer = Expanded(child: SizedBox.shrink());
+
 class CupertinoSettingsItem extends StatefulWidget {
   const CupertinoSettingsItem({
     required this.type,
@@ -72,13 +74,12 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
 
     final ThemeData theme = Theme.of(context);
     final ListTileTheme tileTheme = ListTileTheme.of(context);
-    late IconThemeData iconThemeData;
-    if (widget.leading != null)
-      iconThemeData = IconThemeData(
-        color: widget.enabled
-            ? _iconColor(theme, tileTheme)
-            : CupertinoColors.inactiveGray,
-      );
+
+    final iconThemeData = IconThemeData(
+      color: widget.enabled
+          ? _iconColor(theme, tileTheme)
+          : CupertinoColors.inactiveGray,
+    );
 
     Widget? leadingIcon;
     if (widget.leading != null) {
@@ -100,31 +101,30 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
       );
     }
 
-    Widget titleSection;
+    final Widget titleSection;
+
     if (widget.subtitle == null) {
-      titleSection = Padding(
-        padding: EdgeInsets.only(top: 1.5),
-        child: Text(
-          widget.label,
-          overflow: TextOverflow.ellipsis,
-          style: widget.labelTextStyle ??
-              TextStyle(
-                fontSize: 16,
-                color: widget.enabled ? null : CupertinoColors.inactiveGray,
-              ),
-        ),
+      titleSection = Text(
+        widget.label,
+        overflow: TextOverflow.ellipsis,
+        style: widget.labelTextStyle ??
+            TextStyle(
+              fontSize: 16,
+              color: widget.enabled ? null : CupertinoColors.inactiveGray,
+            ),
       );
     } else {
       titleSection = Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          const Padding(padding: EdgeInsets.only(top: 8.5)),
           Text(
             widget.label,
             overflow: TextOverflow.ellipsis,
             style: widget.labelTextStyle,
           ),
-          const Padding(padding: EdgeInsets.only(top: 4.0)),
+          const SizedBox(height: 2.5),
           Text(
             widget.subtitle!,
             maxLines: widget.subtitleMaxLines,
@@ -134,67 +134,72 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
                   fontSize: 12.0,
                   letterSpacing: -0.2,
                 ),
-          )
+          ),
         ],
       );
     }
 
-    rowChildren.add(
-      Expanded(
-        child: Padding(
-          padding: const EdgeInsetsDirectional.only(
-            start: 15.0,
-            end: 15.0,
-          ),
-          child: titleSection,
+    rowChildren.add(Expanded(
+      child: Padding(
+        padding: const EdgeInsetsDirectional.only(
+          start: 15.0,
+          end: 15.0,
         ),
+        child: titleSection,
       ),
-    );
+    ));
 
     switch (widget.type) {
       case SettingsItemType.toggle:
-        rowChildren.add(
-          Padding(
-            padding: const EdgeInsetsDirectional.only(end: 11.0),
-            child: CupertinoSwitch(
-              value: widget.switchValue!,
-              activeColor: widget.enabled
-                  ? (widget.switchActiveColor ?? Theme.of(context).accentColor)
-                  : CupertinoColors.inactiveGray,
-              onChanged: !widget.enabled
-                  ? null
-                  : (bool value) {
-                      widget.onToggle!(value);
-                    },
-            ),
-          ),
-        );
-        break;
-      case SettingsItemType.modal:
-        final List<Widget> rightRowChildren = [];
-        if (widget.value != null) {
-          rightRowChildren.add(
+        rowChildren
+          ..add(
             Padding(
-              padding: const EdgeInsetsDirectional.only(
-                top: 1.5,
-                end: 2.25,
+              padding: const EdgeInsetsDirectional.only(end: 11.0),
+              child: CupertinoSwitch(
+                value: widget.switchValue!,
+                activeColor: widget.enabled
+                    ? (widget.switchActiveColor ??
+                        Theme.of(context).accentColor)
+                    : CupertinoColors.inactiveGray,
+                onChanged: !widget.enabled
+                    ? null
+                    : (bool value) {
+                        widget.onToggle!(value);
+                      },
               ),
-              child: Text(
-                widget.value!,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.end,
-                style: widget.valueTextStyle ??
-                    TextStyle(
-                      color: CupertinoColors.inactiveGray,
-                      fontSize: 16,
-                    ),
+            ),
+          );
+        break;
+
+      case SettingsItemType.modal:
+        if (widget.value == null) {
+          rowChildren.add(_spacer);
+        } else {
+          rowChildren.add(
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsetsDirectional.only(
+                  top: 1.5,
+                  end: 2.25,
+                ),
+                child: Text(
+                  widget.value!,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.end,
+                  style: widget.valueTextStyle ??
+                      TextStyle(
+                        color: CupertinoColors.inactiveGray,
+                        fontSize: 16,
+                      ),
+                ),
               ),
             ),
           );
         }
 
+        final List<Widget> endRowChildren = [];
         if (widget.trailing != null) {
-          rightRowChildren.add(
+          endRowChildren.add(
             Padding(
               padding: const EdgeInsetsDirectional.only(
                 top: 0.5,
@@ -205,27 +210,27 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
           );
         }
 
-        if (widget.trailing == null && widget.iosChevron != null) {
-          rightRowChildren.add(
+        final iosChevron = widget.iosChevron;
+        if (widget.trailing == null && iosChevron != null) {
+          endRowChildren.add(
             widget.iosChevronPadding == null
-                ? widget.iosChevron!
+                ? iosChevron
                 : Padding(
                     padding: widget.iosChevronPadding!,
-                    child: widget.iosChevron,
+                    child: iosChevron,
                   ),
           );
         }
 
-        rightRowChildren.add(const SizedBox(width: 8.5));
+        endRowChildren.add(const SizedBox(width: 8.5));
 
         rowChildren.add(
           Row(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.end,
-            children: rightRowChildren,
+            children: endRowChildren,
           ),
         );
-
         break;
     }
 
