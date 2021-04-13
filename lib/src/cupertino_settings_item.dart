@@ -171,7 +171,7 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
         );
         break;
       case SettingsItemType.modal:
-        final List<Widget?> rightRowChildren = [];
+        final List<Widget> rightRowChildren = [];
         if (widget.value != null) {
           rightRowChildren.add(
             Padding(
@@ -208,7 +208,7 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
         if (widget.trailing == null && widget.iosChevron != null) {
           rightRowChildren.add(
             widget.iosChevronPadding == null
-                ? widget.iosChevron
+                ? widget.iosChevron!
                 : Padding(
                     padding: widget.iosChevronPadding!,
                     child: widget.iosChevron,
@@ -222,7 +222,7 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
           Row(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.end,
-            children: rightRowChildren as List<Widget>,
+            children: rightRowChildren,
           ),
         );
 
