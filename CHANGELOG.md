@@ -1,7 +1,11 @@
-## [1.0.0-nullsafety.2] - [April 6, 2021]
+## [1.0.0-nullsafety.3] - [April 6, 2021]
 * Dropped use of 'dart:io'
 * Use Theme.of(context) to detect platform
 * Fixed a bug with long subtitles in iOS
+
+## [1.0.0-nullsafety.2] - [February 26, 2021]
+* Enable web support
+* Round borders for web and iPad settings tiles
 
 ## [1.0.0-nullsafety.1] - [February 26, 2021]
 * Null safety preview release
