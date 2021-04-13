@@ -212,13 +212,14 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
           );
         }
 
-        if (widget.trailing == null && widget.iosChevron != null) {
+        final iosChevron = widget.iosChevron;
+        if (widget.trailing == null && iosChevron != null) {
           endRowChildren.add(
             widget.iosChevronPadding == null
-                ? widget.iosChevron ?? const SizedBox.shrink()
+                ? iosChevron
                 : Padding(
                     padding: widget.iosChevronPadding!,
-                    child: widget.iosChevron,
+                    child: iosChevron,
                   ),
           );
         }
