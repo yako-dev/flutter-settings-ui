@@ -101,10 +101,14 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
       );
     }
 
-    Widget titleSection;
+    final Widget titleSection;
+
     if (widget.subtitle == null) {
       titleSection = Padding(
-        padding: EdgeInsets.only(top: 1.5),
+        padding: const EdgeInsetsDirectional.only(
+          start: 15.0,
+          end: 15.0,
+        ),
         child: Text(
           widget.label,
           overflow: TextOverflow.ellipsis,
@@ -116,44 +120,44 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
         ),
       );
     } else {
-      titleSection = Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          const SizedBox(height: 8.5),
-          Text(
-            widget.label,
-            overflow: TextOverflow.ellipsis,
-            style: widget.labelTextStyle,
+      titleSection = Expanded(
+        child: Padding(
+          padding: const EdgeInsetsDirectional.only(
+            start: 15.0,
+            end: 15.0,
           ),
-          const SizedBox(height: 4.0),
-          Text(
-            widget.subtitle!,
-            maxLines: widget.subtitleMaxLines,
-            overflow: TextOverflow.ellipsis,
-            style: widget.subtitleTextStyle ??
-                TextStyle(
-                  fontSize: 12.0,
-                  letterSpacing: -0.2,
-                ),
-          )
-        ],
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                widget.label,
+                overflow: TextOverflow.ellipsis,
+                style: widget.labelTextStyle,
+              ),
+              const SizedBox(height: 2.5),
+              Text(
+                widget.subtitle!,
+                maxLines: widget.subtitleMaxLines,
+                overflow: TextOverflow.ellipsis,
+                style: widget.subtitleTextStyle ??
+                    TextStyle(
+                      fontSize: 12.0,
+                      letterSpacing: -0.2,
+                    ),
+              ),
+            ],
+          ),
+        ),
       );
     }
 
-    rowChildren.add(
-      Padding(
-        padding: const EdgeInsetsDirectional.only(
-          start: 15.0,
-          end: 15.0,
-        ),
-        child: titleSection,
-      ),
-    );
+    rowChildren.add(titleSection);
 
     switch (widget.type) {
       case SettingsItemType.toggle:
         rowChildren
-          ..add(_spacer)
           ..add(
             Padding(
               padding: const EdgeInsetsDirectional.only(end: 11.0),
