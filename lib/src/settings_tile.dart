@@ -22,7 +22,10 @@ class SettingsTile extends StatelessWidget {
   final bool enabled;
   final TextStyle? titleTextStyle;
   final TextStyle? subtitleTextStyle;
-  final Color? switchActiveColor;
+  final Color? switchInactiveThumbColor;
+  final Color? switchInactiveTrackColor;
+  final Color? switchActiveThumbColor;
+  final Color? switchActiveTrackColor;
   final _SettingsTileType _tileType;
 
   const SettingsTile({
@@ -40,7 +43,10 @@ class SettingsTile extends StatelessWidget {
     this.subtitleTextStyle,
     this.enabled = true,
     this.onPressed,
-    this.switchActiveColor,
+    this.switchInactiveThumbColor,
+    this.switchInactiveTrackColor,
+    this.switchActiveThumbColor,
+    this.switchActiveTrackColor,
   })  : _tileType = _SettingsTileType.simple,
         onToggle = null,
         switchValue = null,
@@ -61,7 +67,10 @@ class SettingsTile extends StatelessWidget {
     required this.switchValue,
     this.titleTextStyle,
     this.subtitleTextStyle,
-    this.switchActiveColor,
+    this.switchInactiveThumbColor,
+    this.switchInactiveTrackColor,
+    this.switchActiveThumbColor,
+    this.switchActiveTrackColor,
   })  : _tileType = _SettingsTileType.switchTile,
         onTap = null,
         onPressed = null,
@@ -102,7 +111,7 @@ class SettingsTile extends StatelessWidget {
         switchValue: switchValue,
         onToggle: onToggle,
         labelTextStyle: titleTextStyle,
-        switchActiveColor: switchActiveColor,
+        switchActiveColor: switchActiveThumbColor,
         subtitleTextStyle: subtitleTextStyle,
         valueTextStyle: subtitleTextStyle,
         trailing: trailing,
@@ -132,7 +141,10 @@ class SettingsTile extends StatelessWidget {
       return SwitchListTile(
         secondary: leading,
         value: switchValue!,
-        activeColor: switchActiveColor,
+        inactiveThumbColor: switchInactiveThumbColor,
+        inactiveTrackColor: switchInactiveTrackColor,
+        activeTrackColor: switchActiveTrackColor,
+        activeColor: switchActiveThumbColor,
         onChanged: enabled ? onToggle : null,
         title: Text(
           title,
