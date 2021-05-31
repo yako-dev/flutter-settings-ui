@@ -33,6 +33,7 @@ class CupertinoSettingsItem extends StatefulWidget {
     this.labelTextStyle,
     this.subtitleTextStyle,
     this.valueTextStyle,
+    this.backgroundColor,
     this.switchActiveColor,
   })  : assert(labelMaxLines == null || labelMaxLines > 0),
         assert(subtitleMaxLines == null || subtitleMaxLines > 0);
@@ -55,6 +56,7 @@ class CupertinoSettingsItem extends StatefulWidget {
   final TextStyle? labelTextStyle;
   final TextStyle? subtitleTextStyle;
   final TextStyle? valueTextStyle;
+  final Color? backgroundColor;
   final Color? switchActiveColor;
 
   @override
@@ -292,7 +294,9 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
         decoration: BoxDecoration(
           borderRadius:
               isLargeScreen ? BorderRadius.all(Radius.circular(20)) : null,
-          color: calculateBackgroundColor(context),
+          color: widget.backgroundColor == null
+              ? calculateBackgroundColor(context)
+              : widget.backgroundColor,
         ),
         height: widget.subtitle == null ? 44.0 : 57.0,
         child: Row(

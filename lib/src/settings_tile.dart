@@ -20,6 +20,7 @@ class SettingsTile extends StatelessWidget {
   final Function(bool value)? onToggle;
   final bool? switchValue;
   final bool enabled;
+  final Color? backgroundColor;
   final TextStyle? titleTextStyle;
   final TextStyle? subtitleTextStyle;
   final Color? switchActiveColor;
@@ -40,6 +41,7 @@ class SettingsTile extends StatelessWidget {
     this.subtitleTextStyle,
     this.enabled = true,
     this.onPressed,
+    this.backgroundColor,
     this.switchActiveColor,
   })  : _tileType = _SettingsTileType.simple,
         onToggle = null,
@@ -61,6 +63,7 @@ class SettingsTile extends StatelessWidget {
     required this.switchValue,
     this.titleTextStyle,
     this.subtitleTextStyle,
+    this.backgroundColor,
     this.switchActiveColor,
   })  : _tileType = _SettingsTileType.switchTile,
         onTap = null,
@@ -102,6 +105,7 @@ class SettingsTile extends StatelessWidget {
         switchValue: switchValue,
         onToggle: onToggle,
         labelTextStyle: titleTextStyle,
+        backgroundColor: backgroundColor,
         switchActiveColor: switchActiveColor,
         subtitleTextStyle: subtitleTextStyle,
         valueTextStyle: subtitleTextStyle,
@@ -123,6 +127,7 @@ class SettingsTile extends StatelessWidget {
         labelTextStyle: titleTextStyle,
         subtitleTextStyle: subtitleTextStyle,
         valueTextStyle: subtitleTextStyle,
+        backgroundColor: backgroundColor,
       );
     }
   }
