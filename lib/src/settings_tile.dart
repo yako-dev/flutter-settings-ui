@@ -137,6 +137,7 @@ class SettingsTile extends StatelessWidget {
       return SwitchListTile(
         secondary: leading,
         value: switchValue!,
+        tileColor: backgroundColor,
         activeColor: switchActiveColor,
         onChanged: enabled ? onToggle : null,
         title: Text(
@@ -156,6 +157,7 @@ class SettingsTile extends StatelessWidget {
       );
     } else {
       return ListTile(
+        tileColor: backgroundColor,
         title: Text(title, style: titleTextStyle),
         subtitle: subtitle != null
             ? Text(
