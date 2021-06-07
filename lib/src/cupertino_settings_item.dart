@@ -11,8 +11,6 @@ enum SettingsItemType {
 
 typedef void PressOperationCallback();
 
-const _spacer = Expanded(child: SizedBox.shrink());
-
 class CupertinoSettingsItem extends StatefulWidget {
   const CupertinoSettingsItem({
     required this.type,
@@ -172,9 +170,7 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
         break;
 
       case SettingsItemType.modal:
-        if (widget.value == null) {
-          rowChildren.add(_spacer);
-        } else {
+        if (widget.value != null) {
           rowChildren.add(
             Expanded(
               child: Padding(
