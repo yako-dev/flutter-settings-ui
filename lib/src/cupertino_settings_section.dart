@@ -11,6 +11,8 @@ class CupertinoSettingsSection extends StatelessWidget {
     this.header,
     this.headerPadding = defaultTitlePadding,
     this.footer,
+    this.sectionBorderColor = borderColor,
+    this.dividerColor,
   });
 
   final List<Widget> items;
@@ -18,6 +20,8 @@ class CupertinoSettingsSection extends StatelessWidget {
   final Widget? header;
   final EdgeInsetsGeometry headerPadding;
   final Widget? footer;
+  final Color sectionBorderColor;
+  final Color? dividerColor;
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +49,7 @@ class CupertinoSettingsSection extends StatelessWidget {
         itemsWithDividers.add(items[i]);
         itemsWithDividers.add(Divider(
           height: 0.3,
-          color: Colors.grey.shade400,
+          color: dividerColor??Colors.grey.shade400,
           indent: leftPadding,
         ));
       } else {
@@ -74,12 +78,12 @@ class CupertinoSettingsSection extends StatelessWidget {
                   ? CupertinoColors.white
                   : iosTileDarkColor,
               border: Border(
-                top: const BorderSide(
-                  color: borderColor,
+                top:  BorderSide(
+                  color: sectionBorderColor,
                   width: 0.3,
                 ),
-                bottom: const BorderSide(
-                  color: borderColor,
+                bottom:  BorderSide(
+                  color: sectionBorderColor,
                   width: 0.3,
                 ),
               ),

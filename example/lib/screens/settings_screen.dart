@@ -24,6 +24,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return SettingsList(
       sections: [
         SettingsSection(
+          sectionBorderColor: Colors.blue,
+          dividerColor: Colors.red,
           title: 'Common',
           tiles: [
             SettingsTile(
@@ -44,6 +46,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ],
         ),
         SettingsSection(
+          sectionBorderColor: Colors.blue,
+          dividerColor: Colors.red,
           title: 'Account',
           tiles: [
             SettingsTile(title: 'Phone number', leading: Icon(Icons.phone)),
