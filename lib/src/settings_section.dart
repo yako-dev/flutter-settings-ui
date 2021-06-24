@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:settings_ui/src/abstract_section.dart';
+import 'package:settings_ui/src/colors.dart';
 import 'package:settings_ui/src/cupertino_settings_section.dart';
 import 'package:settings_ui/src/settings_tile.dart';
 
@@ -13,6 +14,8 @@ class SettingsSection extends AbstractSection {
   final int? maxLines;
   final Widget? subtitle;
   final EdgeInsetsGeometry subtitlePadding;
+  final Color sectionBorderColor; /// Only affect on ios
+  final Color? dividerColor;
 
   SettingsSection({
     Key? key,
@@ -23,6 +26,8 @@ class SettingsSection extends AbstractSection {
     this.subtitlePadding = defaultTitlePadding,
     this.tiles,
     this.titleTextStyle,
+    this.sectionBorderColor = borderColor,
+    this.dividerColor,
   })  : assert(maxLines == null || maxLines > 0),
         super(key: key, title: title, titlePadding: titlePadding);
 
@@ -47,6 +52,8 @@ class SettingsSection extends AbstractSection {
   Widget iosSection() {
     return CupertinoSettingsSection(
       tiles!,
+      sectionBorderColor:sectionBorderColor,
+      dividerColor:dividerColor,
       header: Column(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.start,
@@ -96,12 +103,12 @@ class SettingsSection extends AbstractSection {
         shrinkWrap: true,
         itemCount: tiles!.length,
         separatorBuilder: (BuildContext context, int index) =>
-            Divider(height: 1),
+            Divider(height: 1,color:dividerColor??null),
         itemBuilder: (BuildContext context, int index) {
           return tiles![index];
         },
       ),
-      if (showBottomDivider) Divider(height: 1)
+      if (showBottomDivider) Divider(height: 1,color:dividerColor??null)
     ]);
   }
 }
