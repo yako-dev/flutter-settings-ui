@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -85,7 +83,7 @@ class SettingsTile extends StatelessWidget {
     this.titleTextStyle,
     this.subtitleTextStyle,
     this.switchActiveColor,
-    this.sliderValue = 0.5,
+    this.sliderValue,
     this.sliderOnChanged,
     this.sliderOnChangeStart,
     this.sliderOnChangeEnd,
@@ -103,46 +101,58 @@ class SettingsTile extends StatelessWidget {
         assert(subtitleMaxLines == null || subtitleMaxLines > 0),
         super(key: key);
 
-  const SettingsTile.sliderTile({
+  SettingsTile.sliderTile({
     Key? key,
-    this.title = '',
     this.titleMaxLines,
     this.leading,
     this.enabled = true,
     this.trailing,
+    @required this.sliderValue,
+    @required this.sliderOnChanged,
+    this.sliderOnChangeStart,
+    this.sliderOnChangeEnd,
+    this.sliderMin = 0.0,
+    this.sliderMax = 1.0,
+    this.sliderDivisions,
+    this.sliderActiveColor,
+    this.sliderThumbColor = CupertinoColors.white,
     this.titleTextStyle,
     this.subtitleTextStyle,
     this.switchActiveColor,
+    required this.title,
     this.subtitle,
     this.subtitleMaxLines,
     this.onToggle,
     this.switchValue,
-    required this.sliderValue,
-    this.sliderOnChanged,
-    this.sliderOnChangeStart,
-    this.sliderOnChangeEnd,
-    this.sliderMin,
-    this.sliderMax,
-    this.sliderDivisions,
-    this.sliderActiveColor,
-    this.sliderThumbColor,
   })  : _tileType = _SettingsTileType.sliderTile,
         onTap = null,
         onPressed = null,
         iosChevron = null,
         iosChevronPadding = null,
         assert(titleMaxLines == null || titleMaxLines > 0),
+        assert(sliderValue != null),
+        assert(sliderMin != null),
+        assert(sliderMax != null),
+        assert(sliderValue! >= sliderMin! && sliderValue <= sliderMax!),
         assert(sliderDivisions == null || sliderDivisions > 0),
+        assert(sliderThumbColor != null),
         super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    if (kIsWeb) {
-      return iosTile(context);
-    } else if (Platform.isIOS || Platform.isMacOS) {
-      return iosTile(context);
-    } else {
-      return androidTile(context);
+    final platform = Theme.of(context).platform;
+
+    switch (platform) {
+      case TargetPlatform.iOS:
+      case TargetPlatform.macOS:
+        return iosTile(context);
+
+      case TargetPlatform.android:
+      case TargetPlatform.fuchsia:
+        return androidTile(context);
+
+      default:
+        return iosTile(context);
     }
   }
 
@@ -202,7 +212,7 @@ class SettingsTile extends StatelessWidget {
         iosChevronPadding: iosChevronPadding,
         hasDetails: false,
         leading: leading,
-        onPress: onTapFunction(context) as void Function()?,
+        onPress: onTapFunction(context),
         labelTextStyle: titleTextStyle,
         subtitleTextStyle: subtitleTextStyle,
         valueTextStyle: subtitleTextStyle,
@@ -225,86 +235,63 @@ class SettingsTile extends StatelessWidget {
         ),
         subtitle: subtitle != null
             ? Text(
-                subtitle!,
-                style: subtitleTextStyle,
-                maxLines: subtitleMaxLines,
-                overflow: TextOverflow.ellipsis,
-              )
+          subtitle!,
+          style: subtitleTextStyle,
+          maxLines: subtitleMaxLines,
+          overflow: TextOverflow.ellipsis,
+        )
             : null,
       );
     } else if (_tileType == _SettingsTileType.sliderTile) {
-      if (title.isNotEmpty) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 8.0, left: 72.0),
-              child: Text(
-                title,
-                style: titleTextStyle,
-                maxLines: titleMaxLines,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            ListTile(
-              title: Slider(
-                value: sliderValue ?? 0,
-                min: sliderMin ?? 0,
-                max: sliderMax ?? 1,
-                onChangeStart: sliderOnChangeStart,
-                onChangeEnd: sliderOnChangeEnd,
-                onChanged: sliderOnChanged,
-              ),
-              leading: leading,
-              enabled: enabled,
-              trailing: trailing,
-              onTap: onTapFunction(context) as void Function()?,
-            ),
-          ],
-        );
-      } else {
-        return ListTile(
-          title: Slider(
-            value: sliderValue ?? 0,
-            min: sliderMin ?? 0,
-            max: sliderMax ?? 1,
-            onChangeStart: sliderOnChangeStart,
-            onChangeEnd: sliderOnChangeEnd,
-            onChanged: sliderOnChanged,
-          ),
-          leading: leading,
-          enabled: enabled,
-          trailing: trailing,
-          onTap: onTapFunction(context) as void Function()?,
-        );
-      }
+      return ListTile(
+        title: Slider(
+          value: sliderValue!,
+          min: sliderMin!,
+          max: sliderMax!,
+          onChangeStart: sliderOnChangeStart,
+          onChangeEnd: sliderOnChangeEnd,
+          onChanged: sliderOnChanged,
+        ),
+        subtitle: subtitle != null
+            ? Text(
+          subtitle!,
+          style: subtitleTextStyle,
+          maxLines: subtitleMaxLines,
+          overflow: TextOverflow.ellipsis,
+        )
+            : null,
+        leading: leading,
+        enabled: enabled,
+        trailing: trailing,
+        onTap: onTapFunction(context),
+      );
     } else {
       return ListTile(
         title: Text(title, style: titleTextStyle),
         subtitle: subtitle != null
             ? Text(
-                subtitle!,
-                style: subtitleTextStyle,
-                maxLines: subtitleMaxLines,
-                overflow: TextOverflow.ellipsis,
-              )
+          subtitle!,
+          style: subtitleTextStyle,
+          maxLines: subtitleMaxLines,
+          overflow: TextOverflow.ellipsis,
+        )
             : null,
         leading: leading,
         enabled: enabled,
         trailing: trailing,
-        onTap: onTapFunction(context) as void Function()?,
+        onTap: onTapFunction(context),
       );
     }
   }
 
-  Function? onTapFunction(BuildContext context) =>
+  VoidCallback? onTapFunction(BuildContext context) =>
       onTap != null || onPressed != null
           ? () {
-              if (onPressed != null) {
-                onPressed!.call(context);
-              } else {
-                onTap!.call();
-              }
-            }
+        if (onPressed != null) {
+          onPressed!.call(context);
+        } else {
+          onTap!.call();
+        }
+      }
           : null;
 }
