@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -29,15 +27,15 @@ class SettingsTile extends StatelessWidget {
   final _SettingsTileType _tileType;
 
   // Values for Slider
-  final double value;
-  final ValueChanged<double> onChanged;
-  final ValueChanged<double> onChangeStart;
-  final ValueChanged<double> onChangeEnd;
-  final double min;
-  final double max;
-  final int divisions;
-  final Color activeColor;
-  final Color thumbColor;
+  final double? value;
+  final ValueChanged<double>? onChanged;
+  final ValueChanged<double>? onChangeStart;
+  final ValueChanged<double>? onChangeEnd;
+  final double? min;
+  final double? max;
+  final int? divisions;
+  final Color? activeColor;
+  final Color? thumbColor;
 
   const SettingsTile({
     Key? key,
@@ -54,7 +52,16 @@ class SettingsTile extends StatelessWidget {
     this.subtitleTextStyle,
     this.enabled = true,
     this.onPressed,
-    this.switchActiveColor, this.value, this.onChanged, this.onChangeStart, this.onChangeEnd, this.min, this.max, this.divisions, this.activeColor, this.thumbColor,
+    this.switchActiveColor,
+    this.value,
+    this.onChanged,
+    this.onChangeStart,
+    this.onChangeEnd,
+    this.min,
+    this.max,
+    this.divisions,
+    this.activeColor,
+    this.thumbColor,
   })  : _tileType = _SettingsTileType.simple,
         onToggle = null,
         switchValue = null,
@@ -75,7 +82,16 @@ class SettingsTile extends StatelessWidget {
     required this.switchValue,
     this.titleTextStyle,
     this.subtitleTextStyle,
-    this.switchActiveColor, this.value, this.onChanged, this.onChangeStart, this.onChangeEnd, this.min, this.max, this.divisions, this.activeColor, this.thumbColor,
+    this.switchActiveColor,
+    this.value,
+    this.onChanged,
+    this.onChangeStart,
+    this.onChangeEnd,
+    this.min,
+    this.max,
+    this.divisions,
+    this.activeColor,
+    this.thumbColor,
   })  : _tileType = _SettingsTileType.switchTile,
         onTap = null,
         onPressed = null,
@@ -85,8 +101,8 @@ class SettingsTile extends StatelessWidget {
         assert(subtitleMaxLines == null || subtitleMaxLines > 0),
         super(key: key);
 
-  const SettingsTile.sliderTile({
-    Key key,
+  SettingsTile.sliderTile({
+    Key? key,
     this.titleMaxLines,
     this.leading,
     this.enabled = true,
@@ -102,7 +118,12 @@ class SettingsTile extends StatelessWidget {
     this.thumbColor = CupertinoColors.white,
     this.titleTextStyle,
     this.subtitleTextStyle,
-    this.switchActiveColor, this.title, this.subtitle, this.subtitleMaxLines, this.onToggle, this.switchValue,
+    this.switchActiveColor,
+    required this.title,
+    this.subtitle,
+    this.subtitleMaxLines,
+    this.onToggle,
+    this.switchValue,
   })  : _tileType = _SettingsTileType.sliderTile,
         onTap = null,
         onPressed = null,
@@ -112,19 +133,26 @@ class SettingsTile extends StatelessWidget {
         assert(value != null),
         assert(min != null),
         assert(max != null),
-        assert(value >= min && value <= max),
+        assert(value! >= min! && value <= max!),
         assert(divisions == null || divisions > 0),
         assert(thumbColor != null),
         super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    if (kIsWeb) {
-      return iosTile(context);
-    } else if (Platform.isIOS || Platform.isMacOS) {
-      return iosTile(context);
-    } else {
-      return androidTile(context);
+    final platform = Theme.of(context).platform;
+
+    switch (platform) {
+      case TargetPlatform.iOS:
+      case TargetPlatform.macOS:
+        return iosTile(context);
+
+      case TargetPlatform.android:
+      case TargetPlatform.fuchsia:
+        return androidTile(context);
+
+      default:
+        return iosTile(context);
     }
   }
 
@@ -184,7 +212,7 @@ class SettingsTile extends StatelessWidget {
         iosChevronPadding: iosChevronPadding,
         hasDetails: false,
         leading: leading,
-        onPress: onTapFunction(context) as void Function()?,
+        onPress: onTapFunction(context),
         labelTextStyle: titleTextStyle,
         subtitleTextStyle: subtitleTextStyle,
         valueTextStyle: subtitleTextStyle,
@@ -217,19 +245,20 @@ class SettingsTile extends StatelessWidget {
     } else if (_tileType == _SettingsTileType.sliderTile) {
       return ListTile(
         title: Slider(
-          value: value,
-          min: min,
-          max: max,
+          value: value!,
+          min: min!,
+          max: max!,
           onChangeStart: onChangeStart,
           onChangeEnd: onChangeEnd,
-          onChanged: onChanged,),
+          onChanged: onChanged,
+        ),
         subtitle: subtitle != null
             ? Text(
-          subtitle,
-          style: subtitleTextStyle,
-          maxLines: subtitleMaxLines,
-          overflow: TextOverflow.ellipsis,
-        )
+                subtitle!,
+                style: subtitleTextStyle,
+                maxLines: subtitleMaxLines,
+                overflow: TextOverflow.ellipsis,
+              )
             : null,
         leading: leading,
         enabled: enabled,
@@ -250,12 +279,12 @@ class SettingsTile extends StatelessWidget {
         leading: leading,
         enabled: enabled,
         trailing: trailing,
-        onTap: onTapFunction(context) as void Function()?,
+        onTap: onTapFunction(context),
       );
     }
   }
 
-  Function? onTapFunction(BuildContext context) =>
+  VoidCallback? onTapFunction(BuildContext context) =>
       onTap != null || onPressed != null
           ? () {
               if (onPressed != null) {
