@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:settings_ui/src/cupertino_settings_item.dart';
+import 'package:settings_ui/src/item_type/settings_slider.dart';
 
 import 'defines.dart';
 
@@ -25,17 +26,7 @@ class SettingsTile extends StatelessWidget {
   final TextStyle? subtitleTextStyle;
   final Color? switchActiveColor;
   final _SettingsTileType _tileType;
-
-  // Values for Slider
-  final double? sliderValue;
-  final ValueChanged<double>? sliderOnChanged;
-  final ValueChanged<double>? sliderOnChangeStart;
-  final ValueChanged<double>? sliderOnChangeEnd;
-  final double? sliderMin;
-  final double? sliderMax;
-  final int? sliderDivisions;
-  final Color? sliderActiveColor;
-  final Color? sliderThumbColor;
+  final SettingsSlider? settingsSlider;
 
   const SettingsTile({
     Key? key,
@@ -53,15 +44,7 @@ class SettingsTile extends StatelessWidget {
     this.enabled = true,
     this.onPressed,
     this.switchActiveColor,
-    this.sliderValue,
-    this.sliderOnChanged,
-    this.sliderOnChangeStart,
-    this.sliderOnChangeEnd,
-    this.sliderMin,
-    this.sliderMax,
-    this.sliderDivisions,
-    this.sliderActiveColor,
-    this.sliderThumbColor,
+    this.settingsSlider,
   })  : _tileType = _SettingsTileType.simple,
         onToggle = null,
         switchValue = null,
@@ -69,30 +52,22 @@ class SettingsTile extends StatelessWidget {
         assert(subtitleMaxLines == null || subtitleMaxLines > 0),
         super(key: key);
 
-  const SettingsTile.switchTile({
-    Key? key,
-    required this.title,
-    this.titleMaxLines,
-    this.subtitle,
-    this.subtitleMaxLines,
-    this.leading,
-    this.enabled = true,
-    this.trailing,
-    required this.onToggle,
-    required this.switchValue,
-    this.titleTextStyle,
-    this.subtitleTextStyle,
-    this.switchActiveColor,
-    this.sliderValue,
-    this.sliderOnChanged,
-    this.sliderOnChangeStart,
-    this.sliderOnChangeEnd,
-    this.sliderMin,
-    this.sliderMax,
-    this.sliderDivisions,
-    this.sliderActiveColor,
-    this.sliderThumbColor,
-  })  : _tileType = _SettingsTileType.switchTile,
+  const SettingsTile.switchTile(
+      {Key? key,
+      required this.title,
+      this.titleMaxLines,
+      this.subtitle,
+      this.subtitleMaxLines,
+      this.leading,
+      this.enabled = true,
+      this.trailing,
+      required this.onToggle,
+      required this.switchValue,
+      this.titleTextStyle,
+      this.subtitleTextStyle,
+      this.switchActiveColor,
+      this.settingsSlider})
+      : _tileType = _SettingsTileType.switchTile,
         onTap = null,
         onPressed = null,
         iosChevron = null,
@@ -107,15 +82,7 @@ class SettingsTile extends StatelessWidget {
     this.leading,
     this.enabled = true,
     this.trailing,
-    @required this.sliderValue,
-    @required this.sliderOnChanged,
-    this.sliderOnChangeStart,
-    this.sliderOnChangeEnd,
-    this.sliderMin = 0.0,
-    this.sliderMax = 1.0,
-    this.sliderDivisions,
-    this.sliderActiveColor,
-    this.sliderThumbColor = CupertinoColors.white,
+    required this.settingsSlider,
     this.titleTextStyle,
     this.subtitleTextStyle,
     this.switchActiveColor,
@@ -130,12 +97,6 @@ class SettingsTile extends StatelessWidget {
         iosChevron = null,
         iosChevronPadding = null,
         assert(titleMaxLines == null || titleMaxLines > 0),
-        assert(sliderValue != null),
-        assert(sliderMin != null),
-        assert(sliderMax != null),
-        assert(sliderValue! >= sliderMin! && sliderValue <= sliderMax!),
-        assert(sliderDivisions == null || sliderDivisions > 0),
-        assert(sliderThumbColor != null),
         super(key: key);
 
   @override
@@ -173,15 +134,6 @@ class SettingsTile extends StatelessWidget {
         subtitleTextStyle: subtitleTextStyle,
         valueTextStyle: subtitleTextStyle,
         trailing: trailing,
-        sliderValue: sliderValue,
-        sliderMax: sliderMax,
-        sliderMin: sliderMin,
-        sliderThumbColor: sliderThumbColor,
-        sliderActiveColor: sliderActiveColor,
-        sliderOnChangeStart: sliderOnChangeStart,
-        sliderOnChangeEnd: sliderOnChangeEnd,
-        sliderOnChanged: sliderOnChanged,
-        sliderDivisions: sliderDivisions,
       );
     } else if (_tileType == _SettingsTileType.switchTile) {
       return CupertinoSettingsItem(
@@ -235,30 +187,30 @@ class SettingsTile extends StatelessWidget {
         ),
         subtitle: subtitle != null
             ? Text(
-          subtitle!,
-          style: subtitleTextStyle,
-          maxLines: subtitleMaxLines,
-          overflow: TextOverflow.ellipsis,
-        )
+                subtitle!,
+                style: subtitleTextStyle,
+                maxLines: subtitleMaxLines,
+                overflow: TextOverflow.ellipsis,
+              )
             : null,
       );
     } else if (_tileType == _SettingsTileType.sliderTile) {
       return ListTile(
         title: Slider(
-          value: sliderValue!,
-          min: sliderMin!,
-          max: sliderMax!,
-          onChangeStart: sliderOnChangeStart,
-          onChangeEnd: sliderOnChangeEnd,
-          onChanged: sliderOnChanged,
+          value: settingsSlider!.value,
+          min: settingsSlider!.min,
+          max: settingsSlider!.max,
+          onChangeStart: settingsSlider!.onChangeStart,
+          onChangeEnd: settingsSlider!.onChangeEnd,
+          onChanged: settingsSlider!.onChanged,
         ),
         subtitle: subtitle != null
             ? Text(
-          subtitle!,
-          style: subtitleTextStyle,
-          maxLines: subtitleMaxLines,
-          overflow: TextOverflow.ellipsis,
-        )
+                subtitle!,
+                style: subtitleTextStyle,
+                maxLines: subtitleMaxLines,
+                overflow: TextOverflow.ellipsis,
+              )
             : null,
         leading: leading,
         enabled: enabled,
@@ -270,11 +222,11 @@ class SettingsTile extends StatelessWidget {
         title: Text(title, style: titleTextStyle),
         subtitle: subtitle != null
             ? Text(
-          subtitle!,
-          style: subtitleTextStyle,
-          maxLines: subtitleMaxLines,
-          overflow: TextOverflow.ellipsis,
-        )
+                subtitle!,
+                style: subtitleTextStyle,
+                maxLines: subtitleMaxLines,
+                overflow: TextOverflow.ellipsis,
+              )
             : null,
         leading: leading,
         enabled: enabled,
@@ -287,11 +239,11 @@ class SettingsTile extends StatelessWidget {
   VoidCallback? onTapFunction(BuildContext context) =>
       onTap != null || onPressed != null
           ? () {
-        if (onPressed != null) {
-          onPressed!.call(context);
-        } else {
-          onTap!.call();
-        }
-      }
+              if (onPressed != null) {
+                onPressed!.call(context);
+              } else {
+                onTap!.call();
+              }
+            }
           : null;
 }

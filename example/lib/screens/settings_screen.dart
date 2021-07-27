@@ -46,15 +46,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: 'Brightness',
               leading: Icon(Icons.brightness_low),
               trailing: Icon(Icons.brightness_high),
-              sliderValue: brightnessSlider,
-              sliderMin: 1,
-              sliderMax: 100,
-              sliderOnChanged: (double value) {
-                print('slider value: $value');
-                setState(() {
-                  brightnessSlider = value;
-                });
-              },
+              settingsSlider: SettingsSlider(
+                value: brightnessSlider,
+                min: 1,
+                max: 100,
+                onChanged: (double value) {
+                  print('slider value: $value');
+                  setState(() {
+                    brightnessSlider = value;
+                  });
+                },
+              ),
             ),
           ],
         ),

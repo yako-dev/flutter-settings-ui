@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:settings_ui/src/item_type/settings_slider.dart';
 
 import 'colors.dart';
 import 'defines.dart';
@@ -35,15 +36,7 @@ class CupertinoSettingsItem extends StatefulWidget {
     this.subtitleTextStyle,
     this.valueTextStyle,
     this.switchActiveColor,
-    this.sliderValue,
-    this.sliderOnChanged,
-    this.sliderOnChangeStart,
-    this.sliderOnChangeEnd,
-    this.sliderMin,
-    this.sliderMax,
-    this.sliderDivisions,
-    this.sliderActiveColor,
-    this.sliderThumbColor,
+    this.settingsSlider,
   })  : assert(labelMaxLines == null || labelMaxLines > 0),
         assert(subtitleMaxLines == null || subtitleMaxLines > 0);
 
@@ -66,17 +59,7 @@ class CupertinoSettingsItem extends StatefulWidget {
   final TextStyle? subtitleTextStyle;
   final TextStyle? valueTextStyle;
   final Color? switchActiveColor;
-
-  /// Values for Slider
-  final double? sliderValue;
-  final ValueChanged<double>? sliderOnChanged;
-  final ValueChanged<double>? sliderOnChangeStart;
-  final ValueChanged<double>? sliderOnChangeEnd;
-  final double? sliderMin;
-  final double? sliderMax;
-  final int? sliderDivisions;
-  final Color? sliderActiveColor;
-  final Color? sliderThumbColor;
+  final SettingsSlider? settingsSlider;
 
   @override
   State<StatefulWidget> createState() => new CupertinoSettingsItemState();
@@ -160,15 +143,15 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
       }
     } else {
       titleSection = CupertinoSlider(
-          value: widget.sliderValue!,
-          divisions: widget.sliderDivisions,
-          activeColor: widget.sliderActiveColor,
-          thumbColor: widget.sliderThumbColor!,
-          min: widget.sliderMin!,
-          max: widget.sliderMax!,
-          onChanged: widget.sliderOnChanged,
-          onChangeStart: widget.sliderOnChangeStart,
-          onChangeEnd: widget.sliderOnChangeEnd);
+          value: widget.settingsSlider!.value,
+          divisions: widget.settingsSlider!.divisions,
+          activeColor: widget.settingsSlider!.activeColor,
+          thumbColor: widget.settingsSlider!.thumbColor ?? CupertinoColors.white,
+          min: widget.settingsSlider!.min,
+          max: widget.settingsSlider!.max,
+          onChanged: widget.settingsSlider!.onChanged,
+          onChangeStart: widget.settingsSlider!.onChangeStart,
+          onChangeEnd: widget.settingsSlider!.onChangeEnd);
 
     }
 
