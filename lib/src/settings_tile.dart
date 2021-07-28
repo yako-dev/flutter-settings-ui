@@ -24,6 +24,7 @@ class SettingsTile extends StatelessWidget {
   final TextStyle? subtitleTextStyle;
   final Color? switchActiveColor;
   final _SettingsTileType _tileType;
+  final TargetPlatform? platform;
 
   const SettingsTile({
     Key? key,
@@ -41,6 +42,7 @@ class SettingsTile extends StatelessWidget {
     this.enabled = true,
     this.onPressed,
     this.switchActiveColor,
+    this.platform,
   })  : _tileType = _SettingsTileType.simple,
         onToggle = null,
         switchValue = null,
@@ -62,6 +64,7 @@ class SettingsTile extends StatelessWidget {
     this.titleTextStyle,
     this.subtitleTextStyle,
     this.switchActiveColor,
+    this.platform,
   })  : _tileType = _SettingsTileType.switchTile,
         onTap = null,
         onPressed = null,
@@ -73,7 +76,7 @@ class SettingsTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final platform = Theme.of(context).platform;
+    final platform = this.platform ?? Theme.of(context).platform;
 
     switch (platform) {
       case TargetPlatform.iOS:

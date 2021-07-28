@@ -172,9 +172,7 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
         break;
 
       case SettingsItemType.modal:
-        if (widget.value == null) {
-          rowChildren.add(_spacer);
-        } else {
+        if (widget.value != null) {
           rowChildren.add(
             Expanded(
               child: Padding(

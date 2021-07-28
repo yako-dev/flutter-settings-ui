@@ -13,6 +13,7 @@ class SettingsSection extends AbstractSection {
   final int? maxLines;
   final Widget? subtitle;
   final EdgeInsetsGeometry subtitlePadding;
+  final TargetPlatform? platform;
 
   SettingsSection({
     Key? key,
@@ -23,12 +24,13 @@ class SettingsSection extends AbstractSection {
     this.subtitlePadding = defaultTitlePadding,
     this.tiles,
     this.titleTextStyle,
+    this.platform,
   })  : assert(maxLines == null || maxLines > 0),
         super(key: key, title: title, titlePadding: titlePadding);
 
   @override
   Widget build(BuildContext context) {
-    final platform = Theme.of(context).platform;
+    final platform = this.platform ?? Theme.of(context).platform;
 
     switch (platform) {
       case TargetPlatform.iOS:
