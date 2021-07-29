@@ -1,6 +1,7 @@
 ## [1.0.1] - [Jul 28, 2021]
 * Allow manual platform style selection
 * Fixed iOS Title text getting cut off in version 1.0.0
+* CustomTile implemented
 
 ## [1.0.0-nullsafety.3] - [April 6, 2021]
 * Dropped use of 'dart:io'

@@ -7,7 +7,8 @@ import 'screens/settings_screen.dart';
 void main() {
   runApp(
     DevicePreview(
-      enabled: kIsWeb ? false : !kReleaseMode,
+      // enabled: kIsWeb ? false : !kReleaseMode,
+      enabled: false,
       builder: (_) => MyApp(),
     ),
   );

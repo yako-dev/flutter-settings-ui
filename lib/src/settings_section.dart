@@ -8,7 +8,7 @@ import 'defines.dart';
 
 // ignore: must_be_immutable
 class SettingsSection extends AbstractSection {
-  final List<SettingsTile>? tiles;
+  final List<AbstractTile>? tiles;
   final TextStyle? titleTextStyle;
   final int? maxLines;
   final Widget? subtitle;

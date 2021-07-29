@@ -6,7 +6,11 @@ import 'defines.dart';
 
 enum _SettingsTileType { simple, switchTile }
 
-class SettingsTile extends StatelessWidget {
+abstract class AbstractTile extends StatelessWidget {
+  const AbstractTile({Key? key}) : super(key: key);
+}
+
+class SettingsTile extends AbstractTile {
   final String title;
   final int? titleMaxLines;
   final String? subtitle;
@@ -181,4 +185,16 @@ class SettingsTile extends StatelessWidget {
               }
             }
           : null;
+}
+
+class CustomTile extends AbstractTile {
+  final Widget child;
+
+  CustomTile({
+    required this.child,
+  });
+  @override
+  Widget build(BuildContext context) {
+    return child;
+  }
 }
