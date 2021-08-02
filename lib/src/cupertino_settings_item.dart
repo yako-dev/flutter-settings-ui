@@ -14,15 +14,18 @@ typedef void PressOperationCallback();
 class CupertinoSettingsItem extends StatefulWidget {
   const CupertinoSettingsItem({
     required this.type,
-    required this.label,
+    this.label,
+    this.labelWidget,
     this.labelMaxLines,
     this.subtitle,
+    this.subtitleWidget,
     this.subtitleMaxLines,
     this.leading,
     this.trailing,
     this.iosChevron = defaultCupertinoForwardIcon,
     this.iosChevronPadding = defaultCupertinoForwardPadding,
     this.value,
+    this.valueWidget,
     this.hasDetails = false,
     this.enabled = true,
     this.onPress,
@@ -35,9 +38,11 @@ class CupertinoSettingsItem extends StatefulWidget {
   })  : assert(labelMaxLines == null || labelMaxLines > 0),
         assert(subtitleMaxLines == null || subtitleMaxLines > 0);
 
-  final String label;
+  final String? label;
+  final Widget? labelWidget;
   final int? labelMaxLines;
   final String? subtitle;
+  final Widget? subtitleWidget;
   final int? subtitleMaxLines;
   final Widget? leading;
   final Widget? trailing;
@@ -45,6 +50,7 @@ class CupertinoSettingsItem extends StatefulWidget {
   final EdgeInsetsGeometry? iosChevronPadding;
   final SettingsItemType type;
   final String? value;
+  final Widget? valueWidget;
   final bool hasDetails;
   final bool enabled;
   final PressOperationCallback? onPress;
@@ -100,39 +106,41 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
     }
 
     final Widget titleSection;
-
     if (widget.subtitle == null) {
-      titleSection = Text(
-        widget.label,
-        overflow: TextOverflow.ellipsis,
-        style: widget.labelTextStyle ??
-            TextStyle(
-              fontSize: 16,
-              color: widget.enabled ? null : CupertinoColors.inactiveGray,
-            ),
-      );
+      titleSection = widget.labelWidget ??
+          Text(
+            widget.label ?? '',
+            overflow: TextOverflow.ellipsis,
+            style: widget.labelTextStyle ??
+                TextStyle(
+                  fontSize: 16,
+                  color: widget.enabled ? null : CupertinoColors.inactiveGray,
+                ),
+          );
     } else {
       titleSection = Column(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Text(
-            widget.label,
-            overflow: TextOverflow.ellipsis,
-            style: widget.labelTextStyle,
-          ),
+          widget.labelWidget ??
+              Text(
+                widget.label ?? '',
+                overflow: TextOverflow.ellipsis,
+                style: widget.labelTextStyle,
+              ),
           const SizedBox(height: 2.5),
-          Text(
-            widget.subtitle!,
-            maxLines: widget.subtitleMaxLines,
-            overflow: TextOverflow.ellipsis,
-            style: widget.subtitleTextStyle ??
-                TextStyle(
-                  fontSize: 12.0,
-                  letterSpacing: -0.2,
-                ),
-          ),
+          widget.subtitleWidget ??
+              Text(
+                widget.subtitle!,
+                maxLines: widget.subtitleMaxLines,
+                overflow: TextOverflow.ellipsis,
+                style: widget.subtitleTextStyle ??
+                    TextStyle(
+                      fontSize: 12.0,
+                      letterSpacing: -0.2,
+                    ),
+              ),
         ],
       );
     }
@@ -172,24 +180,25 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
       case SettingsItemType.modal:
         if (widget.value != null) {
           rowChildren.add(
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsetsDirectional.only(
-                  top: 1.5,
-                  end: 2.25,
+            widget.valueWidget ??
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsetsDirectional.only(
+                      top: 1.5,
+                      end: 2.25,
+                    ),
+                    child: Text(
+                      widget.value!,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.end,
+                      style: widget.valueTextStyle ??
+                          TextStyle(
+                            color: CupertinoColors.inactiveGray,
+                            fontSize: 16,
+                          ),
+                    ),
+                  ),
                 ),
-                child: Text(
-                  widget.value!,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.end,
-                  style: widget.valueTextStyle ??
-                      TextStyle(
-                        color: CupertinoColors.inactiveGray,
-                        fontSize: 16,
-                      ),
-                ),
-              ),
-            ),
           );
         }
 
@@ -258,7 +267,7 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
           if (mounted) {
             setState(() {
               _checked = !_checked!;
-              widget.onToggle!(_checked!);
+              widget.onPress?.call();
             });
           }
         }
@@ -290,7 +299,9 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
               isLargeScreen ? BorderRadius.all(Radius.circular(20)) : null,
           color: calculateBackgroundColor(context),
         ),
-        height: widget.subtitle == null ? 44.0 : 57.0,
+        height: widget.subtitle == null && widget.subtitleWidget == null
+            ? 44.0
+            : 57.0,
         child: Row(
           children: rowChildren,
         ),
