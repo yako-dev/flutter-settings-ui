@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:settings_ui/settings_ui.dart';
+import 'package:settings_ui/src/settings_tile.dart';
 
 import 'colors.dart';
 import 'defines.dart';
