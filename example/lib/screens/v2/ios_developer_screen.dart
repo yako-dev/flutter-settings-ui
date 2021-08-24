@@ -14,9 +14,12 @@ class _IosDeveloperScreen extends State<IosDeveloperScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(middle: Text('Developer')),
-      child: SafeArea(
+    return Scaffold(
+      // navigationBar: CupertinoNavigationBar(middle: Text('Developer')),
+      appBar: AppBar(
+        title: Text('Developer'),
+      ),
+      body: SafeArea(
         bottom: false,
         child: SettingsList(
           sections: [
@@ -50,6 +53,9 @@ class _IosDeveloperScreen extends State<IosDeveloperScreen> {
             ),
             SettingsSection(
               title: Text('PAIRED DEVICES'),
+              margin: EdgeInsetsDirectional.only(
+                top: 13 * MediaQuery.of(context).textScaleFactor,
+              ),
               tiles: [
                 SettingsTile(
                   title: Text(

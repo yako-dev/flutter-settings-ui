@@ -40,8 +40,8 @@ class IOSSettingsTile extends StatelessWidget {
         if (description != null)
           Divider(
             height: 0,
-            thickness: 0.5,
-            color: CupertinoColors.separator,
+            thickness: 1,
+            color: theme.themeData.dividerColor,
           ),
         if (description != null)
           buildDescription(
@@ -58,10 +58,11 @@ class IOSSettingsTile extends StatelessWidget {
     required SettingsTheme theme,
     required IOSSettingsTileAdditionalInfo additionalInfo,
   }) {
+    final scaleFactor = MediaQuery.of(context).textScaleFactor;
+
     return InkWell(
       onTap: () => onPressed?.call(context),
       child: Container(
-        height: 44.0,
         padding: EdgeInsetsDirectional.only(start: 18),
         child: Row(
           children: [
@@ -74,13 +75,19 @@ class IOSSettingsTile extends StatelessWidget {
               ),
             Expanded(
               child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Expanded(
-                    child: Padding(
-                      padding: EdgeInsetsDirectional.only(end: 16),
-                      child: Row(
-                        children: [
-                          Expanded(
+                  Padding(
+                    padding: const EdgeInsetsDirectional.only(end: 16),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Padding(
+                            padding: EdgeInsetsDirectional.only(
+                              top: 12.5 * scaleFactor,
+                              bottom: 12.5 * scaleFactor,
+                            ),
                             child: DefaultTextStyle(
                               style: TextStyle(
                                 color: theme.themeData.settingsTileTextColor,
@@ -89,16 +96,16 @@ class IOSSettingsTile extends StatelessWidget {
                               child: title!,
                             ),
                           ),
-                          buildTrailing(context: context, theme: theme),
-                        ],
-                      ),
+                        ),
+                        buildTrailing(context: context, theme: theme),
+                      ],
                     ),
                   ),
                   if (description == null && additionalInfo.needToShowDivider)
                     Divider(
                       height: 0,
-                      thickness: 1,
-                      color: CupertinoColors.separator,
+                      thickness: 0.7,
+                      color: theme.themeData.dividerColor,
                     ),
                 ],
               ),
@@ -114,8 +121,13 @@ class IOSSettingsTile extends StatelessWidget {
     required SettingsTheme theme,
     required IOSSettingsTileAdditionalInfo additionalInfo,
   }) {
+    final scaleFactor = MediaQuery.of(context).textScaleFactor;
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+      padding: EdgeInsets.symmetric(
+        horizontal: 18,
+        vertical: 8 * scaleFactor,
+      ),
       decoration: BoxDecoration(
         color: theme.themeData.settingsListBackground,
       ),
@@ -137,14 +149,20 @@ class IOSSettingsTile extends StatelessWidget {
       return Container();
     }
 
+    final scaleFactor = MediaQuery.of(context).textScaleFactor;
+
     return Row(
       children: [
         if (tileType == SettingsTileType.switchTile)
-          Switch.adaptive(value: initialValue ?? true, onChanged: onToggle),
+          Switch.adaptive(
+            value: initialValue ?? true,
+            onChanged: onToggle,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
         if (tileType == SettingsTileType.navigationTile && trailing != null)
           DefaultTextStyle(
             style: TextStyle(
-              color: theme.themeData.titleTextColor,
+              color: theme.themeData.trailingTextColor,
               fontSize: 17,
             ),
             child: trailing!,
@@ -156,7 +174,8 @@ class IOSSettingsTile extends StatelessWidget {
               data: IconTheme.of(context).copyWith(
                 color: CupertinoColors.inactiveGray,
               ),
-              child: Icon(CupertinoIcons.chevron_forward, size: 18),
+              child:
+                  Icon(CupertinoIcons.chevron_forward, size: 18 * scaleFactor),
             ),
           ),
       ],

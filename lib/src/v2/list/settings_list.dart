@@ -36,14 +36,20 @@ class SettingsList extends StatelessWidget {
     final lightSettingsListBackground = Color.fromRGBO(242, 242, 247, 1);
     final darkSettingsListBackground = CupertinoColors.black;
 
-    final lightSettingSectionColor = Color.fromRGBO(255, 255, 255, 1);
-    final darkSettingSectionColor = Color.fromRGBO(28, 28, 30, 1);
+    final lightSettingSectionColor = CupertinoColors.white;
+    final darkSettingSectionColor = Color.fromARGB(255, 28, 28, 30);
 
     final lightSettingsTitleColor = Color.fromRGBO(109, 109, 114, 1);
-    final darkSettingsTitleColor = Color.fromRGBO(142, 142, 147, 1);
+    final darkSettingsTitleColor = CupertinoColors.systemGrey;
 
-    final lightSettingsTileTextColor = Colors.black;
-    final darkSettingsTileTextColor = Colors.white;
+    final lightDividerColor = Color.fromARGB(255, 238, 238, 238);
+    final darkDividerColor = Color.fromARGB(255, 40, 40, 42);
+
+    final lightTrailingTextColor = Color.fromARGB(255, 138, 138, 142);
+    final darkTrailingTextColor = Color.fromARGB(255, 152, 152, 159);
+
+    final lightSettingsTileTextColor = CupertinoColors.black;
+    final darkSettingsTileTextColor = CupertinoColors.white;
 
     final isLight =
         MediaQuery.of(context).platformBrightness == Brightness.light;
@@ -51,18 +57,26 @@ class SettingsList extends StatelessWidget {
     final listBackground =
         isLight ? lightSettingsListBackground : darkSettingsListBackground;
 
-    final sectionBarckground =
+    final sectionBackground =
         isLight ? lightSettingSectionColor : darkSettingSectionColor;
 
     final titleTextColor =
         isLight ? lightSettingsTitleColor : darkSettingsTitleColor;
+
     final settingsTileTextColor =
         isLight ? lightSettingsTileTextColor : darkSettingsTileTextColor;
 
+    final dividerColor = isLight ? lightDividerColor : darkDividerColor;
+
+    final trailingTextColor =
+        isLight ? lightTrailingTextColor : darkTrailingTextColor;
+
     return SettingsThemeData(
       settingsListBackground: listBackground,
-      settingsSectionBarckground: sectionBarckground,
+      settingsSectionBackground: sectionBackground,
       titleTextColor: titleTextColor,
+      dividerColor: dividerColor,
+      trailingTextColor: trailingTextColor,
       settingsTileTextColor: settingsTileTextColor,
     );
   }
