@@ -9,11 +9,13 @@ import 'package:settings_ui/src/v2/utils/platform_utils.dart';
 class SettingsSection extends AbstractSettingsSection {
   const SettingsSection({
     required this.tiles,
+    this.margin,
     this.title,
     Key? key,
   }) : super(key: key);
 
   final List<AbstractSettingsTile> tiles;
+  final EdgeInsetsDirectional? margin;
   final Widget? title;
 
   @override
@@ -34,6 +36,7 @@ class SettingsSection extends AbstractSettingsSection {
         return IOSSettingsSection(
           title: title,
           tiles: tiles,
+          margin: margin,
         );
       case DevicePlatform.web:
         return WebSettingsSection(

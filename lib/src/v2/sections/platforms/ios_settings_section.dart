@@ -8,11 +8,13 @@ import 'package:settings_ui/src/v2/utils/settings_theme.dart';
 class IOSSettingsSection extends StatelessWidget {
   const IOSSettingsSection({
     required this.tiles,
-    this.title,
+    required this.margin,
+    required this.title,
     Key? key,
   }) : super(key: key);
 
   final List<AbstractSettingsTile> tiles;
+  final EdgeInsetsDirectional? margin;
   final Widget? title;
 
   @override
@@ -20,17 +22,23 @@ class IOSSettingsSection extends StatelessWidget {
     final theme = SettingsTheme.of(context);
     final isLastNonDescriptive = tiles.last is SettingsTile &&
         (tiles.last as SettingsTile).description == null;
+    final scaleFactor = MediaQuery.of(context).textScaleFactor;
+
     return Padding(
-      padding: EdgeInsets.only(
-        top: 14.0,
-        bottom: isLastNonDescriptive ? 27 : 10,
-      ),
+      padding: margin ??
+          EdgeInsets.only(
+            top: 14.0 * scaleFactor,
+            bottom: isLastNonDescriptive ? 27 * scaleFactor : 10 * scaleFactor,
+          ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (title != null)
             Padding(
-              padding: EdgeInsetsDirectional.only(start: 18, bottom: 5),
+              padding: EdgeInsetsDirectional.only(
+                start: 18,
+                bottom: 5 * scaleFactor,
+              ),
               child: DefaultTextStyle(
                 style: TextStyle(
                   color: theme.themeData.titleTextColor,
@@ -39,13 +47,21 @@ class IOSSettingsSection extends StatelessWidget {
                 child: title!,
               ),
             ),
-          Divider(height: 0),
+          Divider(
+            height: 0,
+            color: theme.themeData.dividerColor,
+            thickness: 1,
+          ),
           Container(
-            color: theme.themeData.settingsSectionBarckground,
+            color: theme.themeData.settingsSectionBackground,
             child: buildTileList(),
           ),
           if (isLastNonDescriptive)
-            Divider(height: 0, color: CupertinoColors.separator),
+            Divider(
+              height: 0,
+              color: theme.themeData.dividerColor,
+              thickness: 1,
+            ),
         ],
       ),
     );

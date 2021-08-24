@@ -21,14 +21,18 @@ class SettingsTheme extends InheritedWidget {
 
 class SettingsThemeData {
   const SettingsThemeData({
+    this.trailingTextColor,
     this.settingsListBackground,
-    this.settingsSectionBarckground,
+    this.settingsSectionBackground,
+    this.dividerColor,
     this.titleTextColor,
     this.settingsTileTextColor,
   });
 
   final Color? settingsListBackground;
-  final Color? settingsSectionBarckground;
+  final Color? trailingTextColor;
+  final Color? settingsSectionBackground;
+  final Color? dividerColor;
   final Color? titleTextColor;
   final Color? settingsTileTextColor;
 }
