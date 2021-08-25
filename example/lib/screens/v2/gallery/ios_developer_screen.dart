@@ -14,12 +14,11 @@ class _IosDeveloperScreen extends State<IosDeveloperScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      // navigationBar: CupertinoNavigationBar(middle: Text('Developer')),
-      appBar: AppBar(
-        title: Text('Developer'),
+    return CupertinoPageScaffold(
+      navigationBar: CupertinoNavigationBar(
+        middle: Text('Developer'),
       ),
-      body: SafeArea(
+      child: SafeArea(
         bottom: false,
         child: SettingsList(
           sections: [
@@ -41,6 +40,7 @@ class _IosDeveloperScreen extends State<IosDeveloperScreen> {
               title: Text('DISPLAY ZOOM'),
               tiles: [
                 SettingsTile.navigation(
+                  onPressed: (_) {},
                   title: Text('View'),
                   trailing: Text('Standard'),
                   description: Text(
@@ -63,7 +63,7 @@ class _IosDeveloperScreen extends State<IosDeveloperScreen> {
                     style: TextStyle(color: CupertinoColors.activeBlue),
                   ),
                   description: Text(
-                    'Removing truested computers will delete all '
+                    'Removing trusted computers will delete all '
                     'of the records of computers that you have '
                     'paired with previously',
                   ),

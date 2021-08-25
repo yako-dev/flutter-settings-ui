@@ -25,6 +25,7 @@ class SettingsThemeData {
     this.settingsListBackground,
     this.settingsSectionBackground,
     this.dividerColor,
+    this.splashTileColor,
     this.titleTextColor,
     this.settingsTileTextColor,
   });
@@ -33,6 +34,7 @@ class SettingsThemeData {
   final Color? trailingTextColor;
   final Color? settingsSectionBackground;
   final Color? dividerColor;
+  final Color? splashTileColor;
   final Color? titleTextColor;
   final Color? settingsTileTextColor;
 }

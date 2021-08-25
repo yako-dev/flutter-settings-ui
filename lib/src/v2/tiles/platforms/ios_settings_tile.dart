@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui_v2.dart';
 import 'package:settings_ui/src/v2/utils/settings_theme.dart';
 
-class IOSSettingsTile extends StatelessWidget {
+class IOSSettingsTile extends StatefulWidget {
   const IOSSettingsTile({
     required this.tileType,
     required this.leading,
@@ -26,6 +26,13 @@ class IOSSettingsTile extends StatelessWidget {
   final bool? initialValue;
 
   @override
+  _IOSSettingsTileState createState() => _IOSSettingsTileState();
+}
+
+class _IOSSettingsTileState extends State<IOSSettingsTile> {
+  bool isPressed = false;
+
+  @override
   Widget build(BuildContext context) {
     final additionalInfo = IOSSettingsTileAdditionalInfo.of(context);
     final theme = SettingsTheme.of(context);
@@ -37,13 +44,13 @@ class IOSSettingsTile extends StatelessWidget {
           theme: theme,
           additionalInfo: additionalInfo,
         ),
-        if (description != null)
+        if (widget.description != null)
           Divider(
             height: 0,
             thickness: 1,
             color: theme.themeData.dividerColor,
           ),
-        if (description != null)
+        if (widget.description != null)
           buildDescription(
             context: context,
             theme: theme,
@@ -60,18 +67,34 @@ class IOSSettingsTile extends StatelessWidget {
   }) {
     final scaleFactor = MediaQuery.of(context).textScaleFactor;
 
-    return InkWell(
-      onTap: () => onPressed?.call(context),
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        if (widget.onPressed != null) {
+          changePressState(isPressed: true);
+
+          widget.onPressed!.call(context);
+
+          Future.delayed(
+            Duration(milliseconds: 100),
+            () => changePressState(isPressed: false),
+          );
+        }
+      },
+      onTapDown: (_) => changePressState(isPressed: true),
+      onTapUp: (_) => changePressState(isPressed: false),
+      onTapCancel: () => changePressState(isPressed: false),
       child: Container(
+        color: isPressed ? theme.themeData.splashTileColor : null,
         padding: EdgeInsetsDirectional.only(start: 18),
         child: Row(
           children: [
-            if (leading != null)
+            if (widget.leading != null)
               IconTheme.merge(
                 data: IconThemeData(
                   color: CupertinoColors.inactiveGray,
                 ),
-                child: leading!,
+                child: widget.leading!,
               ),
             Expanded(
               child: Column(
@@ -93,7 +116,7 @@ class IOSSettingsTile extends StatelessWidget {
                                 color: theme.themeData.settingsTileTextColor,
                                 fontSize: 16,
                               ),
-                              child: title!,
+                              child: widget.title!,
                             ),
                           ),
                         ),
@@ -101,7 +124,8 @@ class IOSSettingsTile extends StatelessWidget {
                       ],
                     ),
                   ),
-                  if (description == null && additionalInfo.needToShowDivider)
+                  if (widget.description == null &&
+                      additionalInfo.needToShowDivider)
                     Divider(
                       height: 0,
                       thickness: 0.7,
@@ -136,7 +160,7 @@ class IOSSettingsTile extends StatelessWidget {
           color: theme.themeData.titleTextColor,
           fontSize: 13,
         ),
-        child: description!,
+        child: widget.description!,
       ),
     );
   }
@@ -145,7 +169,8 @@ class IOSSettingsTile extends StatelessWidget {
     required BuildContext context,
     required SettingsTheme theme,
   }) {
-    if (tileType == SettingsTileType.simpleTile && trailing == null) {
+    if (widget.tileType == SettingsTileType.simpleTile &&
+        widget.trailing == null) {
       return Container();
     }
 
@@ -153,21 +178,22 @@ class IOSSettingsTile extends StatelessWidget {
 
     return Row(
       children: [
-        if (tileType == SettingsTileType.switchTile)
+        if (widget.tileType == SettingsTileType.switchTile)
           Switch.adaptive(
-            value: initialValue ?? true,
-            onChanged: onToggle,
+            value: widget.initialValue ?? true,
+            onChanged: widget.onToggle,
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
-        if (tileType == SettingsTileType.navigationTile && trailing != null)
+        if (widget.tileType == SettingsTileType.navigationTile &&
+            widget.trailing != null)
           DefaultTextStyle(
             style: TextStyle(
               color: theme.themeData.trailingTextColor,
               fontSize: 17,
             ),
-            child: trailing!,
+            child: widget.trailing!,
           ),
-        if (tileType == SettingsTileType.navigationTile)
+        if (widget.tileType == SettingsTileType.navigationTile)
           Padding(
             padding: const EdgeInsetsDirectional.only(start: 6, end: 2),
             child: IconTheme(
@@ -180,6 +206,14 @@ class IOSSettingsTile extends StatelessWidget {
           ),
       ],
     );
+  }
+
+  void changePressState({bool isPressed = false}) {
+    if (mounted) {
+      setState(() {
+        this.isPressed = isPressed;
+      });
+    }
   }
 }
 
