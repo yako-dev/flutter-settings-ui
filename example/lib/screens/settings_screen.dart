@@ -76,6 +76,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           tiles: [
             SettingsTile.switchTile(
               title: 'Lock app in background',
+              theme: SettingsTileTheme(tileColor: Colors.green),
               leading: Icon(Icons.phonelink_lock),
               switchValue: lockInBackground,
               onToggle: (bool value) {

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:settings_ui/src/cupertino_settings_item.dart';
+import 'package:settings_ui/src/settings_tile_theme.dart';
 
 import 'defines.dart';
 
@@ -32,6 +33,9 @@ class SettingsTile extends AbstractTile {
   final _SettingsTileType _tileType;
   final TargetPlatform? platform;
 
+  /// iOS only supports iconColor, textColor & tileColor
+  final SettingsTileTheme? theme;
+
   const SettingsTile({
     Key? key,
     this.title,
@@ -51,6 +55,7 @@ class SettingsTile extends AbstractTile {
     this.onPressed,
     this.switchActiveColor,
     this.platform,
+    this.theme,
   })  : _tileType = _SettingsTileType.simple,
         onToggle = null,
         switchValue = null,
@@ -75,6 +80,7 @@ class SettingsTile extends AbstractTile {
     this.subtitleTextStyle,
     this.switchActiveColor,
     this.platform,
+    this.theme,
   })  : _tileType = _SettingsTileType.switchTile,
         onTap = null,
         onPressed = null,
@@ -121,6 +127,7 @@ class SettingsTile extends AbstractTile {
         subtitleTextStyle: subtitleTextStyle,
         valueTextStyle: subtitleTextStyle,
         trailing: trailing,
+        listTileTheme: theme,
       );
     } else {
       return CupertinoSettingsItem(
@@ -141,50 +148,81 @@ class SettingsTile extends AbstractTile {
         labelTextStyle: titleTextStyle,
         subtitleTextStyle: subtitleTextStyle,
         valueTextStyle: subtitleTextStyle,
+        listTileTheme: theme,
       );
     }
   }
 
   Widget androidTile(BuildContext context) {
     if (_tileType == _SettingsTileType.switchTile) {
-      return SwitchListTile(
-        secondary: leading,
-        value: switchValue!,
-        activeColor: switchActiveColor,
-        onChanged: enabled ? onToggle : null,
-        title: titleWidget ??
-            Text(
-              title ?? '',
-              style: titleTextStyle,
-              maxLines: titleMaxLines,
-              overflow: TextOverflow.ellipsis,
-            ),
-        subtitle: subtitleWidget ??
-            (subtitle != null
-                ? Text(
-                    subtitle!,
-                    style: subtitleTextStyle,
-                    maxLines: subtitleMaxLines,
-                    overflow: TextOverflow.ellipsis,
-                  )
-                : null),
+      return ListTileTheme.merge(
+        dense: theme?.dense,
+        shape: theme?.shape,
+        style: theme?.style,
+        selectedColor: theme?.selectedColor,
+        iconColor: theme?.iconColor,
+        textColor: theme?.textColor,
+        contentPadding: theme?.contentPadding,
+        tileColor: theme?.tileColor,
+        selectedTileColor: theme?.selectedTileColor,
+        enableFeedback: theme?.enableFeedback,
+        horizontalTitleGap: theme?.horizontalTitleGap,
+        minVerticalPadding: theme?.minVerticalPadding,
+        minLeadingWidth: theme?.minLeadingWidth,
+        child: SwitchListTile(
+          secondary: leading,
+          value: switchValue!,
+          activeColor: switchActiveColor,
+          onChanged: enabled ? onToggle : null,
+          title: titleWidget ??
+              Text(
+                title ?? '',
+                style: titleTextStyle,
+                maxLines: titleMaxLines,
+                overflow: TextOverflow.ellipsis,
+              ),
+          subtitle: subtitleWidget ??
+              (subtitle != null
+                  ? Text(
+                      subtitle!,
+                      style: subtitleTextStyle,
+                      maxLines: subtitleMaxLines,
+                      overflow: TextOverflow.ellipsis,
+                    )
+                  : null),
+        ),
       );
     } else {
-      return ListTile(
-        title: titleWidget ?? Text(title ?? '', style: titleTextStyle),
-        subtitle: subtitleWidget ??
-            (subtitle != null
-                ? Text(
-                    subtitle!,
-                    style: subtitleTextStyle,
-                    maxLines: subtitleMaxLines,
-                    overflow: TextOverflow.ellipsis,
-                  )
-                : null),
-        leading: leading,
-        enabled: enabled,
-        trailing: trailing,
-        onTap: onTapFunction(context) as void Function()?,
+      return ListTileTheme.merge(
+        dense: theme?.dense,
+        shape: theme?.shape,
+        style: theme?.style,
+        selectedColor: theme?.selectedColor,
+        iconColor: theme?.iconColor,
+        textColor: theme?.textColor,
+        contentPadding: theme?.contentPadding,
+        tileColor: theme?.tileColor,
+        selectedTileColor: theme?.selectedTileColor,
+        enableFeedback: theme?.enableFeedback,
+        horizontalTitleGap: theme?.horizontalTitleGap,
+        minVerticalPadding: theme?.minVerticalPadding,
+        minLeadingWidth: theme?.minLeadingWidth,
+        child: ListTile(
+          title: titleWidget ?? Text(title ?? '', style: titleTextStyle),
+          subtitle: subtitleWidget ??
+              (subtitle != null
+                  ? Text(
+                      subtitle!,
+                      style: subtitleTextStyle,
+                      maxLines: subtitleMaxLines,
+                      overflow: TextOverflow.ellipsis,
+                    )
+                  : null),
+          leading: leading,
+          enabled: enabled,
+          trailing: trailing,
+          onTap: onTapFunction(context) as void Function()?,
+        ),
       );
     }
   }
