@@ -101,16 +101,16 @@ class SettingsSection extends AbstractSection {
           child: subtitle,
         ),
       ListView.separated(
-        physics: NeverScrollableScrollPhysics(),
+        physics: const NeverScrollableScrollPhysics(),
         shrinkWrap: true,
         itemCount: tiles!.length,
         separatorBuilder: (BuildContext context, int index) =>
-            Divider(height: 1),
+            const Divider(height: 1),
         itemBuilder: (BuildContext context, int index) {
           return tiles![index];
         },
       ),
-      if (showBottomDivider) Divider(height: 1)
+      if (showBottomDivider) const Divider(height: 1)
     ]);
   }
 }

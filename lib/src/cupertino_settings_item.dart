@@ -10,11 +10,12 @@ enum SettingsItemType {
   modal,
 }
 
-typedef void PressOperationCallback();
+typedef PressOperationCallback = void Function();
 
 class CupertinoSettingsItem extends StatefulWidget {
   const CupertinoSettingsItem(
-      {required this.type,
+      {Key? key,
+        required this.type,
       this.label,
       this.labelWidget,
       this.labelMaxLines,
@@ -38,7 +39,8 @@ class CupertinoSettingsItem extends StatefulWidget {
       this.switchActiveColor,
       this.listTileTheme})
       : assert(labelMaxLines == null || labelMaxLines > 0),
-        assert(subtitleMaxLines == null || subtitleMaxLines > 0);
+        assert(subtitleMaxLines == null || subtitleMaxLines > 0),
+        super(key: key);
 
   final String? label;
   final Widget? labelWidget;
@@ -65,7 +67,7 @@ class CupertinoSettingsItem extends StatefulWidget {
   final SettingsTileTheme? listTileTheme;
 
   @override
-  State<StatefulWidget> createState() => new CupertinoSettingsItemState();
+  State<StatefulWidget> createState() => CupertinoSettingsItemState();
 }
 
 class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
@@ -94,7 +96,7 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
       horizontalTitleGap: widget.listTileTheme?.horizontalTitleGap,
       minVerticalPadding: widget.listTileTheme?.minVerticalPadding,
       minLeadingWidth: widget.listTileTheme?.minLeadingWidth,
-      child: SizedBox.shrink(),
+      child: const SizedBox.shrink(),
     );
 
     final ListTileTheme tileTheme = listTileThemes ?? ListTileTheme.of(context);
@@ -157,7 +159,7 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
                 maxLines: widget.subtitleMaxLines,
                 overflow: TextOverflow.ellipsis,
                 style: widget.subtitleTextStyle ??
-                    TextStyle(
+                    const TextStyle(
                       fontSize: 12.0,
                       letterSpacing: -0.2,
                     ),
@@ -179,7 +181,7 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
     switch (widget.type) {
       case SettingsItemType.toggle:
         rowChildren
-          ..add(
+          .add(
             Padding(
               padding: const EdgeInsetsDirectional.only(end: 11.0),
               child: CupertinoSwitch(
@@ -213,7 +215,7 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
                       overflow: TextOverflow.ellipsis,
                       textAlign: TextAlign.end,
                       style: widget.valueTextStyle ??
-                          TextStyle(
+                          const TextStyle(
                             color: CupertinoColors.inactiveGray,
                             fontSize: 16,
                           ),
@@ -317,7 +319,7 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
       child: Container(
         decoration: BoxDecoration(
           borderRadius:
-              isLargeScreen ? BorderRadius.all(Radius.circular(20)) : null,
+              isLargeScreen ? const BorderRadius.all(Radius.circular(20)) : null,
           color: tileTheme.tileColor ?? calculateBackgroundColor(context),
         ),
         height: widget.subtitle == null && widget.subtitleWidget == null

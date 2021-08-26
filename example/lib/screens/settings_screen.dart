@@ -4,6 +4,7 @@ import 'package:settings_ui/settings_ui.dart';
 import 'languages_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
+  const SettingsScreen({Key? key}) : super(key: key);
   @override
   _SettingsScreenState createState() => _SettingsScreenState();
 }
@@ -15,7 +16,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Settings UI')),
+      appBar: AppBar(title: const Text('Settings UI')),
       body: buildSettingsList(),
     );
   }
@@ -29,17 +30,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
             SettingsTile(
               title: 'Language',
               subtitle: 'English',
-              leading: Icon(Icons.language),
+              leading: const Icon(Icons.language),
               onPressed: (context) {
                 Navigator.of(context).push(MaterialPageRoute(
-                  builder: (_) => LanguagesScreen(),
+                  builder: (_) => const LanguagesScreen(),
                 ));
               },
             ),
             CustomTile(
               child: Container(
-                color: Color(0xFFEFEFF4),
-                padding: EdgeInsetsDirectional.only(
+                color: const Color(0xFFEFEFF4),
+                padding: const EdgeInsetsDirectional.only(
                   start: 14,
                   top: 12,
                   bottom: 30,
@@ -56,7 +57,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
             ),
-            SettingsTile(
+            const SettingsTile(
               title: 'Environment',
               subtitle: 'Production',
               leading: Icon(Icons.cloud_queue),
@@ -65,7 +66,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         SettingsSection(
           title: 'Account',
-          tiles: [
+          tiles: const [
             SettingsTile(title: 'Phone number', leading: Icon(Icons.phone)),
             SettingsTile(title: 'Email', leading: Icon(Icons.email)),
             SettingsTile(title: 'Sign out', leading: Icon(Icons.exit_to_app)),
@@ -76,8 +77,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           tiles: [
             SettingsTile.switchTile(
               title: 'Lock app in background',
-              theme: SettingsTileTheme(tileColor: Colors.green),
-              leading: Icon(Icons.phonelink_lock),
+              theme: const SettingsTileTheme(tileColor: Colors.green),
+              leading: const Icon(Icons.phonelink_lock),
               switchValue: lockInBackground,
               onToggle: (bool value) {
                 setState(() {
@@ -89,20 +90,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
             SettingsTile.switchTile(
               title: 'Use fingerprint',
               subtitle: 'Allow application to access stored fingerprint IDs.',
-              leading: Icon(Icons.fingerprint),
+              leading: const Icon(Icons.fingerprint),
               onToggle: (bool value) {},
               switchValue: false,
             ),
             SettingsTile.switchTile(
               title: 'Change password',
-              leading: Icon(Icons.lock),
+              leading: const Icon(Icons.lock),
               switchValue: true,
               onToggle: (bool value) {},
             ),
             SettingsTile.switchTile(
               title: 'Enable Notifications',
               enabled: notificationsEnabled,
-              leading: Icon(Icons.notifications_active),
+              leading: const Icon(Icons.notifications_active),
               switchValue: true,
               onToggle: (value) {},
             ),
@@ -110,7 +111,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         SettingsSection(
           title: 'Misc',
-          tiles: [
+          tiles: const [
             SettingsTile(
                 title: 'Terms of Service', leading: Icon(Icons.description)),
             SettingsTile(
@@ -127,10 +128,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   'assets/settings.png',
                   height: 50,
                   width: 50,
-                  color: Color(0xFF777777),
+                  color: const Color(0xFF777777),
                 ),
               ),
-              Text(
+              const Text(
                 'Version: 2.4.0 (287)',
                 style: TextStyle(color: Color(0xFF777777)),
               ),

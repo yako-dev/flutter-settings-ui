@@ -241,10 +241,10 @@ class SettingsTile extends AbstractTile {
 
 class CustomTile extends AbstractTile {
   final Widget child;
-
-  CustomTile({
+  const CustomTile({
+    Key? key,
     required this.child,
-  });
+  }) : super(key: key);
   @override
   Widget build(BuildContext context) {
     return child;

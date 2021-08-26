@@ -8,12 +8,14 @@ void main() {
   runApp(
     DevicePreview(
       enabled: kIsWeb ? false : !kReleaseMode,
-      builder: (_) => MyApp(),
+      builder: (_) => const MyApp(),
     ),
   );
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -30,7 +32,7 @@ class MyApp extends StatelessWidget {
         accentColor: Colors.deepPurple,
         brightness: Brightness.dark,
       ),
-      home: SettingsScreen(),
+      home: const SettingsScreen(),
     );
   }
 }
