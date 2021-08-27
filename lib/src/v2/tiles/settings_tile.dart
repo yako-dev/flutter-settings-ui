@@ -66,8 +66,14 @@ class SettingsTile extends AbstractSettingsTile {
       case DevicePlatform.fuchsia:
       case DevicePlatform.linux:
         return AndroidSettingsTile(
+          description: description,
+          onPressed: onPressed,
+          onToggle: onToggle,
+          tileType: tileType,
+          trailing: trailing,
           leading: leading,
           title: title,
+          initialValue: initialValue ?? false,
         );
       case DevicePlatform.iOS:
       case DevicePlatform.macOS:

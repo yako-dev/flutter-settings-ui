@@ -12,7 +12,7 @@ class IOSSettingsTile extends StatefulWidget {
     required this.onPressed,
     required this.onToggle,
     required this.trailing,
-    this.initialValue,
+    required this.initialValue,
     Key? key,
   }) : super(key: key);
 
@@ -85,7 +85,7 @@ class _IOSSettingsTileState extends State<IOSSettingsTile> {
       onTapUp: (_) => changePressState(isPressed: false),
       onTapCancel: () => changePressState(isPressed: false),
       child: Container(
-        color: isPressed ? theme.themeData.splashTileColor : null,
+        color: isPressed ? theme.themeData.tileHighlightColor : null,
         padding: EdgeInsetsDirectional.only(start: 18),
         child: Row(
           children: [
@@ -148,9 +148,12 @@ class _IOSSettingsTileState extends State<IOSSettingsTile> {
     final scaleFactor = MediaQuery.of(context).textScaleFactor;
 
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: 18,
-        vertical: 8 * scaleFactor,
+      width: MediaQuery.of(context).size.width,
+      padding: EdgeInsets.only(
+        left: 18,
+        right: 18,
+        top: 8 * scaleFactor,
+        bottom: additionalInfo.needToShowDivider ? 24 : 8 * scaleFactor,
       ),
       decoration: BoxDecoration(
         color: theme.themeData.settingsListBackground,
@@ -200,8 +203,10 @@ class _IOSSettingsTileState extends State<IOSSettingsTile> {
               data: IconTheme.of(context).copyWith(
                 color: CupertinoColors.inactiveGray,
               ),
-              child:
-                  Icon(CupertinoIcons.chevron_forward, size: 18 * scaleFactor),
+              child: Icon(
+                CupertinoIcons.chevron_forward,
+                size: 18 * scaleFactor,
+              ),
             ),
           ),
       ],

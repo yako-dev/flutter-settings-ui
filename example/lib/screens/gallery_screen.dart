@@ -3,12 +3,12 @@ import 'package:settings_ui/settings_ui.dart';
 
 import 'languages_screen.dart';
 
-class SettingsScreen extends StatefulWidget {
+class GalleryScreen extends StatefulWidget {
   @override
-  _SettingsScreenState createState() => _SettingsScreenState();
+  _GalleryScreenState createState() => _GalleryScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> {
+class _GalleryScreenState extends State<GalleryScreen> {
   bool lockInBackground = true;
   bool notificationsEnabled = true;
 

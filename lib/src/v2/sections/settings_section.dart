@@ -29,6 +29,7 @@ class SettingsSection extends AbstractSettingsSection {
         return AndroidSettingsSection(
           title: title,
           tiles: tiles,
+          margin: margin,
         );
       case DevicePlatform.iOS:
       case DevicePlatform.macOS:

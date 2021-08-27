@@ -1,6 +1,6 @@
 import 'package:device_preview/device_preview.dart';
-// import 'package:example/screens/settings_screen.dart';
-import 'package:example/screens/v2/settings_screen.dart';
+// import 'package:example/screens/gallery_screen.dart';
+import 'package:example/screens/v2/gallery_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -17,7 +17,7 @@ void main() {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final bool runMaterialApp = false;
+    final bool runMaterialApp = true;
 
     if (runMaterialApp) {
       return MaterialApp(
@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
         theme: ThemeData.light(),
         darkTheme: ThemeData.dark(),
         title: 'Settings UI Demo',
-        home: SettingsScreen(),
+        home: GalleryScreen(),
       );
     } else {
       return CupertinoApp(
@@ -41,7 +41,7 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: CupertinoThemeData(),
         title: 'Settings UI Demo',
-        home: SettingsScreen(),
+        home: GalleryScreen(),
       );
     }
   }
