@@ -22,39 +22,19 @@ class ThemeProvider {
   }
 
   static SettingsThemeData _androidTheme(BuildContext context) {
-    //done
+    final lightLeadingIconsColor = Color.fromARGB(255, 70, 70, 70);
+    final darkLeadingIconsColor = Color.fromARGB(255, 197, 197, 197);
+
     final lightSettingsListBackground = Color.fromRGBO(240, 240, 240, 1);
-    //done
     final darkSettingsListBackground = Color.fromRGBO(27, 27, 27, 1);
 
-    //done
-    final lightSettingSectionColor = Colors.transparent;
-    //done
-    final darkSettingSectionColor = Colors.transparent;
-
-    //done
     final lightSettingsTitleColor = Color.fromRGBO(11, 87, 208, 1);
-    //done
     final darkSettingsTitleColor = Color.fromRGBO(211, 227, 253, 1);
 
-    //done
-    final lightDividerColor = Colors.transparent;
-    //done
-    final darkDividerColor = Colors.transparent;
-
-    //dont use
-    final lightTrailingTextColor = Colors.transparent;
-    //dont use
-    final darkTrailingTextColor = Colors.transparent;
-
-    //done
     final lightTileHighlightColor = Color.fromARGB(255, 220, 220, 220);
-    // done
     final darkTileHighlightColor = Color.fromARGB(255, 46, 46, 46);
 
-    //done
     final lightSettingsTileTextColor = Color.fromARGB(255, 27, 27, 27);
-    //done
     final darkSettingsTileTextColor = Color.fromARGB(255, 240, 240, 240);
 
     final lightTileDescriptionTextColor = Color.fromARGB(255, 70, 70, 70);
@@ -66,19 +46,11 @@ class ThemeProvider {
     final listBackground =
         isLight ? lightSettingsListBackground : darkSettingsListBackground;
 
-    final sectionBackground =
-        isLight ? lightSettingSectionColor : darkSettingSectionColor;
-
     final titleTextColor =
         isLight ? lightSettingsTitleColor : darkSettingsTitleColor;
 
     final settingsTileTextColor =
         isLight ? lightSettingsTileTextColor : darkSettingsTileTextColor;
-
-    final dividerColor = isLight ? lightDividerColor : darkDividerColor;
-
-    final trailingTextColor =
-        isLight ? lightTrailingTextColor : darkTrailingTextColor;
 
     final tileHighlightColor =
         isLight ? lightTileHighlightColor : darkTileHighlightColor;
@@ -86,15 +58,16 @@ class ThemeProvider {
     final tileDescriptionTextColor =
         isLight ? lightTileDescriptionTextColor : darkTileDescriptionTextColor;
 
+    final leadingIconsColor =
+        isLight ? lightLeadingIconsColor : darkLeadingIconsColor;
+
     return SettingsThemeData(
       tileHighlightColor: tileHighlightColor,
       settingsListBackground: listBackground,
-      settingsSectionBackground: sectionBackground,
       titleTextColor: titleTextColor,
-      dividerColor: dividerColor,
-      trailingTextColor: trailingTextColor,
       settingsTileTextColor: settingsTileTextColor,
       tileDescriptionTextColor: tileDescriptionTextColor,
+      leadingIconsColor: leadingIconsColor,
     );
   }
 
@@ -120,6 +93,9 @@ class ThemeProvider {
     final lightSettingsTileTextColor = CupertinoColors.black;
     final darkSettingsTileTextColor = CupertinoColors.white;
 
+    final lightLeadingIconsColor = Color.fromARGB(255, 142, 142, 146);
+    final darkLeadingIconsColor = Color.fromARGB(255, 142, 142, 146);
+
     final isLight =
         MediaQuery.of(context).platformBrightness == Brightness.light;
 
@@ -142,6 +118,9 @@ class ThemeProvider {
 
     final tileHighlightColor =
         isLight ? lightTileHighlightColor : darkTileHighlightColor;
+
+    final leadingIconsColor =
+        isLight ? lightLeadingIconsColor : darkLeadingIconsColor;
 
     return SettingsThemeData(
       tileHighlightColor: tileHighlightColor,

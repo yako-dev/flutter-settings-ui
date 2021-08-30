@@ -10,7 +10,7 @@ class AndroidSettingsTile extends StatelessWidget {
     required this.description,
     required this.onPressed,
     required this.onToggle,
-    required this.trailing,
+    required this.value,
     required this.initialValue,
     Key? key,
   }) : super(key: key);
@@ -21,7 +21,7 @@ class AndroidSettingsTile extends StatelessWidget {
   final Widget? description;
   final Function(BuildContext context)? onPressed;
   final Function(bool value)? onToggle;
-  final Widget? trailing;
+  final Widget? value;
   final bool initialValue;
 
   @override
@@ -41,6 +41,18 @@ class AndroidSettingsTile extends StatelessWidget {
       child: Container(
         child: Row(
           children: [
+            if (leading != null)
+              Padding(
+                padding: const EdgeInsetsDirectional.only(
+                  start: 24,
+                ),
+                child: IconTheme(
+                  data: IconTheme.of(context).copyWith(
+                    color: theme.themeData.leadingIconsColor,
+                  ),
+                  child: leading!,
+                ),
+              ),
             Expanded(
               child: Padding(
                 padding: EdgeInsetsDirectional.only(
@@ -60,7 +72,17 @@ class AndroidSettingsTile extends StatelessWidget {
                       ),
                       child: title ?? Container(),
                     ),
-                    if (description != null)
+                    if (value != null)
+                      Padding(
+                        padding: EdgeInsets.only(top: 4.0),
+                        child: DefaultTextStyle(
+                          style: TextStyle(
+                            color: theme.themeData.tileDescriptionTextColor,
+                          ),
+                          child: value!,
+                        ),
+                      )
+                    else if (description != null)
                       Padding(
                         padding: EdgeInsets.only(top: 4.0),
                         child: DefaultTextStyle(
@@ -74,6 +96,11 @@ class AndroidSettingsTile extends StatelessWidget {
                 ),
               ),
             ),
+            // if (tileType == SettingsTileType.switchTile)
+            //   SizedBox(
+            //     height: 30,
+            //     child: VerticalDivider(),
+            //   ),
             if (tileType == SettingsTileType.switchTile)
               Padding(
                 padding: const EdgeInsetsDirectional.only(start: 16, end: 8),

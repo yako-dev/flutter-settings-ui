@@ -1,4 +1,5 @@
-import 'package:example/screens/v2/gallery/android_notifications_screen.dart';
+import 'package:example/screens/v2/gallery/android_settings_screen.dart';
+import 'package:example/screens/v2/gallery/cross_platform_settings_screen.dart';
 import 'package:example/screens/v2/gallery/ios_developer_screen.dart';
 import 'package:example/utils/navigation.dart';
 import 'package:flutter/cupertino.dart';
@@ -24,7 +25,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
             ListTile(
               leading: Icon(CupertinoIcons.settings, size: 34),
               trailing: Icon(CupertinoIcons.right_chevron),
-              title: Text('The iOS Developer Screen'),
+              title: Text('iOS Developer Screen'),
               subtitle: Text('CupertinoApp required'),
               onTap: () {
                 Navigation.navigateTo(
@@ -37,12 +38,24 @@ class _GalleryScreenState extends State<GalleryScreen> {
             ListTile(
               leading: Icon(Icons.settings, size: 34),
               trailing: Icon(CupertinoIcons.right_chevron),
-              title: Text('The Android Notifications Screen'),
+              title: Text('Android Settings Screen'),
               subtitle: Text('MaterialApp required'),
               onTap: () {
                 Navigation.navigateTo(
                   context: context,
-                  screen: AndroidNotificationsScreen(),
+                  screen: AndroidSettingsScreen(),
+                  style: NavigationRouteStyle.material,
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.devices, size: 34),
+              trailing: Icon(CupertinoIcons.right_chevron),
+              title: Text('Cross Platform Settings Screen'),
+              onTap: () {
+                Navigation.navigateTo(
+                  context: context,
+                  screen: CrossPlatformSettingsScreen(),
                   style: NavigationRouteStyle.material,
                 );
               },

@@ -41,7 +41,7 @@ class SettingsList extends StatelessWidget {
       case DevicePlatform.android:
       case DevicePlatform.fuchsia:
       case DevicePlatform.linux:
-        return EdgeInsets.only(top: 5);
+        return EdgeInsets.only(top: 0);
       case DevicePlatform.iOS:
       case DevicePlatform.macOS:
       case DevicePlatform.windows:

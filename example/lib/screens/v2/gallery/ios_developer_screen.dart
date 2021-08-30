@@ -42,7 +42,7 @@ class _IosDeveloperScreen extends State<IosDeveloperScreen> {
                 SettingsTile.navigation(
                   onPressed: (_) {},
                   title: Text('View'),
-                  trailing: Text('Standard'),
+                  value: Text('Standard'),
                   description: Text(
                     'Choose a view for iPhone. '
                     'Zoomed shadows larger controls. '

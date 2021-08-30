@@ -10,8 +10,8 @@ enum SettingsTileType { simpleTile, switchTile, navigationTile }
 class SettingsTile extends AbstractSettingsTile {
   SettingsTile({
     this.leading,
-    this.trailing,
-    this.title,
+    this.value,
+    required this.title,
     this.description,
     this.onPressed,
     Key? key,
@@ -23,8 +23,8 @@ class SettingsTile extends AbstractSettingsTile {
 
   SettingsTile.navigation({
     this.leading,
-    this.trailing,
-    this.title,
+    this.value,
+    required this.title,
     this.description,
     this.onPressed,
     Key? key,
@@ -38,21 +38,21 @@ class SettingsTile extends AbstractSettingsTile {
     required this.initialValue,
     required this.onToggle,
     this.leading,
-    this.title,
+    required this.title,
     this.description,
     this.onPressed,
     Key? key,
   }) : super(key: key) {
-    trailing = null;
+    value = null;
     tileType = SettingsTileType.switchTile;
   }
 
   final Widget? leading;
-  final Widget? title;
+  final Widget title;
   final Widget? description;
   final Function(BuildContext context)? onPressed;
 
-  late final Widget? trailing;
+  late final Widget? value;
   late final Function(bool value)? onToggle;
   late final SettingsTileType tileType;
   late final bool? initialValue;
@@ -70,7 +70,7 @@ class SettingsTile extends AbstractSettingsTile {
           onPressed: onPressed,
           onToggle: onToggle,
           tileType: tileType,
-          trailing: trailing,
+          value: value,
           leading: leading,
           title: title,
           initialValue: initialValue ?? false,
@@ -83,7 +83,7 @@ class SettingsTile extends AbstractSettingsTile {
           onPressed: onPressed,
           onToggle: onToggle,
           tileType: tileType,
-          trailing: trailing,
+          value: value,
           leading: leading,
           title: title,
           initialValue: initialValue,

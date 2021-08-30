@@ -11,7 +11,7 @@ class IOSSettingsTile extends StatefulWidget {
     required this.description,
     required this.onPressed,
     required this.onToggle,
-    required this.trailing,
+    required this.value,
     required this.initialValue,
     Key? key,
   }) : super(key: key);
@@ -22,7 +22,7 @@ class IOSSettingsTile extends StatefulWidget {
   final Widget? description;
   final Function(BuildContext context)? onPressed;
   final Function(bool value)? onToggle;
-  final Widget? trailing;
+  final Widget? value;
   final bool? initialValue;
 
   @override
@@ -90,11 +90,14 @@ class _IOSSettingsTileState extends State<IOSSettingsTile> {
         child: Row(
           children: [
             if (widget.leading != null)
-              IconTheme.merge(
-                data: IconThemeData(
-                  color: CupertinoColors.inactiveGray,
+              Padding(
+                padding: const EdgeInsetsDirectional.only(end: 12.0),
+                child: IconTheme.merge(
+                  data: IconThemeData(
+                    color: CupertinoColors.inactiveGray,
+                  ),
+                  child: widget.leading!,
                 ),
-                child: widget.leading!,
               ),
             Expanded(
               child: Column(
@@ -173,7 +176,7 @@ class _IOSSettingsTileState extends State<IOSSettingsTile> {
     required SettingsTheme theme,
   }) {
     if (widget.tileType == SettingsTileType.simpleTile &&
-        widget.trailing == null) {
+        widget.value == null) {
       return Container();
     }
 
@@ -188,13 +191,13 @@ class _IOSSettingsTileState extends State<IOSSettingsTile> {
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
         if (widget.tileType == SettingsTileType.navigationTile &&
-            widget.trailing != null)
+            widget.value != null)
           DefaultTextStyle(
             style: TextStyle(
               color: theme.themeData.trailingTextColor,
               fontSize: 17,
             ),
-            child: widget.trailing!,
+            child: widget.value!,
           ),
         if (widget.tileType == SettingsTileType.navigationTile)
           Padding(

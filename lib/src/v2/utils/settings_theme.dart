@@ -27,12 +27,14 @@ class SettingsThemeData {
     this.dividerColor,
     this.tileHighlightColor,
     this.titleTextColor,
+    this.leadingIconsColor,
     this.tileDescriptionTextColor,
     this.settingsTileTextColor,
   });
 
   final Color? settingsListBackground;
   final Color? trailingTextColor;
+  final Color? leadingIconsColor;
   final Color? settingsSectionBackground;
   final Color? dividerColor;
   final Color? tileDescriptionTextColor;
