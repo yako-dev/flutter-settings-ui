@@ -31,6 +31,7 @@ class SettingsTile extends AbstractTile {
   final Color? switchActiveColor;
   final _SettingsTileType _tileType;
   final TargetPlatform? platform;
+  final bool? visible;
 
   const SettingsTile({
     Key? key,
@@ -51,6 +52,7 @@ class SettingsTile extends AbstractTile {
     this.onPressed,
     this.switchActiveColor,
     this.platform,
+    this.visible,
   })  : _tileType = _SettingsTileType.simple,
         onToggle = null,
         switchValue = null,
@@ -58,24 +60,25 @@ class SettingsTile extends AbstractTile {
         assert(subtitleMaxLines == null || subtitleMaxLines > 0),
         super(key: key);
 
-  const SettingsTile.switchTile({
-    Key? key,
-    this.title,
-    this.titleWidget,
-    this.titleMaxLines,
-    this.subtitle,
-    this.subtitleMaxLines,
-    this.leading,
-    this.enabled = true,
-    this.trailing,
-    this.subtitleWidget,
-    required this.onToggle,
-    required this.switchValue,
-    this.titleTextStyle,
-    this.subtitleTextStyle,
-    this.switchActiveColor,
-    this.platform,
-  })  : _tileType = _SettingsTileType.switchTile,
+  const SettingsTile.switchTile(
+      {Key? key,
+      this.title,
+      this.titleWidget,
+      this.titleMaxLines,
+      this.subtitle,
+      this.subtitleMaxLines,
+      this.leading,
+      this.enabled = true,
+      this.trailing,
+      this.subtitleWidget,
+      required this.onToggle,
+      required this.switchValue,
+      this.titleTextStyle,
+      this.subtitleTextStyle,
+      this.switchActiveColor,
+      this.platform,
+      this.visible})
+      : _tileType = _SettingsTileType.switchTile,
         onTap = null,
         onPressed = null,
         iosChevron = null,
@@ -88,18 +91,24 @@ class SettingsTile extends AbstractTile {
   Widget build(BuildContext context) {
     final platform = this.platform ?? Theme.of(context).platform;
 
+    Widget widget;
     switch (platform) {
       case TargetPlatform.iOS:
       case TargetPlatform.macOS:
-        return iosTile(context);
-
+        widget = iosTile(context);
+        break;
       case TargetPlatform.android:
       case TargetPlatform.fuchsia:
-        return androidTile(context);
-
+        widget = androidTile(context);
+        break;
       default:
-        return iosTile(context);
+        widget = iosTile(context);
     }
+
+    return Visibility(
+      visible: visible ?? true,
+      child: widget,
+    );
   }
 
   Widget iosTile(BuildContext context) {
@@ -189,16 +198,15 @@ class SettingsTile extends AbstractTile {
     }
   }
 
-  Function? onTapFunction(BuildContext context) =>
-      onTap != null || onPressed != null
-          ? () {
-              if (onPressed != null) {
-                onPressed!.call(context);
-              } else {
-                onTap!.call();
-              }
-            }
-          : null;
+  Function? onTapFunction(BuildContext context) => onTap != null || onPressed != null
+      ? () {
+          if (onPressed != null) {
+            onPressed!.call(context);
+          } else {
+            onTap!.call();
+          }
+        }
+      : null;
 }
 
 class CustomTile extends AbstractTile {
@@ -207,6 +215,7 @@ class CustomTile extends AbstractTile {
   CustomTile({
     required this.child,
   });
+
   @override
   Widget build(BuildContext context) {
     return child;

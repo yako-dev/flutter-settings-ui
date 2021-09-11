@@ -14,19 +14,21 @@ class SettingsSection extends AbstractSection {
   final Widget? subtitle;
   final EdgeInsetsGeometry subtitlePadding;
   final TargetPlatform? platform;
+  final bool? visible;
 
-  SettingsSection({
-    Key? key,
-    String? title,
-    Widget? titleWidget,
-    EdgeInsetsGeometry titlePadding = defaultTitlePadding,
-    this.maxLines,
-    this.subtitle,
-    this.subtitlePadding = defaultTitlePadding,
-    this.tiles,
-    this.titleTextStyle,
-    this.platform,
-  })  : assert(maxLines == null || maxLines > 0),
+  SettingsSection(
+      {Key? key,
+      String? title,
+      Widget? titleWidget,
+      EdgeInsetsGeometry titlePadding = defaultTitlePadding,
+      this.maxLines,
+      this.subtitle,
+      this.subtitlePadding = defaultTitlePadding,
+      this.tiles,
+      this.titleTextStyle,
+      this.platform,
+      this.visible})
+      : assert(maxLines == null || maxLines > 0),
         super(
           key: key,
           title: title,
@@ -38,18 +40,22 @@ class SettingsSection extends AbstractSection {
   Widget build(BuildContext context) {
     final platform = this.platform ?? Theme.of(context).platform;
 
+    Widget widget;
+
     switch (platform) {
       case TargetPlatform.iOS:
       case TargetPlatform.macOS:
-        return iosSection();
-
+        widget = iosSection();
+        break;
       case TargetPlatform.android:
       case TargetPlatform.fuchsia:
-        return androidSection(context);
-
+        widget = androidSection(context);
+        break;
       default:
-        return iosSection();
+        widget = iosSection();
     }
+
+    return Visibility(visible: visible ?? true, child: widget);
   }
 
   Widget iosSection() {
@@ -104,8 +110,7 @@ class SettingsSection extends AbstractSection {
         physics: NeverScrollableScrollPhysics(),
         shrinkWrap: true,
         itemCount: tiles!.length,
-        separatorBuilder: (BuildContext context, int index) =>
-            Divider(height: 1),
+        separatorBuilder: (BuildContext context, int index) => Divider(height: 1),
         itemBuilder: (BuildContext context, int index) {
           return tiles![index];
         },
