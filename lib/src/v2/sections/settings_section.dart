@@ -5,6 +5,7 @@ import 'package:settings_ui/src/v2/sections/platforms/ios_settings_section.dart'
 import 'package:settings_ui/src/v2/sections/platforms/web_settings_section.dart';
 import 'package:settings_ui/src/v2/tiles/abstract_settings_tile.dart';
 import 'package:settings_ui/src/v2/utils/platform_utils.dart';
+import 'package:settings_ui/src/v2/utils/settings_theme.dart';
 
 class SettingsSection extends AbstractSettingsSection {
   const SettingsSection({
@@ -20,9 +21,9 @@ class SettingsSection extends AbstractSettingsSection {
 
   @override
   Widget build(BuildContext context) {
-    final platform = PlatformUtils.detectPlatform(context);
+    final theme = SettingsTheme.of(context);
 
-    switch (platform) {
+    switch (theme.platform) {
       case DevicePlatform.android:
       case DevicePlatform.fuchsia:
       case DevicePlatform.linux:
@@ -43,6 +44,7 @@ class SettingsSection extends AbstractSettingsSection {
         return WebSettingsSection(
           title: title,
           tiles: tiles,
+          margin: margin,
         );
     }
   }

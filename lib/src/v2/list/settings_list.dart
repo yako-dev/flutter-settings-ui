@@ -8,35 +8,45 @@ import 'package:settings_ui/src/v2/utils/theme_provider.dart';
 class SettingsList extends StatelessWidget {
   const SettingsList({
     required this.sections,
+    this.platform,
+    this.theme,
     this.contentPadding,
     Key? key,
   }) : super(key: key);
 
   final List<AbstractSettingsSection> sections;
+  final DevicePlatform? platform;
+  final SettingsThemeData? theme;
   final EdgeInsetsGeometry? contentPadding;
 
   @override
   Widget build(BuildContext context) {
-    final themeData = ThemeProvider.getTheme(context);
+    final platform = this.platform ?? PlatformUtils.detectPlatform(context);
+    final themeData = ThemeProvider.getTheme(
+      context: context,
+      platform: platform,
+    ).merge(theme: theme);
 
-    return Material(
-      color: themeData.settingsListBackground,
-      child: SettingsTheme(
-        themeData: themeData,
-        child: ListView.builder(
-          padding: contentPadding ?? calculateDefaultPadding(context),
-          itemCount: sections.length,
-          itemBuilder: (BuildContext context, int index) {
-            return sections[index];
-          },
+    return Center(
+      child: Container(
+        color: themeData.settingsListBackground,
+        constraints: BoxConstraints(maxWidth: 680),
+        child: SettingsTheme(
+          themeData: themeData,
+          platform: platform,
+          child: ListView.builder(
+            padding: contentPadding ?? calculateDefaultPadding(platform),
+            itemCount: sections.length,
+            itemBuilder: (BuildContext context, int index) {
+              return sections[index];
+            },
+          ),
         ),
       ),
     );
   }
 
-  EdgeInsets calculateDefaultPadding(BuildContext context) {
-    final platform = PlatformUtils.detectPlatform(context);
-
+  EdgeInsets calculateDefaultPadding(DevicePlatform platform) {
     switch (platform) {
       case DevicePlatform.android:
       case DevicePlatform.fuchsia:
@@ -47,7 +57,7 @@ class SettingsList extends StatelessWidget {
       case DevicePlatform.windows:
         return EdgeInsets.symmetric(vertical: 20);
       case DevicePlatform.web:
-        return EdgeInsets.symmetric(vertical: 20);
+        return EdgeInsets.zero;
     }
   }
 }

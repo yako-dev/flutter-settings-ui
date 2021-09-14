@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:settings_ui/src/v2/utils/platform_utils.dart';
 
 class SettingsTheme extends InheritedWidget {
   final SettingsThemeData themeData;
+  final DevicePlatform platform;
 
   SettingsTheme({
     required this.themeData,
+    required this.platform,
     required Widget child,
   }) : super(child: child);
 
@@ -41,4 +44,50 @@ class SettingsThemeData {
   final Color? tileHighlightColor;
   final Color? titleTextColor;
   final Color? settingsTileTextColor;
+
+  SettingsThemeData merge({
+    SettingsThemeData? theme,
+  }) {
+    if (theme == null) return this;
+
+    return this.copyWith(
+      leadingIconsColor: theme.leadingIconsColor,
+      tileDescriptionTextColor: theme.tileDescriptionTextColor,
+      dividerColor: theme.dividerColor,
+      trailingTextColor: theme.trailingTextColor,
+      settingsListBackground: theme.settingsListBackground,
+      settingsSectionBackground: theme.settingsSectionBackground,
+      settingsTileTextColor: theme.settingsTileTextColor,
+      tileHighlightColor: theme.tileHighlightColor,
+      titleTextColor: theme.titleTextColor,
+    );
+  }
+
+  SettingsThemeData copyWith({
+    Color? settingsListBackground,
+    Color? trailingTextColor,
+    Color? leadingIconsColor,
+    Color? settingsSectionBackground,
+    Color? dividerColor,
+    Color? tileDescriptionTextColor,
+    Color? tileHighlightColor,
+    Color? titleTextColor,
+    Color? settingsTileTextColor,
+  }) {
+    return SettingsThemeData(
+      settingsListBackground:
+          settingsListBackground ?? this.settingsListBackground,
+      trailingTextColor: trailingTextColor ?? this.trailingTextColor,
+      leadingIconsColor: leadingIconsColor ?? this.leadingIconsColor,
+      settingsSectionBackground:
+          settingsSectionBackground ?? this.settingsSectionBackground,
+      dividerColor: dividerColor ?? this.dividerColor,
+      tileDescriptionTextColor:
+          tileDescriptionTextColor ?? this.tileDescriptionTextColor,
+      tileHighlightColor: tileHighlightColor ?? this.tileHighlightColor,
+      titleTextColor: titleTextColor ?? this.titleTextColor,
+      settingsTileTextColor:
+          settingsTileTextColor ?? this.settingsTileTextColor,
+    );
+  }
 }

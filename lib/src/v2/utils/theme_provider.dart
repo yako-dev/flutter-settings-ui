@@ -4,9 +4,10 @@ import 'package:settings_ui/src/v2/utils/platform_utils.dart';
 import 'package:settings_ui/src/v2/utils/settings_theme.dart';
 
 class ThemeProvider {
-  static SettingsThemeData getTheme(BuildContext context) {
-    final platform = PlatformUtils.detectPlatform(context);
-
+  static SettingsThemeData getTheme({
+    required BuildContext context,
+    required DevicePlatform platform,
+  }) {
     switch (platform) {
       case DevicePlatform.android:
       case DevicePlatform.fuchsia:
@@ -17,7 +18,7 @@ class ThemeProvider {
       case DevicePlatform.windows:
         return _iosTheme(context);
       case DevicePlatform.web:
-        return _iosTheme(context);
+        return _webTheme(context);
     }
   }
 
@@ -131,5 +132,9 @@ class ThemeProvider {
       trailingTextColor: trailingTextColor,
       settingsTileTextColor: settingsTileTextColor,
     );
+  }
+
+  static SettingsThemeData _webTheme(BuildContext context) {
+    return SettingsThemeData();
   }
 }

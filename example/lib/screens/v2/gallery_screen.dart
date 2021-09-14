@@ -1,6 +1,7 @@
 import 'package:example/screens/v2/gallery/android_settings_screen.dart';
 import 'package:example/screens/v2/gallery/cross_platform_settings_screen.dart';
 import 'package:example/screens/v2/gallery/ios_developer_screen.dart';
+import 'package:example/screens/v2/gallery/web_chrome_settings.dart';
 import 'package:example/utils/navigation.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -44,6 +45,18 @@ class _GalleryScreenState extends State<GalleryScreen> {
                 Navigation.navigateTo(
                   context: context,
                   screen: AndroidSettingsScreen(),
+                  style: NavigationRouteStyle.material,
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.web, size: 34),
+              trailing: Icon(CupertinoIcons.right_chevron),
+              title: Text('Web Settings'),
+              onTap: () {
+                Navigation.navigateTo(
+                  context: context,
+                  screen: WebChromeSettings(),
                   style: NavigationRouteStyle.material,
                 );
               },

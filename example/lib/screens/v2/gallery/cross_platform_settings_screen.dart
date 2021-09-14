@@ -2,10 +2,19 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui_v2.dart';
 
-class CrossPlatformSettingsScreen extends StatelessWidget {
+class CrossPlatformSettingsScreen extends StatefulWidget {
   const CrossPlatformSettingsScreen({
     Key key,
   }) : super(key: key);
+
+  @override
+  State<CrossPlatformSettingsScreen> createState() =>
+      _CrossPlatformSettingsScreenState();
+}
+
+class _CrossPlatformSettingsScreenState
+    extends State<CrossPlatformSettingsScreen> {
+  bool useCustomTheme = false;
 
   @override
   Widget build(BuildContext context) {
@@ -14,6 +23,20 @@ class CrossPlatformSettingsScreen extends StatelessWidget {
         title: Text('Settings UI'),
       ),
       body: SettingsList(
+        platform: DevicePlatform.android,
+        theme: !useCustomTheme
+            ? null
+            : SettingsThemeData(
+                dividerColor: Colors.red,
+                tileDescriptionTextColor: Colors.yellow,
+                leadingIconsColor: Colors.pink,
+                settingsListBackground: Colors.white,
+                settingsSectionBackground: Colors.green,
+                settingsTileTextColor: Colors.tealAccent,
+                tileHighlightColor: Colors.blue,
+                titleTextColor: Colors.cyan,
+                trailingTextColor: Colors.deepOrangeAccent,
+              ),
         sections: [
           SettingsSection(
             title: Text('Common'),
@@ -27,6 +50,16 @@ class CrossPlatformSettingsScreen extends StatelessWidget {
                 leading: Icon(Icons.cloud_outlined),
                 title: Text('Environment'),
                 value: Text('Production'),
+              ),
+              SettingsTile.switchTile(
+                onToggle: (value) {
+                  setState(() {
+                    useCustomTheme = value;
+                  });
+                },
+                initialValue: useCustomTheme,
+                leading: Icon(Icons.format_paint),
+                title: Text('Enable custom theme'),
               ),
             ],
           ),
