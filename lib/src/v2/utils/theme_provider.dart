@@ -19,6 +19,11 @@ class ThemeProvider {
         return _iosTheme(context);
       case DevicePlatform.web:
         return _webTheme(context);
+      case DevicePlatform.device:
+        throw Exception(
+          'You can\'t use the DevicePlatform.device in this context. '
+          'Incorrect platform: ThemeProvider.getTheme',
+        );
     }
   }
 
@@ -94,8 +99,8 @@ class ThemeProvider {
     final lightSettingsTileTextColor = CupertinoColors.black;
     final darkSettingsTileTextColor = CupertinoColors.white;
 
-    final lightLeadingIconsColor = Color.fromARGB(255, 142, 142, 146);
-    final darkLeadingIconsColor = Color.fromARGB(255, 142, 142, 146);
+    final lightLeadingIconsColor = CupertinoColors.inactiveGray;
+    final darkLeadingIconsColor = CupertinoColors.inactiveGray;
 
     final isLight =
         MediaQuery.of(context).platformBrightness == Brightness.light;
@@ -131,6 +136,7 @@ class ThemeProvider {
       dividerColor: dividerColor,
       trailingTextColor: trailingTextColor,
       settingsTileTextColor: settingsTileTextColor,
+      leadingIconsColor: leadingIconsColor,
     );
   }
 

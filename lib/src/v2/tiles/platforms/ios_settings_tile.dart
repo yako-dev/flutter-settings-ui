@@ -68,22 +68,25 @@ class _IOSSettingsTileState extends State<IOSSettingsTile> {
     final scaleFactor = MediaQuery.of(context).textScaleFactor;
 
     return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () {
-        if (widget.onPressed != null) {
-          changePressState(isPressed: true);
+      behavior: HitTestBehavior.translucent,
+      onTap: widget.onPressed == null
+          ? null
+          : () {
+              changePressState(isPressed: true);
 
-          widget.onPressed!.call(context);
+              widget.onPressed!.call(context);
 
-          Future.delayed(
-            Duration(milliseconds: 100),
-            () => changePressState(isPressed: false),
-          );
-        }
-      },
-      onTapDown: (_) => changePressState(isPressed: true),
-      onTapUp: (_) => changePressState(isPressed: false),
-      onTapCancel: () => changePressState(isPressed: false),
+              Future.delayed(
+                Duration(milliseconds: 100),
+                () => changePressState(isPressed: false),
+              );
+            },
+      onTapDown: (_) =>
+          widget.onPressed == null ? null : changePressState(isPressed: true),
+      onTapUp: (_) =>
+          widget.onPressed == null ? null : changePressState(isPressed: false),
+      onTapCancel: () =>
+          widget.onPressed == null ? null : changePressState(isPressed: false),
       child: Container(
         color: isPressed ? theme.themeData.tileHighlightColor : null,
         padding: EdgeInsetsDirectional.only(start: 18),
@@ -94,7 +97,7 @@ class _IOSSettingsTileState extends State<IOSSettingsTile> {
                 padding: const EdgeInsetsDirectional.only(end: 12.0),
                 child: IconTheme.merge(
                   data: IconThemeData(
-                    color: CupertinoColors.inactiveGray,
+                    color: theme.themeData.leadingIconsColor,
                   ),
                   child: widget.leading!,
                 ),

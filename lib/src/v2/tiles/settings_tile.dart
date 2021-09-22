@@ -94,6 +94,11 @@ class SettingsTile extends AbstractSettingsTile {
           leading: leading,
           title: title,
         );
+      case DevicePlatform.device:
+        throw Exception(
+          'You can\'t use the DevicePlatform.device in this context. '
+          'Incorrect platform: SettingsTile.build',
+        );
     }
   }
 }

@@ -21,7 +21,13 @@ class SettingsList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final platform = this.platform ?? PlatformUtils.detectPlatform(context);
+    DevicePlatform platform;
+    if (this.platform == null || this.platform == DevicePlatform.device) {
+      platform = PlatformUtils.detectPlatform(context);
+    } else {
+      platform = this.platform!;
+    }
+
     final themeData = ThemeProvider.getTheme(
       context: context,
       platform: platform,
@@ -58,6 +64,11 @@ class SettingsList extends StatelessWidget {
         return EdgeInsets.symmetric(vertical: 20);
       case DevicePlatform.web:
         return EdgeInsets.zero;
+      case DevicePlatform.device:
+        throw Exception(
+          'You can\'t use the DevicePlatform.device in this context. '
+          'Incorrect platform: SettingsList.calculateDefaultPadding',
+        );
     }
   }
 }

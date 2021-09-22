@@ -22,6 +22,9 @@ enum DevicePlatform {
 
   /// Web
   web,
+
+  /// Use this to specify you want to use the default device platform
+  device,
 }
 
 class PlatformUtils {

@@ -1,3 +1,4 @@
+import 'package:example/utils/navigation.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui_v2.dart';
@@ -16,6 +17,18 @@ class _CrossPlatformSettingsScreenState
     extends State<CrossPlatformSettingsScreen> {
   bool useCustomTheme = false;
 
+  final platformsMap = <DevicePlatform, String>{
+    DevicePlatform.device: 'Default',
+    DevicePlatform.android: 'Android',
+    DevicePlatform.iOS: 'iOS',
+    DevicePlatform.web: 'Web',
+    DevicePlatform.fuchsia: 'Fuchsia',
+    DevicePlatform.linux: 'Linux',
+    DevicePlatform.macOS: 'MacOS',
+    DevicePlatform.windows: 'Windows',
+  };
+  DevicePlatform selectedPlatform = DevicePlatform.device;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -23,7 +36,7 @@ class _CrossPlatformSettingsScreenState
         title: Text('Settings UI'),
       ),
       body: SettingsList(
-        platform: DevicePlatform.android,
+        platform: selectedPlatform,
         theme: !useCustomTheme
             ? null
             : SettingsThemeData(
@@ -50,6 +63,27 @@ class _CrossPlatformSettingsScreenState
                 leading: Icon(Icons.cloud_outlined),
                 title: Text('Environment'),
                 value: Text('Production'),
+              ),
+              SettingsTile.navigation(
+                leading: Icon(Icons.devices_other),
+                title: Text('Platform'),
+                onPressed: (context) async {
+                  final platform = await Navigation.navigateTo<DevicePlatform>(
+                    context: context,
+                    style: NavigationRouteStyle.material,
+                    screen: PlatformPickerScreen(
+                      platform: selectedPlatform,
+                      platforms: platformsMap,
+                    ),
+                  );
+
+                  if (platform != null && platform is DevicePlatform) {
+                    setState(() {
+                      selectedPlatform = platform;
+                    });
+                  }
+                },
+                value: Text(platformsMap[selectedPlatform]),
               ),
               SettingsTile.switchTile(
                 onToggle: (value) {
@@ -124,6 +158,42 @@ class _CrossPlatformSettingsScreenState
                 title: Text('Open source license'),
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class PlatformPickerScreen extends StatelessWidget {
+  const PlatformPickerScreen({
+    Key key,
+    @required this.platform,
+    @required this.platforms,
+  }) : super(key: key);
+
+  final DevicePlatform platform;
+  final Map<DevicePlatform, String> platforms;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Platforms')),
+      body: SettingsList(
+        platform: platform,
+        sections: [
+          SettingsSection(
+            title: Text('Select the platform you want'),
+            tiles: platforms.keys.map((e) {
+              final platform = platforms[e];
+
+              return SettingsTile(
+                title: Text(platform),
+                onPressed: (_) {
+                  Navigator.of(context).pop(e);
+                },
+              );
+            }).toList(),
           ),
         ],
       ),

@@ -46,6 +46,11 @@ class SettingsSection extends AbstractSettingsSection {
           tiles: tiles,
           margin: margin,
         );
+      case DevicePlatform.device:
+        throw Exception(
+          'You can\'t use the DevicePlatform.device in this context. '
+          'Incorrect platform: SettingsSection.build',
+        );
     }
   }
 }

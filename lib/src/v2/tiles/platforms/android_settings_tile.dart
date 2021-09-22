@@ -29,87 +29,96 @@ class AndroidSettingsTile extends StatelessWidget {
     final theme = SettingsTheme.of(context);
     final scaleFactor = MediaQuery.of(context).textScaleFactor;
 
-    return InkWell(
-      onTap: () {
-        if (tileType == SettingsTileType.switchTile) {
-          onToggle?.call(!initialValue);
-        } else {
-          onPressed?.call(context);
-        }
-      },
-      highlightColor: theme.themeData.tileHighlightColor,
-      child: Container(
-        child: Row(
-          children: [
-            if (leading != null)
-              Padding(
-                padding: const EdgeInsetsDirectional.only(
-                  start: 24,
-                ),
-                child: IconTheme(
-                  data: IconTheme.of(context).copyWith(
-                    color: theme.themeData.leadingIconsColor,
+    final cantShowAnimation = tileType == SettingsTileType.switchTile
+        ? onToggle == null && onPressed == null
+        : onPressed == null;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: cantShowAnimation
+            ? null
+            : () {
+                if (tileType == SettingsTileType.switchTile) {
+                  onToggle?.call(!initialValue);
+                } else {
+                  onPressed?.call(context);
+                }
+              },
+        highlightColor: theme.themeData.tileHighlightColor,
+        child: Container(
+          child: Row(
+            children: [
+              if (leading != null)
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(
+                    start: 24,
                   ),
-                  child: leading!,
-                ),
-              ),
-            Expanded(
-              child: Padding(
-                padding: EdgeInsetsDirectional.only(
-                  start: 24,
-                  end: 24,
-                  bottom: 19 * scaleFactor,
-                  top: 19 * scaleFactor,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    DefaultTextStyle(
-                      style: TextStyle(
-                        color: theme.themeData.settingsTileTextColor,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w400,
-                      ),
-                      child: title ?? Container(),
+                  child: IconTheme(
+                    data: IconTheme.of(context).copyWith(
+                      color: theme.themeData.leadingIconsColor,
                     ),
-                    if (value != null)
-                      Padding(
-                        padding: EdgeInsets.only(top: 4.0),
-                        child: DefaultTextStyle(
-                          style: TextStyle(
-                            color: theme.themeData.tileDescriptionTextColor,
-                          ),
-                          child: value!,
+                    child: leading!,
+                  ),
+                ),
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsetsDirectional.only(
+                    start: 24,
+                    end: 24,
+                    bottom: 19 * scaleFactor,
+                    top: 19 * scaleFactor,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      DefaultTextStyle(
+                        style: TextStyle(
+                          color: theme.themeData.settingsTileTextColor,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w400,
                         ),
-                      )
-                    else if (description != null)
-                      Padding(
-                        padding: EdgeInsets.only(top: 4.0),
-                        child: DefaultTextStyle(
-                          style: TextStyle(
-                            color: theme.themeData.tileDescriptionTextColor,
-                          ),
-                          child: description!,
-                        ),
+                        child: title ?? Container(),
                       ),
-                  ],
+                      if (value != null)
+                        Padding(
+                          padding: EdgeInsets.only(top: 4.0),
+                          child: DefaultTextStyle(
+                            style: TextStyle(
+                              color: theme.themeData.tileDescriptionTextColor,
+                            ),
+                            child: value!,
+                          ),
+                        )
+                      else if (description != null)
+                        Padding(
+                          padding: EdgeInsets.only(top: 4.0),
+                          child: DefaultTextStyle(
+                            style: TextStyle(
+                              color: theme.themeData.tileDescriptionTextColor,
+                            ),
+                            child: description!,
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            // if (tileType == SettingsTileType.switchTile)
-            //   SizedBox(
-            //     height: 30,
-            //     child: VerticalDivider(),
-            //   ),
-            if (tileType == SettingsTileType.switchTile)
-              Padding(
-                padding: const EdgeInsetsDirectional.only(start: 16, end: 8),
-                child: Switch.adaptive(
-                  value: initialValue,
-                  onChanged: onToggle,
+              // if (tileType == SettingsTileType.switchTile)
+              //   SizedBox(
+              //     height: 30,
+              //     child: VerticalDivider(),
+              //   ),
+              if (tileType == SettingsTileType.switchTile)
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(start: 16, end: 8),
+                  child: Switch.adaptive(
+                    value: initialValue,
+                    onChanged: onToggle,
+                  ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );
