@@ -27,7 +27,7 @@ class _CrossPlatformSettingsScreenState
     DevicePlatform.macOS: 'MacOS',
     DevicePlatform.windows: 'Windows',
   };
-  DevicePlatform selectedPlatform = DevicePlatform.device;
+  DevicePlatform selectedPlatform = DevicePlatform.web;
 
   @override
   Widget build(BuildContext context) {

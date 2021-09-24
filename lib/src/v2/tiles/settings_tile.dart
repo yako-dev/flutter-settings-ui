@@ -87,12 +87,18 @@ class SettingsTile extends AbstractSettingsTile {
           value: value,
           leading: leading,
           title: title,
-          initialValue: initialValue,
+          initialValue: initialValue ?? false,
         );
       case DevicePlatform.web:
         return WebSettingsTile(
+          description: description,
+          onPressed: onPressed,
+          onToggle: onToggle,
+          tileType: tileType,
+          value: value,
           leading: leading,
           title: title,
+          initialValue: initialValue ?? false,
         );
       case DevicePlatform.device:
         throw Exception(

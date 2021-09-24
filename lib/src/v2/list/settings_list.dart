@@ -36,7 +36,7 @@ class SettingsList extends StatelessWidget {
     return Center(
       child: Container(
         color: themeData.settingsListBackground,
-        constraints: BoxConstraints(maxWidth: 680),
+        constraints: BoxConstraints(maxWidth: 810),
         child: SettingsTheme(
           themeData: themeData,
           platform: platform,

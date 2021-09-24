@@ -22,8 +22,6 @@ class WebSettingsSection extends StatelessWidget {
 
   Widget buildSectionBody(BuildContext context) {
     final theme = SettingsTheme.of(context);
-    final isLastNonDescriptive = tiles.last is SettingsTile &&
-        (tiles.last as SettingsTile).description == null;
     final scaleFactor = MediaQuery.of(context).textScaleFactor;
 
     return Padding(
@@ -36,43 +34,41 @@ class WebSettingsSection extends StatelessWidget {
               height: 65 * scaleFactor,
               padding: EdgeInsetsDirectional.only(
                 bottom: 5 * scaleFactor,
+                start: 6,
+                top: 40 * scaleFactor,
               ),
               child: DefaultTextStyle(
                 style: TextStyle(
                   color: theme.themeData.titleTextColor,
-                  fontSize: 13,
+                  fontSize: 15,
                 ),
                 child: title!,
               ),
             ),
-          Divider(
-            height: 0,
-            color: theme.themeData.dividerColor,
-            thickness: 1,
-          ),
-          Container(
+          Card(
+            elevation: 4,
             color: theme.themeData.settingsSectionBackground,
             child: buildTileList(),
           ),
-          if (isLastNonDescriptive)
-            Divider(
-              height: 0,
-              color: theme.themeData.dividerColor,
-              thickness: 1,
-            ),
         ],
       ),
     );
   }
 
   Widget buildTileList() {
-    return ListView.builder(
+    return ListView.separated(
       shrinkWrap: true,
       itemCount: tiles.length,
       padding: EdgeInsets.zero,
       physics: NeverScrollableScrollPhysics(),
       itemBuilder: (BuildContext context, int index) {
         return tiles[index];
+      },
+      separatorBuilder: (BuildContext context, int index) {
+        return Divider(
+          height: 0,
+          thickness: 1,
+        );
       },
     );
   }
