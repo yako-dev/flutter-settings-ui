@@ -17,8 +17,12 @@ class SettingsTheme extends InheritedWidget {
   static SettingsTheme of(BuildContext context) {
     final SettingsTheme? result =
         context.dependOnInheritedWidgetOfExactType<SettingsTheme>();
-    assert(result != null, 'No SettingsTheme found in context');
-    return result!;
+    // assert(result != null, 'No SettingsTheme found in context');
+    return result ??
+        SettingsTheme(
+            themeData: SettingsThemeData(),
+            platform: PlatformUtils.detectPlatform(context),
+            child: SizedBox());
   }
 }
 
