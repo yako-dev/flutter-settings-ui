@@ -65,9 +65,13 @@ import 'package:settings_ui/settings_ui_v2.dart';
 
 ## Widgets
 <br>
-<b>SettingsTile:</b>
-<ul>
+<b>SettingsTile:</b><br><br>
 <li>Simple tile</li>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/dev/assets/simple-tile.png" width="400px">
+</p>
+  
 ```dart
   SettingsTile(
         onPressed: (BuildContext context) {
@@ -84,11 +88,14 @@ import 'package:settings_ui/settings_ui_v2.dart';
         ),
   )
 ```
-<p align="center">
-  <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/dev/assets/simple-tile.png" with="600px">
-</p>
+
 <br>
 <li>Switch tile</li>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/dev/assets/switch-tile.png" width="400px">
+</p>
+
 ```dart
     SettingsTile.switchTile(
         onToggle: (value) {
@@ -100,11 +107,14 @@ import 'package:settings_ui/settings_ui_v2.dart';
         title: Text('Dark Appearance'),
     )
 ```
-<p align="center">
-  <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/dev/assets/switch-tile.png" with="600px">
-</p>
+
 <br>
 <li>Navigation tile</li>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/dev/assets/navigation-tile.png" width="400px">
+</p>
+
 ```dart
     SettingsTile.navigation(
         onPressed: (_) {},
@@ -117,12 +127,15 @@ import 'package:settings_ui/settings_ui_v2.dart';
         ),
     )
 ```
-<p align="center">
-  <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/dev/assets/navigation-tile.png" with="600px">
-</p>
+
 <br>
-<b>SettingsSection:</b>
+<b>SettingsSection:</b><br>
 The SettingsSection makes it easy to combine setting tiles of the same category
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/dev/assets/settings-section.png" width="400px">
+</p>
+
 ```dart
     SettingsSection(
         title: Text('IAD DEVELOPER APP TESTING'),
@@ -146,12 +159,15 @@ The SettingsSection makes it easy to combine setting tiles of the same category
         ],
     )
 ```
-<p align="center">
-  <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/dev/assets/settings-section.png" with="600px">
-</p>
+
 <br>
-<b>SettingsList:</b>
+<b>SettingsList:</b><br>
 The SettingsList widget allows easily combine setting sections, specify settings theme, contentPadding and platform for all widgets
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/dev/assets/settings-list.png" width="400px">
+</p>
+
 ```dart
     SettingsList(
           platform: DevicePlatform.iOS,
@@ -168,9 +184,7 @@ The SettingsList widget allows easily combine setting sections, specify settings
           sections: [ ... ],
     )
 ```
-<p align="center">
-  <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/dev/assets/settings-list.png" with="600px">
-</p>
+
 ## Settings UI supports dark mode:
 <p align="center">
   <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master/assets/dark_mode_animation.gif" height="600px">
