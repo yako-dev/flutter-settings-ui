@@ -60,7 +60,59 @@ import 'package:settings_ui/settings_ui_v2.dart';
                 ],
               )
 ```
+
 <br>
+<li>Navigation tile</li>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/dev/assets/navigation-tile.png" width="400px">
+</p>
+
+```dart
+    SettingsTile.navigation(
+        onPressed: (_) {},
+        title: Text('View'),
+        value: Text('Standard'),
+        description: Text(
+            'Choose a view for iPhone. '
+            'Zoomed shadows larger controls. '
+            'Standart shows more content.',
+        ),
+    )
+```
+
+<br>
+<b>SettingsSection:</b><br>
+The SettingsSection makes it easy to combine setting tiles of the same category
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/dev/assets/settings-section.png" width="400px">
+</p>
+
+```dart
+    SettingsSection(
+        title: Text('IAD DEVELOPER APP TESTING'),
+        tiles: [
+            SettingsTile.navigation(
+                title: Text('Fill Rate'),
+            ),
+            SettingsTile.navigation(
+                title: Text('Add Refresh Rate'),
+            ),
+            SettingsTile.switchTile(
+                onToggle: (_) {},
+                initialValue: false,
+                title: Text('Highlight Clipped Banners'),
+            ),
+            SettingsTile.switchTile(
+                onToggle: (_) {},
+                initialValue: false,
+                title: Text('Unlimited Ad Presentation'),
+            ),
+        ],
+    )
+```
+
 <br>
 
 ## Widgets
