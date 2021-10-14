@@ -13,6 +13,7 @@ class AndroidSettingsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text('Settings')),
       body: SettingsList(
+        platform: DevicePlatform.android,
         sections: [
           SettingsSection(
             tiles: [

@@ -5,6 +5,7 @@ import 'package:example/screens/v2/gallery/web_chrome_settings.dart';
 import 'package:example/utils/navigation.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:settings_ui/settings_ui_v2.dart';
 
 class GalleryScreen extends StatefulWidget {
   const GalleryScreen({Key key}) : super(key: key);
@@ -18,63 +19,65 @@ class _GalleryScreenState extends State<GalleryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Gallery')),
-      body: ListView(
-        padding: EdgeInsets.symmetric(vertical: 20),
-        children: ListTile.divideTiles(
-          context: context,
-          tiles: [
-            ListTile(
-              leading: Icon(CupertinoIcons.settings, size: 34),
-              trailing: Icon(CupertinoIcons.right_chevron),
-              title: Text('iOS Developer Screen'),
-              subtitle: Text('CupertinoApp required'),
-              onTap: () {
-                Navigation.navigateTo(
-                  context: context,
-                  screen: IosDeveloperScreen(),
-                  style: NavigationRouteStyle.cupertino,
-                );
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.settings, size: 34),
-              trailing: Icon(CupertinoIcons.right_chevron),
-              title: Text('Android Settings Screen'),
-              subtitle: Text('MaterialApp required'),
-              onTap: () {
-                Navigation.navigateTo(
-                  context: context,
-                  screen: AndroidSettingsScreen(),
-                  style: NavigationRouteStyle.material,
-                );
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.web, size: 34),
-              trailing: Icon(CupertinoIcons.right_chevron),
-              title: Text('Web Settings'),
-              onTap: () {
-                Navigation.navigateTo(
-                  context: context,
-                  screen: WebChromeSettings(),
-                  style: NavigationRouteStyle.material,
-                );
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.devices, size: 34),
-              trailing: Icon(CupertinoIcons.right_chevron),
-              title: Text('Cross Platform Settings Screen'),
-              onTap: () {
-                Navigation.navigateTo(
-                  context: context,
-                  screen: CrossPlatformSettingsScreen(),
-                  style: NavigationRouteStyle.material,
-                );
-              },
-            ),
-          ],
-        ).toList(),
+      body: SettingsList(
+        sections: [
+          SettingsSection(
+            title: Text('General'),
+            tiles: [
+              SettingsTile.navigation(
+                title: Text('Abstract settings screen'),
+                leading: Icon(CupertinoIcons.wrench),
+                description: Text('UI created to show plugin\'s possibilities'),
+                onPressed: (context) {
+                  Navigation.navigateTo(
+                    context: context,
+                    screen: CrossPlatformSettingsScreen(),
+                    style: NavigationRouteStyle.material,
+                  );
+                },
+              )
+            ],
+          ),
+          SettingsSection(
+            title: Text('Replications'),
+            tiles: [
+              SettingsTile.navigation(
+                leading: Icon(CupertinoIcons.settings),
+                title: Text('iOS Developer Screen'),
+                onPressed: (context) {
+                  Navigation.navigateTo(
+                    context: context,
+                    screen: IosDeveloperScreen(),
+                    style: NavigationRouteStyle.cupertino,
+                  );
+                },
+              ),
+              SettingsTile.navigation(
+                leading: Icon(Icons.settings),
+                title: Text('Android Settings Screen'),
+                onPressed: (context) {
+                  Navigation.navigateTo(
+                    context: context,
+                    screen: AndroidSettingsScreen(),
+                    style: NavigationRouteStyle.material,
+                  );
+                },
+              ),
+              SettingsTile.navigation(
+                leading: Icon(Icons.web),
+                title: Text('Web Settings'),
+                description: Text('In development'),
+                onPressed: (context) {
+                  Navigation.navigateTo(
+                    context: context,
+                    screen: WebChromeSettings(),
+                    style: NavigationRouteStyle.material,
+                  );
+                },
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

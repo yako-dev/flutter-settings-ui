@@ -27,17 +27,18 @@ class _CrossPlatformSettingsScreenState
     DevicePlatform.macOS: 'MacOS',
     DevicePlatform.windows: 'Windows',
   };
-  DevicePlatform selectedPlatform = DevicePlatform.web;
+  DevicePlatform selectedPlatform = DevicePlatform.device;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Settings UI'),
+        title: Text('Settings'),
       ),
       body: SettingsList(
         platform: selectedPlatform,
-        theme: !useCustomTheme
+        brightness: Brightness.dark,
+        lightTheme: !useCustomTheme
             ? null
             : SettingsThemeData(
                 dividerColor: Colors.red,
@@ -49,6 +50,19 @@ class _CrossPlatformSettingsScreenState
                 tileHighlightColor: Colors.blue,
                 titleTextColor: Colors.cyan,
                 trailingTextColor: Colors.deepOrangeAccent,
+              ),
+        darkTheme: !useCustomTheme
+            ? null
+            : SettingsThemeData(
+                dividerColor: Colors.pink,
+                tileDescriptionTextColor: Colors.blue,
+                leadingIconsColor: Colors.red,
+                settingsListBackground: Colors.grey,
+                settingsSectionBackground: Colors.tealAccent,
+                settingsTileTextColor: Colors.green,
+                tileHighlightColor: Colors.yellow,
+                titleTextColor: Colors.cyan,
+                trailingTextColor: Colors.orange,
               ),
         sections: [
           SettingsSection(

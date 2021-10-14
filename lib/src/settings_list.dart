@@ -11,6 +11,7 @@ class SettingsList extends StatelessWidget {
   final Color? darkBackgroundColor;
   final EdgeInsetsGeometry? contentPadding;
 
+  @Deprecated('This is an old version, you should switch to v2')
   const SettingsList({
     Key? key,
     this.sections,

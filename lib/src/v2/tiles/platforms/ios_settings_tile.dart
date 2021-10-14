@@ -13,6 +13,7 @@ class IOSSettingsTile extends StatefulWidget {
     required this.onToggle,
     required this.value,
     required this.initialValue,
+    required this.activeSwitchColor,
     Key? key,
   }) : super(key: key);
 
@@ -24,6 +25,7 @@ class IOSSettingsTile extends StatefulWidget {
   final Function(bool value)? onToggle;
   final Widget? value;
   final bool? initialValue;
+  final Color? activeSwitchColor;
 
   @override
   _IOSSettingsTileState createState() => _IOSSettingsTileState();
@@ -191,6 +193,7 @@ class _IOSSettingsTileState extends State<IOSSettingsTile> {
           Switch.adaptive(
             value: widget.initialValue ?? true,
             onChanged: widget.onToggle,
+            activeColor: widget.activeSwitchColor,
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
         if (widget.tileType == SettingsTileType.navigationTile &&

@@ -8,16 +8,24 @@ import 'package:settings_ui/src/v2/utils/theme_provider.dart';
 class SettingsList extends StatelessWidget {
   const SettingsList({
     required this.sections,
+    this.shrinkWrap = false,
+    this.physics,
     this.platform,
-    this.theme,
+    this.lightTheme,
+    this.darkTheme,
+    this.brightness,
     this.contentPadding,
     Key? key,
   }) : super(key: key);
 
-  final List<AbstractSettingsSection> sections;
+  final bool shrinkWrap;
+  final ScrollPhysics? physics;
   final DevicePlatform? platform;
-  final SettingsThemeData? theme;
+  final SettingsThemeData? lightTheme;
+  final SettingsThemeData? darkTheme;
+  final Brightness? brightness;
   final EdgeInsetsGeometry? contentPadding;
+  final List<AbstractSettingsSection> sections;
 
   @override
   Widget build(BuildContext context) {
@@ -28,10 +36,16 @@ class SettingsList extends StatelessWidget {
       platform = this.platform!;
     }
 
+    final currentBrightness =
+        brightness ?? MediaQuery.of(context).platformBrightness;
+
     final themeData = ThemeProvider.getTheme(
       context: context,
       platform: platform,
-    ).merge(theme: theme);
+      brightness: currentBrightness,
+    ).merge(
+      theme: currentBrightness == Brightness.dark ? darkTheme : lightTheme,
+    );
 
     return Center(
       child: Container(
@@ -41,8 +55,10 @@ class SettingsList extends StatelessWidget {
           themeData: themeData,
           platform: platform,
           child: ListView.builder(
-            padding: contentPadding ?? calculateDefaultPadding(platform),
+            physics: physics,
+            shrinkWrap: shrinkWrap,
             itemCount: sections.length,
+            padding: contentPadding ?? calculateDefaultPadding(platform),
             itemBuilder: (BuildContext context, int index) {
               return sections[index];
             },

@@ -12,6 +12,7 @@ class AndroidSettingsTile extends StatelessWidget {
     required this.onToggle,
     required this.value,
     required this.initialValue,
+    required this.activeSwitchColor,
     Key? key,
   }) : super(key: key);
 
@@ -23,6 +24,7 @@ class AndroidSettingsTile extends StatelessWidget {
   final Function(bool value)? onToggle;
   final Widget? value;
   final bool initialValue;
+  final Color? activeSwitchColor;
 
   @override
   Widget build(BuildContext context) {
@@ -51,9 +53,7 @@ class AndroidSettingsTile extends StatelessWidget {
             children: [
               if (leading != null)
                 Padding(
-                  padding: const EdgeInsetsDirectional.only(
-                    start: 24,
-                  ),
+                  padding: const EdgeInsetsDirectional.only(start: 24),
                   child: IconTheme(
                     data: IconTheme.of(context).copyWith(
                       color: theme.themeData.leadingIconsColor,
@@ -115,6 +115,7 @@ class AndroidSettingsTile extends StatelessWidget {
                   child: Switch.adaptive(
                     value: initialValue,
                     onChanged: onToggle,
+                    activeColor: activeSwitchColor,
                   ),
                 ),
             ],

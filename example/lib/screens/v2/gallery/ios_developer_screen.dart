@@ -15,12 +15,11 @@ class _IosDeveloperScreen extends State<IosDeveloperScreen> {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(
-        middle: Text('Developer'),
-      ),
+      navigationBar: CupertinoNavigationBar(middle: Text('Developer')),
       child: SafeArea(
         bottom: false,
         child: SettingsList(
+          brightness: Brightness.light,
           sections: [
             SettingsSection(
               title: Text('APPEARANCE'),

@@ -7,8 +7,9 @@ class WebChromeSettings extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(title: Text('Settings')),
       body: SettingsList(
+        platform: DevicePlatform.web,
         sections: [
           SettingsSection(
             title: Text('Auto-fill'),

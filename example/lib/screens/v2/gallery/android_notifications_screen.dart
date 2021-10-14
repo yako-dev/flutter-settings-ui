@@ -20,6 +20,7 @@ class _AndroidNotificationsScreenState
         title: Text('Notifications'),
       ),
       body: SettingsList(
+        platform: DevicePlatform.android,
         sections: [
           SettingsSection(
             title: Text('Manage'),

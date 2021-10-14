@@ -14,7 +14,7 @@ class SettingsSection extends AbstractSection {
   final Widget? subtitle;
   final EdgeInsetsGeometry subtitlePadding;
   final TargetPlatform? platform;
-
+  @Deprecated('This is an old version, you should switch to v2')
   SettingsSection({
     Key? key,
     String? title,

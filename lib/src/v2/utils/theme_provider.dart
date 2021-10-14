@@ -7,18 +7,19 @@ class ThemeProvider {
   static SettingsThemeData getTheme({
     required BuildContext context,
     required DevicePlatform platform,
+    Brightness? brightness,
   }) {
     switch (platform) {
       case DevicePlatform.android:
       case DevicePlatform.fuchsia:
       case DevicePlatform.linux:
-        return _androidTheme(context);
+        return _androidTheme(context, brightness: brightness);
       case DevicePlatform.iOS:
       case DevicePlatform.macOS:
       case DevicePlatform.windows:
-        return _iosTheme(context);
+        return _iosTheme(context, brightness: brightness);
       case DevicePlatform.web:
-        return _webTheme(context);
+        return _webTheme(context, brightness: brightness);
       case DevicePlatform.device:
         throw Exception(
           'You can\'t use the DevicePlatform.device in this context. '
@@ -27,7 +28,10 @@ class ThemeProvider {
     }
   }
 
-  static SettingsThemeData _androidTheme(BuildContext context) {
+  static SettingsThemeData _androidTheme(
+    BuildContext context, {
+    Brightness? brightness,
+  }) {
     final lightLeadingIconsColor = Color.fromARGB(255, 70, 70, 70);
     final darkLeadingIconsColor = Color.fromARGB(255, 197, 197, 197);
 
@@ -46,8 +50,8 @@ class ThemeProvider {
     final lightTileDescriptionTextColor = Color.fromARGB(255, 70, 70, 70);
     final darkTileDescriptionTextColor = Color.fromARGB(255, 198, 198, 198);
 
-    final isLight =
-        MediaQuery.of(context).platformBrightness == Brightness.light;
+    final isLight = (brightness ?? MediaQuery.of(context).platformBrightness) ==
+        Brightness.light;
 
     final listBackground =
         isLight ? lightSettingsListBackground : darkSettingsListBackground;
@@ -77,7 +81,10 @@ class ThemeProvider {
     );
   }
 
-  static SettingsThemeData _iosTheme(BuildContext context) {
+  static SettingsThemeData _iosTheme(
+    BuildContext context, {
+    Brightness? brightness,
+  }) {
     final lightSettingsListBackground = Color.fromRGBO(242, 242, 247, 1);
     final darkSettingsListBackground = CupertinoColors.black;
 
@@ -102,8 +109,8 @@ class ThemeProvider {
     final lightLeadingIconsColor = CupertinoColors.inactiveGray;
     final darkLeadingIconsColor = CupertinoColors.inactiveGray;
 
-    final isLight =
-        MediaQuery.of(context).platformBrightness == Brightness.light;
+    final isLight = (brightness ?? MediaQuery.of(context).platformBrightness) ==
+        Brightness.light;
 
     final listBackground =
         isLight ? lightSettingsListBackground : darkSettingsListBackground;
@@ -140,7 +147,10 @@ class ThemeProvider {
     );
   }
 
-  static SettingsThemeData _webTheme(BuildContext context) {
+  static SettingsThemeData _webTheme(
+    BuildContext context, {
+    Brightness? brightness,
+  }) {
     final lightLeadingIconsColor = Color.fromARGB(255, 70, 70, 70);
     final darkLeadingIconsColor = Color.fromARGB(255, 197, 197, 197);
 
@@ -166,8 +176,8 @@ class ThemeProvider {
     final lightTileDescriptionTextColor = Color.fromARGB(255, 70, 70, 70);
     final darkTileDescriptionTextColor = Color.fromARGB(154, 160, 166, 198);
 
-    final isLight =
-        MediaQuery.of(context).platformBrightness == Brightness.light;
+    final isLight = (brightness ?? MediaQuery.of(context).platformBrightness) ==
+        Brightness.light;
 
     final listBackground =
         isLight ? lightSettingsListBackground : darkSettingsListBackground;

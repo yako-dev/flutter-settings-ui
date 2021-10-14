@@ -19,6 +19,7 @@ class SettingsTile extends AbstractSettingsTile {
   }) : super(key: key) {
     onToggle = null;
     initialValue = null;
+    activeSwitchColor = null;
     tileType = SettingsTileType.simpleTile;
   }
 
@@ -32,12 +33,14 @@ class SettingsTile extends AbstractSettingsTile {
   }) : super(key: key) {
     onToggle = null;
     initialValue = null;
+    activeSwitchColor = null;
     tileType = SettingsTileType.navigationTile;
   }
 
   SettingsTile.switchTile({
     required this.initialValue,
     required this.onToggle,
+    this.activeSwitchColor,
     this.leading,
     required this.title,
     this.description,
@@ -53,6 +56,7 @@ class SettingsTile extends AbstractSettingsTile {
   final Widget? description;
   final Function(BuildContext context)? onPressed;
 
+  late final Color? activeSwitchColor;
   late final Widget? value;
   late final Function(bool value)? onToggle;
   late final SettingsTileType tileType;
@@ -74,6 +78,7 @@ class SettingsTile extends AbstractSettingsTile {
           value: value,
           leading: leading,
           title: title,
+          activeSwitchColor: activeSwitchColor,
           initialValue: initialValue ?? false,
         );
       case DevicePlatform.iOS:
@@ -87,6 +92,7 @@ class SettingsTile extends AbstractSettingsTile {
           value: value,
           leading: leading,
           title: title,
+          activeSwitchColor: activeSwitchColor,
           initialValue: initialValue ?? false,
         );
       case DevicePlatform.web:
@@ -98,6 +104,7 @@ class SettingsTile extends AbstractSettingsTile {
           value: value,
           leading: leading,
           title: title,
+          activeSwitchColor: activeSwitchColor,
           initialValue: initialValue ?? false,
         );
       case DevicePlatform.device:

@@ -12,6 +12,7 @@ class WebSettingsTile extends StatelessWidget {
     required this.onToggle,
     required this.value,
     required this.initialValue,
+    required this.activeSwitchColor,
     Key? key,
   }) : super(key: key);
 
@@ -23,6 +24,7 @@ class WebSettingsTile extends StatelessWidget {
   final Function(bool value)? onToggle;
   final Widget? value;
   final bool initialValue;
+  final Color? activeSwitchColor;
 
   @override
   Widget build(BuildContext context) {

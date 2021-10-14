@@ -7,6 +7,7 @@ import 'defines.dart';
 enum _SettingsTileType { simple, switchTile }
 
 abstract class AbstractTile extends StatelessWidget {
+  @Deprecated('This is an old version, you should switch to v2')
   const AbstractTile({Key? key}) : super(key: key);
 }
 
@@ -32,6 +33,7 @@ class SettingsTile extends AbstractTile {
   final _SettingsTileType _tileType;
   final TargetPlatform? platform;
 
+  @Deprecated('This is an old version, you should switch to v2')
   const SettingsTile({
     Key? key,
     this.title,
@@ -204,6 +206,7 @@ class SettingsTile extends AbstractTile {
 class CustomTile extends AbstractTile {
   final Widget child;
 
+  @Deprecated('This is an old version, you should switch to v2')
   CustomTile({
     required this.child,
   });
