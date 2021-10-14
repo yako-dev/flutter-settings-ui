@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:settings_ui/src/v2/utils/platform_utils.dart';
+import 'package:settings_ui/src/v2/utils/theme_provider.dart';
 
 class SettingsTheme extends InheritedWidget {
   final SettingsThemeData themeData;
@@ -17,8 +18,14 @@ class SettingsTheme extends InheritedWidget {
   static SettingsTheme of(BuildContext context) {
     final SettingsTheme? result =
         context.dependOnInheritedWidgetOfExactType<SettingsTheme>();
-    assert(result != null, 'No SettingsTheme found in context');
-    return result!;
+    // assert(result != null, 'No SettingsTheme found in context');
+    final platform = PlatformUtils.detectPlatform(context);
+    return result ??
+        SettingsTheme(
+            themeData:
+                ThemeProvider.getTheme(context: context, platform: platform),
+            platform: platform,
+            child: SizedBox());
   }
 }
 

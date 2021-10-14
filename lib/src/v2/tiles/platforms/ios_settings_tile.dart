@@ -245,7 +245,11 @@ class IOSSettingsTileAdditionalInfo extends InheritedWidget {
   static IOSSettingsTileAdditionalInfo of(BuildContext context) {
     final IOSSettingsTileAdditionalInfo? result = context
         .dependOnInheritedWidgetOfExactType<IOSSettingsTileAdditionalInfo>();
-    assert(result != null, 'No IOSSettingsTileAdditionalInfo found in context');
-    return result!;
+    // assert(result != null, 'No IOSSettingsTileAdditionalInfo found in context');
+    return result ??
+        IOSSettingsTileAdditionalInfo(
+          needToShowDivider: true,
+          child: SizedBox(),
+        );
   }
 }
