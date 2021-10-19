@@ -1,15 +1,15 @@
 name: example
-description: A new Flutter project.
+description: Example project for settings-ui package.
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.1.0 <3.0.0"
+  sdk: ">=2.12.0 <3.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  cupertino_icons: ^1.0.2
-  device_preview: ^0.6.2-beta
+  cupertino_icons: ^1.0.3
+  device_preview: ^0.7.4
   settings_ui:
     path: ../
 
