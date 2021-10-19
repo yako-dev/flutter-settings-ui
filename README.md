@@ -11,7 +11,7 @@
 In your pubspec.yaml
 ```yaml
 dependencies:
-  settings_ui: ^1.0.1
+  settings_ui: ^1.0.2
 ```
 ```dart
 import 'package:settings_ui/settings_ui.dart';

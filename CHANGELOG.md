@@ -1,3 +1,7 @@
+## [1.0.2] - [Oct 19, 2021]
+* Bump up dependencies versions
+* Remove types, where possible, of final variables (fixes a bug with recent Cupertino sources)
+
 ## [1.0.1] - [Jul 28, 2021]
 * Allow manual platform style selection
 * Fixed iOS Title text getting cut off in version 1.0.0
