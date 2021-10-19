@@ -76,8 +76,8 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
     /// The width of iPad. This is used to make circular borders on iPad and web
     final isLargeScreen = MediaQuery.of(context).size.width >= 768;
 
-    final ThemeData theme = Theme.of(context);
-    final ListTileTheme tileTheme = ListTileTheme.of(context);
+    final theme = Theme.of(context);
+    final tileTheme = ListTileTheme.of(context);
 
     final iconThemeData = IconThemeData(
       color: widget.enabled
@@ -165,7 +165,7 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
                 value: widget.switchValue!,
                 activeColor: widget.enabled
                     ? (widget.switchActiveColor ??
-                        Theme.of(context).accentColor)
+                        Theme.of(context).colorScheme.secondary)
                     : CupertinoColors.inactiveGray,
                 onChanged: !widget.enabled
                     ? null
@@ -202,7 +202,7 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
           );
         }
 
-        final List<Widget> endRowChildren = [];
+        final endRowChildren = <Widget>[];
         if (widget.trailing != null) {
           endRowChildren.add(
             Padding(
@@ -318,7 +318,7 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
               ? iosPressedTileColorDark
               : iosTileDarkColor;
 
-  Color? _iconColor(ThemeData theme, ListTileTheme tileTheme) {
+  Color? _iconColor(ThemeData theme, ListTileThemeData tileTheme) {
     if (tileTheme.selectedColor != null) {
       return tileTheme.selectedColor;
     }

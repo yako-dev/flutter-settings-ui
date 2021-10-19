@@ -21,7 +21,7 @@ class CupertinoSettingsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<Widget> columnChildren = [];
+    final columnChildren = <Widget>[];
     if (header != null) {
       columnChildren.add(DefaultTextStyle(
         style: TextStyle(
