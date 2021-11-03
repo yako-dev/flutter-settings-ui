@@ -29,6 +29,8 @@ class IOSSettingsSection extends StatelessWidget {
           EdgeInsets.only(
             top: 14.0 * scaleFactor,
             bottom: isLastNonDescriptive ? 27 * scaleFactor : 10 * scaleFactor,
+            left: 16,
+            right: 16,
           ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -47,21 +49,7 @@ class IOSSettingsSection extends StatelessWidget {
                 child: title!,
               ),
             ),
-          Divider(
-            height: 0,
-            color: theme.themeData.dividerColor,
-            thickness: 1,
-          ),
-          Container(
-            color: theme.themeData.settingsSectionBackground,
-            child: buildTileList(),
-          ),
-          if (isLastNonDescriptive)
-            Divider(
-              height: 0,
-              color: theme.themeData.dividerColor,
-              thickness: 1,
-            ),
+          buildTileList(),
         ],
       ),
     );
@@ -74,9 +62,29 @@ class IOSSettingsSection extends StatelessWidget {
       padding: EdgeInsets.zero,
       physics: NeverScrollableScrollPhysics(),
       itemBuilder: (BuildContext context, int index) {
+        final tile = tiles[index];
+
+        var enableTop = false;
+
+        if (index == 0 ||
+            (index > 0 &&
+                (tiles[index - 1] as SettingsTile).description != null)) {
+          enableTop = true;
+        }
+
+        var enableBottom = false;
+
+        if (index == tiles.length - 1 ||
+            (index < tiles.length &&
+                (tile as SettingsTile).description != null)) {
+          enableBottom = true;
+        }
+
         return IOSSettingsTileAdditionalInfo(
+          enableTopBorderRadius: enableTop,
+          enableBottomBorderRadius: enableBottom,
           needToShowDivider: index != tiles.length - 1,
-          child: tiles[index],
+          child: tile,
         );
       },
     );

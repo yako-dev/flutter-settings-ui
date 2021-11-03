@@ -47,12 +47,6 @@ class _IOSSettingsTileState extends State<IOSSettingsTile> {
           additionalInfo: additionalInfo,
         ),
         if (widget.description != null)
-          Divider(
-            height: 0,
-            thickness: 1,
-            color: theme.themeData.dividerColor,
-          ),
-        if (widget.description != null)
           buildDescription(
             context: context,
             theme: theme,
@@ -69,80 +63,94 @@ class _IOSSettingsTileState extends State<IOSSettingsTile> {
   }) {
     final scaleFactor = MediaQuery.of(context).textScaleFactor;
 
-    return GestureDetector(
-      behavior: HitTestBehavior.translucent,
-      onTap: widget.onPressed == null
-          ? null
-          : () {
-              changePressState(isPressed: true);
+    return ClipRRect(
+      borderRadius: BorderRadius.vertical(
+        top: additionalInfo.enableTopBorderRadius
+            ? Radius.circular(12)
+            : Radius.zero,
+        bottom: additionalInfo.enableBottomBorderRadius
+            ? Radius.circular(12)
+            : Radius.zero,
+      ),
+      child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: widget.onPressed == null
+            ? null
+            : () {
+                changePressState(isPressed: true);
 
-              widget.onPressed!.call(context);
+                widget.onPressed!.call(context);
 
-              Future.delayed(
-                Duration(milliseconds: 100),
-                () => changePressState(isPressed: false),
-              );
-            },
-      onTapDown: (_) =>
-          widget.onPressed == null ? null : changePressState(isPressed: true),
-      onTapUp: (_) =>
-          widget.onPressed == null ? null : changePressState(isPressed: false),
-      onTapCancel: () =>
-          widget.onPressed == null ? null : changePressState(isPressed: false),
-      child: Container(
-        color: isPressed ? theme.themeData.tileHighlightColor : null,
-        padding: EdgeInsetsDirectional.only(start: 18),
-        child: Row(
-          children: [
-            if (widget.leading != null)
-              Padding(
-                padding: const EdgeInsetsDirectional.only(end: 12.0),
-                child: IconTheme.merge(
-                  data: IconThemeData(
-                    color: theme.themeData.leadingIconsColor,
+                Future.delayed(
+                  Duration(milliseconds: 100),
+                  () => changePressState(isPressed: false),
+                );
+              },
+        onTapDown: (_) =>
+            widget.onPressed == null ? null : changePressState(isPressed: true),
+        onTapUp: (_) => widget.onPressed == null
+            ? null
+            : changePressState(isPressed: false),
+        onTapCancel: () => widget.onPressed == null
+            ? null
+            : changePressState(isPressed: false),
+        child: Container(
+          color: isPressed
+              ? theme.themeData.tileHighlightColor
+              : theme.themeData.settingsSectionBackground,
+          padding: EdgeInsetsDirectional.only(start: 18),
+          child: Row(
+            children: [
+              if (widget.leading != null)
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(end: 12.0),
+                  child: IconTheme.merge(
+                    data: IconThemeData(
+                      color: theme.themeData.leadingIconsColor,
+                    ),
+                    child: widget.leading!,
                   ),
-                  child: widget.leading!,
                 ),
-              ),
-            Expanded(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Padding(
-                    padding: const EdgeInsetsDirectional.only(end: 16),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Padding(
-                            padding: EdgeInsetsDirectional.only(
-                              top: 12.5 * scaleFactor,
-                              bottom: 12.5 * scaleFactor,
-                            ),
-                            child: DefaultTextStyle(
-                              style: TextStyle(
-                                color: theme.themeData.settingsTileTextColor,
-                                fontSize: 16,
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsetsDirectional.only(end: 16),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Padding(
+                              padding: EdgeInsetsDirectional.only(
+                                top: 12.5 * scaleFactor,
+                                bottom: 12.5 * scaleFactor,
                               ),
-                              child: widget.title!,
+                              child: DefaultTextStyle(
+                                style: TextStyle(
+                                  color: theme.themeData.settingsTileTextColor,
+                                  fontSize: 16,
+                                ),
+                                child: widget.title!,
+                              ),
                             ),
                           ),
-                        ),
-                        buildTrailing(context: context, theme: theme),
-                      ],
+                          buildTrailing(context: context, theme: theme),
+                        ],
+                      ),
                     ),
-                  ),
-                  if (widget.description == null &&
-                      additionalInfo.needToShowDivider)
-                    Divider(
-                      height: 0,
-                      thickness: 0.7,
-                      color: theme.themeData.dividerColor,
-                    ),
-                ],
+                    if (widget.description == null &&
+                        additionalInfo.needToShowDivider)
+                      Divider(
+                        height: 0,
+                        thickness: 0.7,
+                        color: theme.themeData.dividerColor,
+                      ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -233,9 +241,13 @@ class _IOSSettingsTileState extends State<IOSSettingsTile> {
 
 class IOSSettingsTileAdditionalInfo extends InheritedWidget {
   final bool needToShowDivider;
+  final bool enableTopBorderRadius;
+  final bool enableBottomBorderRadius;
 
   IOSSettingsTileAdditionalInfo({
     required this.needToShowDivider,
+    required this.enableTopBorderRadius,
+    required this.enableBottomBorderRadius,
     required Widget child,
   }) : super(child: child);
 
@@ -249,6 +261,8 @@ class IOSSettingsTileAdditionalInfo extends InheritedWidget {
     return result ??
         IOSSettingsTileAdditionalInfo(
           needToShowDivider: true,
+          enableBottomBorderRadius: true,
+          enableTopBorderRadius: true,
           child: SizedBox(),
         );
   }
