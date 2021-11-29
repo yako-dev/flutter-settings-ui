@@ -29,26 +29,26 @@ import 'package:settings_ui/settings_ui.dart';
 
 ## Basic Usage:
 ```dart  
-SettingsList(
-	sections: [
-		SettingsSection(
-			title: Text('Common'),
-            tiles: <SettingsTile>[
-		        SettingsTile.navigation(
-	                leading: Icon(Icons.language),
-	                title: Text('Language'),
-	                value: Text('English'),
-	            ),
-				SettingsTile.switchTile(
-	                onToggle: (value) {},
-	                initialValue: true,
-					leading: Icon(Icons.format_paint),
-					title: Text('Enable custom theme'),
-				),
-			],
-		),
-	],
-),
+    SettingsList(
+      sections: [
+        SettingsSection(
+          title: Text('Common'),
+          tiles: <SettingsTile>[
+            SettingsTile.navigation(
+              leading: Icon(Icons.language),
+              title: Text('Language'),
+              value: Text('English'),
+            ),
+            SettingsTile.switchTile(
+              onToggle: (value) {},
+              initialValue: true,
+              leading: Icon(Icons.format_paint),
+              title: Text('Enable custom theme'),
+            ),
+          ],
+        ),
+      ],
+    ),
 ```  
 
 <br>
@@ -103,10 +103,11 @@ Here it is. The section tile. It displays the elements you want to show.
 | CustomSettingsTile | The main idea the same as for the `CustomSettingsSection`. You can put anything as a child inside your `SettingsSection`.
 | SettingsTile | I think that we need to discuss this deeper. See below for the details.
 
+<br>
+<br>
+
 ### Settings tile
 The implementation of `AbstractSettingsTile`. It has a lot of fabric methods and parameters. Let's take a look.
-
-<br>
 
 | Constructor / Fabric method | Description |
 |--|--|
@@ -119,7 +120,6 @@ The implementation of `AbstractSettingsTile`. It has a lot of fabric methods and
 
 #### Now let's deal with all these parameters.
 
-<br>
 
 | Parameter | Description |
 |--|--|
