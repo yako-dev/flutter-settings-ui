@@ -1,7 +1,9 @@
+import 'dart:io';
+
 import 'package:device_preview/device_preview.dart';
-// import 'package:example/screens/gallery_screen.dart';
-import 'package:example/screens/v2/gallery_screen.dart';
+import 'package:example/screens/gallery_screen.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -17,29 +19,28 @@ void main() {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final bool runMaterialApp = true;
+    final bool runCupertinoApp = !kIsWeb && Platform.isIOS;
 
-    if (runMaterialApp) {
-      return MaterialApp(
-        locale: DevicePreview.locale(context),
-        builder: DevicePreview.appBuilder,
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData.light(),
-        darkTheme: ThemeData.dark(),
-        title: 'Settings UI Demo',
-        home: GalleryScreen(),
-      );
-    } else {
+    if (runCupertinoApp) {
       return CupertinoApp(
+        useInheritedMediaQuery: true,
         locale: DevicePreview.locale(context),
-        builder: DevicePreview.appBuilder,
+        debugShowCheckedModeBanner: false,
         localizationsDelegates: <LocalizationsDelegate<dynamic>>[
           DefaultMaterialLocalizations.delegate,
           DefaultWidgetsLocalizations.delegate,
           DefaultCupertinoLocalizations.delegate,
         ],
+        title: 'Settings UI Demo',
+        home: GalleryScreen(),
+      );
+    } else {
+      return MaterialApp(
+        useInheritedMediaQuery: true,
         debugShowCheckedModeBanner: false,
-        theme: CupertinoThemeData(),
+        locale: DevicePreview.locale(context),
+        theme: ThemeData.light(),
+        darkTheme: ThemeData.dark(),
         title: 'Settings UI Demo',
         home: GalleryScreen(),
       );

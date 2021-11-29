@@ -9,8 +9,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  cupertino_icons: ^1.0.3
-  device_preview: ^0.7.4
+  cupertino_icons: ^1.0.4
+  device_preview: ^0.8.0
   settings_ui:
     path: ../
 
