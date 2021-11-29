@@ -85,7 +85,7 @@ Setting section is the block of your settings tiles located in your `SettingsLis
 | Type | Description |
 |--|--|
 | AbstractSettingsSection | An abstract entity. Just an OOP's thing (so you can expand it yourself) |
-| CustomSettingsSection | You asked a lot. We implemented this for you. Now you can put anything you want  as a child inside this custom section. Just paste the image of your cat or the weather widget inside the `SettingsList`. Fell free and enjoy |
+| CustomSettingsSection | You asked a lot. We implemented this for you. Now you can put anything you want  as a child inside this custom section. Just paste the image of your cat or the weather widget inside the `SettingsList`. Feel free and enjoy |
 | SettingsSection | The default section widget, contains `Widget title`, `EdgeInsetsDirectional margin` and the required list of `AbstractSettingsTile` we called `tiles` |
 
 <br>
