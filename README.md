@@ -1,247 +1,108 @@
+
 # Settings UI for Flutter
-
 [![Pub Version](https://img.shields.io/pub/v/settings_ui?color=blueviolet)](https://pub.dev/packages/settings_ui)
+## Overview:
+Build the beautiful settings screen UI in one moment with `Settings UI for Flutter`
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master/assets/flutter_settings_ui_logo.png" height="500px">
-</p>
-
+<p align="center">  
+  <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/dev/assets/v2/iOS/mockup_01.png" height="600px">  
+    <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/dev/assets/v2/android/mockup_01.png" height="600px">  
+</p>  
 
 ## Installing:
-In your pubspec.yaml
-```yaml
-dependencies:
-  settings_ui: <latest version>
-```
-```dart
-import 'package:settings_ui/settings_ui_v2.dart';
-```
+1. Add the dependency in your `pubspec.yaml` file.
+```yaml  
+dependencies:  
+ settings_ui: <latest version>
+ ```  
 
+2. Import the `settings_ui` package.
+```dart  
+import 'package:settings_ui/settings_ui.dart';
+```  
 
 ## Basic Usage:
-```dart
-      SettingsList(
-                sections: [
-                  SettingsSection(
-                    title: Text('APPEARANCE'),
-                    tiles: [
-                      SettingsTile.switchTile(
-                        onToggle: (value) {
-                          setState(() {
-                            darkTheme = value;
-                          });
-                        },
-                        initialValue: darkTheme,
-                        title: Text('Dark Appearance'),
-                      ),
-                    ],
-                  ),
-                  SettingsSection(
-                    title: Text('IAD DEVELOPER APP TESTING'),
-                    tiles: [
-                      SettingsTile.navigation(
-                        title: Text('Fill Rate'),
-                      ),
-                      SettingsTile.navigation(
-                        title: Text('Add Refresh Rate'),
-                      ),
-                      SettingsTile.switchTile(
-                        onToggle: (_) {},
-                        initialValue: false,
-                        title: Text('Highlight Clipped Banners'),
-                      ),
-                      SettingsTile.switchTile(
-                        onToggle: (_) {},
-                        initialValue: false,
-                        title: Text('Unlimited Ad Presentation'),
-                      ),
-                    ],
-                  ),
-                ],
-              )
-```
+```dart  
+SettingsList(
+	sections: [
+		SettingsSection(
+			title: Text('Common'),
+            tiles: <SettingsTile>[
+		        SettingsTile.navigation(
+	                leading: Icon(Icons.language),
+	                title: Text('Language'),
+	                value: Text('English'),
+	            ),
+				SettingsTile.switchTile(
+	                onToggle: (value) {},
+	                initialValue: true,
+					leading: Icon(Icons.format_paint),
+					title: Text('Enable custom theme'),
+				),
+			],
+		),
+	],
+),
+```  
 
-<br>
-<li>Navigation tile</li>
+## Settings List
+Settings list it's a wrapper for your settings UI.
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/dev/assets/navigation-tile.png" width="400px">
-</p>
+### Parameters
 
-```dart
-    SettingsTile.navigation(
-        onPressed: (_) {},
-        title: Text('View'),
-        value: Text('Standard'),
-        description: Text(
-            'Choose a view for iPhone. '
-            'Zoomed shadows larger controls. '
-            'Standart shows more content.',
-        ),
-    )
-```
+| Parameter | Description | Required |
+|--|--|--|
+| List\<AbstractSettingsSection> sections | The list of your settings sections | +
+| bool shrinkWrap | Enable/disable the shrink wrap for the list | -
+| ScrollPhysics physics | Setup your custom scroll physics | -
+| DevicePlatform platform | Chose the platform view you prefer | -
+| SettingsThemeData lightTheme | Setup your light theme | -
+| SettingsThemeData darkTheme | Setup your dark theme | -
+| Brightness brightness | Overwrite the brightness you want | -
+| EdgeInsetsGeometry contentPadding | Set custom paddings | -
+| ApplicationType applicationType | Setup the application type you use: the material for MaterialApp, the cupertino for CupertinoApp and the both if you running the MaterialApp and the CupertinoApp depending on the device's OC | -
 
-<br>
-<b>SettingsSection:</b><br>
-The SettingsSection makes it easy to combine setting tiles of the same category
+## Settings Section
+Setting section is the block of your settings tiles located in your `SettingsList`.
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/dev/assets/settings-section.png" width="400px">
-</p>
+### Implementations
 
-```dart
-    SettingsSection(
-        title: Text('IAD DEVELOPER APP TESTING'),
-        tiles: [
-            SettingsTile.navigation(
-                title: Text('Fill Rate'),
-            ),
-            SettingsTile.navigation(
-                title: Text('Add Refresh Rate'),
-            ),
-            SettingsTile.switchTile(
-                onToggle: (_) {},
-                initialValue: false,
-                title: Text('Highlight Clipped Banners'),
-            ),
-            SettingsTile.switchTile(
-                onToggle: (_) {},
-                initialValue: false,
-                title: Text('Unlimited Ad Presentation'),
-            ),
-        ],
-    )
-```
+| Type | Description |
+|--|--|
+| AbstractSettingsSection | An abstract entity. Just an OOP's thing (so you can expand it yourself) |
+| CustomSettingsSection | You asked a lot. We implemented this for you. Now you can put anything you want  as a child inside this custom section. Just paste the image of your cat or the weather widget inside the `SettingsList`. Fell free and enjoy |
+| SettingsSection | The default section widget, contains `Widget title`, `EdgeInsetsDirectional margin` and the required list of `AbstractSettingsTile` we called `tiles` |
 
-<br>
+## Settings Tile
 
-## Widgets
-<br>
-<b>SettingsTile:</b><br><br>
-<li>Simple tile</li>
+Here it is. The section tile. It displays the elements you want to show.
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/dev/assets/simple-tile.png" width="400px">
-</p>
-  
-```dart
-  SettingsTile(
-        onPressed: (BuildContext context) {
-            //TODO: Add implementation
-        },
-        title: Text(
-           'Clear Trusted Computers',
-            style: TextStyle(color: CupertinoColors.activeBlue),
-        ),
-        description: Text(
-            'Removing trusted computers will delete all '
-            'of the records of computers that you have '
-            'paired with previously',
-        ),
-  )
-```
+| Type | Description |
+|--|--|
+| AbstractSettingsTile | One more OOP's thing (so you can expand it yourself) |
+| CustomSettingsTile | The main idea the same as for the `CustomSettingsSection`. You can put anything as a child inside your `SettingsSection`.
+| SettingsTile | I think that we need to discuss this deeper. See below for the details.
 
-<br>
-<li>Switch tile</li>
+### Settings tile
+The implementation of `AbstractSettingsTile`. It has a lot of fabric methods and parameters. Let's take a look.
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/dev/assets/switch-tile.png" width="400px">
-</p>
+| Constructor / Fabric method | Description |
+|--|--|
+| SettingsTile | Displays the default setting tile. Nothing special. |
+| SettingsTile.navigation | Created to indicate this tile as a navigation tile. It adds a right-located arrow for the iOS design as an example.
+| SettingsTile.switchTile | Creates a switch tile. Do you want some switch? Just use this one. |
 
-```dart
-    SettingsTile.switchTile(
-        onToggle: (value) {
-            setState(() {
-                darkTheme = value;
-            });
-        },
-        initialValue: darkTheme,
-        title: Text('Dark Appearance'),
-    )
-```
-
-<br>
-<li>Navigation tile</li>
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/dev/assets/navigation-tile.png" width="400px">
-</p>
-
-```dart
-    SettingsTile.navigation(
-        onPressed: (_) {},
-        title: Text('View'),
-        value: Text('Standard'),
-        description: Text(
-            'Choose a view for iPhone. '
-            'Zoomed shadows larger controls. '
-            'Standart shows more content.',
-        ),
-    )
-```
-
-<br>
-<b>SettingsSection:</b><br>
-The SettingsSection makes it easy to combine setting tiles of the same category
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/dev/assets/settings-section.png" width="400px">
-</p>
-
-```dart
-    SettingsSection(
-        title: Text('IAD DEVELOPER APP TESTING'),
-        tiles: [
-            SettingsTile.navigation(
-                title: Text('Fill Rate'),
-            ),
-            SettingsTile.navigation(
-                title: Text('Add Refresh Rate'),
-            ),
-            SettingsTile.switchTile(
-                onToggle: (_) {},
-                initialValue: false,
-                title: Text('Highlight Clipped Banners'),
-            ),
-            SettingsTile.switchTile(
-                onToggle: (_) {},
-                initialValue: false,
-                title: Text('Unlimited Ad Presentation'),
-            ),
-        ],
-    )
-```
-
-<br>
-<b>SettingsList:</b><br>
-The SettingsList widget allows easily combine setting sections, specify settings theme, contentPadding and platform for all widgets
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/dev/assets/settings-list.png" width="400px">
-</p>
-
-```dart
-    SettingsList(
-          platform: DevicePlatform.iOS,
-          contentPadding: EdgeInsets.symmetric(horizontal: 20),
-          theme: SettingsThemeData(
-              trailingTextColor: Colors.white,
-              settingsListBackground: Colors.orangeAccent,
-              settingsSectionBackground: Colors.red,
-              dividerColor: Colors.white,
-              titleTextColor: Colors.white,
-              leadingIconsColor: Colors.green,
-              tileDescriptionTextColor: Colors.white,
-              settingsTileTextColor: Colors.white),
-          sections: [ ... ],
-    )
-```
-
-## Settings UI supports dark mode:
-<p align="center">
-  <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master/assets/dark_mode_animation.gif" height="600px">
-</p>
-<br>
+Now let's deal with all these parameters.
+| Parameter | Description |
+|--|--|
+| Widget leading | Adds some leading for your tile. Just like with the `ListTile`. |
+| Widget title | The title of your tile.
+| Widget description | Additional info about this tile. Displays different ways according to the platform
+| Function(BuildContext context) onPressed | More interactivity for your tiles. Just tap it.
+| Color activeSwitchColor | Set the switch color for your `SettingsTile.switchTile`
+| Widget value | Just like the `description` but more declarative. You can compare and choose which exactly you want to use.
+| Function(bool value) onToggle | Override the on switch event in your `SettingsTile.switchTile`
+| bool initialValue | Choose the initial value for your `SettingsTile.switchTile`
 
 
 ## License
