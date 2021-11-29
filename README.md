@@ -9,6 +9,9 @@ Build the beautiful settings screen UI in one moment with `Settings UI for Flutt
     <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/dev/assets/v2/android/mockup_01.png" height="600px">  
 </p>  
 
+<br>
+<br>
+
 ## Installing:
 1. Add the dependency in your `pubspec.yaml` file.
 ```yaml  
@@ -20,6 +23,9 @@ dependencies:
 ```dart  
 import 'package:settings_ui/settings_ui.dart';
 ```  
+
+<br>
+<br>
 
 ## Basic Usage:
 ```dart  
@@ -45,6 +51,10 @@ SettingsList(
 ),
 ```  
 
+<br>
+<br>
+<br>
+
 ## Settings List
 Settings list it's a wrapper for your settings UI.
 
@@ -62,6 +72,11 @@ Settings list it's a wrapper for your settings UI.
 | EdgeInsetsGeometry contentPadding | Set custom paddings | -
 | ApplicationType applicationType | Setup the application type you use: the material for MaterialApp, the cupertino for CupertinoApp and the both if you running the MaterialApp and the CupertinoApp depending on the device's OC | -
 
+<br>
+<br>
+<br>
+<br>
+
 ## Settings Section
 Setting section is the block of your settings tiles located in your `SettingsList`.
 
@@ -72,6 +87,11 @@ Setting section is the block of your settings tiles located in your `SettingsLis
 | AbstractSettingsSection | An abstract entity. Just an OOP's thing (so you can expand it yourself) |
 | CustomSettingsSection | You asked a lot. We implemented this for you. Now you can put anything you want  as a child inside this custom section. Just paste the image of your cat or the weather widget inside the `SettingsList`. Fell free and enjoy |
 | SettingsSection | The default section widget, contains `Widget title`, `EdgeInsetsDirectional margin` and the required list of `AbstractSettingsTile` we called `tiles` |
+
+<br>
+<br>
+<br>
+<br>
 
 ## Settings Tile
 
@@ -86,13 +106,21 @@ Here it is. The section tile. It displays the elements you want to show.
 ### Settings tile
 The implementation of `AbstractSettingsTile`. It has a lot of fabric methods and parameters. Let's take a look.
 
+<br>
+
 | Constructor / Fabric method | Description |
 |--|--|
 | SettingsTile | Displays the default setting tile. Nothing special. |
 | SettingsTile.navigation | Created to indicate this tile as a navigation tile. It adds a right-located arrow for the iOS design as an example.
 | SettingsTile.switchTile | Creates a switch tile. Do you want some switch? Just use this one. |
 
-Now let's deal with all these parameters.
+<br>
+<br>
+
+#### Now let's deal with all these parameters.
+
+<br>
+
 | Parameter | Description |
 |--|--|
 | Widget leading | Adds some leading for your tile. Just like with the `ListTile`. |
@@ -103,6 +131,12 @@ Now let's deal with all these parameters.
 | Widget value | Just like the `description` but more declarative. You can compare and choose which exactly you want to use.
 | Function(bool value) onToggle | Override the on switch event in your `SettingsTile.switchTile`
 | bool initialValue | Choose the initial value for your `SettingsTile.switchTile`
+
+
+<br>
+<br>
+<br>
+<br>
 
 
 ## License
