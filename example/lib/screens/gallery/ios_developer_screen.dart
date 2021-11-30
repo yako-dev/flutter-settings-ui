@@ -1,4 +1,3 @@
-import 'package:device_preview/device_preview.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
@@ -52,25 +51,6 @@ class _IosDeveloperScreen extends State<IosDeveloperScreen> {
                 ),
               ],
             ),
-            // SettingsSection(
-            //   title: Text('PAIRED DEVICES'),
-            //   margin: EdgeInsetsDirectional.only(
-            //     top: 13 * MediaQuery.of(context).textScaleFactor,
-            //   ),
-            //   tiles: [
-            //     SettingsTile(
-            //       title: Text(
-            //         'Clear Trusted Computers',
-            //         style: TextStyle(color: CupertinoColors.activeBlue),
-            //       ),
-            //       description: Text(
-            //         'Removing trusted computers will delete all '
-            //         'of the records of computers that you have '
-            //         'paired with previously',
-            //       ),
-            //     ),
-            //   ],
-            // ),
             SettingsSection(
               title: Text('UI AUTOMATION'),
               tiles: [

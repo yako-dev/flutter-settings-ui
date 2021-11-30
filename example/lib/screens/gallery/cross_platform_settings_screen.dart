@@ -38,8 +38,6 @@ class _CrossPlatformSettingsScreenState
       ),
       body: SettingsList(
         platform: selectedPlatform,
-        brightness: Brightness.dark,
-        applicationType: ApplicationType.both,
         lightTheme: !useCustomTheme
             ? null
             : SettingsThemeData(

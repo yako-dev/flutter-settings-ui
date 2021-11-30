@@ -1,9 +1,6 @@
-import 'dart:io';
-
 import 'package:device_preview/device_preview.dart';
 import 'package:example/screens/gallery_screen.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -19,7 +16,8 @@ void main() {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final bool runCupertinoApp = !kIsWeb && Platform.isIOS;
+    /// Set to `true` to see the full possibilities of the iOS Developer Screen
+    final bool runCupertinoApp = false;
 
     if (runCupertinoApp) {
       return CupertinoApp(
