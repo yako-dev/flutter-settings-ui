@@ -70,7 +70,7 @@ Settings list it's a wrapper for your settings UI.
 | SettingsThemeData darkTheme | Setup your dark theme | -
 | Brightness brightness | Overwrite the brightness you want | -
 | EdgeInsetsGeometry contentPadding | Set custom paddings | -
-| ApplicationType applicationType | Setup the application type you use: the material for MaterialApp, the cupertino for CupertinoApp and the both if you running the MaterialApp and the CupertinoApp depending on the device's OC | -
+| ApplicationType applicationType | Setup the application type you use: the material for MaterialApp, the cupertino for CupertinoApp, and the `both`, if you running the MaterialApp and the CupertinoApp depending on the device's OC | -
 
 <br>
 <br>
@@ -78,14 +78,14 @@ Settings list it's a wrapper for your settings UI.
 <br>
 
 ## Settings Section
-Setting section is the block of your settings tiles located in your `SettingsList`.
+The Setting section is the block of your settings tiles located in your `SettingsList`.
 
 ### Implementations
 
 | Type | Description |
 |--|--|
 | AbstractSettingsSection | An abstract entity. Just an OOP's thing (so you can expand it yourself) |
-| CustomSettingsSection | You asked a lot. We implemented this for you. Now you can put anything you want  as a child inside this custom section. Just paste the image of your cat or the weather widget inside the `SettingsList`. Feel free and enjoy |
+| CustomSettingsSection | You asked a lot. We implemented this for you. Now you can put anything you want as a child inside this custom section. Just paste the image of your cat or the weather widget inside the `SettingsList`. Feel free and enjoy |
 | SettingsSection | The default section widget, contains `Widget title`, `EdgeInsetsDirectional margin` and the required list of `AbstractSettingsTile` we called `tiles` |
 
 <br>
@@ -100,7 +100,7 @@ Here it is. The section tile. It displays the elements you want to show.
 | Type | Description |
 |--|--|
 | AbstractSettingsTile | One more OOP's thing (so you can expand it yourself) |
-| CustomSettingsTile | The main idea the same as for the `CustomSettingsSection`. You can put anything as a child inside your `SettingsSection`.
+| CustomSettingsTile | The main idea is the same as for the `CustomSettingsSection`. You can put anything as a child inside your `SettingsSection`.
 | SettingsTile | I think that we need to discuss this deeper. See below for the details.
 
 <br>
