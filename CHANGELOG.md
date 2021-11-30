@@ -1,3 +1,7 @@
+## [2.0.0-dev.1] - [Now 30, 2021]
+* The whole codebase was refactored
+* Bug fixes and stability improvements
+
 ## [1.0.1] - [Jul 28, 2021]
 * Allow manual platform style selection
 * Fixed iOS Title text getting cut off in version 1.0.0
