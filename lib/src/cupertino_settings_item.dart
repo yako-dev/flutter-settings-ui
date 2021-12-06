@@ -77,12 +77,10 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
     final isLargeScreen = MediaQuery.of(context).size.width >= 768;
 
     final ThemeData theme = Theme.of(context);
-    final ListTileTheme tileTheme = ListTileTheme.of(context);
+    final ListTileThemeData tileTheme = ListTileTheme.of(context);
 
     final iconThemeData = IconThemeData(
-      color: widget.enabled
-          ? _iconColor(theme, tileTheme)
-          : CupertinoColors.inactiveGray,
+      color: widget.enabled ? _iconColor(theme, tileTheme) : CupertinoColors.inactiveGray,
     );
 
     Widget? leadingIcon;
@@ -164,8 +162,7 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
               child: CupertinoSwitch(
                 value: widget.switchValue!,
                 activeColor: widget.enabled
-                    ? (widget.switchActiveColor ??
-                        Theme.of(context).accentColor)
+                    ? (widget.switchActiveColor ?? Theme.of(context).accentColor)
                     : CupertinoColors.inactiveGray,
                 onChanged: !widget.enabled
                     ? null
@@ -242,8 +239,7 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () {
-        if ((widget.onPress != null || widget.onToggle != null) &&
-            widget.enabled) {
+        if ((widget.onPress != null || widget.onToggle != null) && widget.enabled) {
           if (mounted) {
             setState(() {
               pressed = true;
@@ -295,13 +291,10 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
       },
       child: Container(
         decoration: BoxDecoration(
-          borderRadius:
-              isLargeScreen ? BorderRadius.all(Radius.circular(20)) : null,
+          borderRadius: isLargeScreen ? BorderRadius.all(Radius.circular(20)) : null,
           color: calculateBackgroundColor(context),
         ),
-        height: widget.subtitle == null && widget.subtitleWidget == null
-            ? 44.0
-            : 57.0,
+        height: widget.subtitle == null && widget.subtitleWidget == null ? 44.0 : 57.0,
         child: Row(
           children: rowChildren,
         ),
@@ -318,7 +311,7 @@ class CupertinoSettingsItemState extends State<CupertinoSettingsItem> {
               ? iosPressedTileColorDark
               : iosTileDarkColor;
 
-  Color? _iconColor(ThemeData theme, ListTileTheme tileTheme) {
+  Color? _iconColor(ThemeData theme, ListTileThemeData tileTheme) {
     if (tileTheme.selectedColor != null) {
       return tileTheme.selectedColor;
     }
