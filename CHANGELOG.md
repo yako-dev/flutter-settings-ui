@@ -1,3 +1,6 @@
+## [2.0.1] - [January 9, 2022]
+* Cover image was updated
+
 ## [2.0.0] - [Now 30, 2021]
 * The whole codebase was refactored
 * Bug fixes and stability improvements
