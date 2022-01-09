@@ -1,4 +1,4 @@
-## [2.0.0-dev.1] - [Now 30, 2021]
+## [2.0.0] - [Now 30, 2021]
 * The whole codebase was refactored
 * Bug fixes and stability improvements
 
