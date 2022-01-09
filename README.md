@@ -7,8 +7,7 @@
 Build the beautiful settings screen UI in one moment with `Settings UI for Flutter`
 
 <p align="center">  
-  <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/dev/assets/v2/iOS/mockup_01.png" height="600px">  
-    <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/dev/assets/v2/android/mockup_01.png" height="600px">  
+  <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/dev/assets/v2/settings_ui_cover.png" height="700px">  
 </p>  
 
 <br>
