@@ -1,7 +1,9 @@
-
 # Settings UI for Flutter
+
 [![Pub Version](https://img.shields.io/pub/v/settings_ui?color=blueviolet)](https://pub.dev/packages/settings_ui)
+
 ## Overview:
+
 Build the beautiful settings screen UI in one moment with `Settings UI for Flutter`
 
 <p align="center">  
@@ -13,13 +15,16 @@ Build the beautiful settings screen UI in one moment with `Settings UI for Flutt
 <br>
 
 ## Installing:
+
 1. Add the dependency in your `pubspec.yaml` file.
+
 ```yaml  
 dependencies:  
  settings_ui: <latest version>
  ```  
 
 2. Import the `settings_ui` package.
+
 ```dart  
 import 'package:settings_ui/settings_ui.dart';
 ```  
@@ -28,6 +33,7 @@ import 'package:settings_ui/settings_ui.dart';
 <br>
 
 ## Basic Usage:
+
 ```dart  
     SettingsList(
       sections: [
@@ -56,6 +62,7 @@ import 'package:settings_ui/settings_ui.dart';
 <br>
 
 ## Settings List
+
 Settings list it's a wrapper for your settings UI.
 
 ### Parameters
@@ -78,6 +85,7 @@ Settings list it's a wrapper for your settings UI.
 <br>
 
 ## Settings Section
+
 The Setting section is the block of your settings tiles located in your `SettingsList`.
 
 ### Implementations
@@ -107,7 +115,9 @@ Here it is. The section tile. It displays the elements you want to show.
 <br>
 
 ### Settings tile
-The implementation of `AbstractSettingsTile`. It has a lot of fabric methods and parameters. Let's take a look.
+
+The implementation of `AbstractSettingsTile`. It has a lot of fabric methods and parameters. Let's
+take a look.
 
 | Constructor / Fabric method | Description |
 |--|--|
@@ -120,11 +130,10 @@ The implementation of `AbstractSettingsTile`. It has a lot of fabric methods and
 
 #### Now let's deal with all these parameters.
 
-
 | Parameter | Description |
 |--|--|
 | Widget leading | Adds some leading for your tile. Just like with the `ListTile`. |
-| Widget title | The title of your tile.
+| Widget title | The title of your tile.|
 | Widget description | Additional info about this tile. Displays different ways according to the platform
 | Function(BuildContext context) onPressed | More interactivity for your tiles. Just tap it.
 | Color activeSwitchColor | Set the switch color for your `SettingsTile.switchTile`
@@ -138,6 +147,6 @@ The implementation of `AbstractSettingsTile`. It has a lot of fabric methods and
 <br>
 <br>
 
-
 ## License
+
 This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details
