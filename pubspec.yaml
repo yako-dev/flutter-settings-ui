@@ -1,10 +1,11 @@
 name: settings_ui
 description: Create native settings for Flutter app in minutes. Use single interfaces to build
-version: 1.0.0-nullsafety.3
+version: 1.0.1
 homepage: https://github.com/yako-dev/flutter-settings-ui
 
 environment:
-  sdk: '>=2.12.0 <3.0.0'
+  sdk: ">=2.12.0 <3.0.0"
+  flutter: ">=2.8.0"
 
 dependencies:
   flutter:
