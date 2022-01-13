@@ -38,6 +38,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ));
               },
             ),
+            CustomTile(
+              child: Container(
+                color: Color(0xFFEFEFF4),
+                padding: EdgeInsetsDirectional.only(
+                  start: 14,
+                  top: 12,
+                  bottom: 30,
+                  end: 14,
+                ),
+                child: Text(
+                  'You can setup the language you want',
+                  style: TextStyle(
+                    color: Colors.grey.shade700,
+                    fontWeight: FontWeight.w400,
+                    fontSize: 13.5,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+              ),
+            ),
             SettingsTile(
               title: 'Environment',
               subtitle: 'Production',
@@ -70,11 +90,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
               },
             ),
             SettingsTile.switchTile(
-                title: 'Use fingerprint',
-                subtitle: 'Allow application to access stored fingerprint IDs.',
-                leading: Icon(Icons.fingerprint),
-                onToggle: (bool value) {},
-                switchValue: false),
+              title: 'Use fingerprint',
+              subtitle: 'Allow application to access stored fingerprint IDs.',
+              leading: Icon(Icons.fingerprint),
+              onToggle: (bool value) {},
+              switchValue: false,
+            ),
             SettingsTile.switchTile(
               title: 'Change password',
               leading: Icon(Icons.lock),

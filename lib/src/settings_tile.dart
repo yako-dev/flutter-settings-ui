@@ -6,10 +6,16 @@ import 'defines.dart';
 
 enum _SettingsTileType { simple, switchTile }
 
-class SettingsTile extends StatelessWidget {
-  final String title;
+abstract class AbstractTile extends StatelessWidget {
+  const AbstractTile({Key? key}) : super(key: key);
+}
+
+class SettingsTile extends AbstractTile {
+  final String? title;
+  final Widget? titleWidget;
   final int? titleMaxLines;
   final String? subtitle;
+  final Widget? subtitleWidget;
   final int? subtitleMaxLines;
   final Widget? leading;
   final Widget? trailing;
@@ -25,15 +31,18 @@ class SettingsTile extends StatelessWidget {
   final TextStyle? subtitleTextStyle;
   final Color? switchActiveColor;
   final _SettingsTileType _tileType;
+  final TargetPlatform? platform;
 
   const SettingsTile({
     Key? key,
-    required this.title,
+    this.title,
+    this.titleWidget,
     this.titleMaxLines,
     this.subtitle,
     this.subtitleMaxLines,
     this.leading,
     this.trailing,
+    this.subtitleWidget,
     this.iosChevron = defaultCupertinoForwardIcon,
     this.iosChevronPadding = defaultCupertinoForwardPadding,
     @Deprecated('Use onPressed instead') this.onTap,
@@ -43,6 +52,7 @@ class SettingsTile extends StatelessWidget {
     this.onPressed,
     this.backgroundColor,
     this.switchActiveColor,
+    this.platform,
   })  : _tileType = _SettingsTileType.simple,
         onToggle = null,
         switchValue = null,
@@ -52,19 +62,22 @@ class SettingsTile extends StatelessWidget {
 
   const SettingsTile.switchTile({
     Key? key,
-    required this.title,
+    this.title,
+    this.titleWidget,
     this.titleMaxLines,
     this.subtitle,
     this.subtitleMaxLines,
     this.leading,
     this.enabled = true,
     this.trailing,
+    this.subtitleWidget,
     required this.onToggle,
     required this.switchValue,
     this.titleTextStyle,
     this.subtitleTextStyle,
     this.backgroundColor,
     this.switchActiveColor,
+    this.platform,
   })  : _tileType = _SettingsTileType.switchTile,
         onTap = null,
         onPressed = null,
@@ -76,7 +89,7 @@ class SettingsTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final platform = Theme.of(context).platform;
+    final platform = this.platform ?? Theme.of(context).platform;
 
     switch (platform) {
       case TargetPlatform.iOS:
@@ -97,7 +110,9 @@ class SettingsTile extends StatelessWidget {
       return CupertinoSettingsItem(
         enabled: enabled,
         type: SettingsItemType.toggle,
-        label: title,
+        label: title ?? '',
+        labelWidget: titleWidget,
+        subtitleWidget: subtitleWidget,
         labelMaxLines: titleMaxLines,
         leading: leading,
         subtitle: subtitle,
@@ -115,9 +130,12 @@ class SettingsTile extends StatelessWidget {
       return CupertinoSettingsItem(
         enabled: enabled,
         type: SettingsItemType.modal,
-        label: title,
+        labelWidget: titleWidget,
+        subtitleWidget: subtitleWidget,
+        label: title ?? '',
         labelMaxLines: titleMaxLines,
         value: subtitle,
+        valueWidget: subtitleWidget,
         trailing: trailing,
         iosChevron: iosChevron,
         iosChevronPadding: iosChevronPadding,
@@ -140,33 +158,36 @@ class SettingsTile extends StatelessWidget {
         tileColor: backgroundColor,
         activeColor: switchActiveColor,
         onChanged: enabled ? onToggle : null,
-        title: Text(
-          title,
-          style: titleTextStyle,
-          maxLines: titleMaxLines,
-          overflow: TextOverflow.ellipsis,
-        ),
-        subtitle: subtitle != null
-            ? Text(
-                subtitle!,
-                style: subtitleTextStyle,
-                maxLines: subtitleMaxLines,
-                overflow: TextOverflow.ellipsis,
-              )
-            : null,
+        title: titleWidget ??
+            Text(
+              title ?? '',
+              style: titleTextStyle,
+              maxLines: titleMaxLines,
+              overflow: TextOverflow.ellipsis,
+            ),
+        subtitle: subtitleWidget ??
+            (subtitle != null
+                ? Text(
+                    subtitle!,
+                    style: subtitleTextStyle,
+                    maxLines: subtitleMaxLines,
+                    overflow: TextOverflow.ellipsis,
+                  )
+                : null),
       );
     } else {
       return ListTile(
         tileColor: backgroundColor,
-        title: Text(title, style: titleTextStyle),
-        subtitle: subtitle != null
-            ? Text(
-                subtitle!,
-                style: subtitleTextStyle,
-                maxLines: subtitleMaxLines,
-                overflow: TextOverflow.ellipsis,
-              )
-            : null,
+        title: titleWidget ?? Text(title ?? '', style: titleTextStyle),
+        subtitle: subtitleWidget ??
+            (subtitle != null
+                ? Text(
+                    subtitle!,
+                    style: subtitleTextStyle,
+                    maxLines: subtitleMaxLines,
+                    overflow: TextOverflow.ellipsis,
+                  )
+                : null),
         leading: leading,
         enabled: enabled,
         trailing: trailing,
@@ -185,4 +206,16 @@ class SettingsTile extends StatelessWidget {
               }
             }
           : null;
+}
+
+class CustomTile extends AbstractTile {
+  final Widget child;
+
+  CustomTile({
+    required this.child,
+  });
+  @override
+  Widget build(BuildContext context) {
+    return child;
+  }
 }

@@ -9,17 +9,19 @@ import 'defines.dart';
 
 // ignore: must_be_immutable
 class SettingsSection extends AbstractSection {
-  final List<SettingsTile>? tiles;
+  final List<AbstractTile>? tiles;
   final TextStyle? titleTextStyle;
   final int? maxLines;
   final Widget? subtitle;
   final EdgeInsetsGeometry subtitlePadding;
   final Color sectionBorderColor; /// Only affect on ios
   final Color? dividerColor;
+  final TargetPlatform? platform;
 
   SettingsSection({
     Key? key,
     String? title,
+    Widget? titleWidget,
     EdgeInsetsGeometry titlePadding = defaultTitlePadding,
     this.maxLines,
     this.subtitle,
@@ -28,12 +30,18 @@ class SettingsSection extends AbstractSection {
     this.titleTextStyle,
     this.sectionBorderColor = borderColor,
     this.dividerColor,
+    this.platform,
   })  : assert(maxLines == null || maxLines > 0),
-        super(key: key, title: title, titlePadding: titlePadding);
+        super(
+          key: key,
+          title: title,
+          titleWidget: titleWidget,
+          titlePadding: titlePadding,
+        );
 
   @override
   Widget build(BuildContext context) {
-    final platform = Theme.of(context).platform;
+    final platform = this.platform ?? Theme.of(context).platform;
 
     switch (platform) {
       case TargetPlatform.iOS:
@@ -59,13 +67,14 @@ class SettingsSection extends AbstractSection {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (title != null)
-            Text(
-              title!,
-              style: titleTextStyle,
-              maxLines: maxLines,
-              overflow: TextOverflow.ellipsis,
-            ),
+          if (title != null || titleWidget != null)
+            titleWidget ??
+                Text(
+                  title!,
+                  style: titleTextStyle,
+                  maxLines: maxLines,
+                  overflow: TextOverflow.ellipsis,
+                ),
           if (subtitle != null)
             Padding(
               padding: subtitlePadding,
