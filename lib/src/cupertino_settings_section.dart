@@ -43,9 +43,14 @@ class CupertinoSettingsSection extends StatelessWidget {
 
     List<Widget> itemsWithDividers = [];
     for (int i = 0; i < items.length; i++) {
-      final leftPadding =
-          (items[i] as SettingsTile).leading == null ? 15.0 : 54.0;
       if (i < items.length - 1) {
+        var leftPadding = 0.0;
+        if (items[i] is SettingsTile &&
+            (i < items.length - 1 && (items[i + 1] is SettingsTile))) {
+          leftPadding =
+              (items[i] as SettingsTile).leading == null ? 15.0 : 54.0;
+        }
+
         itemsWithDividers.add(items[i]);
         itemsWithDividers.add(Divider(
           height: 0.3,
