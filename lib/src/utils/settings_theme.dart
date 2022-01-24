@@ -32,6 +32,8 @@ class SettingsThemeData {
     this.leadingIconsColor,
     this.tileDescriptionTextColor,
     this.settingsTileTextColor,
+    this.inactiveTitleColor,
+    this.inactiveSubtitleColor,
   });
 
   final Color? settingsListBackground;
@@ -43,6 +45,8 @@ class SettingsThemeData {
   final Color? tileHighlightColor;
   final Color? titleTextColor;
   final Color? settingsTileTextColor;
+  final Color? inactiveTitleColor;
+  final Color? inactiveSubtitleColor;
 
   SettingsThemeData merge({
     SettingsThemeData? theme,
@@ -59,6 +63,8 @@ class SettingsThemeData {
       settingsTileTextColor: theme.settingsTileTextColor,
       tileHighlightColor: theme.tileHighlightColor,
       titleTextColor: theme.titleTextColor,
+      inactiveTitleColor: theme.inactiveTitleColor,
+      inactiveSubtitleColor: theme.inactiveSubtitleColor,
     );
   }
 
@@ -72,6 +78,8 @@ class SettingsThemeData {
     Color? tileHighlightColor,
     Color? titleTextColor,
     Color? settingsTileTextColor,
+    Color? inactiveTitleColor,
+    Color? inactiveSubtitleColor,
   }) {
     return SettingsThemeData(
       settingsListBackground:
@@ -85,6 +93,9 @@ class SettingsThemeData {
           tileDescriptionTextColor ?? this.tileDescriptionTextColor,
       tileHighlightColor: tileHighlightColor ?? this.tileHighlightColor,
       titleTextColor: titleTextColor ?? this.titleTextColor,
+      inactiveTitleColor: inactiveTitleColor ?? this.inactiveTitleColor,
+      inactiveSubtitleColor:
+          inactiveSubtitleColor ?? this.inactiveSubtitleColor,
       settingsTileTextColor:
           settingsTileTextColor ?? this.settingsTileTextColor,
     );

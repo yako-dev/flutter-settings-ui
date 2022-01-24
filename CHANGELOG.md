@@ -1,3 +1,8 @@
+## [2.0.2] - [January 24, 2022]
+* Enabled parameter for the ListTile widget
+* Trailing parameter for the ListTile widget
+* Fixed minor bugs
+
 ## [2.0.1] - [January 9, 2022]
 * Cover image was updated
 

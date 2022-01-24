@@ -11,10 +11,12 @@ enum SettingsTileType { simpleTile, switchTile, navigationTile }
 class SettingsTile extends AbstractSettingsTile {
   SettingsTile({
     this.leading,
+    this.trailing,
     this.value,
     required this.title,
     this.description,
     this.onPressed,
+    this.enabled = true,
     Key? key,
   }) : super(key: key) {
     onToggle = null;
@@ -25,10 +27,12 @@ class SettingsTile extends AbstractSettingsTile {
 
   SettingsTile.navigation({
     this.leading,
+    this.trailing,
     this.value,
     required this.title,
     this.description,
     this.onPressed,
+    this.enabled = true,
     Key? key,
   }) : super(key: key) {
     onToggle = null;
@@ -42,9 +46,11 @@ class SettingsTile extends AbstractSettingsTile {
     required this.onToggle,
     this.activeSwitchColor,
     this.leading,
+    this.trailing,
     required this.title,
     this.description,
     this.onPressed,
+    this.enabled = true,
     Key? key,
   }) : super(key: key) {
     value = null;
@@ -52,6 +58,7 @@ class SettingsTile extends AbstractSettingsTile {
   }
 
   final Widget? leading;
+  final Widget? trailing;
   final Widget title;
   final Widget? description;
   final Function(BuildContext context)? onPressed;
@@ -61,6 +68,7 @@ class SettingsTile extends AbstractSettingsTile {
   late final Function(bool value)? onToggle;
   late final SettingsTileType tileType;
   late final bool? initialValue;
+  late final bool enabled;
 
   @override
   Widget build(BuildContext context) {
@@ -78,8 +86,10 @@ class SettingsTile extends AbstractSettingsTile {
           value: value,
           leading: leading,
           title: title,
+          enabled: enabled,
           activeSwitchColor: activeSwitchColor,
           initialValue: initialValue ?? false,
+          trailing: trailing,
         );
       case DevicePlatform.iOS:
       case DevicePlatform.macOS:
@@ -92,6 +102,8 @@ class SettingsTile extends AbstractSettingsTile {
           value: value,
           leading: leading,
           title: title,
+          trailing: trailing,
+          enabled: enabled,
           activeSwitchColor: activeSwitchColor,
           initialValue: initialValue ?? false,
         );
@@ -104,6 +116,8 @@ class SettingsTile extends AbstractSettingsTile {
           value: value,
           leading: leading,
           title: title,
+          enabled: enabled,
+          trailing: trailing,
           activeSwitchColor: activeSwitchColor,
           initialValue: initialValue ?? false,
         );

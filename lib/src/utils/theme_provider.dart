@@ -47,6 +47,12 @@ class ThemeProvider {
     final lightSettingsTileTextColor = Color.fromARGB(255, 27, 27, 27);
     final darkSettingsTileTextColor = Color.fromARGB(255, 240, 240, 240);
 
+    final lightInactiveTitleColor = Color.fromARGB(255, 146, 144, 148);
+    final darkInactiveTitleColor = Color.fromARGB(255, 118, 117, 122);
+
+    final lightInactiveSubtitleColor = Color.fromARGB(255, 197, 196, 201);
+    final darkInactiveSubtitleColor = Color.fromARGB(255, 71, 70, 74);
+
     final lightTileDescriptionTextColor = Color.fromARGB(255, 70, 70, 70);
     final darkTileDescriptionTextColor = Color.fromARGB(255, 198, 198, 198);
 
@@ -70,6 +76,12 @@ class ThemeProvider {
     final leadingIconsColor =
         isLight ? lightLeadingIconsColor : darkLeadingIconsColor;
 
+    final inactiveTitleColor =
+        isLight ? lightInactiveTitleColor : darkInactiveTitleColor;
+
+    final inactiveSubtitleColor =
+        isLight ? lightInactiveSubtitleColor : darkInactiveSubtitleColor;
+
     return SettingsThemeData(
       tileHighlightColor: tileHighlightColor,
       settingsListBackground: listBackground,
@@ -77,6 +89,8 @@ class ThemeProvider {
       settingsTileTextColor: settingsTileTextColor,
       tileDescriptionTextColor: tileDescriptionTextColor,
       leadingIconsColor: leadingIconsColor,
+      inactiveTitleColor: inactiveTitleColor,
+      inactiveSubtitleColor: inactiveSubtitleColor,
     );
   }
 
@@ -142,6 +156,8 @@ class ThemeProvider {
       trailingTextColor: trailingTextColor,
       settingsTileTextColor: settingsTileTextColor,
       leadingIconsColor: leadingIconsColor,
+      inactiveTitleColor: CupertinoColors.inactiveGray,
+      inactiveSubtitleColor: CupertinoColors.inactiveGray,
     );
   }
 

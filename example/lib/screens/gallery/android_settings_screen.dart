@@ -62,6 +62,7 @@ class AndroidSettingsScreen extends StatelessWidget {
               SettingsTile(
                 onPressed: (context) => toNotificationsScreen(context),
                 title: Text('Display'),
+                enabled: false,
                 description: Text('Dark theme, font size, brightness'),
                 leading: Icon(Icons.brightness_6_outlined),
               ),

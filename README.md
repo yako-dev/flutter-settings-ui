@@ -132,6 +132,7 @@ take a look.
 | Parameter | Description |
 |--|--|
 | Widget leading | Adds some leading for your tile. Just like with the `ListTile`. |
+| Widget trailing | Adds some trailing for your tile. Just like with the `ListTile`. |
 | Widget title | The title of your tile.|
 | Widget description | Additional info about this tile. Displays different ways according to the platform
 | Function(BuildContext context) onPressed | More interactivity for your tiles. Just tap it.
@@ -139,6 +140,7 @@ take a look.
 | Widget value | Just like the `description` but more declarative. You can compare and choose which exactly you want to use.
 | Function(bool value) onToggle | Override the on switch event in your `SettingsTile.switchTile`
 | bool initialValue | Choose the initial value for your `SettingsTile.switchTile`
+| bool enabled | Mark your tile as disabled. It's pretty easy!
 
 
 <br>

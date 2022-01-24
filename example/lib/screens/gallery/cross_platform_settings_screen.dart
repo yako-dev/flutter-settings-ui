@@ -1,7 +1,6 @@
 import 'package:example/utils/navigation.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:settings_ui/settings_ui.dart';
 
 class CrossPlatformSettingsScreen extends StatefulWidget {
@@ -121,6 +120,7 @@ class _CrossPlatformSettingsScreenState
               SettingsTile.navigation(
                 leading: Icon(Icons.mail),
                 title: Text('Email'),
+                enabled: false,
               ),
               SettingsTile.navigation(
                 leading: Icon(Icons.logout),
