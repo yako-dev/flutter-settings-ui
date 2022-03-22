@@ -23,24 +23,31 @@ import 'package:settings_ui/settings_ui.dart';
       SettingsList(
         sections: [
           SettingsSection(
-            title: 'Section',
+            title: Text('Section',
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontWeight: FontWeight.bold)),
             tiles: [
               SettingsTile(
-                title: 'Language',
-                subtitle: 'English',
+                title: Text('Language',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
+                value: Text('English',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
                 leading: Icon(Icons.language),
                 onPressed: (BuildContext context) {},
               ),
               SettingsTile.switchTile(
-                title: 'Use fingerprint',
+                title: Text('Use fingerprint',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
                 leading: Icon(Icons.fingerprint),
-                switchValue: value,
                 onToggle: (bool value) {},
               ),
             ],
           ),
         ],
-      )
+      );
 ```
 <br>
 <br>
