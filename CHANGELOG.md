@@ -1,3 +1,6 @@
+## [2.0.3] - [June 1, 2022]
+* Fixed scrollbar on wide screens
+
 ## [2.0.2] - [January 24, 2022]
 * Enabled parameter for the ListTile widget
 * Trailing parameter for the ListTile widget

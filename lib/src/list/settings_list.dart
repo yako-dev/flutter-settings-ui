@@ -65,26 +65,42 @@ class SettingsList extends StatelessWidget {
       color: themeData.settingsListBackground,
       width: MediaQuery.of(context).size.width,
       alignment: Alignment.center,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: 810),
-        child: SettingsTheme(
-          themeData: themeData,
-          platform: platform,
-          child: ListView.builder(
-            physics: physics,
-            shrinkWrap: shrinkWrap,
-            itemCount: sections.length,
-            padding: contentPadding ?? calculateDefaultPadding(platform),
-            itemBuilder: (BuildContext context, int index) {
-              return sections[index];
-            },
-          ),
+      child: SettingsTheme(
+        themeData: themeData,
+        platform: platform,
+        child: ListView.builder(
+          physics: physics,
+          shrinkWrap: shrinkWrap,
+          itemCount: sections.length,
+          padding: contentPadding ?? calculateDefaultPadding(platform, context),
+          itemBuilder: (BuildContext context, int index) {
+            return sections[index];
+          },
         ),
       ),
     );
   }
 
-  EdgeInsets calculateDefaultPadding(DevicePlatform platform) {
+  EdgeInsets calculateDefaultPadding(
+      DevicePlatform platform, BuildContext context) {
+    if (MediaQuery.of(context).size.width > 810) {
+      double padding = (MediaQuery.of(context).size.width - 810) / 2;
+      switch (platform) {
+        case DevicePlatform.linux:
+          return EdgeInsets.only(top: 0, left: padding, right: padding);
+        case DevicePlatform.windows:
+          return EdgeInsets.symmetric(vertical: 20, horizontal: padding);
+        case DevicePlatform.device:
+          throw Exception(
+            'You can\'t use the DevicePlatform.device in this context. '
+            'Incorrect platform: SettingsList.calculateDefaultPadding',
+          );
+        default:
+          return EdgeInsets.symmetric(
+            horizontal: padding,
+          );
+      }
+    }
     switch (platform) {
       case DevicePlatform.android:
       case DevicePlatform.fuchsia:
