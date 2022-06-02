@@ -1,4 +1,6 @@
-## [2.0.3] - [June 1, 2022]
+## [2.0.3] - [June 2, 2022]
+* Updated documentation
+* Fixed display of web support on pub.dev
 * Fixed scrollbar on wide screens
 
 ## [2.0.2] - [January 24, 2022]

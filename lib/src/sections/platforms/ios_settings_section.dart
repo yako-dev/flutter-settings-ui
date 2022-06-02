@@ -1,9 +1,6 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
-import 'package:settings_ui/src/tiles/abstract_settings_tile.dart';
 import 'package:settings_ui/src/tiles/platforms/ios_settings_tile.dart';
-import 'package:settings_ui/src/utils/settings_theme.dart';
 
 class IOSSettingsSection extends StatelessWidget {
   const IOSSettingsSection({
@@ -68,7 +65,7 @@ class IOSSettingsSection extends StatelessWidget {
 
         if (index == 0 ||
             (index > 0 &&
-                tiles[index - 1]  is SettingsTile &&
+                tiles[index - 1] is SettingsTile &&
                 (tiles[index - 1] as SettingsTile).description != null)) {
           enableTop = true;
         }

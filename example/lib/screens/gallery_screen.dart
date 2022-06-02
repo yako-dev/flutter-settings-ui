@@ -20,9 +20,7 @@ class GalleryScreen extends StatelessWidget {
             title: Text('General'),
             tiles: [
               SettingsTile.navigation(
-                title: Text(
-                  'Abstract settings screen',
-                ),
+                title: Text('Abstract settings screen'),
                 leading: Icon(CupertinoIcons.wrench),
                 description: Text('UI created to show plugin\'s possibilities'),
                 onPressed: (context) {
