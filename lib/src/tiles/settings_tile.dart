@@ -57,10 +57,19 @@ class SettingsTile extends AbstractSettingsTile {
     tileType = SettingsTileType.switchTile;
   }
 
+  /// The widget at the beginning of the tile
   final Widget? leading;
+
+  /// The Widget at the end of the tile
   final Widget? trailing;
+
+  /// The widget at the center of the tile
   final Widget title;
+
+  /// The widget at the bottom of the [title]
   final Widget? description;
+
+  /// A function that is called by tap on a tile
   final Function(BuildContext context)? onPressed;
 
   late final Color? activeSwitchColor;

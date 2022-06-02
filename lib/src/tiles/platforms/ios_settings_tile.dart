@@ -1,7 +1,4 @@
-import 'dart:io';
-
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
 
@@ -71,7 +68,8 @@ class _IOSSettingsTileState extends State<IOSSettingsTile> {
     required IOSSettingsTileAdditionalInfo additionalInfo,
   }) {
     Widget content = buildTileContent(context, theme, additionalInfo);
-    if (kIsWeb || !Platform.isIOS) {
+    DevicePlatform platform = PlatformUtils.detectPlatform(context);
+    if (platform != DevicePlatform.iOS) {
       content = Material(
         color: Colors.transparent,
         child: content,

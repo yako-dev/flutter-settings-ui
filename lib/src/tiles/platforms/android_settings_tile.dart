@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
-import 'package:settings_ui/src/utils/settings_theme.dart';
 
 class AndroidSettingsTile extends StatelessWidget {
   const AndroidSettingsTile({
