@@ -111,19 +111,36 @@ class WebSettingsTile extends StatelessWidget {
                     ),
                   ),
                 ),
-                // if (tileType == SettingsTileType.switchTile)
-                //   SizedBox(
-                //     height: 30,
-                //     child: VerticalDivider(),
-                //   ),
-                if (tileType == SettingsTileType.switchTile)
+                if (trailing != null && tileType == SettingsTileType.switchTile)
+                  Row(
+                    children: [
+                      trailing!,
+                      Padding(
+                        padding: const EdgeInsetsDirectional.only(end: 8),
+                        child: Switch(
+                          activeColor: activeSwitchColor ??
+                              Color.fromRGBO(138, 180, 248, 1.0),
+                          value: initialValue,
+                          onChanged: onToggle,
+                        ),
+                      ),
+                    ],
+                  )
+                else if (tileType == SettingsTileType.switchTile)
                   Padding(
                     padding:
                         const EdgeInsetsDirectional.only(start: 16, end: 8),
-                    child: Switch.adaptive(
+                    child: Switch(
                       value: initialValue,
+                      activeColor: activeSwitchColor ??
+                          Color.fromRGBO(138, 180, 248, 1.0),
                       onChanged: onToggle,
                     ),
+                  )
+                else if (trailing != null)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: trailing!,
                   ),
               ],
             ),

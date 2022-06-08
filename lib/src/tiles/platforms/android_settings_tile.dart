@@ -117,15 +117,21 @@ class AndroidSettingsTile extends StatelessWidget {
                     ),
                   ),
                 ),
-                // if (tileType == SettingsTileType.switchTile)
-                //   SizedBox(
-                //     height: 30,
-                //     child: VerticalDivider(),
-                //   ),
-                if (trailing != null)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: trailing!,
+                if (trailing != null && tileType == SettingsTileType.switchTile)
+                  Row(
+                    children: [
+                      trailing!,
+                      Padding(
+                        padding: const EdgeInsetsDirectional.only(end: 8),
+                        child: Switch(
+                          value: initialValue,
+                          onChanged: onToggle,
+                          activeColor: enabled
+                              ? activeSwitchColor
+                              : theme.themeData.inactiveTitleColor,
+                        ),
+                      ),
+                    ],
                   )
                 else if (tileType == SettingsTileType.switchTile)
                   Padding(
@@ -138,7 +144,12 @@ class AndroidSettingsTile extends StatelessWidget {
                           ? activeSwitchColor
                           : theme.themeData.inactiveTitleColor,
                     ),
-                  ),
+                  )
+                else if (trailing != null)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: trailing!,
+                  )
               ],
             ),
           ),

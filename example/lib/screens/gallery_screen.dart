@@ -59,10 +59,8 @@ class GalleryScreen extends StatelessWidget {
                 },
               ),
               SettingsTile.navigation(
-                enabled: false,
                 leading: Icon(Icons.web),
                 title: Text('Web Settings'),
-                description: Text('In development'),
                 onPressed: (context) {
                   Navigation.navigateTo(
                     context: context,

@@ -1,3 +1,5 @@
+import 'package:example/screens/gallery/web_chrome_addresses_settings.dart';
+import 'package:example/utils/navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
 
@@ -25,7 +27,13 @@ class WebChromeSettings extends StatelessWidget {
                 title: Text('Payment methods'),
               ),
               SettingsTile.navigation(
-                onPressed: (_) {},
+                onPressed: (_) {
+                  Navigation.navigateTo(
+                    context: context,
+                    screen: WebChromeAddressesScreen(),
+                    style: NavigationRouteStyle.material,
+                  );
+                },
                 leading: Icon(Icons.location_on),
                 title: Text('Addresses and more'),
               ),

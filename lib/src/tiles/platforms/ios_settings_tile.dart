@@ -121,19 +121,11 @@ class _IOSSettingsTileState extends State<IOSSettingsTile> {
     required BuildContext context,
     required SettingsTheme theme,
   }) {
-    if (widget.trailing != null) return widget.trailing!;
-
-    if (widget.tileType == SettingsTileType.simpleTile) {
-      if (widget.value == null) {
-        return Container();
-      }
-      return widget.value!;
-    }
-
     final scaleFactor = MediaQuery.of(context).textScaleFactor;
 
     return Row(
       children: [
+        if (widget.trailing != null) widget.trailing!,
         if (widget.tileType == SettingsTileType.switchTile)
           CupertinoSwitch(
             value: widget.initialValue ?? true,
