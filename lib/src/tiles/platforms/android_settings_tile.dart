@@ -131,7 +131,7 @@ class AndroidSettingsTile extends StatelessWidget {
                   Padding(
                     padding:
                         const EdgeInsetsDirectional.only(start: 16, end: 8),
-                    child: Switch.adaptive(
+                    child: Switch(
                       value: initialValue,
                       onChanged: onToggle,
                       activeColor: enabled
