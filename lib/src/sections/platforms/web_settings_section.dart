@@ -44,6 +44,8 @@ class WebSettingsSection extends StatelessWidget {
               ),
             ),
           Card(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             elevation: 4,
             color: theme.themeData.settingsSectionBackground,
             child: buildTileList(),

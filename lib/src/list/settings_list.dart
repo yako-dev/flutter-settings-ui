@@ -83,9 +83,14 @@ class SettingsList extends StatelessWidget {
     if (MediaQuery.of(context).size.width > 810) {
       double padding = (MediaQuery.of(context).size.width - 810) / 2;
       switch (platform) {
+        case DevicePlatform.android:
+        case DevicePlatform.fuchsia:
         case DevicePlatform.linux:
-          return EdgeInsets.only(top: 0, left: padding, right: padding);
+        case DevicePlatform.iOS:
+        case DevicePlatform.macOS:
         case DevicePlatform.windows:
+          return EdgeInsets.symmetric(horizontal: padding);
+        case DevicePlatform.web:
           return EdgeInsets.symmetric(vertical: 20, horizontal: padding);
         case DevicePlatform.device:
           throw Exception(
@@ -102,13 +107,12 @@ class SettingsList extends StatelessWidget {
       case DevicePlatform.android:
       case DevicePlatform.fuchsia:
       case DevicePlatform.linux:
-        return EdgeInsets.only(top: 0);
       case DevicePlatform.iOS:
       case DevicePlatform.macOS:
       case DevicePlatform.windows:
-        return EdgeInsets.symmetric(vertical: 20);
+        return EdgeInsets.symmetric(vertical: 0);
       case DevicePlatform.web:
-        return EdgeInsets.zero;
+        return EdgeInsets.symmetric(vertical: 20);
       case DevicePlatform.device:
         throw Exception(
           'You can\'t use the DevicePlatform.device in this context. '
