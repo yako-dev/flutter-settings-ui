@@ -1,13 +1,13 @@
 import 'package:device_preview/device_preview.dart';
-import 'package:flutter/foundation.dart';
+import 'package:example/screens/gallery_screen.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
-import 'screens/settings_screen.dart';
 
 void main() {
   runApp(
     DevicePreview(
-      enabled: kIsWeb ? false : !kReleaseMode,
+      // enabled: kIsWeb ? false : !kReleaseMode,
+      enabled: false,
       builder: (_) => MyApp(),
     ),
   );
@@ -16,21 +16,37 @@ void main() {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      locale: DevicePreview.locale(context),
-      builder: DevicePreview.appBuilder,
-      debugShowCheckedModeBanner: false,
-      title: 'Settings UI Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.deepOrange,
-        brightness: Brightness.light,
-      ),
-      darkTheme: ThemeData(
-        primarySwatch: Colors.deepPurple,
-        accentColor: Colors.deepPurple,
-        brightness: Brightness.dark,
-      ),
-      home: SettingsScreen(),
-    );
+    /// Set to `true` to see the full possibilities of the iOS Developer Screen
+    final bool runCupertinoApp = false;
+
+    if (runCupertinoApp) {
+      return CupertinoApp(
+        useInheritedMediaQuery: true,
+        locale: DevicePreview.locale(context),
+        debugShowCheckedModeBanner: false,
+        localizationsDelegates: <LocalizationsDelegate<dynamic>>[
+          DefaultMaterialLocalizations.delegate,
+          DefaultWidgetsLocalizations.delegate,
+          DefaultCupertinoLocalizations.delegate,
+        ],
+        title: 'Settings UI Demo',
+        home: GalleryScreen(),
+      );
+    } else {
+      return MaterialApp(
+        useInheritedMediaQuery: true,
+        debugShowCheckedModeBanner: false,
+        locale: DevicePreview.locale(context),
+        theme: ThemeData.light(),
+        darkTheme: ThemeData(
+            cupertinoOverrideTheme: CupertinoThemeData(
+                barBackgroundColor: Color(0xFF1b1b1b),
+                brightness: Brightness.dark,
+                textTheme: CupertinoTextThemeData(primaryColor: Colors.white)),
+            brightness: Brightness.dark),
+        title: 'Settings UI Demo',
+        home: GalleryScreen(),
+      );
+    }
   }
 }

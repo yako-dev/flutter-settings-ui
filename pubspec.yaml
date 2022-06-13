@@ -1,6 +1,6 @@
 name: settings_ui
 description: Create native settings for Flutter app in minutes. Use single interfaces to build
-version: 1.0.1
+version: 2.0.3
 homepage: https://github.com/yako-dev/flutter-settings-ui
 
 environment:
@@ -14,6 +14,6 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  pedantic: ^1.11.0
+  pedantic: ^1.11.1
 
 flutter:

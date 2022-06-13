@@ -1,3 +1,23 @@
+## [2.0.3] - [June 13, 2022]
+* Updated documentation
+* Fixed display of web support on pub.dev
+* Fixed scrollbar on wide screens
+* Fixed 'trailing' when used 'SettingsTile.switchTile'
+* Fixed color scheme on web version
+* Fixed default vertical padding on web version
+
+## [2.0.2] - [January 24, 2022]
+* Enabled parameter for the ListTile widget
+* Trailing parameter for the ListTile widget 
+* Fixed minor bugs
+
+## [2.0.1] - [January 9, 2022]
+* Cover image was updated
+
+## [2.0.0] - [Now 30, 2021]
+* The whole codebase was refactored
+* Bug fixes and stability improvements
+
 ## [1.0.1] - [Jul 28, 2021]
 * Allow manual platform style selection
 * Fixed iOS Title text getting cut off in version 1.0.0

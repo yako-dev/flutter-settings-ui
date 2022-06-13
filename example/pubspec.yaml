@@ -1,15 +1,16 @@
 name: example
 description: A new Flutter project.
 version: 1.0.0+1
+publish_to: none
 
 environment:
-  sdk: ">=2.1.0 <3.0.0"
+  sdk: ">=2.1.12 <3.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  cupertino_icons: ^1.0.2
-  device_preview: ^0.6.2-beta
+  cupertino_icons: ^1.0.4
+  device_preview: 1.0.0
   settings_ui:
     path: ../
 
