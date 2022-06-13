@@ -1,9 +1,10 @@
-## [2.0.3] - [June 8, 2022]
+## [2.0.3] - [June 13, 2022]
 * Updated documentation
 * Fixed display of web support on pub.dev
 * Fixed scrollbar on wide screens
 * Fixed 'trailing' when used 'SettingsTile.switchTile'
 * Fixed color scheme on web version
+* Fixed default vertical padding on web version
 
 ## [2.0.2] - [January 24, 2022]
 * Enabled parameter for the ListTile widget

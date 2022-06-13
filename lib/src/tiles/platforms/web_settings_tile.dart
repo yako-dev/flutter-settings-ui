@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
 
@@ -111,6 +112,19 @@ class WebSettingsTile extends StatelessWidget {
                     ),
                   ),
                 ),
+                // if (tileType == SettingsTileType.navigationTile)
+                //   Padding(
+                //     padding:
+                //         const EdgeInsetsDirectional.only(start: 6, end: 15),
+                //     child: IconTheme(
+                //       data: IconTheme.of(context)
+                //           .copyWith(color: theme.themeData.leadingIconsColor),
+                //       child: Icon(
+                //         CupertinoIcons.chevron_forward,
+                //         size: 18 * scaleFactor,
+                //       ),
+                //     ),
+                //   ),
                 if (trailing != null && tileType == SettingsTileType.switchTile)
                   Row(
                     children: [
