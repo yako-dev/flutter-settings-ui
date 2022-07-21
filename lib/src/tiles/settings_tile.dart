@@ -15,6 +15,7 @@ class SettingsTile extends AbstractSettingsTile {
     this.value,
     required this.title,
     this.description,
+    this.descriptionInlineIos = false,
     this.onPressed,
     this.enabled = true,
     Key? key,
@@ -31,6 +32,7 @@ class SettingsTile extends AbstractSettingsTile {
     this.value,
     required this.title,
     this.description,
+    this.descriptionInlineIos = false,
     this.onPressed,
     this.enabled = true,
     Key? key,
@@ -44,6 +46,7 @@ class SettingsTile extends AbstractSettingsTile {
   SettingsTile.switchTile({
     required this.initialValue,
     required this.onToggle,
+    this.descriptionInlineIos = false,
     this.activeSwitchColor,
     this.leading,
     this.trailing,
@@ -68,6 +71,8 @@ class SettingsTile extends AbstractSettingsTile {
 
   /// The widget at the bottom of the [title]
   final Widget? description;
+
+  final bool descriptionInlineIos;
 
   /// A function that is called by tap on a tile
   final Function(BuildContext context)? onPressed;
@@ -105,6 +110,7 @@ class SettingsTile extends AbstractSettingsTile {
       case DevicePlatform.windows:
         return IOSSettingsTile(
           description: description,
+          descriptionInline: true,
           onPressed: onPressed,
           onToggle: onToggle,
           tileType: tileType,

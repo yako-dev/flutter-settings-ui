@@ -15,6 +15,7 @@ class IOSSettingsTile extends StatefulWidget {
     required this.activeSwitchColor,
     required this.enabled,
     required this.trailing,
+    required this.descriptionInline,
     Key? key,
   }) : super(key: key);
 
@@ -29,6 +30,7 @@ class IOSSettingsTile extends StatefulWidget {
   final bool enabled;
   final Color? activeSwitchColor;
   final Widget? trailing;
+  final bool descriptionInline;
 
   @override
   _IOSSettingsTileState createState() => _IOSSettingsTileState();
@@ -51,7 +53,7 @@ class _IOSSettingsTileState extends State<IOSSettingsTile> {
             theme: theme,
             additionalInfo: additionalInfo,
           ),
-          if (widget.description != null)
+          if (widget.description != null && !widget.descriptionInline)
             buildDescription(
               context: context,
               theme: theme,
@@ -225,27 +227,55 @@ class _IOSSettingsTileState extends State<IOSSettingsTile> {
                     child: Row(
                       children: [
                         Expanded(
-                          child: Padding(
-                            padding: EdgeInsetsDirectional.only(
-                              top: 12.5 * scaleFactor,
-                              bottom: 12.5 * scaleFactor,
-                            ),
-                            child: DefaultTextStyle(
-                              style: TextStyle(
-                                color: widget.enabled
-                                    ? theme.themeData.settingsTileTextColor
-                                    : theme.themeData.inactiveTitleColor,
-                                fontSize: 16,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: EdgeInsetsDirectional.only(
+                                  top: widget.description != null &&
+                                          widget.descriptionInline
+                                      ? 6
+                                      : 12.5 * scaleFactor,
+                                  bottom: widget.description != null &&
+                                          widget.descriptionInline
+                                      ? 3
+                                      : 12.5 * scaleFactor,
+                                ),
+                                child: DefaultTextStyle(
+                                  style: TextStyle(
+                                    color: widget.enabled
+                                        ? theme.themeData.settingsTileTextColor
+                                        : theme.themeData.inactiveTitleColor,
+                                    fontSize: 16,
+                                  ),
+                                  child: widget.title!,
+                                ),
                               ),
-                              child: widget.title!,
-                            ),
+                              if (widget.description != null &&
+                                  widget.descriptionInline)
+                                Padding(
+                                  padding: EdgeInsets.only(bottom: 6),
+                                  child: Row(
+                                    children: [
+                                      DefaultTextStyle(
+                                        style: TextStyle(
+                                          color: theme.themeData.titleTextColor,
+                                          fontSize: 13,
+                                        ),
+                                        child: widget.description!,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                            ],
                           ),
                         ),
                         buildTrailing(context: context, theme: theme),
                       ],
                     ),
                   ),
-                  if (widget.description == null &&
+                  if ((widget.description == null ||
+                          widget.descriptionInline) &&
                       additionalInfo.needToShowDivider)
                     Divider(
                       height: 0,

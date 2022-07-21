@@ -66,7 +66,8 @@ class IOSSettingsSection extends StatelessWidget {
         if (index == 0 ||
             (index > 0 &&
                 tiles[index - 1] is SettingsTile &&
-                (tiles[index - 1] as SettingsTile).description != null)) {
+                (tiles[index - 1] as SettingsTile).description != null &&
+                !(tiles[index - 1] as SettingsTile).descriptionInlineIos)) {
           enableTop = true;
         }
 
@@ -75,7 +76,8 @@ class IOSSettingsSection extends StatelessWidget {
         if (index == tiles.length - 1 ||
             (index < tiles.length &&
                 tile is SettingsTile &&
-                (tile).description != null)) {
+                (tile).description != null &&
+                !tile.descriptionInlineIos)) {
           enableBottom = true;
         }
 
