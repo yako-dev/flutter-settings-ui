@@ -72,6 +72,8 @@ class SettingsTile extends AbstractSettingsTile {
   /// The widget at the bottom of the [title]
   final Widget? description;
 
+  /// Whether the description should be inline in the settingsTile or not.
+  /// default: false
   final bool descriptionInlineIos;
 
   /// A function that is called by tap on a tile
