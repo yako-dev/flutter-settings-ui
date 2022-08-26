@@ -6,7 +6,9 @@ import 'package:settings_ui/src/tiles/platforms/web_settings_tile.dart';
 import 'package:settings_ui/src/utils/platform_utils.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 
-enum SettingsTileType { simpleTile, switchTile, navigationTile }
+enum SettingsTileType { simpleTile, switchTile, navigationTile, expandableTile }
+
+typedef BuilderFunction = Widget Function(VoidCallback close);
 
 class SettingsTile extends AbstractSettingsTile {
   SettingsTile({
@@ -18,12 +20,12 @@ class SettingsTile extends AbstractSettingsTile {
     this.onPressed,
     this.enabled = true,
     Key? key,
-  }) : super(key: key) {
-    onToggle = null;
-    initialValue = null;
-    activeSwitchColor = null;
-    tileType = SettingsTileType.simpleTile;
-  }
+  })  : builder = null,
+        onToggle = null,
+        initialValue = null,
+        activeSwitchColor = null,
+        tileType = SettingsTileType.simpleTile,
+        super(key: key);
 
   SettingsTile.navigation({
     this.leading,
@@ -34,12 +36,12 @@ class SettingsTile extends AbstractSettingsTile {
     this.onPressed,
     this.enabled = true,
     Key? key,
-  }) : super(key: key) {
-    onToggle = null;
-    initialValue = null;
-    activeSwitchColor = null;
-    tileType = SettingsTileType.navigationTile;
-  }
+  })  : builder = null,
+        onToggle = null,
+        initialValue = null,
+        activeSwitchColor = null,
+        tileType = SettingsTileType.navigationTile,
+        super(key: key);
 
   SettingsTile.switchTile({
     required this.initialValue,
@@ -52,10 +54,26 @@ class SettingsTile extends AbstractSettingsTile {
     this.onPressed,
     this.enabled = true,
     Key? key,
-  }) : super(key: key) {
-    value = null;
-    tileType = SettingsTileType.switchTile;
-  }
+  })  : builder = null,
+        value = null,
+        tileType = SettingsTileType.switchTile,
+        super(key: key);
+
+  SettingsTile.expandableTile({
+    required this.title,
+    required this.builder,
+    this.enabled = true,
+    this.leading,
+    this.trailing,
+    this.description,
+    Key? key,
+  })  : initialValue = null,
+        activeSwitchColor = null,
+        onPressed = null,
+        onToggle = null,
+        value = null,
+        tileType = SettingsTileType.expandableTile,
+        super(key: key);
 
   /// The widget at the beginning of the tile
   final Widget? leading;
@@ -72,12 +90,28 @@ class SettingsTile extends AbstractSettingsTile {
   /// A function that is called by tap on a tile
   final Function(BuildContext context)? onPressed;
 
-  late final Color? activeSwitchColor;
-  late final Widget? value;
-  late final Function(bool value)? onToggle;
-  late final SettingsTileType tileType;
-  late final bool? initialValue;
-  late final bool enabled;
+  /// Expand duration for the expandable tile
+  final Duration expandDuration = Duration(seconds: 1);
+
+  /// Contract duration for the expandable tile
+  final Duration contractDuration = Duration(milliseconds: 300);
+
+  /// Expand curve for the expandable tile
+  final Curve expandCurve = Curves.fastLinearToSlowEaseIn;
+
+  /// Contract curve for the expandable tile
+  final Curve contractCurve = Curves.fastOutSlowIn;
+
+  /// Builder for the expandable tile
+  /// Only argument is [close], which is a function to close the tile
+  final BuilderFunction? builder;
+
+  final Color? activeSwitchColor;
+  final Widget? value;
+  final Function(bool value)? onToggle;
+  final SettingsTileType tileType;
+  final bool? initialValue;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
@@ -99,6 +133,11 @@ class SettingsTile extends AbstractSettingsTile {
           activeSwitchColor: activeSwitchColor,
           initialValue: initialValue ?? false,
           trailing: trailing,
+          builder: builder,
+          expandDuration: expandDuration,
+          contractDuration: contractDuration,
+          expandCurve: expandCurve,
+          contractCurve: contractCurve,
         );
       case DevicePlatform.iOS:
       case DevicePlatform.macOS:
