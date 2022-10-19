@@ -154,7 +154,14 @@ class WebSettingsTile extends StatelessWidget {
                 else if (trailing != null)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: trailing!,
+                    child: IconTheme(
+                      data: IconTheme.of(context).copyWith(
+                        color: enabled
+                            ? theme.themeData.leadingIconsColor
+                            : theme.themeData.inactiveTitleColor,
+                      ),
+                      child: trailing!,
+                    ),
                   ),
               ],
             ),
