@@ -7,6 +7,7 @@ class IOSSettingsTile extends StatefulWidget {
     required this.tileType,
     required this.leading,
     required this.title,
+    required this.titleDescription,
     required this.description,
     required this.onPressed,
     required this.onToggle,
@@ -21,6 +22,7 @@ class IOSSettingsTile extends StatefulWidget {
   final SettingsTileType tileType;
   final Widget? leading;
   final Widget? title;
+  final Widget? titleDescription;
   final Widget? description;
   final Function(BuildContext context)? onPressed;
   final Function(bool value)? onToggle;
@@ -225,20 +227,42 @@ class _IOSSettingsTileState extends State<IOSSettingsTile> {
                     child: Row(
                       children: [
                         Expanded(
-                          child: Padding(
-                            padding: EdgeInsetsDirectional.only(
-                              top: 12.5 * scaleFactor,
-                              bottom: 12.5 * scaleFactor,
-                            ),
-                            child: DefaultTextStyle(
-                              style: TextStyle(
-                                color: widget.enabled
-                                    ? theme.themeData.settingsTileTextColor
-                                    : theme.themeData.inactiveTitleColor,
-                                fontSize: 16,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: EdgeInsetsDirectional.only(
+                                  top: 12.5 * scaleFactor,
+                                  bottom: widget.titleDescription == null
+                                      ? (12.5 * scaleFactor)
+                                      : (3.5 * scaleFactor),
+                                ),
+                                child: DefaultTextStyle(
+                                  style: TextStyle(
+                                    color: widget.enabled
+                                        ? theme.themeData.settingsTileTextColor
+                                        : theme.themeData.inactiveTitleColor,
+                                    fontSize: 16,
+                                  ),
+                                  child: widget.title!,
+                                ),
                               ),
-                              child: widget.title!,
-                            ),
+                              if (widget.titleDescription != null)
+                                Padding(
+                                  padding: EdgeInsetsDirectional.only(
+                                    bottom: 12.5 * scaleFactor,
+                                  ),
+                                  child: DefaultTextStyle(
+                                    style: TextStyle(
+                                      color: widget.enabled
+                                          ? theme.themeData.titleTextColor
+                                          : theme.themeData.inactiveTitleColor,
+                                      fontSize: 15,
+                                    ),
+                                    child: widget.titleDescription!,
+                                  ),
+                                ),
+                            ],
                           ),
                         ),
                         buildTrailing(context: context, theme: theme),
