@@ -64,7 +64,9 @@ class WebSettingsTile extends StatelessWidget {
                     ),
                     child: IconTheme(
                       data: IconTheme.of(context).copyWith(
-                        color: theme.themeData.leadingIconsColor,
+                        color: enabled
+                            ? theme.themeData.leadingIconsColor
+                            : theme.themeData.inactiveTitleColor,
                       ),
                       child: leading!,
                     ),
@@ -82,7 +84,9 @@ class WebSettingsTile extends StatelessWidget {
                       children: [
                         DefaultTextStyle(
                           style: TextStyle(
-                            color: theme.themeData.settingsTileTextColor,
+                            color: enabled
+                                ? theme.themeData.settingsTileTextColor
+                                : theme.themeData.inactiveTitleColor,
                             fontSize: 18,
                             fontWeight: FontWeight.w400,
                           ),
@@ -93,7 +97,9 @@ class WebSettingsTile extends StatelessWidget {
                             padding: EdgeInsets.only(top: 4.0),
                             child: DefaultTextStyle(
                               style: TextStyle(
-                                color: theme.themeData.tileDescriptionTextColor,
+                                color: enabled
+                                    ? theme.themeData.tileDescriptionTextColor
+                                    : theme.themeData.inactiveSubtitleColor,
                               ),
                               child: value!,
                             ),
@@ -103,7 +109,9 @@ class WebSettingsTile extends StatelessWidget {
                             padding: EdgeInsets.only(top: 4.0),
                             child: DefaultTextStyle(
                               style: TextStyle(
-                                color: theme.themeData.tileDescriptionTextColor,
+                                color: enabled
+                                    ? theme.themeData.tileDescriptionTextColor
+                                    : theme.themeData.inactiveSubtitleColor,
                               ),
                               child: description!,
                             ),
@@ -128,12 +136,21 @@ class WebSettingsTile extends StatelessWidget {
                 if (trailing != null && tileType == SettingsTileType.switchTile)
                   Row(
                     children: [
-                      trailing!,
+                      IconTheme(
+                        data: IconTheme.of(context).copyWith(
+                          color: enabled
+                              ? theme.themeData.leadingIconsColor
+                              : theme.themeData.inactiveTitleColor,
+                        ),
+                        child: trailing!,
+                      ),
                       Padding(
                         padding: const EdgeInsetsDirectional.only(end: 8),
                         child: Switch(
-                          activeColor: activeSwitchColor ??
-                              Color.fromRGBO(138, 180, 248, 1.0),
+                          activeColor: enabled
+                              ? (activeSwitchColor ??
+                                  Color.fromRGBO(138, 180, 248, 1.0))
+                              : theme.themeData.inactiveTitleColor,
                           value: initialValue,
                           onChanged: onToggle,
                         ),
@@ -146,15 +163,24 @@ class WebSettingsTile extends StatelessWidget {
                         const EdgeInsetsDirectional.only(start: 16, end: 8),
                     child: Switch(
                       value: initialValue,
-                      activeColor: activeSwitchColor ??
-                          Color.fromRGBO(138, 180, 248, 1.0),
+                      activeColor: enabled
+                          ? (activeSwitchColor ??
+                              Color.fromRGBO(138, 180, 248, 1.0))
+                          : theme.themeData.inactiveTitleColor,
                       onChanged: onToggle,
                     ),
                   )
                 else if (trailing != null)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: trailing!,
+                    child: IconTheme(
+                      data: IconTheme.of(context).copyWith(
+                        color: enabled
+                            ? theme.themeData.leadingIconsColor
+                            : theme.themeData.inactiveTitleColor,
+                      ),
+                      child: trailing!,
+                    ),
                   ),
               ],
             ),

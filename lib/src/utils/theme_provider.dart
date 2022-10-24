@@ -189,6 +189,12 @@ class ThemeProvider {
     final lightTileDescriptionTextColor = Color.fromARGB(255, 70, 70, 70);
     final darkTileDescriptionTextColor = Color.fromARGB(154, 160, 166, 198);
 
+    final lightInactiveTitleColor = Color.fromARGB(255, 146, 144, 148);
+    final darkInactiveTitleColor = Color.fromARGB(255, 118, 117, 122);
+
+    final lightInactiveSubtitleColor = Color.fromARGB(255, 197, 196, 201);
+    final darkInactiveSubtitleColor = Color.fromARGB(255, 71, 70, 74);
+
     final isLight = brightness == Brightness.light;
 
     final listBackground =
@@ -212,6 +218,12 @@ class ThemeProvider {
     final sectionBackground =
         isLight ? lightSettingSectionColor : darkSettingSectionColor;
 
+    final inactiveTitleColor =
+    isLight ? lightInactiveTitleColor : darkInactiveTitleColor;
+
+    final inactiveSubtitleColor =
+    isLight ? lightInactiveSubtitleColor : darkInactiveSubtitleColor;
+
     return SettingsThemeData(
       tileHighlightColor: tileHighlightColor,
       settingsListBackground: listBackground,
@@ -220,6 +232,8 @@ class ThemeProvider {
       settingsTileTextColor: settingsTileTextColor,
       tileDescriptionTextColor: tileDescriptionTextColor,
       leadingIconsColor: leadingIconsColor,
+      inactiveTitleColor: inactiveTitleColor,
+      inactiveSubtitleColor: inactiveSubtitleColor,
     );
   }
 }
