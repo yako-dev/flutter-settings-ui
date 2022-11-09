@@ -10,6 +10,10 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.4
+  window_size:
+   git:
+    url: https://github.com/google/flutter-desktop-embedding
+    path: plugins/window_size
   device_preview: 1.0.0
   settings_ui:
     path: ../

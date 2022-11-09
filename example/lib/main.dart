@@ -1,9 +1,18 @@
+import 'dart:io';
+
 import 'package:device_preview/device_preview.dart';
 import 'package:example/screens/gallery_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:window_size/window_size.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    setWindowTitle('Flutter Demo');
+    setWindowMinSize(const Size(400, 300));
+    setWindowMaxSize(Size.infinite);
+  }
   runApp(
     DevicePreview(
       // enabled: kIsWeb ? false : !kReleaseMode,
