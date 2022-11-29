@@ -31,10 +31,10 @@ class IOSSettingsTile extends StatefulWidget {
   final Widget? trailing;
 
   @override
-  _IOSSettingsTileState createState() => _IOSSettingsTileState();
+  IOSSettingsTileState createState() => IOSSettingsTileState();
 }
 
-class _IOSSettingsTileState extends State<IOSSettingsTile> {
+class IOSSettingsTileState extends State<IOSSettingsTile> {
   bool isPressed = false;
 
   @override
@@ -79,10 +79,10 @@ class _IOSSettingsTileState extends State<IOSSettingsTile> {
     return ClipRRect(
       borderRadius: BorderRadius.vertical(
         top: additionalInfo.enableTopBorderRadius
-            ? Radius.circular(12)
+            ? const Radius.circular(12)
             : Radius.zero,
         bottom: additionalInfo.enableBottomBorderRadius
-            ? Radius.circular(12)
+            ? const Radius.circular(12)
             : Radius.zero,
       ),
       child: content,
@@ -186,7 +186,7 @@ class _IOSSettingsTileState extends State<IOSSettingsTile> {
               widget.onPressed!.call(context);
 
               Future.delayed(
-                Duration(milliseconds: 100),
+                const Duration(milliseconds: 100),
                 () => changePressState(isPressed: false),
               );
             },
@@ -200,7 +200,7 @@ class _IOSSettingsTileState extends State<IOSSettingsTile> {
         color: isPressed
             ? theme.themeData.tileHighlightColor
             : theme.themeData.settingsSectionBackground,
-        padding: EdgeInsetsDirectional.only(start: 18),
+        padding: const EdgeInsetsDirectional.only(start: 18),
         child: Row(
           children: [
             if (widget.leading != null)
@@ -267,22 +267,22 @@ class IOSSettingsTileAdditionalInfo extends InheritedWidget {
   final bool enableTopBorderRadius;
   final bool enableBottomBorderRadius;
 
-  IOSSettingsTileAdditionalInfo({
+  const IOSSettingsTileAdditionalInfo({Key? key,
     required this.needToShowDivider,
     required this.enableTopBorderRadius,
     required this.enableBottomBorderRadius,
     required Widget child,
-  }) : super(child: child);
+  }) : super(key: key, child: child);
 
   @override
-  bool updateShouldNotify(IOSSettingsTileAdditionalInfo old) => true;
+  bool updateShouldNotify(IOSSettingsTileAdditionalInfo oldWidget) => true;
 
   static IOSSettingsTileAdditionalInfo of(BuildContext context) {
     final IOSSettingsTileAdditionalInfo? result = context
         .dependOnInheritedWidgetOfExactType<IOSSettingsTileAdditionalInfo>();
     // assert(result != null, 'No IOSSettingsTileAdditionalInfo found in context');
     return result ??
-        IOSSettingsTileAdditionalInfo(
+        const IOSSettingsTileAdditionalInfo(
           needToShowDivider: true,
           enableBottomBorderRadius: true,
           enableTopBorderRadius: true,

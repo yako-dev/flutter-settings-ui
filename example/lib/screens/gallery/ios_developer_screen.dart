@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
 
 class IosDeveloperScreen extends StatefulWidget {
