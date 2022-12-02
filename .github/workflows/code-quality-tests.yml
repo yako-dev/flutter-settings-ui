@@ -31,8 +31,3 @@ jobs:
         uses: VeryGoodOpenSource/very_good_coverage@v2.1.0
         with:
           min_coverage: 35
-  test:
-    steps:
-      - uses: leancodepl/dart-problem-matcher@main
-
-      - run: dart analyze # or flutter analyze
