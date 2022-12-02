@@ -7,9 +7,6 @@ jobs:
     if: ${{ !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     steps:
-      - uses: leancodepl/dart-problem-matcher@main
-        run: dart analyze # or flutter analyze
-
       - name: Checkout
         uses: actions/checkout@v2
 
@@ -34,3 +31,8 @@ jobs:
         uses: VeryGoodOpenSource/very_good_coverage@v2.1.0
         with:
           min_coverage: 35
+  test:
+    steps:
+      - uses: leancodepl/dart-problem-matcher@main
+
+      - run: dart analyze # or flutter analyze
