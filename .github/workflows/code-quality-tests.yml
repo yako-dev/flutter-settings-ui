@@ -3,15 +3,13 @@ name: Code Quality
 on: [push]
 
 jobs:
-  test:
-    steps:
-      - uses: leancodepl/dart-problem-matcher@main
-
-      - run: dart analyze # or flutter analyze
   format-and-fix:
     if: ${{ !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     steps:
+      - uses: leancodepl/dart-problem-matcher@main
+        run: dart analyze # or flutter analyze
+
       - name: Checkout
         uses: actions/checkout@v2
 
