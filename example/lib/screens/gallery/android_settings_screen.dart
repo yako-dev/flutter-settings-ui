@@ -5,7 +5,7 @@ import 'package:settings_ui/settings_ui.dart';
 
 class AndroidSettingsScreen extends StatelessWidget {
   const AndroidSettingsScreen({
-    Key key,
+    Key? key,
   }) : super(key: key);
 
   @override
