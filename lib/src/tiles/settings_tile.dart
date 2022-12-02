@@ -14,6 +14,7 @@ class SettingsTile extends AbstractSettingsTile {
     this.trailing,
     this.value,
     required this.title,
+    this.titleDescription,
     this.description,
     this.onPressed,
     this.enabled = true,
@@ -30,6 +31,7 @@ class SettingsTile extends AbstractSettingsTile {
     this.trailing,
     this.value,
     required this.title,
+    this.titleDescription,
     this.description,
     this.onPressed,
     this.enabled = true,
@@ -48,6 +50,7 @@ class SettingsTile extends AbstractSettingsTile {
     this.leading,
     this.trailing,
     required this.title,
+    this.titleDescription,
     this.description,
     this.onPressed,
     this.enabled = true,
@@ -65,6 +68,9 @@ class SettingsTile extends AbstractSettingsTile {
 
   /// The widget at the center of the tile
   final Widget title;
+
+  /// The widget at the under of the title
+  final Widget? titleDescription;
 
   /// The widget at the bottom of the [title]
   final Widget? description;
@@ -111,6 +117,7 @@ class SettingsTile extends AbstractSettingsTile {
           value: value,
           leading: leading,
           title: title,
+          titleDescription: titleDescription,
           trailing: trailing,
           enabled: enabled,
           activeSwitchColor: activeSwitchColor,
