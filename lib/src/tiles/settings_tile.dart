@@ -18,6 +18,11 @@ class SettingsTile extends AbstractSettingsTile {
     this.description,
     this.onPressed,
     this.enabled = true,
+    this.titlePadding,
+    this.leadingPadding,
+    this.trailingPadding,
+    this.descriptionPadding,
+    this.titleDescriptionPadding,
     Key? key,
   }) : super(key: key) {
     onToggle = null;
@@ -35,6 +40,11 @@ class SettingsTile extends AbstractSettingsTile {
     this.description,
     this.onPressed,
     this.enabled = true,
+    this.titlePadding,
+    this.leadingPadding,
+    this.trailingPadding,
+    this.descriptionPadding,
+    this.titleDescriptionPadding,
     Key? key,
   }) : super(key: key) {
     onToggle = null;
@@ -54,6 +64,11 @@ class SettingsTile extends AbstractSettingsTile {
     this.description,
     this.onPressed,
     this.enabled = true,
+    this.titlePadding,
+    this.leadingPadding,
+    this.trailingPadding,
+    this.descriptionPadding,
+    this.titleDescriptionPadding,
     Key? key,
   }) : super(key: key) {
     value = null;
@@ -77,6 +92,12 @@ class SettingsTile extends AbstractSettingsTile {
 
   /// A function that is called by tap on a tile
   final Function(BuildContext context)? onPressed;
+
+  final EdgeInsetsGeometry? titlePadding;
+  final EdgeInsetsGeometry? leadingPadding;
+  final EdgeInsetsGeometry? trailingPadding;
+  final EdgeInsetsGeometry? descriptionPadding;
+  final EdgeInsetsGeometry? titleDescriptionPadding;
 
   late final Color? activeSwitchColor;
   late final Widget? value;
@@ -105,6 +126,10 @@ class SettingsTile extends AbstractSettingsTile {
           activeSwitchColor: activeSwitchColor,
           initialValue: initialValue ?? false,
           trailing: trailing,
+          titlePadding: titlePadding,
+          leadingPadding: leadingPadding,
+          trailingPadding: trailingPadding,
+          descriptionPadding: descriptionPadding,
         );
       case DevicePlatform.iOS:
       case DevicePlatform.macOS:
@@ -122,6 +147,9 @@ class SettingsTile extends AbstractSettingsTile {
           enabled: enabled,
           activeSwitchColor: activeSwitchColor,
           initialValue: initialValue ?? false,
+          titlePadding: titlePadding,
+          leadingPadding: leadingPadding,
+          titleDescriptionPadding: titlePadding,
         );
       case DevicePlatform.web:
         return WebSettingsTile(
@@ -136,6 +164,10 @@ class SettingsTile extends AbstractSettingsTile {
           trailing: trailing,
           activeSwitchColor: activeSwitchColor,
           initialValue: initialValue ?? false,
+          titlePadding: titlePadding,
+          leadingPadding: leadingPadding,
+          trailingPadding: trailingPadding,
+          descriptionPadding: descriptionPadding,
         );
       case DevicePlatform.device:
         throw Exception(

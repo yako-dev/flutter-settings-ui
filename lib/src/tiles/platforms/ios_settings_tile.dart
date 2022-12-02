@@ -16,6 +16,9 @@ class IOSSettingsTile extends StatefulWidget {
     required this.activeSwitchColor,
     required this.enabled,
     required this.trailing,
+    this.titlePadding,
+    this.leadingPadding,
+    this.titleDescriptionPadding,
     Key? key,
   }) : super(key: key);
 
@@ -31,6 +34,9 @@ class IOSSettingsTile extends StatefulWidget {
   final bool enabled;
   final Color? activeSwitchColor;
   final Widget? trailing;
+  final EdgeInsetsGeometry? titlePadding;
+  final EdgeInsetsGeometry? leadingPadding;
+  final EdgeInsetsGeometry? titleDescriptionPadding;
 
   @override
   IOSSettingsTileState createState() => IOSSettingsTileState();
@@ -207,7 +213,8 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
           children: [
             if (widget.leading != null)
               Padding(
-                padding: const EdgeInsetsDirectional.only(end: 12.0),
+                padding: widget.leadingPadding ??
+                    const EdgeInsetsDirectional.only(end: 12.0),
                 child: IconTheme.merge(
                   data: IconThemeData(
                     color: widget.enabled
@@ -231,12 +238,13 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Padding(
-                                padding: EdgeInsetsDirectional.only(
-                                  top: 12.5 * scaleFactor,
-                                  bottom: widget.titleDescription == null
-                                      ? (12.5 * scaleFactor)
-                                      : (3.5 * scaleFactor),
-                                ),
+                                padding: widget.titlePadding ??
+                                    EdgeInsetsDirectional.only(
+                                      top: 12.5 * scaleFactor,
+                                      bottom: widget.titleDescription == null
+                                          ? (12.5 * scaleFactor)
+                                          : (3.5 * scaleFactor),
+                                    ),
                                 child: DefaultTextStyle(
                                   style: TextStyle(
                                     color: widget.enabled
@@ -249,9 +257,10 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
                               ),
                               if (widget.titleDescription != null)
                                 Padding(
-                                  padding: EdgeInsetsDirectional.only(
-                                    bottom: 12.5 * scaleFactor,
-                                  ),
+                                  padding: widget.titleDescriptionPadding ??
+                                      EdgeInsetsDirectional.only(
+                                        bottom: 12.5 * scaleFactor,
+                                      ),
                                   child: DefaultTextStyle(
                                     style: TextStyle(
                                       color: widget.enabled
@@ -291,7 +300,8 @@ class IOSSettingsTileAdditionalInfo extends InheritedWidget {
   final bool enableTopBorderRadius;
   final bool enableBottomBorderRadius;
 
-  const IOSSettingsTileAdditionalInfo({Key? key,
+  const IOSSettingsTileAdditionalInfo({
+    Key? key,
     required this.needToShowDivider,
     required this.enableTopBorderRadius,
     required this.enableBottomBorderRadius,
