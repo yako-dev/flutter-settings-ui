@@ -140,8 +140,7 @@ class WebSettingsTile extends StatelessWidget {
                 )
               else if (tileType == SettingsTileType.switchTile)
                 Padding(
-                  padding:
-                      const EdgeInsetsDirectional.only(start: 16, end: 8),
+                  padding: const EdgeInsetsDirectional.only(start: 16, end: 8),
                   child: Switch(
                     value: initialValue,
                     activeColor: activeSwitchColor ??

@@ -5,7 +5,8 @@ class SettingsTheme extends InheritedWidget {
   final SettingsThemeData themeData;
   final DevicePlatform platform;
 
-  const SettingsTheme({Key? key,
+  const SettingsTheme({
+    Key? key,
     required this.themeData,
     required this.platform,
     required Widget child,

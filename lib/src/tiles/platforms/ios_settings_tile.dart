@@ -291,7 +291,8 @@ class IOSSettingsTileAdditionalInfo extends InheritedWidget {
   final bool enableTopBorderRadius;
   final bool enableBottomBorderRadius;
 
-  const IOSSettingsTileAdditionalInfo({Key? key,
+  const IOSSettingsTileAdditionalInfo({
+    Key? key,
     required this.needToShowDivider,
     required this.enableTopBorderRadius,
     required this.enableBottomBorderRadius,
