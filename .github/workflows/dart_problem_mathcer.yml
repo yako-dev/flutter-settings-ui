@@ -1,0 +1,10 @@
+name: Problem Matcher
+
+on: [push]
+
+jobs:
+  test:
+    steps:
+      - uses: leancodepl/dart-problem-matcher@main
+
+      - run: dart analyze # or flutter analyze
