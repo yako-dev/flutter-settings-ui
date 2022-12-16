@@ -133,7 +133,18 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
 
     return Row(
       children: [
-        if (widget.trailing != null) widget.trailing!,
+        if (widget.trailing != null)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: IconTheme(
+              data: IconTheme.of(context).copyWith(
+                color: widget.enabled
+                    ? theme.themeData.leadingIconsColor
+                    : theme.themeData.inactiveTitleColor,
+              ),
+              child: widget.trailing!,
+            ),
+          ),
         if (widget.tileType == SettingsTileType.switchTile)
           CupertinoSwitch(
             value: widget.initialValue ?? true,
