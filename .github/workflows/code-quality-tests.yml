@@ -34,4 +34,3 @@ jobs:
 
       - name: Flutter Problem Matcher
         uses: leancodepl/dart-problem-matcher@main
-        run: flutter analyze
