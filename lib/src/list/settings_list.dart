@@ -110,9 +110,9 @@ class SettingsList extends StatelessWidget {
       case DevicePlatform.iOS:
       case DevicePlatform.macOS:
       case DevicePlatform.windows:
-        return EdgeInsets.symmetric(vertical: 0);
+        return const EdgeInsets.symmetric(vertical: 0);
       case DevicePlatform.web:
-        return EdgeInsets.symmetric(vertical: 20);
+        return const EdgeInsets.symmetric(vertical: 20);
       case DevicePlatform.device:
         throw Exception(
           'You can\'t use the DevicePlatform.device in this context. '
