@@ -14,9 +14,15 @@ class SettingsTile extends AbstractSettingsTile {
     this.trailing,
     this.value,
     required this.title,
+    this.titleDescription,
     this.description,
     this.onPressed,
     this.enabled = true,
+    this.titlePadding,
+    this.leadingPadding,
+    this.trailingPadding,
+    this.descriptionPadding,
+    this.titleDescriptionPadding,
     Key? key,
   }) : super(key: key) {
     onToggle = null;
@@ -30,9 +36,15 @@ class SettingsTile extends AbstractSettingsTile {
     this.trailing,
     this.value,
     required this.title,
+    this.titleDescription,
     this.description,
     this.onPressed,
     this.enabled = true,
+    this.titlePadding,
+    this.leadingPadding,
+    this.trailingPadding,
+    this.descriptionPadding,
+    this.titleDescriptionPadding,
     Key? key,
   }) : super(key: key) {
     onToggle = null;
@@ -48,9 +60,15 @@ class SettingsTile extends AbstractSettingsTile {
     this.leading,
     this.trailing,
     required this.title,
+    this.titleDescription,
     this.description,
     this.onPressed,
     this.enabled = true,
+    this.titlePadding,
+    this.leadingPadding,
+    this.trailingPadding,
+    this.descriptionPadding,
+    this.titleDescriptionPadding,
     Key? key,
   }) : super(key: key) {
     value = null;
@@ -66,11 +84,20 @@ class SettingsTile extends AbstractSettingsTile {
   /// The widget at the center of the tile
   final Widget title;
 
+  /// The widget at the under of the title
+  final Widget? titleDescription;
+
   /// The widget at the bottom of the [title]
   final Widget? description;
 
   /// A function that is called by tap on a tile
   final Function(BuildContext context)? onPressed;
+
+  final EdgeInsetsGeometry? titlePadding;
+  final EdgeInsetsGeometry? leadingPadding;
+  final EdgeInsetsGeometry? trailingPadding;
+  final EdgeInsetsGeometry? descriptionPadding;
+  final EdgeInsetsGeometry? titleDescriptionPadding;
 
   late final Color? activeSwitchColor;
   late final Widget? value;
@@ -99,6 +126,10 @@ class SettingsTile extends AbstractSettingsTile {
           activeSwitchColor: activeSwitchColor,
           initialValue: initialValue ?? false,
           trailing: trailing,
+          titlePadding: titlePadding,
+          leadingPadding: leadingPadding,
+          trailingPadding: trailingPadding,
+          descriptionPadding: descriptionPadding,
         );
       case DevicePlatform.iOS:
       case DevicePlatform.macOS:
@@ -111,10 +142,14 @@ class SettingsTile extends AbstractSettingsTile {
           value: value,
           leading: leading,
           title: title,
+          titleDescription: titleDescription,
           trailing: trailing,
           enabled: enabled,
           activeSwitchColor: activeSwitchColor,
           initialValue: initialValue ?? false,
+          titlePadding: titlePadding,
+          leadingPadding: leadingPadding,
+          titleDescriptionPadding: titlePadding,
         );
       case DevicePlatform.web:
         return WebSettingsTile(
@@ -129,6 +164,10 @@ class SettingsTile extends AbstractSettingsTile {
           trailing: trailing,
           activeSwitchColor: activeSwitchColor,
           initialValue: initialValue ?? false,
+          titlePadding: titlePadding,
+          leadingPadding: leadingPadding,
+          trailingPadding: trailingPadding,
+          descriptionPadding: descriptionPadding,
         );
       case DevicePlatform.device:
         throw Exception(

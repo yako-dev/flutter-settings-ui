@@ -7,6 +7,7 @@ class IOSSettingsTile extends StatefulWidget {
     required this.tileType,
     required this.leading,
     required this.title,
+    required this.titleDescription,
     required this.description,
     required this.onPressed,
     required this.onToggle,
@@ -15,12 +16,16 @@ class IOSSettingsTile extends StatefulWidget {
     required this.activeSwitchColor,
     required this.enabled,
     required this.trailing,
+    this.titlePadding,
+    this.leadingPadding,
+    this.titleDescriptionPadding,
     Key? key,
   }) : super(key: key);
 
   final SettingsTileType tileType;
   final Widget? leading;
   final Widget? title;
+  final Widget? titleDescription;
   final Widget? description;
   final Function(BuildContext context)? onPressed;
   final Function(bool value)? onToggle;
@@ -29,12 +34,15 @@ class IOSSettingsTile extends StatefulWidget {
   final bool enabled;
   final Color? activeSwitchColor;
   final Widget? trailing;
+  final EdgeInsetsGeometry? titlePadding;
+  final EdgeInsetsGeometry? leadingPadding;
+  final EdgeInsetsGeometry? titleDescriptionPadding;
 
   @override
-  _IOSSettingsTileState createState() => _IOSSettingsTileState();
+  IOSSettingsTileState createState() => IOSSettingsTileState();
 }
 
-class _IOSSettingsTileState extends State<IOSSettingsTile> {
+class IOSSettingsTileState extends State<IOSSettingsTile> {
   bool isPressed = false;
 
   @override
@@ -79,10 +87,10 @@ class _IOSSettingsTileState extends State<IOSSettingsTile> {
     return ClipRRect(
       borderRadius: BorderRadius.vertical(
         top: additionalInfo.enableTopBorderRadius
-            ? Radius.circular(12)
+            ? const Radius.circular(12)
             : Radius.zero,
         bottom: additionalInfo.enableBottomBorderRadius
-            ? Radius.circular(12)
+            ? const Radius.circular(12)
             : Radius.zero,
       ),
       child: content,
@@ -186,7 +194,7 @@ class _IOSSettingsTileState extends State<IOSSettingsTile> {
               widget.onPressed!.call(context);
 
               Future.delayed(
-                Duration(milliseconds: 100),
+                const Duration(milliseconds: 100),
                 () => changePressState(isPressed: false),
               );
             },
@@ -200,12 +208,13 @@ class _IOSSettingsTileState extends State<IOSSettingsTile> {
         color: isPressed
             ? theme.themeData.tileHighlightColor
             : theme.themeData.settingsSectionBackground,
-        padding: EdgeInsetsDirectional.only(start: 18),
+        padding: const EdgeInsetsDirectional.only(start: 18),
         child: Row(
           children: [
             if (widget.leading != null)
               Padding(
-                padding: const EdgeInsetsDirectional.only(end: 12.0),
+                padding: widget.leadingPadding ??
+                    const EdgeInsetsDirectional.only(end: 12.0),
                 child: IconTheme.merge(
                   data: IconThemeData(
                     color: widget.enabled
@@ -225,20 +234,44 @@ class _IOSSettingsTileState extends State<IOSSettingsTile> {
                     child: Row(
                       children: [
                         Expanded(
-                          child: Padding(
-                            padding: EdgeInsetsDirectional.only(
-                              top: 12.5 * scaleFactor,
-                              bottom: 12.5 * scaleFactor,
-                            ),
-                            child: DefaultTextStyle(
-                              style: TextStyle(
-                                color: widget.enabled
-                                    ? theme.themeData.settingsTileTextColor
-                                    : theme.themeData.inactiveTitleColor,
-                                fontSize: 16,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: widget.titlePadding ??
+                                    EdgeInsetsDirectional.only(
+                                      top: 12.5 * scaleFactor,
+                                      bottom: widget.titleDescription == null
+                                          ? (12.5 * scaleFactor)
+                                          : (3.5 * scaleFactor),
+                                    ),
+                                child: DefaultTextStyle(
+                                  style: TextStyle(
+                                    color: widget.enabled
+                                        ? theme.themeData.settingsTileTextColor
+                                        : theme.themeData.inactiveTitleColor,
+                                    fontSize: 16,
+                                  ),
+                                  child: widget.title!,
+                                ),
                               ),
-                              child: widget.title!,
-                            ),
+                              if (widget.titleDescription != null)
+                                Padding(
+                                  padding: widget.titleDescriptionPadding ??
+                                      EdgeInsetsDirectional.only(
+                                        bottom: 12.5 * scaleFactor,
+                                      ),
+                                  child: DefaultTextStyle(
+                                    style: TextStyle(
+                                      color: widget.enabled
+                                          ? theme.themeData.titleTextColor
+                                          : theme.themeData.inactiveTitleColor,
+                                      fontSize: 15,
+                                    ),
+                                    child: widget.titleDescription!,
+                                  ),
+                                ),
+                            ],
                           ),
                         ),
                         buildTrailing(context: context, theme: theme),
@@ -267,22 +300,23 @@ class IOSSettingsTileAdditionalInfo extends InheritedWidget {
   final bool enableTopBorderRadius;
   final bool enableBottomBorderRadius;
 
-  IOSSettingsTileAdditionalInfo({
+  const IOSSettingsTileAdditionalInfo({
+    Key? key,
     required this.needToShowDivider,
     required this.enableTopBorderRadius,
     required this.enableBottomBorderRadius,
     required Widget child,
-  }) : super(child: child);
+  }) : super(key: key, child: child);
 
   @override
-  bool updateShouldNotify(IOSSettingsTileAdditionalInfo old) => true;
+  bool updateShouldNotify(IOSSettingsTileAdditionalInfo oldWidget) => true;
 
   static IOSSettingsTileAdditionalInfo of(BuildContext context) {
     final IOSSettingsTileAdditionalInfo? result = context
         .dependOnInheritedWidgetOfExactType<IOSSettingsTileAdditionalInfo>();
     // assert(result != null, 'No IOSSettingsTileAdditionalInfo found in context');
     return result ??
-        IOSSettingsTileAdditionalInfo(
+        const IOSSettingsTileAdditionalInfo(
           needToShowDivider: true,
           enableBottomBorderRadius: true,
           enableTopBorderRadius: true,

@@ -1,6 +1,8 @@
+import 'package:example/screens/gallery/android_native_settings_screen.dart';
 import 'package:example/screens/gallery/android_settings_screen.dart';
 import 'package:example/screens/gallery/cross_platform_settings_screen.dart';
 import 'package:example/screens/gallery/ios_developer_screen.dart';
+import 'package:example/screens/gallery/ios_native_settings_screen.dart';
 import 'package:example/screens/gallery/web_chrome_settings.dart';
 import 'package:example/utils/navigation.dart';
 import 'package:flutter/cupertino.dart';
@@ -8,7 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
 
 class GalleryScreen extends StatelessWidget {
-  const GalleryScreen({Key key}) : super(key: key);
+  const GalleryScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -66,6 +68,28 @@ class GalleryScreen extends StatelessWidget {
                     context: context,
                     screen: WebChromeSettings(),
                     style: NavigationRouteStyle.material,
+                  );
+                },
+              ),
+              SettingsTile.navigation(
+                leading: Icon(CupertinoIcons.device_phone_portrait),
+                title: Text('iOS Native Settings Screen'),
+                onPressed: (context) {
+                  Navigation.navigateTo(
+                    context: context,
+                    screen: IosNativeSettingsScreen(),
+                    style: NavigationRouteStyle.cupertino,
+                  );
+                },
+              ),
+              SettingsTile.navigation(
+                leading: Icon(Icons.adb),
+                title: Text('Android Native Settings Screen'),
+                onPressed: (context) {
+                  Navigation.navigateTo(
+                    context: context,
+                    screen: AndroidNativeSettingsScreen(),
+                    style: NavigationRouteStyle.cupertino,
                   );
                 },
               ),

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
 
 class IosDeveloperScreen extends StatefulWidget {
-  const IosDeveloperScreen({Key key}) : super(key: key);
+  const IosDeveloperScreen({Key? key}) : super(key: key);
 
   @override
   _IosDeveloperScreen createState() => _IosDeveloperScreen();
@@ -90,7 +90,21 @@ class _IosDeveloperScreen extends State<IosDeveloperScreen> {
               title: Text('IAD DEVELOPER APP TESTING'),
               tiles: [
                 SettingsTile.navigation(
-                  title: Text('Fill Rate'),
+                  title: Text('Downtime'),
+                  titleDescription: Text('Schedule time away from the screen.'),
+                  leading: Container(
+                    height: 32,
+                    width: 32,
+                    decoration: BoxDecoration(
+                      color: Colors.deepPurple,
+                      borderRadius: BorderRadius.all(Radius.circular(5)),
+                    ),
+                    child: Icon(
+                      CupertinoIcons.clock,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
                 ),
                 SettingsTile.navigation(
                   title: Text('Add Refresh Rate'),

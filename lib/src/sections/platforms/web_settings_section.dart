@@ -6,12 +6,14 @@ class WebSettingsSection extends StatelessWidget {
     required this.tiles,
     required this.margin,
     required this.title,
+    this.titlePadding,
     Key? key,
   }) : super(key: key);
 
   final List<AbstractSettingsTile> tiles;
   final EdgeInsetsDirectional? margin;
   final Widget? title;
+  final EdgeInsetsGeometry? titlePadding;
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +32,7 @@ class WebSettingsSection extends StatelessWidget {
           if (title != null)
             Container(
               height: 65 * scaleFactor,
-              padding: EdgeInsetsDirectional.only(
+              padding: titlePadding ?? EdgeInsetsDirectional.only(
                 bottom: 5 * scaleFactor,
                 start: 6,
                 top: 40 * scaleFactor,
@@ -60,12 +62,12 @@ class WebSettingsSection extends StatelessWidget {
       shrinkWrap: true,
       itemCount: tiles.length,
       padding: EdgeInsets.zero,
-      physics: NeverScrollableScrollPhysics(),
+      physics: const NeverScrollableScrollPhysics(),
       itemBuilder: (BuildContext context, int index) {
         return tiles[index];
       },
       separatorBuilder: (BuildContext context, int index) {
-        return Divider(
+        return const Divider(
           height: 0,
           thickness: 1,
         );

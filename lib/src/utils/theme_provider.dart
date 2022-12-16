@@ -31,29 +31,29 @@ class ThemeProvider {
     required BuildContext context,
     required Brightness brightness,
   }) {
-    final lightLeadingIconsColor = Color.fromARGB(255, 70, 70, 70);
-    final darkLeadingIconsColor = Color.fromARGB(255, 197, 197, 197);
+    const lightLeadingIconsColor = Color.fromARGB(255, 70, 70, 70);
+    const darkLeadingIconsColor = Color.fromARGB(255, 197, 197, 197);
 
-    final lightSettingsListBackground = Color.fromRGBO(240, 240, 240, 1);
-    final darkSettingsListBackground = Color.fromRGBO(27, 27, 27, 1);
+    const lightSettingsListBackground = Color.fromRGBO(240, 240, 240, 1);
+    const darkSettingsListBackground = Color.fromRGBO(27, 27, 27, 1);
 
-    final lightSettingsTitleColor = Color.fromRGBO(11, 87, 208, 1);
-    final darkSettingsTitleColor = Color.fromRGBO(211, 227, 253, 1);
+    const lightSettingsTitleColor = Color.fromRGBO(11, 87, 208, 1);
+    const darkSettingsTitleColor = Color.fromRGBO(211, 227, 253, 1);
 
-    final lightTileHighlightColor = Color.fromARGB(255, 220, 220, 220);
-    final darkTileHighlightColor = Color.fromARGB(255, 46, 46, 46);
+    const lightTileHighlightColor = Color.fromARGB(255, 220, 220, 220);
+    const darkTileHighlightColor = Color.fromARGB(255, 46, 46, 46);
 
-    final lightSettingsTileTextColor = Color.fromARGB(255, 27, 27, 27);
-    final darkSettingsTileTextColor = Color.fromARGB(255, 240, 240, 240);
+    const lightSettingsTileTextColor = Color.fromARGB(255, 27, 27, 27);
+    const darkSettingsTileTextColor = Color.fromARGB(255, 240, 240, 240);
 
-    final lightInactiveTitleColor = Color.fromARGB(255, 146, 144, 148);
-    final darkInactiveTitleColor = Color.fromARGB(255, 118, 117, 122);
+    const lightInactiveTitleColor = Color.fromARGB(255, 146, 144, 148);
+    const darkInactiveTitleColor = Color.fromARGB(255, 118, 117, 122);
 
-    final lightInactiveSubtitleColor = Color.fromARGB(255, 197, 196, 201);
-    final darkInactiveSubtitleColor = Color.fromARGB(255, 71, 70, 74);
+    const lightInactiveSubtitleColor = Color.fromARGB(255, 197, 196, 201);
+    const darkInactiveSubtitleColor = Color.fromARGB(255, 71, 70, 74);
 
-    final lightTileDescriptionTextColor = Color.fromARGB(255, 70, 70, 70);
-    final darkTileDescriptionTextColor = Color.fromARGB(255, 198, 198, 198);
+    const lightTileDescriptionTextColor = Color.fromARGB(255, 70, 70, 70);
+    const darkTileDescriptionTextColor = Color.fromARGB(255, 198, 198, 198);
 
     final isLight = brightness == Brightness.light;
 
@@ -97,29 +97,29 @@ class ThemeProvider {
     required BuildContext context,
     required Brightness brightness,
   }) {
-    final lightSettingsListBackground = Color.fromRGBO(242, 242, 247, 1);
-    final darkSettingsListBackground = CupertinoColors.black;
+    const lightSettingsListBackground = Color.fromRGBO(242, 242, 247, 1);
+    const darkSettingsListBackground = CupertinoColors.black;
 
-    final lightSettingSectionColor = CupertinoColors.white;
-    final darkSettingSectionColor = Color.fromARGB(255, 28, 28, 30);
+    const lightSettingSectionColor = CupertinoColors.white;
+    const darkSettingSectionColor = Color.fromARGB(255, 28, 28, 30);
 
-    final lightSettingsTitleColor = Color.fromRGBO(109, 109, 114, 1);
-    final darkSettingsTitleColor = CupertinoColors.systemGrey;
+    const lightSettingsTitleColor = Color.fromRGBO(109, 109, 114, 1);
+    const darkSettingsTitleColor = CupertinoColors.systemGrey;
 
-    final lightDividerColor = Color.fromARGB(255, 238, 238, 238);
-    final darkDividerColor = Color.fromARGB(255, 40, 40, 42);
+    const lightDividerColor = Color.fromARGB(255, 238, 238, 238);
+    const darkDividerColor = Color.fromARGB(255, 40, 40, 42);
 
-    final lightTrailingTextColor = Color.fromARGB(255, 138, 138, 142);
-    final darkTrailingTextColor = Color.fromARGB(255, 152, 152, 159);
+    const lightTrailingTextColor = Color.fromARGB(255, 138, 138, 142);
+    const darkTrailingTextColor = Color.fromARGB(255, 152, 152, 159);
 
-    final lightTileHighlightColor = Color.fromARGB(255, 209, 209, 214);
-    final darkTileHighlightColor = Color.fromARGB(255, 58, 58, 60);
+    const lightTileHighlightColor = Color.fromARGB(255, 209, 209, 214);
+    const darkTileHighlightColor = Color.fromARGB(255, 58, 58, 60);
 
-    final lightSettingsTileTextColor = CupertinoColors.black;
-    final darkSettingsTileTextColor = CupertinoColors.white;
+    const lightSettingsTileTextColor = CupertinoColors.black;
+    const darkSettingsTileTextColor = CupertinoColors.white;
 
-    final lightLeadingIconsColor = CupertinoColors.inactiveGray;
-    final darkLeadingIconsColor = CupertinoColors.inactiveGray;
+    const lightLeadingIconsColor = CupertinoColors.inactiveGray;
+    const darkLeadingIconsColor = CupertinoColors.inactiveGray;
 
     final isLight = brightness == Brightness.light;
 
@@ -164,30 +164,30 @@ class ThemeProvider {
     required BuildContext context,
     required Brightness brightness,
   }) {
-    final lightLeadingIconsColor = Color.fromARGB(255, 70, 70, 70);
-    final darkLeadingIconsColor = Color.fromARGB(255, 197, 197, 197);
+    const lightLeadingIconsColor = Color.fromARGB(255, 70, 70, 70);
+    const darkLeadingIconsColor = Color.fromARGB(255, 197, 197, 197);
 
-    final lightSettingsListBackground = Color.fromRGBO(240, 240, 240, 1);
+    const lightSettingsListBackground = Color.fromRGBO(240, 240, 240, 1);
     //done
-    final darkSettingsListBackground = Color.fromRGBO(32, 33, 36, 1);
+    const darkSettingsListBackground = Color.fromRGBO(32, 33, 36, 1);
 
-    final lightSettingSectionColor = CupertinoColors.white;
+    const lightSettingSectionColor = CupertinoColors.white;
     //done
-    final darkSettingSectionColor = Color(0xFF292a2d);
+    const darkSettingSectionColor = Color(0xFF292a2d);
 
-    final lightSettingsTitleColor = Color.fromRGBO(11, 87, 208, 1);
+    const lightSettingsTitleColor = Color.fromRGBO(11, 87, 208, 1);
     //done
-    final darkSettingsTitleColor = Color.fromRGBO(232, 234, 237, 1);
+    const darkSettingsTitleColor = Color.fromRGBO(232, 234, 237, 1);
 
-    final lightTileHighlightColor = Color.fromARGB(255, 220, 220, 220);
-    final darkTileHighlightColor = Color.fromARGB(255, 46, 46, 46);
+    const lightTileHighlightColor = Color.fromARGB(255, 220, 220, 220);
+    const darkTileHighlightColor = Color.fromARGB(255, 46, 46, 46);
 
-    final lightSettingsTileTextColor = Color.fromARGB(255, 27, 27, 27);
+    const lightSettingsTileTextColor = Color.fromARGB(255, 27, 27, 27);
     //done
-    final darkSettingsTileTextColor = Color.fromARGB(232, 234, 237, 240);
+    const darkSettingsTileTextColor = Color.fromARGB(232, 234, 237, 240);
 
-    final lightTileDescriptionTextColor = Color.fromARGB(255, 70, 70, 70);
-    final darkTileDescriptionTextColor = Color.fromARGB(154, 160, 166, 198);
+    const lightTileDescriptionTextColor = Color.fromARGB(255, 70, 70, 70);
+    const darkTileDescriptionTextColor = Color.fromARGB(154, 160, 166, 198);
 
     final lightInactiveTitleColor = Color.fromARGB(255, 146, 144, 148);
     final darkInactiveTitleColor = Color.fromARGB(255, 118, 117, 122);
