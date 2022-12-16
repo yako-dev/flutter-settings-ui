@@ -16,9 +16,9 @@ void main() {
       onPressed: (context) {
         isPressed = true;
       },
-      title: Text('Network & internet'),
-      description: Text('Mobile, Wi-Fi, hotspot'),
-      leading: Icon(Icons.wifi),
+      title: const Text('Network & internet'),
+      description: const Text('Mobile, Wi-Fi, hotspot'),
+      leading: const Icon(Icons.wifi),
     );
 
     testWidgets('Widget should render correctly', (tester) async {
@@ -53,7 +53,7 @@ void main() {
       final DefaultTextStyle titleWidget =
           tester.firstWidget(defaultTextFinder);
 
-      expect(titleWidget.style.color, Color(0xff1b1b1b));
+      expect(titleWidget.style.color, const Color(0xff1b1b1b));
       expect(titleWidget.style.fontSize, 18);
       expect(titleWidget.style.fontWeight, FontWeight.w400);
     });
@@ -80,7 +80,7 @@ void main() {
       final DefaultTextStyle descriptionWidget =
           tester.firstWidget(defaultTextFinder);
 
-      expect(descriptionWidget.style.color, Color(0xff464646));
+      expect(descriptionWidget.style.color, const Color(0xff464646));
       expect(descriptionWidget.style.fontSize, null);
       expect(descriptionWidget.style.fontWeight, null);
     });
@@ -107,7 +107,7 @@ void main() {
 
       final IconTheme iconWidget = tester.firstWidget(iconThemeFinder);
 
-      expect(iconWidget.data.color, Color(0xff464646));
+      expect(iconWidget.data.color, const Color(0xff464646));
     });
 
     testWidgets('Settings Tile onPressed is called', (tester) async {
@@ -127,7 +127,7 @@ void main() {
         onToggle: (value) {
           onToggleValue = value;
         },
-        title: Text('Notification dot on app icon'),
+        title: const Text('Notification dot on app icon'),
       );
 
       await tester.pumpWidget(_wrapWithMaterialApp(
@@ -151,9 +151,9 @@ void main() {
       onPressed: (_) {
         isPressed = true;
       },
-      title: Text('View'),
-      value: Text('Standard'),
-      description: Text('Choose a view for iPhone'),
+      title: const Text('View'),
+      value: const Text('Standard'),
+      description: const Text('Choose a view for iPhone'),
     );
 
     testWidgets('Widget should render correctly', (tester) async {
@@ -212,7 +212,7 @@ void main() {
       final DefaultTextStyle descriptionWidget =
           tester.firstWidget(defaultTextFinder);
 
-      expect(descriptionWidget.style.color, Color(0xff6d6d72));
+      expect(descriptionWidget.style.color, const Color(0xff6d6d72));
       expect(descriptionWidget.style.fontSize, 13);
       expect(descriptionWidget.style.fontWeight, null);
     });
@@ -245,7 +245,7 @@ void main() {
         onToggle: (value) {
           onToggleValue = value;
         },
-        title: Text('Dark Appearance'),
+        title: const Text('Dark Appearance'),
       );
 
       await tester.pumpWidget(_wrapWithMaterialApp(
@@ -269,9 +269,10 @@ void main() {
       onPressed: (_) {
         isPressed = true;
       },
-      leading: Icon(Icons.web),
-      title: Text('Cookies and other site data'),
-      description: Text('Third-party cookies are blocked in Incognito mode'),
+      leading: const Icon(Icons.web),
+      title: const Text('Cookies and other site data'),
+      description:
+          const Text('Third-party cookies are blocked in Incognito mode'),
     );
 
     testWidgets('Widget should render correctly', (tester) async {
@@ -305,7 +306,7 @@ void main() {
       final DefaultTextStyle titleWidget =
           tester.firstWidget(defaultTextFinder);
 
-      expect(titleWidget.style.color, Color(0xff1b1b1b));
+      expect(titleWidget.style.color, const Color(0xff1b1b1b));
       expect(titleWidget.style.fontSize, 18);
       expect(titleWidget.style.fontWeight, FontWeight.w400);
     });
@@ -335,7 +336,7 @@ void main() {
       final DefaultTextStyle descriptionWidget =
           tester.firstWidget(defaultTextFinder);
 
-      expect(descriptionWidget.style.color, Color(0xff464646));
+      expect(descriptionWidget.style.color, const Color(0xff464646));
       expect(descriptionWidget.style.fontSize, null);
       expect(descriptionWidget.style.fontWeight, null);
     });
@@ -362,7 +363,7 @@ void main() {
 
       final IconTheme iconWidget = tester.firstWidget(iconThemeFinder);
 
-      expect(iconWidget.data.color, Color(0xff464646));
+      expect(iconWidget.data.color, const Color(0xff464646));
     });
 
     testWidgets('Settings Tile onPressed is called', (tester) async {
@@ -382,7 +383,7 @@ void main() {
         onToggle: (value) {
           onToggleValue = value;
         },
-        title: Text('Dark Appearance'),
+        title: const Text('Dark Appearance'),
       );
 
       await tester.pumpWidget(_wrapWithMaterialApp(

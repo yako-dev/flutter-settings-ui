@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
 
 class AndroidNativeSettingsScreen extends StatefulWidget {
-  const AndroidNativeSettingsScreen({Key key}) : super(key: key);
+  const AndroidNativeSettingsScreen({Key? key}) : super(key: key);
 
   @override
   State<AndroidNativeSettingsScreen> createState() =>
