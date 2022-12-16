@@ -14,6 +14,10 @@ class AndroidSettingsTile extends StatelessWidget {
     required this.activeSwitchColor,
     required this.enabled,
     required this.trailing,
+    this.titlePadding,
+    this.leadingPadding,
+    this.trailingPadding,
+    this.descriptionPadding,
     Key? key,
   }) : super(key: key);
 
@@ -28,6 +32,10 @@ class AndroidSettingsTile extends StatelessWidget {
   final bool enabled;
   final Color? activeSwitchColor;
   final Widget? trailing;
+  final EdgeInsetsGeometry? titlePadding;
+  final EdgeInsetsGeometry? leadingPadding;
+  final EdgeInsetsGeometry? trailingPadding;
+  final EdgeInsetsGeometry? descriptionPadding;
 
   @override
   Widget build(BuildContext context) {
@@ -57,7 +65,8 @@ class AndroidSettingsTile extends StatelessWidget {
             children: [
               if (leading != null)
                 Padding(
-                  padding: const EdgeInsetsDirectional.only(start: 24),
+                  padding:
+                      leadingPadding ?? EdgeInsetsDirectional.only(start: 24),
                   child: IconTheme(
                     data: IconTheme.of(context).copyWith(
                       color: enabled
@@ -102,7 +111,8 @@ class AndroidSettingsTile extends StatelessWidget {
                         )
                       else if (description != null)
                         Padding(
-                          padding: const EdgeInsets.only(top: 4.0),
+                          padding:
+                              descriptionPadding ?? EdgeInsets.only(top: 4.0),
                           child: DefaultTextStyle(
                             style: TextStyle(
                               color: enabled
@@ -134,8 +144,7 @@ class AndroidSettingsTile extends StatelessWidget {
                 )
               else if (tileType == SettingsTileType.switchTile)
                 Padding(
-                  padding:
-                      const EdgeInsetsDirectional.only(start: 16, end: 8),
+                  padding: const EdgeInsetsDirectional.only(start: 16, end: 8),
                   child: Switch(
                     value: initialValue,
                     onChanged: onToggle,
@@ -146,7 +155,8 @@ class AndroidSettingsTile extends StatelessWidget {
                 )
               else if (trailing != null)
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding:
+                      trailingPadding ?? EdgeInsets.symmetric(horizontal: 16),
                   child: trailing!,
                 )
             ],

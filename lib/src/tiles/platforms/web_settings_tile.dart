@@ -14,6 +14,10 @@ class WebSettingsTile extends StatelessWidget {
     required this.activeSwitchColor,
     required this.enabled,
     required this.trailing,
+    this.titlePadding,
+    this.leadingPadding,
+    this.trailingPadding,
+    this.descriptionPadding,
     Key? key,
   }) : super(key: key);
 
@@ -28,6 +32,10 @@ class WebSettingsTile extends StatelessWidget {
   final bool enabled;
   final Widget? trailing;
   final Color? activeSwitchColor;
+  final EdgeInsetsGeometry? titlePadding;
+  final EdgeInsetsGeometry? leadingPadding;
+  final EdgeInsetsGeometry? trailingPadding;
+  final EdgeInsetsGeometry? descriptionPadding;
 
   @override
   Widget build(BuildContext context) {
@@ -57,9 +65,10 @@ class WebSettingsTile extends StatelessWidget {
             children: [
               if (leading != null)
                 Padding(
-                  padding: const EdgeInsetsDirectional.only(
-                    start: 24,
-                  ),
+                  padding: leadingPadding ??
+                      const EdgeInsetsDirectional.only(
+                        start: 24,
+                      ),
                   child: IconTheme(
                     data: IconTheme.of(context).copyWith(
                       color: theme.themeData.leadingIconsColor,
@@ -98,7 +107,8 @@ class WebSettingsTile extends StatelessWidget {
                         )
                       else if (description != null)
                         Padding(
-                          padding: const EdgeInsets.only(top: 4.0),
+                          padding:
+                              descriptionPadding ?? EdgeInsets.only(top: 4.0),
                           child: DefaultTextStyle(
                             style: TextStyle(
                               color: theme.themeData.tileDescriptionTextColor,
@@ -140,8 +150,7 @@ class WebSettingsTile extends StatelessWidget {
                 )
               else if (tileType == SettingsTileType.switchTile)
                 Padding(
-                  padding:
-                      const EdgeInsetsDirectional.only(start: 16, end: 8),
+                  padding: const EdgeInsetsDirectional.only(start: 16, end: 8),
                   child: Switch(
                     value: initialValue,
                     activeColor: activeSwitchColor ??
@@ -151,7 +160,8 @@ class WebSettingsTile extends StatelessWidget {
                 )
               else if (trailing != null)
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding:
+                      trailingPadding ?? EdgeInsets.symmetric(horizontal: 16),
                   child: trailing!,
                 ),
             ],

@@ -7,12 +7,14 @@ class IOSSettingsSection extends StatelessWidget {
     required this.tiles,
     required this.margin,
     required this.title,
+    this.titlePadding,
     Key? key,
   }) : super(key: key);
 
   final List<AbstractSettingsTile> tiles;
   final EdgeInsetsDirectional? margin;
   final Widget? title;
+  final EdgeInsetsGeometry? titlePadding;
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +36,7 @@ class IOSSettingsSection extends StatelessWidget {
         children: [
           if (title != null)
             Padding(
-              padding: EdgeInsetsDirectional.only(
+              padding: titlePadding ?? EdgeInsetsDirectional.only(
                 start: 18,
                 bottom: 5 * scaleFactor,
               ),

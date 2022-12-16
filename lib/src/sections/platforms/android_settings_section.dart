@@ -7,12 +7,14 @@ class AndroidSettingsSection extends StatelessWidget {
     required this.tiles,
     required this.margin,
     this.title,
+    this.titlePadding,
     Key? key,
   }) : super(key: key);
 
   final List<AbstractSettingsTile> tiles;
   final EdgeInsetsDirectional? margin;
   final Widget? title;
+  final EdgeInsetsGeometry? titlePadding;
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +36,7 @@ class AndroidSettingsSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: EdgeInsetsDirectional.only(
+            padding: titlePadding ?? EdgeInsetsDirectional.only(
               top: 24 * scaleFactor,
               bottom: 10 * scaleFactor,
               start: 24,
