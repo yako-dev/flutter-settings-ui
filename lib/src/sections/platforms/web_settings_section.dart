@@ -32,11 +32,12 @@ class WebSettingsSection extends StatelessWidget {
           if (title != null)
             Container(
               height: 65 * scaleFactor,
-              padding: titlePadding ?? EdgeInsetsDirectional.only(
-                bottom: 5 * scaleFactor,
-                start: 6,
-                top: 40 * scaleFactor,
-              ),
+              padding: titlePadding ??
+                  EdgeInsetsDirectional.only(
+                    bottom: 5 * scaleFactor,
+                    start: 6,
+                    top: 40 * scaleFactor,
+                  ),
               child: DefaultTextStyle(
                 style: TextStyle(
                   color: theme.themeData.titleTextColor,

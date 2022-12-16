@@ -183,17 +183,16 @@ class ThemeProvider {
     const darkTileHighlightColor = Color.fromARGB(255, 46, 46, 46);
 
     const lightSettingsTileTextColor = Color.fromARGB(255, 27, 27, 27);
-    //done
     const darkSettingsTileTextColor = Color.fromARGB(232, 234, 237, 240);
 
     const lightTileDescriptionTextColor = Color.fromARGB(255, 70, 70, 70);
     const darkTileDescriptionTextColor = Color.fromARGB(154, 160, 166, 198);
 
-    final lightInactiveTitleColor = Color.fromARGB(255, 146, 144, 148);
-    final darkInactiveTitleColor = Color.fromARGB(255, 118, 117, 122);
+    const lightInactiveTitleColor = Color.fromARGB(255, 146, 144, 148);
+    const darkInactiveTitleColor = Color.fromARGB(255, 118, 117, 122);
 
-    final lightInactiveSubtitleColor = Color.fromARGB(255, 197, 196, 201);
-    final darkInactiveSubtitleColor = Color.fromARGB(255, 71, 70, 74);
+    const lightInactiveSubtitleColor = Color.fromARGB(255, 197, 196, 201);
+    const darkInactiveSubtitleColor = Color.fromARGB(255, 71, 70, 74);
 
     final isLight = brightness == Brightness.light;
 
@@ -219,10 +218,10 @@ class ThemeProvider {
         isLight ? lightSettingSectionColor : darkSettingSectionColor;
 
     final inactiveTitleColor =
-    isLight ? lightInactiveTitleColor : darkInactiveTitleColor;
+        isLight ? lightInactiveTitleColor : darkInactiveTitleColor;
 
     final inactiveSubtitleColor =
-    isLight ? lightInactiveSubtitleColor : darkInactiveSubtitleColor;
+        isLight ? lightInactiveSubtitleColor : darkInactiveSubtitleColor;
 
     return SettingsThemeData(
       tileHighlightColor: tileHighlightColor,
