@@ -65,7 +65,8 @@ class AndroidSettingsTile extends StatelessWidget {
             children: [
               if (leading != null)
                 Padding(
-                  padding: leadingPadding ?? const EdgeInsetsDirectional.only(start: 24),
+                  padding: leadingPadding ??
+                      const EdgeInsetsDirectional.only(start: 24),
                   child: IconTheme(
                     data: IconTheme.of(context).copyWith(
                       color: enabled
@@ -98,7 +99,7 @@ class AndroidSettingsTile extends StatelessWidget {
                       ),
                       if (value != null)
                         Padding(
-                          padding: const  EdgeInsets.only(top: 4.0),
+                          padding: const EdgeInsets.only(top: 4.0),
                           child: DefaultTextStyle(
                             style: TextStyle(
                               color: enabled
@@ -143,8 +144,7 @@ class AndroidSettingsTile extends StatelessWidget {
                 )
               else if (tileType == SettingsTileType.switchTile)
                 Padding(
-                  padding:
-                      const EdgeInsetsDirectional.only(start: 16, end: 8),
+                  padding: const EdgeInsetsDirectional.only(start: 16, end: 8),
                   child: Switch(
                     value: initialValue,
                     onChanged: onToggle,
