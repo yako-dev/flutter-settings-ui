@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
 
 class IosNativeSettingsScreen extends StatefulWidget {
-  const IosNativeSettingsScreen({Key key}) : super(key: key);
+  const IosNativeSettingsScreen({Key? key}) : super(key: key);
 
   @override
   State<IosNativeSettingsScreen> createState() =>

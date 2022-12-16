@@ -6,10 +6,10 @@ class LeadingIosWidget extends StatelessWidget {
   final IconData iconData;
 
   const LeadingIosWidget({
-    Key key,
-    this.backgroundColor,
-    this.iconColor,
-    this.iconData,
+    Key? key,
+    required this.backgroundColor,
+    required this.iconColor,
+    required this.iconData,
   }) : super(key: key);
 
   @override
