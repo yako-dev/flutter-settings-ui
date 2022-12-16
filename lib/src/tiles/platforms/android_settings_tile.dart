@@ -65,8 +65,8 @@ class AndroidSettingsTile extends StatelessWidget {
             children: [
               if (leading != null)
                 Padding(
-                  padding:
-                      leadingPadding ?? EdgeInsetsDirectional.only(start: 24),
+                  padding: leadingPadding ??
+                      const EdgeInsetsDirectional.only(start: 24),
                   child: IconTheme(
                     data: IconTheme.of(context).copyWith(
                       color: enabled
@@ -111,8 +111,8 @@ class AndroidSettingsTile extends StatelessWidget {
                         )
                       else if (description != null)
                         Padding(
-                          padding:
-                              descriptionPadding ?? EdgeInsets.only(top: 4.0),
+                          padding: descriptionPadding ??
+                              const EdgeInsets.only(top: 4.0),
                           child: DefaultTextStyle(
                             style: TextStyle(
                               color: enabled
@@ -155,8 +155,8 @@ class AndroidSettingsTile extends StatelessWidget {
                 )
               else if (trailing != null)
                 Padding(
-                  padding:
-                      trailingPadding ?? EdgeInsets.symmetric(horizontal: 16),
+                  padding: trailingPadding ??
+                      const EdgeInsets.symmetric(horizontal: 16),
                   child: trailing!,
                 )
             ],
