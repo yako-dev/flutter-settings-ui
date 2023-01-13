@@ -140,7 +140,7 @@ void main() {
     devicePlatformTest(TargetPlatform.windows);
   });
 
-  group('Settings tile tests for different platforms ', () {
+  group('Settings tile tests for different platforms', () {
     settingsTileTests(DevicePlatform.android);
     settingsTileTests(DevicePlatform.fuchsia);
     settingsTileTests(DevicePlatform.linux);
@@ -150,7 +150,7 @@ void main() {
     settingsTileTests(DevicePlatform.web);
   });
 
-  group('description', () {
+  group('Settings tile on Tap tests for different platforms', () {
     settingsTileOnTapTests(DevicePlatform.android);
     settingsTileOnTapTests(DevicePlatform.fuchsia);
     settingsTileOnTapTests(DevicePlatform.linux);
