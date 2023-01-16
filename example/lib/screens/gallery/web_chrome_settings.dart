@@ -3,21 +3,35 @@ import 'package:example/utils/navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
 
-class WebChromeSettings extends StatelessWidget {
+class WebChromeSettings extends StatefulWidget {
   const WebChromeSettings({Key? key}) : super(key: key);
+
+  @override
+  State<WebChromeSettings> createState() => _WebChromeSettingsState();
+}
+
+class _WebChromeSettingsState extends State<WebChromeSettings> {
+  final ScrollController settingsListController = ScrollController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Settings')),
       body: SettingsList(
+        scrollController: settingsListController,
         platform: DevicePlatform.web,
         sections: [
           SettingsSection(
             title: Text('Auto-fill'),
             tiles: [
               SettingsTile.navigation(
-                onPressed: (_) {},
+                onPressed: (context) {
+                  settingsListController.animateTo(
+                    150,
+                    duration: Duration(seconds: 1),
+                    curve: Curves.linear,
+                  );
+                },
                 leading: Icon(Icons.vpn_key),
                 title: Text('Passwords'),
               ),
