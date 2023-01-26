@@ -25,7 +25,6 @@ class SettingsList extends StatelessWidget {
     this.platform,
     this.lightTheme,
     this.darkTheme,
-    this.brightness,
     this.contentPadding,
     this.scrollController,
     this.applicationType = ApplicationType.material,
@@ -37,7 +36,6 @@ class SettingsList extends StatelessWidget {
   final DevicePlatform? platform;
   final SettingsThemeData? lightTheme;
   final SettingsThemeData? darkTheme;
-  final Brightness? brightness;
   final EdgeInsetsGeometry? contentPadding;
   final List<AbstractSettingsSection> sections;
   final ApplicationType applicationType;
