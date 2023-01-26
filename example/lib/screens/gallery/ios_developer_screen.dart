@@ -11,6 +11,7 @@ class IosDeveloperScreen extends StatefulWidget {
 
 class _IosDeveloperScreen extends State<IosDeveloperScreen> {
   bool darkTheme = true;
+  final ScrollController settingsListController = ScrollController();
 
   @override
   Widget build(BuildContext context) {
@@ -19,6 +20,7 @@ class _IosDeveloperScreen extends State<IosDeveloperScreen> {
       child: SafeArea(
         bottom: false,
         child: SettingsList(
+          scrollController: settingsListController,
           applicationType: ApplicationType.cupertino,
           platform: DevicePlatform.iOS,
           sections: [
@@ -40,7 +42,13 @@ class _IosDeveloperScreen extends State<IosDeveloperScreen> {
               title: Text('DISPLAY ZOOM'),
               tiles: [
                 SettingsTile.navigation(
-                  onPressed: (_) {},
+                  onPressed: (_) {
+                    settingsListController.animateTo(
+                      100,
+                      duration: Duration(seconds: 1),
+                      curve: Curves.linear,
+                    );
+                  },
                   title: Text('View'),
                   value: Text('Standard'),
                   description: Text(

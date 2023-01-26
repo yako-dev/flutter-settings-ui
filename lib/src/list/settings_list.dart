@@ -27,6 +27,7 @@ class SettingsList extends StatelessWidget {
     this.darkTheme,
     this.brightness,
     this.contentPadding,
+    this.scrollController,
     this.applicationType = ApplicationType.material,
     Key? key,
   }) : super(key: key);
@@ -40,6 +41,7 @@ class SettingsList extends StatelessWidget {
   final EdgeInsetsGeometry? contentPadding;
   final List<AbstractSettingsSection> sections;
   final ApplicationType applicationType;
+  final ScrollController? scrollController;
 
   @override
   Widget build(BuildContext context) {
@@ -66,6 +68,7 @@ class SettingsList extends StatelessWidget {
         themeData: themeData,
         platform: platform,
         child: ListView.builder(
+          controller: scrollController,
           physics: physics,
           shrinkWrap: shrinkWrap,
           itemCount: sections.length,
