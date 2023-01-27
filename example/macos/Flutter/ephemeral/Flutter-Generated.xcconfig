@@ -2,10 +2,12 @@
 FLUTTER_ROOT=/Users/yadaniyil/flutter
 FLUTTER_APPLICATION_PATH=/Users/yadaniyil/dev/libs/settings_ui/example
 COCOAPODS_PARALLEL_CODE_SIGN=true
+FLUTTER_TARGET=/Users/yadaniyil/dev/libs/settings_ui/example/lib/another_main.dart
 FLUTTER_BUILD_DIR=build
 FLUTTER_BUILD_NAME=1.0.0
 FLUTTER_BUILD_NUMBER=1
+DART_DEFINES=RkxVVFRFUl9XRUJfQVVUT19ERVRFQ1Q9dHJ1ZQ==
 DART_OBFUSCATION=false
 TRACK_WIDGET_CREATION=true
 TREE_SHAKE_ICONS=false
-PACKAGE_CONFIG=.dart_tool/package_config.json
+PACKAGE_CONFIG=/Users/yadaniyil/dev/libs/settings_ui/example/.dart_tool/package_config.json

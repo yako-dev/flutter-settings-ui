@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:settings_ui/src/utils/platform_utils.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 
@@ -83,7 +84,7 @@ class ThemeProvider {
 
     return SettingsThemeData(
       tileHighlightColor: tileHighlightColor,
-      settingsListBackground: listBackground,
+      settingsListBackground: Theme.of(context).scaffoldBackgroundColor,
       titleTextColor: titleTextColor,
       settingsTileTextColor: settingsTileTextColor,
       tileDescriptionTextColor: tileDescriptionTextColor,
@@ -97,6 +98,8 @@ class ThemeProvider {
     required BuildContext context,
     required Brightness brightness,
   }) {
+    final scaffoldBackgroundColor =
+        CupertinoTheme.of(context).scaffoldBackgroundColor;
     const lightSettingsListBackground = Color.fromRGBO(242, 242, 247, 1);
     const darkSettingsListBackground = CupertinoColors.black;
 
@@ -124,7 +127,7 @@ class ThemeProvider {
     final isLight = brightness == Brightness.light;
 
     final listBackground =
-        isLight ? lightSettingsListBackground : darkSettingsListBackground;
+        isLight ? lightSettingsListBackground : scaffoldBackgroundColor;
 
     final sectionBackground =
         isLight ? lightSettingSectionColor : darkSettingSectionColor;

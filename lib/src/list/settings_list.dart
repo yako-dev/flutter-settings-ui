@@ -5,6 +5,7 @@ import 'package:settings_ui/src/utils/platform_utils.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 import 'package:settings_ui/src/utils/theme_provider.dart';
 
+// TODO Remove
 enum ApplicationType {
   /// Use this parameter is you are using the MaterialApp
   material,
@@ -123,19 +124,27 @@ class SettingsList extends StatelessWidget {
   }
 
   Brightness calculateBrightness(BuildContext context) {
-    final materialBrightness = Theme.of(context).brightness;
-    final cupertinoBrightness = CupertinoTheme.of(context).brightness ??
-        MediaQuery.of(context).platformBrightness;
+    final Brightness platformBrightness =
+        WidgetsBinding.instance.window.platformBrightness;
+    // final materialTheme = Theme.of(context);
+    // final cupertinoTheme = CupertinoTheme.of(context);
 
-    switch (applicationType) {
-      case ApplicationType.material:
-        return materialBrightness;
-      case ApplicationType.cupertino:
-        return cupertinoBrightness;
-      case ApplicationType.both:
-        return platform != DevicePlatform.iOS
-            ? materialBrightness
-            : cupertinoBrightness;
-    }
+    // final materialBrightness = Theme.of(context).brightness;
+    // final cupertinoBrightness = CupertinoTheme.of(context).brightness;
+    // ??
+    // MediaQuery.of(context).platformBrightness;
+    // final platformBrightness = MediaQuery.of(context).platformBrightness;
+
+    // switch (applicationType) {
+    //   case ApplicationType.material:
+    //     return materialBrightness;
+    //   case ApplicationType.cupertino:
+    //     return cupertinoBrightness!;
+    //   case ApplicationType.both:
+    //     return platform == DevicePlatform.iOS
+    //         ? cupertinoBrightness!
+    //         : materialBrightness;
+    // }
+    return platformBrightness;
   }
 }

@@ -13,6 +13,7 @@ dependencies:
   device_preview: 1.0.0
   settings_ui:
     path: ../
+  # settings_ui: ^2.0.2
 
 dev_dependencies:
   integration_test:
