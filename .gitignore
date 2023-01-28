@@ -14,3 +14,7 @@ example/.flutter-plugins-dependencies
 doc/api/
 settings_ui.iml
 .idea
+macos/Flutter/ephemeral/flutter_export_environment.sh
+macos/Flutter/ephemeral/Flutter-Generated.xcconfig
+macos/Flutter/ephemeral/FlutterInputs.xcfilelist
+macos/Flutter/ephemeral/FlutterOutputs.xcfilelist

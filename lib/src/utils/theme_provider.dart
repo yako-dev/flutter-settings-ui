@@ -100,8 +100,8 @@ class ThemeProvider {
   }) {
     final scaffoldBackgroundColor =
         CupertinoTheme.of(context).scaffoldBackgroundColor;
-    const lightSettingsListBackground = Color.fromRGBO(242, 242, 247, 1);
-    const darkSettingsListBackground = CupertinoColors.black;
+    // const lightSettingsListBackground = Color.fromRGBO(242, 242, 247, 1);
+    // const darkSettingsListBackground = CupertinoColors.black;
 
     const lightSettingSectionColor = CupertinoColors.white;
     const darkSettingSectionColor = Color.fromARGB(255, 28, 28, 30);
@@ -126,8 +126,8 @@ class ThemeProvider {
 
     final isLight = brightness == Brightness.light;
 
-    final listBackground =
-        isLight ? lightSettingsListBackground : scaffoldBackgroundColor;
+    final listBackground = scaffoldBackgroundColor;
+    // isLight ? lightSettingsListBackground : scaffoldBackgroundColor;
 
     final sectionBackground =
         isLight ? lightSettingSectionColor : darkSettingSectionColor;
