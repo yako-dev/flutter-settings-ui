@@ -21,7 +21,6 @@ class _IosDeveloperScreen extends State<IosDeveloperScreen> {
         bottom: false,
         child: SettingsList(
           scrollController: settingsListController,
-          applicationType: ApplicationType.cupertino,
           platform: DevicePlatform.iOS,
           sections: [
             SettingsSection(

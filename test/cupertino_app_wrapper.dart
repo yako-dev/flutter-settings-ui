@@ -10,10 +10,7 @@ Widget wrapWithCupertinoApp(
   return CupertinoApp(
     theme: CupertinoThemeData(
       brightness: brightness,
-      scaffoldBackgroundColor: const CupertinoDynamicColor.withBrightness(
-          color: Colors.grey, darkColor: Colors.blue),
-      barBackgroundColor: const CupertinoDynamicColor.withBrightness(
-          color: Colors.yellow, darkColor: Colors.purple),
+      scaffoldBackgroundColor: scaffoldBackgroundColor,
       textTheme: const CupertinoTextThemeData(
         primaryColor: Colors.black,
       ),
@@ -26,9 +23,12 @@ Widget wrapWithCupertinoApp(
   );
 }
 
+// Resolved color that we need for successful color comparison in tests
 CupertinoDynamicColor getCupertinoScaffoldBackgroundColor(
     BuildContext context) {
-  return const CupertinoDynamicColor.withBrightness(
-          color: Colors.grey, darkColor: Colors.blue)
-      .resolveFrom(context);
+  return scaffoldBackgroundColor.resolveFrom(context);
 }
+
+CupertinoDynamicColor get scaffoldBackgroundColor =>
+    const CupertinoDynamicColor.withBrightness(
+        color: Colors.grey, darkColor: Colors.blue);

@@ -21,33 +21,33 @@ class MyApp extends StatelessWidget {
 
     /// Uncomment to run Cupertino App
     // if (runCupertinoApp) {
-    //   return CupertinoApp(
-    //     useInheritedMediaQuery: true,
-    //     locale: DevicePreview.locale(context),
-    //     debugShowCheckedModeBanner: false,
-    //     localizationsDelegates: <LocalizationsDelegate<dynamic>>[
-    //       DefaultMaterialLocalizations.delegate,
-    //       DefaultWidgetsLocalizations.delegate,
-    //       DefaultCupertinoLocalizations.delegate,
-    //     ],
-    //     title: 'Settings UI Demo',
-    //     home: GalleryScreen(),
-    //   );
-    // } else {
-    return MaterialApp(
+    return CupertinoApp(
       useInheritedMediaQuery: true,
-      debugShowCheckedModeBanner: false,
       locale: DevicePreview.locale(context),
-      theme: ThemeData.light(),
-      darkTheme: ThemeData(
-          cupertinoOverrideTheme: CupertinoThemeData(
-              barBackgroundColor: Color(0xFF1b1b1b),
-              brightness: Brightness.dark,
-              textTheme: CupertinoTextThemeData(primaryColor: Colors.white)),
-          brightness: Brightness.dark),
+      debugShowCheckedModeBanner: false,
+      localizationsDelegates: <LocalizationsDelegate<dynamic>>[
+        DefaultMaterialLocalizations.delegate,
+        DefaultWidgetsLocalizations.delegate,
+        DefaultCupertinoLocalizations.delegate,
+      ],
       title: 'Settings UI Demo',
       home: GalleryScreen(),
     );
+    // } else {
+    // return MaterialApp(
+    //   useInheritedMediaQuery: true,
+    //   debugShowCheckedModeBanner: false,
+    //   locale: DevicePreview.locale(context),
+    //   theme: ThemeData.light(),
+    //   darkTheme: ThemeData(
+    //       cupertinoOverrideTheme: CupertinoThemeData(
+    //           barBackgroundColor: Color(0xFF1b1b1b),
+    //           brightness: Brightness.dark,
+    //           textTheme: CupertinoTextThemeData(primaryColor: Colors.white)),
+    //       brightness: Brightness.dark),
+    //   title: 'Settings UI Demo',
+    //   home: GalleryScreen(),
+    // );
     //}
   }
 }

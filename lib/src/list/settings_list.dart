@@ -5,19 +5,6 @@ import 'package:settings_ui/src/utils/platform_utils.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 import 'package:settings_ui/src/utils/theme_provider.dart';
 
-// TODO Remove
-enum ApplicationType {
-  /// Use this parameter is you are using the MaterialApp
-  material,
-
-  /// Use this parameter is you are using the CupertinoApp
-  cupertino,
-
-  /// Use this parameter is you are using the MaterialApp for Android
-  /// and the CupertinoApp for iOS.
-  both,
-}
-
 class SettingsList extends StatelessWidget {
   const SettingsList({
     required this.sections,
@@ -28,7 +15,7 @@ class SettingsList extends StatelessWidget {
     this.darkTheme,
     this.contentPadding,
     this.scrollController,
-    this.applicationType = ApplicationType.material,
+    this.useSystemTheme = false,
     Key? key,
   }) : super(key: key);
 
@@ -39,8 +26,13 @@ class SettingsList extends StatelessWidget {
   final SettingsThemeData? darkTheme;
   final EdgeInsetsGeometry? contentPadding;
   final List<AbstractSettingsSection> sections;
-  final ApplicationType applicationType;
   final ScrollController? scrollController;
+
+  /// If true, some parameters will be applied from the system theme
+  /// instead of default values or values from [SettingsThemeData]
+  /// that is: backgroundColor, tileBackgroundColor
+  /// TODO add more
+  final bool useSystemTheme;
 
   @override
   Widget build(BuildContext context) {
@@ -51,13 +43,15 @@ class SettingsList extends StatelessWidget {
       platform = this.platform!;
     }
 
-    final brightness = calculateBrightness(context);
-
+    final brightness = calculateBrightness(context, platform);
     final themeData = ThemeProvider.getTheme(
       context: context,
       platform: platform,
       brightness: brightness,
-    ).merge(theme: brightness == Brightness.dark ? darkTheme : lightTheme);
+      useSystemTheme: useSystemTheme,
+    ).merge(
+        theme: brightness == Brightness.dark ? darkTheme : lightTheme,
+        useSystemTheme: useSystemTheme);
 
     return Container(
       color: themeData.settingsListBackground,
@@ -123,28 +117,20 @@ class SettingsList extends StatelessWidget {
     }
   }
 
-  Brightness calculateBrightness(BuildContext context) {
+  Brightness calculateBrightness(
+      BuildContext context, DevicePlatform platform) {
     final Brightness platformBrightness =
         WidgetsBinding.instance.window.platformBrightness;
-    // final materialTheme = Theme.of(context);
-    // final cupertinoTheme = CupertinoTheme.of(context);
+    final materialBrightness = Theme.of(context).brightness;
+    final cupertinoBrightness = CupertinoTheme.of(context).brightness;
 
-    // final materialBrightness = Theme.of(context).brightness;
-    // final cupertinoBrightness = CupertinoTheme.of(context).brightness;
-    // ??
-    // MediaQuery.of(context).platformBrightness;
-    // final platformBrightness = MediaQuery.of(context).platformBrightness;
-
-    // switch (applicationType) {
-    //   case ApplicationType.material:
-    //     return materialBrightness;
-    //   case ApplicationType.cupertino:
-    //     return cupertinoBrightness!;
-    //   case ApplicationType.both:
-    //     return platform == DevicePlatform.iOS
-    //         ? cupertinoBrightness!
-    //         : materialBrightness;
-    // }
-    return platformBrightness;
+    switch (platform) {
+      case DevicePlatform.android:
+        return materialBrightness;
+      case DevicePlatform.iOS:
+        return cupertinoBrightness!;
+      default:
+        return platformBrightness;
+    }
   }
 }

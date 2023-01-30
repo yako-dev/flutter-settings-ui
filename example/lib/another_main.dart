@@ -30,19 +30,19 @@ class _AppState extends State<App> {
       ],
       title: 'Settings UI',
       theme: ThemeData(
-          // useMaterial3: true,
-          // scaffoldBackgroundColor: Colors.grey,
-          colorScheme: ColorScheme.fromSwatch(
-                  backgroundColor: Colors.grey, primarySwatch: Colors.yellow)
-              .copyWith(secondary: Colors.blueAccent)),
+        // useMaterial3: true,
+        scaffoldBackgroundColor: Colors.grey,
+        colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.yellow),
+      ),
       darkTheme: ThemeData(
-          // useMaterial3: true,
-          scaffoldBackgroundColor: Colors.black,
-          colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.purple)
-              .copyWith(secondary: Colors.blueAccent)),
+        // useMaterial3: true,
+        scaffoldBackgroundColor: Colors.red,
+        colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.purple),
+      ),
       home: Scaffold(
         appBar: AppBar(title: Text('Settings UI')),
         body: _settings(),
+        // body: _cupertinoTiles(),
         // body: Center(
         //   child: Text('jasdfsld'),
         // ),
@@ -61,8 +61,8 @@ class _AppState extends State<App> {
       theme: CupertinoThemeData(
         scaffoldBackgroundColor: CupertinoDynamicColor.withBrightness(
             color: Colors.grey, darkColor: Colors.blue),
-        // primaryColor: CupertinoDynamicColor.withBrightness(
-        //     color: Colors.yellow, darkColor: Colors.purple),
+        primaryColor: CupertinoDynamicColor.withBrightness(
+            color: Colors.yellow, darkColor: Colors.purple),
         barBackgroundColor: CupertinoDynamicColor.withBrightness(
             color: Colors.yellow, darkColor: Colors.purple),
         textTheme: CupertinoTextThemeData(
@@ -74,6 +74,7 @@ class _AppState extends State<App> {
           middle: Text('Cupertino app'),
         ),
         child: _settings(),
+        // child: _cupertinoTiles(),
         // child: Center(
         //   child: Text('jasdfsld'),
         // ),
@@ -83,18 +84,20 @@ class _AppState extends State<App> {
 
   Widget _settings() {
     return SettingsList(
-      // applicationType: ApplicationType.cupertino,
-      // lightTheme: SettingsThemeData(settingsListBackground: Colors.yellow),
-      // darkTheme: SettingsThemeData(settingsListBackground: Colors.orange),
-      platform: DevicePlatform.iOS,
+      lightTheme: SettingsThemeData(settingsListBackground: Colors.yellow),
+      darkTheme: SettingsThemeData(settingsListBackground: Colors.orange),
+      useSystemTheme: true,
+      // platform: DevicePlatform.android,
       sections: [
         SettingsSection(
           title: Text('Common'),
           tiles: <SettingsTile>[
             SettingsTile.navigation(
-              // leading: Icon(Icons.language),
+              leading: Icon(Icons.language),
               title: Text('Language'),
               value: Text('English'),
+              description: Text('English language'),
+              onPressed: (context) {},
               // titleDescription: Text('The item description'),
             ),
             SettingsTile.switchTile(
@@ -109,6 +112,44 @@ class _AppState extends State<App> {
               title: Text('Enable custom theme'),
             ),
           ],
+        ),
+      ],
+    );
+  }
+
+  Widget _cupertinoTiles() {
+    return CupertinoListSection.insetGrouped(
+      header: const Text('My Reminders'),
+      children: <CupertinoListTile>[
+        CupertinoListTile(
+          title: const Text('Open pull request'),
+          leading: Container(
+            width: double.infinity,
+            height: double.infinity,
+            color: CupertinoColors.activeGreen,
+          ),
+          trailing: const CupertinoListTileChevron(),
+          onTap: () {},
+        ),
+        CupertinoListTile(
+          title: const Text('Push to master'),
+          leading: Container(
+            width: double.infinity,
+            height: double.infinity,
+            color: CupertinoColors.systemRed,
+          ),
+          additionalInfo: const Text('Not available'),
+        ),
+        CupertinoListTile(
+          title: const Text('View last commit'),
+          leading: Container(
+            width: double.infinity,
+            height: double.infinity,
+            color: CupertinoColors.activeOrange,
+          ),
+          additionalInfo: const Text('12 days ago'),
+          trailing: const CupertinoListTileChevron(),
+          onTap: () {},
         ),
       ],
     );

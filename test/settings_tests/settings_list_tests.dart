@@ -14,7 +14,6 @@ void settingsListTests(DevicePlatform? platform) {
         MaterialApp(
           home: TestWidgetScreen(
             platform: platform,
-            applicationType: ApplicationType.material,
             settingsTiles: [
               SettingsTile.navigation(
                 title: const Text('Abstract settings screen'),
@@ -46,7 +45,6 @@ void settingsListTests(DevicePlatform? platform) {
         MaterialApp(
           home: TestWidgetScreen(
             platform: platform,
-            applicationType: ApplicationType.both,
             settingsTiles: [
               SettingsTile.navigation(
                 title: const Text('Abstract settings screen'),
@@ -83,7 +81,6 @@ void settingsListTests(DevicePlatform? platform) {
           child: MaterialApp(
             home: TestWidgetScreen(
               platform: platform,
-              applicationType: ApplicationType.material,
               settingsTiles: [
                 SettingsTile.navigation(
                   title: const Text('Abstract settings screen'),
@@ -122,7 +119,6 @@ void settingsListTests(DevicePlatform? platform) {
           ],
           home: TestWidgetScreen(
             platform: platform,
-            applicationType: ApplicationType.cupertino,
             settingsTiles: [
               SettingsTile.navigation(
                 title: const Text('Abstract settings screen'),

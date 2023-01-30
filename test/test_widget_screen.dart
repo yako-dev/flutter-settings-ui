@@ -3,13 +3,11 @@ import 'package:settings_ui/settings_ui.dart';
 
 class TestWidgetScreen extends StatefulWidget {
   final DevicePlatform? platform;
-  final ApplicationType applicationType;
   final List<AbstractSettingsTile> settingsTiles;
 
   const TestWidgetScreen({
     Key? key,
     this.platform,
-    this.applicationType = ApplicationType.material,
     required this.settingsTiles,
   }) : super(key: key);
 
@@ -36,7 +34,6 @@ class _TestWidgetScreenState extends State<TestWidgetScreen> {
         ),
         lightTheme: const SettingsThemeData(),
         platform: widget.platform,
-        applicationType: widget.applicationType,
         sections: [
           SettingsSection(
             title: const Text('General'),

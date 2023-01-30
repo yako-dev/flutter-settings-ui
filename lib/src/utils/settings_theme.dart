@@ -51,6 +51,7 @@ class SettingsThemeData {
 
   SettingsThemeData merge({
     SettingsThemeData? theme,
+    required bool useSystemTheme,
   }) {
     if (theme == null) return this;
 
@@ -59,7 +60,9 @@ class SettingsThemeData {
       tileDescriptionTextColor: theme.tileDescriptionTextColor,
       dividerColor: theme.dividerColor,
       trailingTextColor: theme.trailingTextColor,
-      settingsListBackground: theme.settingsListBackground,
+      settingsListBackground: useSystemTheme
+          ? settingsListBackground
+          : theme.settingsListBackground,
       settingsSectionBackground: theme.settingsSectionBackground,
       settingsTileTextColor: theme.settingsTileTextColor,
       tileHighlightColor: theme.tileHighlightColor,

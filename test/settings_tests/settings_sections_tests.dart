@@ -14,7 +14,6 @@ void settingsSectionsTests(DevicePlatform? platform) {
       MaterialApp(
         home: TestWidgetScreen(
           platform: platform,
-          applicationType: ApplicationType.material,
           settingsTiles: [
             SettingsTile.navigation(
               title: const Text('Abstract settings screen'),
@@ -62,7 +61,6 @@ void settingsSectionsTests(DevicePlatform? platform) {
       MaterialApp(
         home: TestWidgetScreen(
           platform: platform,
-          applicationType: ApplicationType.material,
           settingsTiles: [
             SettingsTile.navigation(
               title: const Text('Abstract settings screen'),
