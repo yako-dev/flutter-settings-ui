@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:settings_ui/settings_ui.dart';
@@ -6,6 +5,8 @@ import 'package:settings_ui/src/utils/cupertino_theme_provider.dart';
 
 import '../cupertino_app_wrapper.dart';
 
+/// This tests only [SettingsList] theme data
+/// Testing [settingsListBackground]
 void main() {
   group(
       'Cupertino theme defaults apply to SettingsList if useSystemTheme: true',
@@ -104,6 +105,51 @@ void main() {
       final containerWidget = tester.widget(containerFinder) as Container;
       expect(containerWidget.color,
           CupertinoThemeProvider.backgroundColors[Brightness.dark]);
+    });
+  });
+
+  group(
+      'Settings theme apply to SettingsList if useSystemTheme: false and SettingsThemeData is specified',
+      () {
+    const settingsList = SettingsList(
+      lightTheme: SettingsThemeData(settingsListBackground: Colors.amber),
+      darkTheme: SettingsThemeData(settingsListBackground: Colors.blueGrey),
+      platform: DevicePlatform.iOS,
+      sections: [],
+      useSystemTheme: false,
+    );
+    testWidgets('SettingsThemeData.backgroundColor, Brightness.light',
+        (tester) async {
+      // Checking that the background color of the SettingsList is the same as in the specified [SettingsThemeData]
+      await tester.pumpWidget(wrapWithCupertinoApp(
+          settingsList, DevicePlatform.iOS, Brightness.light));
+      final settingsListFinder = find.byType(SettingsList);
+      expect(settingsListFinder, findsOneWidget);
+
+      final containerFinder = find.descendant(
+        of: settingsListFinder,
+        matching: find.byType(Container),
+      );
+
+      final containerWidget = tester.widget(containerFinder) as Container;
+      expect(containerWidget.color, Colors.amber);
+    });
+
+    testWidgets('SettingsThemeData.backgroundColor, Brightness.dark',
+        (tester) async {
+      // Checking that the background color of the SettingsList is the same as in the specified [SettingsThemeData]
+      await tester.pumpWidget(wrapWithCupertinoApp(
+          settingsList, DevicePlatform.iOS, Brightness.dark));
+      final settingsListFinder = find.byType(SettingsList);
+      expect(settingsListFinder, findsOneWidget);
+
+      final containerFinder = find.descendant(
+        of: settingsListFinder,
+        matching: find.byType(Container),
+      );
+
+      final containerWidget = tester.widget(containerFinder) as Container;
+      expect(containerWidget.color, Colors.blueGrey);
     });
   });
 }

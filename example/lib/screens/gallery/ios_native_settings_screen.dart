@@ -49,7 +49,7 @@ class _IosNativeSettingsScreenState extends State<IosNativeSettingsScreen> {
                     'Sign in to your iPhone',
                     style: TextStyle(color: Colors.blueAccent),
                   ),
-                  titleDescription: Text(
+                  subtitle: Text(
                     'Set up iCloud, the App Store, and more.',
                     style: TextStyle(
                       color: Colors.grey,

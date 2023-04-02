@@ -12,10 +12,10 @@ class MaterialThemeProvider {
           getBackgroundColor(context, useSystemTheme, brightness),
       tileHighlightColor: _tileHighlightColors[brightness],
       titleTextColor: _titleTextColors[brightness],
-      settingsTileTextColor: _tileTextColors[brightness],
+      tileTitleTextColor: _tileTextColors[brightness],
       tileDescriptionTextColor: _tileDescriptionTextColors[brightness],
-      leadingIconsColor: _leadingIconsColors[brightness],
-      inactiveTitleColor: _inactiveTitleColors[brightness],
+      tileLeadingIconsColor: _leadingIconsColors[brightness],
+      tileDisabledContentColor: _inactiveTitleColors[brightness],
       inactiveSubtitleColor: _inactiveSubtitleColors[brightness],
     );
   }

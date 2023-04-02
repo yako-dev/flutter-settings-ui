@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:settings_ui/src/sections/abstract_settings_section.dart';
 import 'package:settings_ui/src/sections/platforms/android_settings_section.dart';
 import 'package:settings_ui/src/sections/platforms/ios_settings_section.dart';
@@ -38,6 +38,14 @@ class SettingsSection extends AbstractSettingsSection {
       case DevicePlatform.iOS:
       case DevicePlatform.macOS:
       case DevicePlatform.windows:
+        // return CupertinoListSection.insetGrouped(
+        //   header: title,
+        //   // margin: margin,
+        //   footer: const Text('footer'),
+        //   children: tiles,
+
+        // );
+
         return IOSSettingsSection(
           title: title,
           tiles: tiles,

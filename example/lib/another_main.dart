@@ -59,15 +59,16 @@ class _AppState extends State<App> {
       ],
       title: 'Settings UI',
       theme: CupertinoThemeData(
-        scaffoldBackgroundColor: CupertinoDynamicColor.withBrightness(
-            color: Colors.grey, darkColor: Colors.blue),
-        primaryColor: CupertinoDynamicColor.withBrightness(
-            color: Colors.yellow, darkColor: Colors.purple),
+        // scaffoldBackgroundColor: CupertinoDynamicColor.withBrightness(
+        //     color: CupertinoColors.activeBlue,
+        //     darkColor: CupertinoColors.activeOrange),
+        // primaryColor: CupertinoDynamicColor.withBrightness(
+        //     color: Colors.yellow, darkColor: Colors.purple),
         barBackgroundColor: CupertinoDynamicColor.withBrightness(
             color: Colors.yellow, darkColor: Colors.purple),
-        textTheme: CupertinoTextThemeData(
-          primaryColor: Colors.black,
-        ),
+        // textTheme: CupertinoTextThemeData(
+        //   primaryColor: Colors.black,
+        // ),
       ),
       home: CupertinoPageScaffold(
         navigationBar: const CupertinoNavigationBar(
@@ -84,21 +85,26 @@ class _AppState extends State<App> {
 
   Widget _settings() {
     return SettingsList(
-      lightTheme: SettingsThemeData(settingsListBackground: Colors.yellow),
-      darkTheme: SettingsThemeData(settingsListBackground: Colors.orange),
-      useSystemTheme: true,
-      // platform: DevicePlatform.android,
+      lightTheme: SettingsThemeData(
+        sectionTitleColor: Colors.green,
+      ),
+      darkTheme: SettingsThemeData(
+        sectionTitleColor: Colors.purple,
+      ),
+      // useSystemTheme: true,
+      // platform: DevicePlatform.iOS,
       sections: [
         SettingsSection(
-          title: Text('Common'),
+          // margin: EdgeInsetsDirectional.symmetric(horizontal: 0, vertical: 20),
+          title: Text('COMMON'),
           tiles: <SettingsTile>[
             SettingsTile.navigation(
               leading: Icon(Icons.language),
               title: Text('Language'),
               value: Text('English'),
-              description: Text('English language'),
-              onPressed: (context) {},
-              // titleDescription: Text('The item description'),
+              // enabled: false,
+              // onPressed: (context) {},
+              subtitle: Text('The item description'),
             ),
             SettingsTile.switchTile(
               activeSwitchColor: Colors.red,
@@ -110,6 +116,7 @@ class _AppState extends State<App> {
               initialValue: _switchValue,
               leading: Icon(Icons.format_paint),
               title: Text('Enable custom theme'),
+              description: Text('Enable custom theme'),
             ),
           ],
         ),
@@ -120,17 +127,22 @@ class _AppState extends State<App> {
   Widget _cupertinoTiles() {
     return CupertinoListSection.insetGrouped(
       header: const Text('My Reminders'),
+      footer: const Text('Footer'),
+      // decoration: BoxDecoration(
+      // color: CupertinoColors.activeBlue,
+      // borderRadius: BorderRadius.circular(20),
+      // ),
       children: <CupertinoListTile>[
-        CupertinoListTile(
-          title: const Text('Open pull request'),
-          leading: Container(
-            width: double.infinity,
-            height: double.infinity,
-            color: CupertinoColors.activeGreen,
-          ),
-          trailing: const CupertinoListTileChevron(),
-          onTap: () {},
-        ),
+        // CupertinoListTile(
+        //   title: const Text('Open pull request'),
+        //   leading: Container(
+        //     width: double.infinity,
+        //     height: double.infinity,
+        //     color: CupertinoColors.activeGreen,
+        //   ),
+        //   trailing: const CupertinoListTileChevron(),
+        //   onTap: () {},
+        // ),
         CupertinoListTile(
           title: const Text('Push to master'),
           leading: Container(

@@ -109,10 +109,10 @@ class ThemeProvider {
       settingsListBackground: listBackground,
       titleTextColor: titleTextColor,
       settingsSectionBackground: sectionBackground,
-      settingsTileTextColor: settingsTileTextColor,
+      tileTitleTextColor: settingsTileTextColor,
       tileDescriptionTextColor: tileDescriptionTextColor,
-      leadingIconsColor: leadingIconsColor,
-      inactiveTitleColor: inactiveTitleColor,
+      tileLeadingIconsColor: leadingIconsColor,
+      tileDisabledContentColor: inactiveTitleColor,
       inactiveSubtitleColor: inactiveSubtitleColor,
     );
   }

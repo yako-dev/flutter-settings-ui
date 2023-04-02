@@ -98,7 +98,7 @@ class _IosDeveloperScreen extends State<IosDeveloperScreen> {
               tiles: [
                 SettingsTile.navigation(
                   title: Text('Downtime'),
-                  titleDescription: Text('Schedule time away from the screen.'),
+                  subtitle: Text('Schedule time away from the screen.'),
                   leading: Container(
                     height: 32,
                     width: 32,

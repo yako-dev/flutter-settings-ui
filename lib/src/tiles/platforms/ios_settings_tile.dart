@@ -7,7 +7,7 @@ class IOSSettingsTile extends StatefulWidget {
     required this.tileType,
     required this.leading,
     required this.title,
-    required this.titleDescription,
+    required this.subtitle,
     required this.description,
     required this.onPressed,
     required this.onToggle,
@@ -18,14 +18,14 @@ class IOSSettingsTile extends StatefulWidget {
     required this.trailing,
     this.titlePadding,
     this.leadingPadding,
-    this.titleDescriptionPadding,
+    this.subtitlePadding,
     Key? key,
   }) : super(key: key);
 
   final SettingsTileType tileType;
   final Widget? leading;
   final Widget? title;
-  final Widget? titleDescription;
+  final Widget? subtitle;
   final Widget? description;
   final Function(BuildContext context)? onPressed;
   final Function(bool value)? onToggle;
@@ -36,7 +36,7 @@ class IOSSettingsTile extends StatefulWidget {
   final Widget? trailing;
   final EdgeInsetsGeometry? titlePadding;
   final EdgeInsetsGeometry? leadingPadding;
-  final EdgeInsetsGeometry? titleDescriptionPadding;
+  final EdgeInsetsGeometry? subtitlePadding;
 
   @override
   IOSSettingsTileState createState() => IOSSettingsTileState();
@@ -54,7 +54,7 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
       ignoring: !widget.enabled,
       child: Column(
         children: [
-          buildTitle(
+          buildTile(
             context: context,
             theme: theme,
             additionalInfo: additionalInfo,
@@ -70,7 +70,7 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
     );
   }
 
-  Widget buildTitle({
+  Widget buildTile({
     required BuildContext context,
     required SettingsTheme theme,
     required IOSSettingsTileAdditionalInfo additionalInfo,
@@ -113,6 +113,7 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
         bottom: additionalInfo.needToShowDivider ? 24 : 8 * scaleFactor,
       ),
       decoration: BoxDecoration(
+        // TODO: check if this is correct
         color: theme.themeData.settingsListBackground,
       ),
       child: DefaultTextStyle(
@@ -139,8 +140,8 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
             child: IconTheme(
               data: IconTheme.of(context).copyWith(
                 color: widget.enabled
-                    ? theme.themeData.leadingIconsColor
-                    : theme.themeData.inactiveTitleColor,
+                    ? theme.themeData.tileLeadingIconsColor
+                    : theme.themeData.tileDisabledContentColor,
               ),
               child: widget.trailing!,
             ),
@@ -151,15 +152,15 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
             onChanged: widget.onToggle,
             activeColor: widget.enabled
                 ? widget.activeSwitchColor
-                : theme.themeData.inactiveTitleColor,
+                : theme.themeData.tileDisabledContentColor,
           ),
         if (widget.tileType == SettingsTileType.navigationTile &&
             widget.value != null)
           DefaultTextStyle(
             style: TextStyle(
               color: widget.enabled
-                  ? theme.themeData.trailingTextColor
-                  : theme.themeData.inactiveTitleColor,
+                  ? theme.themeData.tileTrailingTextColor
+                  : theme.themeData.tileDisabledContentColor,
               fontSize: 17,
             ),
             child: widget.value!,
@@ -169,7 +170,7 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
             padding: const EdgeInsetsDirectional.only(start: 6, end: 2),
             child: IconTheme(
               data: IconTheme.of(context)
-                  .copyWith(color: theme.themeData.leadingIconsColor),
+                  .copyWith(color: theme.themeData.tileLeadingIconsColor),
               child: Icon(
                 CupertinoIcons.chevron_forward,
                 size: 18 * scaleFactor,
@@ -216,6 +217,7 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
       onTapCancel: () =>
           widget.onPressed == null ? null : changePressState(isPressed: false),
       child: Container(
+        key: const Key('ios_settings_tile_container'),
         color: isPressed
             ? theme.themeData.tileHighlightColor
             : theme.themeData.settingsSectionBackground,
@@ -229,8 +231,8 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
                 child: IconTheme.merge(
                   data: IconThemeData(
                     color: widget.enabled
-                        ? theme.themeData.leadingIconsColor
-                        : theme.themeData.inactiveTitleColor,
+                        ? theme.themeData.tileLeadingIconsColor
+                        : theme.themeData.tileDisabledContentColor,
                   ),
                   child: widget.leading!,
                 ),
@@ -252,23 +254,24 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
                                 padding: widget.titlePadding ??
                                     EdgeInsetsDirectional.only(
                                       top: 12.5 * scaleFactor,
-                                      bottom: widget.titleDescription == null
+                                      bottom: widget.subtitle == null
                                           ? (12.5 * scaleFactor)
                                           : (3.5 * scaleFactor),
                                     ),
                                 child: DefaultTextStyle(
                                   style: TextStyle(
                                     color: widget.enabled
-                                        ? theme.themeData.settingsTileTextColor
-                                        : theme.themeData.inactiveTitleColor,
+                                        ? theme.themeData.tileTitleTextColor
+                                        : theme
+                                            .themeData.tileDisabledContentColor,
                                     fontSize: 16,
                                   ),
                                   child: widget.title!,
                                 ),
                               ),
-                              if (widget.titleDescription != null)
+                              if (widget.subtitle != null)
                                 Padding(
-                                  padding: widget.titleDescriptionPadding ??
+                                  padding: widget.subtitlePadding ??
                                       EdgeInsetsDirectional.only(
                                         bottom: 12.5 * scaleFactor,
                                       ),
@@ -276,10 +279,11 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
                                     style: TextStyle(
                                       color: widget.enabled
                                           ? theme.themeData.titleTextColor
-                                          : theme.themeData.inactiveTitleColor,
+                                          : theme.themeData
+                                              .tileDisabledContentColor,
                                       fontSize: 15,
                                     ),
-                                    child: widget.titleDescription!,
+                                    child: widget.subtitle!,
                                   ),
                                 ),
                             ],
@@ -294,7 +298,7 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
                     Divider(
                       height: 0,
                       thickness: 0.7,
-                      color: theme.themeData.dividerColor,
+                      color: theme.themeData.tilesDividerColor,
                     ),
                 ],
               ),

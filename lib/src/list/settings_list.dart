@@ -29,7 +29,7 @@ class SettingsList extends StatelessWidget {
   final ScrollController? scrollController;
 
   /// If true, some parameters will be applied from the system theme
-  /// instead of default values or values from [SettingsThemeData]
+  /// instead of default values of package or values from [SettingsThemeData]
   /// that is: backgroundColor, tileBackgroundColor
   /// TODO add more
   final bool useSystemTheme;
@@ -50,7 +50,8 @@ class SettingsList extends StatelessWidget {
       brightness: brightness,
       useSystemTheme: useSystemTheme,
     ).merge(
-        theme: brightness == Brightness.dark ? darkTheme : lightTheme,
+        userDefinedSettingsTheme:
+            brightness == Brightness.dark ? darkTheme : lightTheme,
         useSystemTheme: useSystemTheme);
 
     return Container(
@@ -128,7 +129,7 @@ class SettingsList extends StatelessWidget {
       case DevicePlatform.android:
         return materialBrightness;
       case DevicePlatform.iOS:
-        return cupertinoBrightness!;
+        return cupertinoBrightness ?? platformBrightness;
       default:
         return platformBrightness;
     }

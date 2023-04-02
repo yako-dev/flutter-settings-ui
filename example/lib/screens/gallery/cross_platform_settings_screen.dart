@@ -39,28 +39,28 @@ class _CrossPlatformSettingsScreenState
         lightTheme: !useCustomTheme
             ? null
             : SettingsThemeData(
-                dividerColor: Colors.red,
+                tilesDividerColor: Colors.red,
                 tileDescriptionTextColor: Colors.yellow,
-                leadingIconsColor: Colors.pink,
+                tileLeadingIconsColor: Colors.pink,
                 settingsListBackground: Colors.white,
                 settingsSectionBackground: Colors.green,
-                settingsTileTextColor: Colors.tealAccent,
+                tileTitleTextColor: Colors.tealAccent,
                 tileHighlightColor: Colors.blue,
                 titleTextColor: Colors.cyan,
-                trailingTextColor: Colors.deepOrangeAccent,
+                tileTrailingTextColor: Colors.deepOrangeAccent,
               ),
         darkTheme: !useCustomTheme
             ? null
             : SettingsThemeData(
-                dividerColor: Colors.pink,
+                tilesDividerColor: Colors.pink,
                 tileDescriptionTextColor: Colors.blue,
-                leadingIconsColor: Colors.red,
+                tileLeadingIconsColor: Colors.red,
                 settingsListBackground: Colors.grey,
                 settingsSectionBackground: Colors.tealAccent,
-                settingsTileTextColor: Colors.green,
+                tileTitleTextColor: Colors.green,
                 tileHighlightColor: Colors.yellow,
                 titleTextColor: Colors.cyan,
-                trailingTextColor: Colors.orange,
+                tileTrailingTextColor: Colors.orange,
               ),
         sections: [
           SettingsSection(

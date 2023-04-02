@@ -42,8 +42,10 @@ class IOSSettingsSection extends StatelessWidget {
                     bottom: 5 * scaleFactor,
                   ),
               child: DefaultTextStyle(
+                key: const Key('ios_settings_section_title_style'),
                 style: TextStyle(
-                  color: theme.themeData.titleTextColor,
+                  color: theme.themeData.sectionTitleColor,
+                  // TODO: is this one hardcoded?
                   fontSize: 13,
                 ),
                 child: title!,
@@ -64,7 +66,7 @@ class IOSSettingsSection extends StatelessWidget {
       itemBuilder: (BuildContext context, int index) {
         final tile = tiles[index];
 
-        var enableTop = false;
+        bool enableTop = false;
 
         if (index == 0 ||
             (index > 0 &&

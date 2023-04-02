@@ -72,8 +72,8 @@ class WebSettingsTile extends StatelessWidget {
                   child: IconTheme(
                     data: IconTheme.of(context).copyWith(
                       color: enabled
-                          ? theme.themeData.leadingIconsColor
-                          : theme.themeData.inactiveTitleColor,
+                          ? theme.themeData.tileLeadingIconsColor
+                          : theme.themeData.tileDisabledContentColor,
                     ),
                     child: leading!,
                   ),
@@ -92,8 +92,8 @@ class WebSettingsTile extends StatelessWidget {
                       DefaultTextStyle(
                         style: TextStyle(
                           color: enabled
-                              ? theme.themeData.settingsTileTextColor
-                              : theme.themeData.inactiveTitleColor,
+                              ? theme.themeData.tileTitleTextColor
+                              : theme.themeData.tileDisabledContentColor,
                           fontSize: 18,
                           fontWeight: FontWeight.w400,
                         ),
@@ -134,8 +134,8 @@ class WebSettingsTile extends StatelessWidget {
                     IconTheme(
                       data: IconTheme.of(context).copyWith(
                         color: enabled
-                            ? theme.themeData.leadingIconsColor
-                            : theme.themeData.inactiveTitleColor,
+                            ? theme.themeData.tileLeadingIconsColor
+                            : theme.themeData.tileDisabledContentColor,
                       ),
                       child: trailing!,
                     ),
@@ -145,7 +145,7 @@ class WebSettingsTile extends StatelessWidget {
                         activeColor: enabled
                             ? (activeSwitchColor ??
                                 const Color.fromRGBO(138, 180, 248, 1.0))
-                            : theme.themeData.inactiveTitleColor,
+                            : theme.themeData.tileDisabledContentColor,
                         value: initialValue,
                         onChanged: onToggle,
                       ),
@@ -160,7 +160,7 @@ class WebSettingsTile extends StatelessWidget {
                     activeColor: enabled
                         ? (activeSwitchColor ??
                             const Color.fromRGBO(138, 180, 248, 1.0))
-                        : theme.themeData.inactiveTitleColor,
+                        : theme.themeData.tileDisabledContentColor,
                     onChanged: onToggle,
                   ),
                 )
@@ -171,8 +171,8 @@ class WebSettingsTile extends StatelessWidget {
                   child: IconTheme(
                     data: IconTheme.of(context).copyWith(
                       color: enabled
-                          ? theme.themeData.leadingIconsColor
-                          : theme.themeData.inactiveTitleColor,
+                          ? theme.themeData.tileLeadingIconsColor
+                          : theme.themeData.tileDisabledContentColor,
                     ),
                     child: trailing!,
                   ),

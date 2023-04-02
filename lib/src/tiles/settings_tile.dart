@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:settings_ui/src/tiles/abstract_settings_tile.dart';
 import 'package:settings_ui/src/tiles/platforms/android_settings_tile.dart';
 import 'package:settings_ui/src/tiles/platforms/ios_settings_tile.dart';
@@ -14,7 +14,7 @@ class SettingsTile extends AbstractSettingsTile {
     this.trailing,
     this.value,
     required this.title,
-    this.titleDescription,
+    this.subtitle,
     this.description,
     this.onPressed,
     this.enabled = true,
@@ -22,7 +22,7 @@ class SettingsTile extends AbstractSettingsTile {
     this.leadingPadding,
     this.trailingPadding,
     this.descriptionPadding,
-    this.titleDescriptionPadding,
+    this.subtitlePadding,
     Key? key,
   }) : super(key: key) {
     onToggle = null;
@@ -36,7 +36,7 @@ class SettingsTile extends AbstractSettingsTile {
     this.trailing,
     this.value,
     required this.title,
-    this.titleDescription,
+    this.subtitle,
     this.description,
     this.onPressed,
     this.enabled = true,
@@ -44,7 +44,7 @@ class SettingsTile extends AbstractSettingsTile {
     this.leadingPadding,
     this.trailingPadding,
     this.descriptionPadding,
-    this.titleDescriptionPadding,
+    this.subtitlePadding,
     Key? key,
   }) : super(key: key) {
     onToggle = null;
@@ -60,7 +60,7 @@ class SettingsTile extends AbstractSettingsTile {
     this.leading,
     this.trailing,
     required this.title,
-    this.titleDescription,
+    this.subtitle,
     this.description,
     this.onPressed,
     this.enabled = true,
@@ -68,7 +68,7 @@ class SettingsTile extends AbstractSettingsTile {
     this.leadingPadding,
     this.trailingPadding,
     this.descriptionPadding,
-    this.titleDescriptionPadding,
+    this.subtitlePadding,
     Key? key,
   }) : super(key: key) {
     value = null;
@@ -85,7 +85,7 @@ class SettingsTile extends AbstractSettingsTile {
   final Widget title;
 
   /// The widget at the under of the title
-  final Widget? titleDescription;
+  final Widget? subtitle;
 
   /// The widget at the bottom of the [title]
   final Widget? description;
@@ -97,7 +97,7 @@ class SettingsTile extends AbstractSettingsTile {
   final EdgeInsetsGeometry? leadingPadding;
   final EdgeInsetsGeometry? trailingPadding;
   final EdgeInsetsGeometry? descriptionPadding;
-  final EdgeInsetsGeometry? titleDescriptionPadding;
+  final EdgeInsetsGeometry? subtitlePadding;
 
   late final Color? activeSwitchColor;
   late final Widget? value;
@@ -134,6 +134,16 @@ class SettingsTile extends AbstractSettingsTile {
       case DevicePlatform.iOS:
       case DevicePlatform.macOS:
       case DevicePlatform.windows:
+        // return CupertinoListTile(
+        //   title: title,
+        //   leading: leading,
+        //   additionalInfo: value,
+        //   trailing: trailing,
+        //   // onTap: onPressed,
+        //   subtitle: description,
+        //   backgroundColor: CupertinoColors.white,
+        //   // trailing: Icon(CupertinoIcons.chevron_forward),
+        // );
         return IOSSettingsTile(
           description: description,
           onPressed: onPressed,
@@ -142,14 +152,14 @@ class SettingsTile extends AbstractSettingsTile {
           value: value,
           leading: leading,
           title: title,
-          titleDescription: titleDescription,
+          subtitle: subtitle,
           trailing: trailing,
           enabled: enabled,
           activeSwitchColor: activeSwitchColor,
           initialValue: initialValue ?? false,
           titlePadding: titlePadding,
           leadingPadding: leadingPadding,
-          titleDescriptionPadding: titlePadding,
+          subtitlePadding: titlePadding,
         );
       case DevicePlatform.web:
         return WebSettingsTile(

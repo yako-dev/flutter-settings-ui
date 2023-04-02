@@ -120,7 +120,7 @@ void settingsTileTests(DevicePlatform platform) {
               SettingsTile.navigation(
                 title: const Text('Navigation tile without value'),
                 onPressed: (context) {},
-                titleDescription: const Text('Title description value'),
+                subtitle: const Text('Title description value'),
                 trailing: const Icon(
                   Icons.ac_unit,
                   size: 24,
