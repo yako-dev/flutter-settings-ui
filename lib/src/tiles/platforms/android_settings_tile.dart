@@ -14,6 +14,7 @@ class AndroidSettingsTile extends StatelessWidget {
     required this.activeSwitchColor,
     required this.enabled,
     required this.trailing,
+    required this.compact,
     Key? key,
   }) : super(key: key);
 
@@ -28,6 +29,7 @@ class AndroidSettingsTile extends StatelessWidget {
   final bool enabled;
   final Color? activeSwitchColor;
   final Widget? trailing;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -37,6 +39,8 @@ class AndroidSettingsTile extends StatelessWidget {
     final cantShowAnimation = tileType == SettingsTileType.switchTile
         ? onToggle == null && onPressed == null
         : onPressed == null;
+
+    final double tilePadding = this.compact ? 10 : 19;
 
     return IgnorePointer(
       ignoring: !enabled,
@@ -73,8 +77,8 @@ class AndroidSettingsTile extends StatelessWidget {
                     padding: EdgeInsetsDirectional.only(
                       start: 24,
                       end: 24,
-                      bottom: 19 * scaleFactor,
-                      top: 19 * scaleFactor,
+                      bottom: tilePadding * scaleFactor,
+                      top: tilePadding * scaleFactor,
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

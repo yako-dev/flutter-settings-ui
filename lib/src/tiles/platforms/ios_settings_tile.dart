@@ -15,6 +15,7 @@ class IOSSettingsTile extends StatefulWidget {
     required this.activeSwitchColor,
     required this.enabled,
     required this.trailing,
+    required this.compact,
     Key? key,
   }) : super(key: key);
 
@@ -29,6 +30,7 @@ class IOSSettingsTile extends StatefulWidget {
   final bool enabled;
   final Color? activeSwitchColor;
   final Widget? trailing;
+  final bool compact;
 
   @override
   _IOSSettingsTileState createState() => _IOSSettingsTileState();
@@ -176,6 +178,8 @@ class _IOSSettingsTileState extends State<IOSSettingsTile> {
   ) {
     final scaleFactor = MediaQuery.of(context).textScaleFactor;
 
+    final double tilePadding = widget.compact ? 7 : 12.5;
+
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: widget.onPressed == null
@@ -227,8 +231,8 @@ class _IOSSettingsTileState extends State<IOSSettingsTile> {
                         Expanded(
                           child: Padding(
                             padding: EdgeInsetsDirectional.only(
-                              top: 12.5 * scaleFactor,
-                              bottom: 12.5 * scaleFactor,
+                              top: tilePadding * scaleFactor,
+                              bottom: tilePadding * scaleFactor,
                             ),
                             child: DefaultTextStyle(
                               style: TextStyle(

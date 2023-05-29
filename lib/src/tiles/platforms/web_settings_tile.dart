@@ -15,6 +15,7 @@ class WebSettingsTile extends StatelessWidget {
     required this.activeSwitchColor,
     required this.enabled,
     required this.trailing,
+    required this.compact,
     Key? key,
   }) : super(key: key);
 
@@ -29,11 +30,14 @@ class WebSettingsTile extends StatelessWidget {
   final bool enabled;
   final Widget? trailing;
   final Color? activeSwitchColor;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     final theme = SettingsTheme.of(context);
     final scaleFactor = MediaQuery.of(context).textScaleFactor;
+
+    final double tilePadding = this.compact ? 10 : 19;
 
     final cantShowAnimation = tileType == SettingsTileType.switchTile
         ? onToggle == null && onPressed == null
@@ -74,8 +78,8 @@ class WebSettingsTile extends StatelessWidget {
                     padding: EdgeInsetsDirectional.only(
                       start: 24,
                       end: 24,
-                      bottom: 19 * scaleFactor,
-                      top: 19 * scaleFactor,
+                      bottom: tilePadding * scaleFactor,
+                      top: tilePadding * scaleFactor,
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
