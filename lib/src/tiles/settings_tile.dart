@@ -17,6 +17,7 @@ class SettingsTile extends AbstractSettingsTile {
     this.description,
     this.onPressed,
     this.enabled = true,
+    this.compact = false,
     Key? key,
   }) : super(key: key) {
     onToggle = null;
@@ -33,6 +34,7 @@ class SettingsTile extends AbstractSettingsTile {
     this.description,
     this.onPressed,
     this.enabled = true,
+    this.compact = false,
     Key? key,
   }) : super(key: key) {
     onToggle = null;
@@ -51,6 +53,7 @@ class SettingsTile extends AbstractSettingsTile {
     this.description,
     this.onPressed,
     this.enabled = true,
+    this.compact = false,
     Key? key,
   }) : super(key: key) {
     value = null;
@@ -78,6 +81,7 @@ class SettingsTile extends AbstractSettingsTile {
   late final SettingsTileType tileType;
   late final bool? initialValue;
   late final bool enabled;
+  late final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -96,6 +100,7 @@ class SettingsTile extends AbstractSettingsTile {
           leading: leading,
           title: title,
           enabled: enabled,
+          compact: compact,
           activeSwitchColor: activeSwitchColor,
           initialValue: initialValue ?? false,
           trailing: trailing,
@@ -113,6 +118,7 @@ class SettingsTile extends AbstractSettingsTile {
           title: title,
           trailing: trailing,
           enabled: enabled,
+          compact: compact,
           activeSwitchColor: activeSwitchColor,
           initialValue: initialValue ?? false,
         );
@@ -127,6 +133,7 @@ class SettingsTile extends AbstractSettingsTile {
           title: title,
           enabled: enabled,
           trailing: trailing,
+          compact: compact,
           activeSwitchColor: activeSwitchColor,
           initialValue: initialValue ?? false,
         );
