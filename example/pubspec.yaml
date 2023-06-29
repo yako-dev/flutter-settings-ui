@@ -3,13 +3,13 @@ description: A new Flutter project.
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.1.0 <3.0.0"
+  sdk: ">=2.18.0 <3.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.2
-  device_preview: ^0.6.2-beta
+  device_preview: ^1.1.0
   settings_ui:
     path: ../
 

@@ -27,7 +27,6 @@ class MyApp extends StatelessWidget {
       ),
       darkTheme: ThemeData(
         primarySwatch: Colors.deepPurple,
-        accentColor: Colors.deepPurple,
         brightness: Brightness.dark,
       ),
       home: SettingsScreen(),
