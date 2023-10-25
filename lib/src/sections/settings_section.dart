@@ -4,6 +4,7 @@ import 'package:settings_ui/src/sections/platforms/android_settings_section.dart
 import 'package:settings_ui/src/sections/platforms/ios_settings_section.dart';
 import 'package:settings_ui/src/sections/platforms/web_settings_section.dart';
 import 'package:settings_ui/src/tiles/abstract_settings_tile.dart';
+import 'package:settings_ui/src/utils/exceptions.dart';
 import 'package:settings_ui/src/utils/platform_utils.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 
@@ -38,6 +39,7 @@ class SettingsSection extends AbstractSettingsSection {
       case DevicePlatform.iOS:
       case DevicePlatform.macOS:
       case DevicePlatform.windows:
+        // TODO: decide whether this commented code snipped is still required
         // return CupertinoListSection.insetGrouped(
         //   header: title,
         //   // margin: margin,
@@ -60,10 +62,7 @@ class SettingsSection extends AbstractSettingsSection {
           titlePadding: titlePadding,
         );
       case DevicePlatform.device:
-        throw Exception(
-          'You can\'t use the DevicePlatform.device in this context. '
-          'Incorrect platform: SettingsSection.build',
-        );
+        throw InvalidDevicePlatformDeviceUsage('SettingsSection.build');
     }
   }
 }

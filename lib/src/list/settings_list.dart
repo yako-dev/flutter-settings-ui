@@ -1,11 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:settings_ui/src/sections/abstract_settings_section.dart';
+import 'package:settings_ui/src/utils/exceptions.dart';
 import 'package:settings_ui/src/utils/platform_utils.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
-import 'package:settings_ui/src/utils/theme_provider.dart';
+import 'package:settings_ui/src/utils/theme_providers/theme_provider.dart';
 
-class SettingsList extends StatelessWidget {
+class SettingsList extends StatefulWidget {
   const SettingsList({
     required this.sections,
     this.shrinkWrap = false,
@@ -16,6 +17,7 @@ class SettingsList extends StatelessWidget {
     this.contentPadding,
     this.scrollController,
     this.useSystemTheme = false,
+    this.wideScreenBreakpoint = 810,
     Key? key,
   }) : super(key: key);
 
@@ -28,6 +30,10 @@ class SettingsList extends StatelessWidget {
   final List<AbstractSettingsSection> sections;
   final ScrollController? scrollController;
 
+  /// Width of the screen from [MediaQuery]'s [Size]
+  /// at which the wide screen padding will be applied
+  final double wideScreenBreakpoint;
+
   /// If true, some parameters will be applied from the system theme
   /// instead of default values of package or values from [SettingsThemeData]
   /// that is: backgroundColor, tileBackgroundColor
@@ -35,24 +41,38 @@ class SettingsList extends StatelessWidget {
   final bool useSystemTheme;
 
   @override
-  Widget build(BuildContext context) {
-    DevicePlatform platform;
-    if (this.platform == null || this.platform == DevicePlatform.device) {
+  State<SettingsList> createState() => _SettingsListState();
+}
+
+class _SettingsListState extends State<SettingsList> {
+  late DevicePlatform platform;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (widget.platform == null || widget.platform == DevicePlatform.device) {
       platform = PlatformUtils.detectPlatform(context);
     } else {
-      platform = this.platform!;
+      platform = widget.platform!;
     }
+  }
 
-    final brightness = calculateBrightness(context, platform);
+  @override
+  Widget build(BuildContext context) {
+    final themeBrightness = _getThemeBrightness(context, platform);
+    final userDefinedTheme = themeBrightness == Brightness.dark
+        ? widget.darkTheme
+        : widget.lightTheme;
+
     final themeData = ThemeProvider.getTheme(
       context: context,
       platform: platform,
-      brightness: brightness,
-      useSystemTheme: useSystemTheme,
+      brightness: themeBrightness,
+      useSystemTheme: widget.useSystemTheme,
     ).merge(
-        userDefinedSettingsTheme:
-            brightness == Brightness.dark ? darkTheme : lightTheme,
-        useSystemTheme: useSystemTheme);
+      userDefinedSettingsTheme: userDefinedTheme,
+      useSystemTheme: widget.useSystemTheme,
+    );
 
     return Container(
       color: themeData.settingsListBackground,
@@ -62,44 +82,29 @@ class SettingsList extends StatelessWidget {
         themeData: themeData,
         platform: platform,
         child: ListView.builder(
-          controller: scrollController,
-          physics: physics,
-          shrinkWrap: shrinkWrap,
-          itemCount: sections.length,
-          padding: contentPadding ?? calculateDefaultPadding(platform, context),
+          controller: widget.scrollController,
+          physics: widget.physics,
+          shrinkWrap: widget.shrinkWrap,
+          itemCount: widget.sections.length,
+          padding:
+              widget.contentPadding ?? _getDefaultPadding(platform, context),
           itemBuilder: (BuildContext context, int index) {
-            return sections[index];
+            return widget.sections[index];
           },
         ),
       ),
     );
   }
 
-  EdgeInsets calculateDefaultPadding(
-      DevicePlatform platform, BuildContext context) {
-    if (MediaQuery.of(context).size.width > 810) {
-      double padding = (MediaQuery.of(context).size.width - 810) / 2;
-      switch (platform) {
-        case DevicePlatform.android:
-        case DevicePlatform.fuchsia:
-        case DevicePlatform.linux:
-        case DevicePlatform.iOS:
-        case DevicePlatform.macOS:
-        case DevicePlatform.windows:
-          return EdgeInsets.symmetric(horizontal: padding);
-        case DevicePlatform.web:
-          return EdgeInsets.symmetric(vertical: 20, horizontal: padding);
-        case DevicePlatform.device:
-          throw Exception(
-            'You can\'t use the DevicePlatform.device in this context. '
-            'Incorrect platform: SettingsList.calculateDefaultPadding',
-          );
-        default:
-          return EdgeInsets.symmetric(
-            horizontal: padding,
-          );
-      }
-    }
+  EdgeInsets _getDefaultPadding(
+    DevicePlatform platform,
+    BuildContext context,
+  ) {
+    final mqSizeWidth = MediaQuery.sizeOf(context).width;
+    final isWideScreen = mqSizeWidth > widget.wideScreenBreakpoint;
+    double horizontalPaddingValue =
+        (mqSizeWidth - widget.wideScreenBreakpoint) / 2;
+
     switch (platform) {
       case DevicePlatform.android:
       case DevicePlatform.fuchsia:
@@ -107,19 +112,34 @@ class SettingsList extends StatelessWidget {
       case DevicePlatform.iOS:
       case DevicePlatform.macOS:
       case DevicePlatform.windows:
-        return const EdgeInsets.symmetric(vertical: 0);
+        return isWideScreen
+            ? EdgeInsets.symmetric(
+                horizontal: horizontalPaddingValue,
+              )
+            : EdgeInsets.zero;
       case DevicePlatform.web:
-        return const EdgeInsets.symmetric(vertical: 20);
+        return isWideScreen
+            ? EdgeInsets.symmetric(
+                vertical: 20,
+                horizontal: horizontalPaddingValue,
+              )
+            : const EdgeInsets.symmetric(
+                vertical: 20,
+              );
       case DevicePlatform.device:
-        throw Exception(
-          'You can\'t use the DevicePlatform.device in this context. '
-          'Incorrect platform: SettingsList.calculateDefaultPadding',
+        throw InvalidDevicePlatformDeviceUsage(
+          'SettingsList._getDefaultPadding',
         );
     }
   }
 
-  Brightness calculateBrightness(
-      BuildContext context, DevicePlatform platform) {
+  Brightness _getThemeBrightness(
+    BuildContext context,
+    DevicePlatform platform,
+  ) {
+    // final platformBrightness =
+    //     View.of(context).platformDispatcher.platformBrightness;
+    // TODO: remove this deprecated Window usage whenever min dark SDK constraint is 3.0
     final Brightness platformBrightness =
         WidgetsBinding.instance.window.platformBrightness;
     final materialBrightness = Theme.of(context).brightness;

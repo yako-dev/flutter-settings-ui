@@ -8,8 +8,11 @@ class CupertinoThemeProvider {
     required bool useSystemTheme,
   }) {
     return SettingsThemeData(
-      settingsListBackground:
-          getSettingsListBackgroundColor(context, useSystemTheme, brightness),
+      settingsListBackground: _getSettingsListBackgroundColor(
+        context,
+        brightness,
+        useSystemTheme: useSystemTheme,
+      ),
       tileHighlightColor: _tileHighlightColors[brightness],
       settingsSectionBackground: sectionBackgroundColors[brightness],
       titleTextColor: _titleColors[brightness],
@@ -23,12 +26,17 @@ class CupertinoThemeProvider {
     );
   }
 
-  static Color getSettingsListBackgroundColor(
-      BuildContext context, bool useSystemTheme, Brightness brightness) {
+  static Color _getSettingsListBackgroundColor(
+    BuildContext context,
+    Brightness brightness, {
+    required bool useSystemTheme,
+  }) {
+    final scaffoldBackgroundColor =
+        CupertinoTheme.of(context).scaffoldBackgroundColor;
     if (useSystemTheme) {
-      return CupertinoTheme.of(context).scaffoldBackgroundColor;
+      return scaffoldBackgroundColor;
     } else {
-      return backgroundColors[brightness]!;
+      return backgroundColors[brightness] ?? scaffoldBackgroundColor;
     }
   }
 

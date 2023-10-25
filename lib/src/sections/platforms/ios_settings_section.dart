@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
-import 'package:settings_ui/src/tiles/platforms/ios_settings_tile.dart';
+import 'package:settings_ui/src/tiles/platforms/ios_settings_tile_additional_info.dart';
 
 class IOSSettingsSection extends StatelessWidget {
   const IOSSettingsSection({
@@ -25,6 +25,7 @@ class IOSSettingsSection extends StatelessWidget {
 
     return Padding(
       padding: margin ??
+          // TODO: move literals to file with theme constants
           EdgeInsets.only(
             top: 14.0 * scaleFactor,
             bottom: isLastNonDescriptive ? 27 * scaleFactor : 10 * scaleFactor,
@@ -38,11 +39,13 @@ class IOSSettingsSection extends StatelessWidget {
             Padding(
               padding: titlePadding ??
                   EdgeInsetsDirectional.only(
+                    // TODO: move literals to file with theme constants
                     start: 18,
                     bottom: 5 * scaleFactor,
                   ),
               child: DefaultTextStyle(
                 key: const Key('ios_settings_section_title_style'),
+                // TODO: move literals to file with theme constants
                 style: TextStyle(
                   color: theme.themeData.sectionTitleColor,
                   // TODO: is this one hardcoded?
@@ -51,13 +54,22 @@ class IOSSettingsSection extends StatelessWidget {
                 child: title!,
               ),
             ),
-          buildTileList(),
+          _IosTileList(tiles: tiles),
         ],
       ),
     );
   }
+}
 
-  Widget buildTileList() {
+class _IosTileList extends StatelessWidget {
+  final List<AbstractSettingsTile> tiles;
+
+  const _IosTileList({
+    required this.tiles,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return ListView.builder(
       shrinkWrap: true,
       itemCount: tiles.length,
@@ -68,26 +80,30 @@ class IOSSettingsSection extends StatelessWidget {
 
         bool enableTop = false;
 
-        if (index == 0 ||
+        // TODO: document this large condition
+        final isTopBorderRadiusRequired = index == 0 ||
             (index > 0 &&
                 tiles[index - 1] is SettingsTile &&
-                (tiles[index - 1] as SettingsTile).description != null)) {
+                (tiles[index - 1] as SettingsTile).description != null);
+        if (isTopBorderRadiusRequired) {
           enableTop = true;
         }
 
-        var enableBottom = false;
-
+        var isBottomBorderRadiusRequired = false;
+        // TODO: document this large condition
         if (index == tiles.length - 1 ||
             (index < tiles.length &&
                 tile is SettingsTile &&
                 (tile).description != null)) {
-          enableBottom = true;
+          isBottomBorderRadiusRequired = true;
         }
+
+        final isDividerRequired = index != tiles.length - 1;
 
         return IOSSettingsTileAdditionalInfo(
           enableTopBorderRadius: enableTop,
-          enableBottomBorderRadius: enableBottom,
-          needToShowDivider: index != tiles.length - 1,
+          enableBottomBorderRadius: isBottomBorderRadiusRequired,
+          needToShowDivider: isDividerRequired,
           child: tile,
         );
       },

@@ -16,9 +16,7 @@ class SettingsTheme extends InheritedWidget {
   bool updateShouldNotify(SettingsTheme oldWidget) => true;
 
   static SettingsTheme of(BuildContext context) {
-    final SettingsTheme? result =
-        context.dependOnInheritedWidgetOfExactType<SettingsTheme>();
-    return result!;
+    return context.dependOnInheritedWidgetOfExactType<SettingsTheme>()!;
   }
 }
 
@@ -69,9 +67,11 @@ class SettingsThemeData {
   final Color? tileDescriptionColor;
   final Color? tileTitleTextColor;
   final Color? tileDisabledContentColor;
+
   // TODO: check how it works
   // Only in android and web.
   final Color? inactiveSubtitleColor;
+
   // TODO: implement
   final int? borderRadius;
 

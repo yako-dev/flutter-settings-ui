@@ -3,6 +3,7 @@ import 'package:settings_ui/src/tiles/abstract_settings_tile.dart';
 import 'package:settings_ui/src/tiles/platforms/android_settings_tile.dart';
 import 'package:settings_ui/src/tiles/platforms/ios_settings_tile.dart';
 import 'package:settings_ui/src/tiles/platforms/web_settings_tile.dart';
+import 'package:settings_ui/src/utils/exceptions.dart';
 import 'package:settings_ui/src/utils/platform_utils.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 
@@ -134,7 +135,8 @@ class SettingsTile extends AbstractSettingsTile {
       case DevicePlatform.iOS:
       case DevicePlatform.macOS:
       case DevicePlatform.windows:
-        // return CupertinoListTile(
+      // TODO: decide whether this commented code snipped is still required
+      // return CupertinoListTile(
         //   title: title,
         //   leading: leading,
         //   additionalInfo: value,
@@ -180,10 +182,7 @@ class SettingsTile extends AbstractSettingsTile {
           descriptionPadding: descriptionPadding,
         );
       case DevicePlatform.device:
-        throw Exception(
-          'You can\'t use the DevicePlatform.device in this context. '
-          'Incorrect platform: SettingsTile.build',
-        );
+        throw InvalidDevicePlatformDeviceUsage('SettingsTile.build');
     }
   }
 }

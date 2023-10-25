@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:settings_ui/settings_ui.dart';
-import 'package:settings_ui/src/utils/cupertino_theme_provider.dart';
+import 'package:settings_ui/src/utils/theme_providers/cupertino_theme_provider.dart';
 
 import '../cupertino_app_wrapper.dart';
 

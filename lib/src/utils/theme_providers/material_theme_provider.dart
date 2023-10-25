@@ -8,8 +8,11 @@ class MaterialThemeProvider {
     required bool useSystemTheme,
   }) {
     return SettingsThemeData(
-      settingsListBackground:
-          getBackgroundColor(context, useSystemTheme, brightness),
+      settingsListBackground: _getBackgroundColor(
+        context,
+        brightness,
+        useSystemTheme: useSystemTheme,
+      ),
       tileHighlightColor: _tileHighlightColors[brightness],
       titleTextColor: _titleTextColors[brightness],
       tileTitleTextColor: _tileTextColors[brightness],
@@ -21,13 +24,16 @@ class MaterialThemeProvider {
   }
 }
 
-Color getBackgroundColor(
-    BuildContext context, bool useSystemTheme, Brightness brightness) {
+Color _getBackgroundColor(
+  BuildContext context,
+  Brightness brightness, {
+  required bool useSystemTheme,
+}) {
+  final scaffoldBackgroundColor = Theme.of(context).scaffoldBackgroundColor;
   if (useSystemTheme) {
-    return Theme.of(context).scaffoldBackgroundColor;
+    return scaffoldBackgroundColor;
   } else {
-    return _backgroundColors[brightness] ??
-        Theme.of(context).scaffoldBackgroundColor;
+    return _backgroundColors[brightness] ?? scaffoldBackgroundColor;
   }
 }
 

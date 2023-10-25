@@ -37,37 +37,41 @@ class AndroidSettingsTile extends StatelessWidget {
   final EdgeInsetsGeometry? trailingPadding;
   final EdgeInsetsGeometry? descriptionPadding;
 
+  void _executeAction(BuildContext context) {
+    if (tileType == SettingsTileType.switchTile) {
+      onToggle?.call(!initialValue);
+    } else {
+      onPressed?.call(context);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = SettingsTheme.of(context);
     final scaleFactor = MediaQuery.of(context).textScaleFactor;
 
-    final cantShowAnimation = tileType == SettingsTileType.switchTile
+    final isActionDisabled = tileType == SettingsTileType.switchTile
         ? onToggle == null && onPressed == null
         : onPressed == null;
 
     return ClipRRect(
+      // TODO: move literals to file with theme constants
       borderRadius: BorderRadius.circular(24),
       child: IgnorePointer(
         ignoring: !enabled,
         child: Material(
           color: Colors.transparent,
           child: InkWell(
-            onTap: cantShowAnimation
+            onTap: isActionDisabled
                 ? null
-                : () {
-                    if (tileType == SettingsTileType.switchTile) {
-                      onToggle?.call(!initialValue);
-                    } else {
-                      onPressed?.call(context);
-                    }
-                  },
+                : () => _executeAction(context),
             highlightColor: theme.themeData.tileHighlightColor,
             child: Row(
               children: [
                 if (leading != null)
                   Padding(
                     padding: leadingPadding ??
+                        // TODO: move literals to file with theme constants
                         const EdgeInsetsDirectional.only(start: 24),
                     child: IconTheme(
                       data: IconTheme.of(context).copyWith(
@@ -80,6 +84,7 @@ class AndroidSettingsTile extends StatelessWidget {
                   ),
                 Expanded(
                   child: Padding(
+                    // TODO: move literals to file with theme constants
                     padding: EdgeInsetsDirectional.only(
                       start: 24,
                       end: 24,
@@ -90,6 +95,7 @@ class AndroidSettingsTile extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         DefaultTextStyle(
+                          // TODO: move literals to file with theme constants
                           style: TextStyle(
                             color: enabled
                                 ? theme.themeData.tileTitleTextColor
@@ -101,6 +107,7 @@ class AndroidSettingsTile extends StatelessWidget {
                         ),
                         if (value != null)
                           Padding(
+                            // TODO: move literals to file with theme constants
                             padding: const EdgeInsets.only(top: 4.0),
                             child: DefaultTextStyle(
                               style: TextStyle(
@@ -114,6 +121,7 @@ class AndroidSettingsTile extends StatelessWidget {
                         else if (description != null)
                           Padding(
                             padding: descriptionPadding ??
+                                // TODO: move literals to file with theme constants
                                 const EdgeInsets.only(top: 4.0),
                             child: DefaultTextStyle(
                               style: TextStyle(
@@ -133,6 +141,7 @@ class AndroidSettingsTile extends StatelessWidget {
                     children: [
                       trailing!,
                       Padding(
+                        // TODO: move literals to file with theme constants
                         padding: const EdgeInsetsDirectional.only(end: 8),
                         child: Switch(
                           value: initialValue,
@@ -147,6 +156,7 @@ class AndroidSettingsTile extends StatelessWidget {
                 else if (tileType == SettingsTileType.switchTile)
                   Padding(
                     padding:
+                        // TODO: move literals to file with theme constants
                         const EdgeInsetsDirectional.only(start: 16, end: 8),
                     child: Switch(
                       value: initialValue,
@@ -159,6 +169,7 @@ class AndroidSettingsTile extends StatelessWidget {
                 else if (trailing != null)
                   Padding(
                     padding: trailingPadding ??
+                        // TODO: move literals to file with theme constants
                         const EdgeInsets.symmetric(horizontal: 16),
                     child: IconTheme(
                       data: IconTheme.of(context).copyWith(

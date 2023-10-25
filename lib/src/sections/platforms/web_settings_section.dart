@@ -31,6 +31,7 @@ class WebSettingsSection extends StatelessWidget {
         children: [
           if (title != null)
             Container(
+              // TODO: move literals to file with theme constants
               height: 65 * scaleFactor,
               padding: titlePadding ??
                   EdgeInsetsDirectional.only(
@@ -40,6 +41,7 @@ class WebSettingsSection extends StatelessWidget {
                   ),
               child: DefaultTextStyle(
                 style: TextStyle(
+                  // TODO: move literals to file with theme constants
                   color: theme.themeData.titleTextColor,
                   fontSize: 15,
                 ),
@@ -48,17 +50,27 @@ class WebSettingsSection extends StatelessWidget {
             ),
           Card(
             shape:
+                // TODO: move literals to file with theme constants
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             elevation: 4,
             color: theme.themeData.settingsSectionBackground,
-            child: buildTileList(),
+            child: _WebTileList(tiles: tiles),
           ),
         ],
       ),
     );
   }
+}
 
-  Widget buildTileList() {
+class _WebTileList extends StatelessWidget {
+  final List<AbstractSettingsTile> tiles;
+
+  const _WebTileList({
+    required this.tiles,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return ListView.separated(
       shrinkWrap: true,
       itemCount: tiles.length,

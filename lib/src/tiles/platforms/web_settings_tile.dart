@@ -66,6 +66,7 @@ class WebSettingsTile extends StatelessWidget {
               if (leading != null)
                 Padding(
                   padding: leadingPadding ??
+                      // TODO: move literals to file with theme constants
                       const EdgeInsetsDirectional.only(
                         start: 24,
                       ),
@@ -80,6 +81,7 @@ class WebSettingsTile extends StatelessWidget {
                 ),
               Expanded(
                 child: Padding(
+                  // TODO: move literals to file with theme constants
                   padding: EdgeInsetsDirectional.only(
                     start: 24,
                     end: 24,
@@ -90,6 +92,7 @@ class WebSettingsTile extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       DefaultTextStyle(
+                        // TODO: move literals to file with theme constants
                         style: TextStyle(
                           color: enabled
                               ? theme.themeData.tileTitleTextColor
@@ -101,6 +104,7 @@ class WebSettingsTile extends StatelessWidget {
                       ),
                       if (value != null)
                         Padding(
+                          // TODO: move literals to file with theme constants
                           padding: const EdgeInsets.only(top: 4.0),
                           child: DefaultTextStyle(
                             style: TextStyle(
@@ -114,6 +118,7 @@ class WebSettingsTile extends StatelessWidget {
                       else if (description != null)
                         Padding(
                           padding: descriptionPadding ??
+                              // TODO: move literals to file with theme constants
                               const EdgeInsets.only(top: 4.0),
                           child: DefaultTextStyle(
                             style: TextStyle(
@@ -144,6 +149,8 @@ class WebSettingsTile extends StatelessWidget {
                       child: Switch.adaptive(
                         activeColor: enabled
                             ? (activeSwitchColor ??
+                                // TODO: move color constant to file with theme constants
+
                                 const Color.fromRGBO(138, 180, 248, 1.0))
                             : theme.themeData.tileDisabledContentColor,
                         value: initialValue,
@@ -154,11 +161,13 @@ class WebSettingsTile extends StatelessWidget {
                 )
               else if (tileType == SettingsTileType.switchTile)
                 Padding(
+                  // TODO: move literals to file with theme constants
                   padding: const EdgeInsetsDirectional.only(start: 16, end: 8),
                   child: Switch(
                     value: initialValue,
                     activeColor: enabled
                         ? (activeSwitchColor ??
+                            // TODO: move color constant to file with theme constants
                             const Color.fromRGBO(138, 180, 248, 1.0))
                         : theme.themeData.tileDisabledContentColor,
                     onChanged: onToggle,
@@ -167,6 +176,7 @@ class WebSettingsTile extends StatelessWidget {
               else if (trailing != null)
                 Padding(
                   padding: trailingPadding ??
+                      // TODO: move literals to file with theme constants
                       const EdgeInsets.symmetric(horizontal: 16),
                   child: IconTheme(
                     data: IconTheme.of(context).copyWith(

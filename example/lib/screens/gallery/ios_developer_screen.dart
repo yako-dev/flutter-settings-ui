@@ -17,6 +17,7 @@ class _IosDeveloperScreen extends State<IosDeveloperScreen> {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(middle: Text('Developer')),
+      // TODO: usage of SafeArea causes blank left and right spacing in horizontal mode
       child: SafeArea(
         bottom: false,
         child: SettingsList(

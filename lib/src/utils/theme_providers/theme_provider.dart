@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
-import 'package:settings_ui/src/utils/cupertino_theme_provider.dart';
-import 'package:settings_ui/src/utils/material_theme_provider.dart';
+import 'package:settings_ui/src/utils/exceptions.dart';
+import 'package:settings_ui/src/utils/theme_providers/cupertino_theme_provider.dart';
+import 'package:settings_ui/src/utils/theme_providers/material_theme_provider.dart';
 import 'package:settings_ui/src/utils/platform_utils.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 
@@ -16,11 +17,13 @@ class ThemeProvider {
       case DevicePlatform.fuchsia:
       case DevicePlatform.linux:
         return MaterialThemeProvider.androidTheme(
-            context: context,
-            brightness: brightness,
-            useSystemTheme: useSystemTheme);
+          context: context,
+          brightness: brightness,
+          useSystemTheme: useSystemTheme,
+        );
       case DevicePlatform.iOS:
       case DevicePlatform.macOS:
+        // TODO: Windows probably should have non Cupertino theme
       case DevicePlatform.windows:
         return CupertinoThemeProvider.iosTheme(
           context: context,
@@ -29,14 +32,12 @@ class ThemeProvider {
         );
       case DevicePlatform.web:
         return _webTheme(
-            context: context,
-            brightness: brightness,
-            useSystemTheme: useSystemTheme);
-      case DevicePlatform.device:
-        throw Exception(
-          'You can\'t use the DevicePlatform.device in this context. '
-          'Incorrect platform: ThemeProvider.getTheme',
+          context: context,
+          brightness: brightness,
+          useSystemTheme: useSystemTheme,
         );
+      case DevicePlatform.device:
+        throw InvalidDevicePlatformDeviceUsage('ThemeProvider.getTheme');
     }
   }
 

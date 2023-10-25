@@ -18,16 +18,13 @@ class AndroidSettingsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return buildSectionBody(context);
-  }
-
-  Widget buildSectionBody(BuildContext context) {
     final theme = SettingsTheme.of(context);
+
+    // TODO: usage of textScaleFactor requires documentation
     final scaleFactor = MediaQuery.of(context).textScaleFactor;
-    final tileList = buildTileList();
 
     if (title == null) {
-      return tileList;
+      return _IosTileList(tiles: tiles);
     }
 
     return Padding(
@@ -37,6 +34,7 @@ class AndroidSettingsSection extends StatelessWidget {
         children: [
           Padding(
             padding: titlePadding ??
+                // TODO: move literals to file with theme constants
                 EdgeInsetsDirectional.only(
                   top: 24 * scaleFactor,
                   bottom: 10 * scaleFactor,
@@ -52,14 +50,23 @@ class AndroidSettingsSection extends StatelessWidget {
           ),
           Container(
             color: theme.themeData.settingsSectionBackground,
-            child: tileList,
+            child: _IosTileList(tiles: tiles),
           ),
         ],
       ),
     );
   }
+}
 
-  Widget buildTileList() {
+class _IosTileList extends StatelessWidget {
+  final List<AbstractSettingsTile> tiles;
+
+  const _IosTileList({
+    required this.tiles,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return ListView.builder(
       shrinkWrap: true,
       itemCount: tiles.length,
