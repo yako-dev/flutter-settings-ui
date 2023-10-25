@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:settings_ui/src/sections/abstract_settings_section.dart';
@@ -100,7 +102,7 @@ class _SettingsListState extends State<SettingsList> {
     DevicePlatform platform,
     BuildContext context,
   ) {
-    final mqSizeWidth = MediaQuery.sizeOf(context).width;
+    final mqSizeWidth = MediaQuery.of(context).size.width;
     final isWideScreen = mqSizeWidth > widget.wideScreenBreakpoint;
     double horizontalPaddingValue =
         (mqSizeWidth - widget.wideScreenBreakpoint) / 2;
@@ -137,11 +139,7 @@ class _SettingsListState extends State<SettingsList> {
     BuildContext context,
     DevicePlatform platform,
   ) {
-    // final platformBrightness =
-    //     View.of(context).platformDispatcher.platformBrightness;
-    // TODO: remove this deprecated Window usage whenever min dark SDK constraint is 3.0
-    final Brightness platformBrightness =
-        WidgetsBinding.instance.window.platformBrightness;
+    final platformBrightness = PlatformDispatcher.instance.platformBrightness;
     final materialBrightness = Theme.of(context).brightness;
     final cupertinoBrightness = CupertinoTheme.of(context).brightness;
 
