@@ -38,13 +38,15 @@ class MyApp extends StatelessWidget {
       useInheritedMediaQuery: true,
       debugShowCheckedModeBanner: false,
       locale: DevicePreview.locale(context),
-      theme: ThemeData.light(),
+      theme: ThemeData.light(useMaterial3: true),
       darkTheme: ThemeData(
-          cupertinoOverrideTheme: CupertinoThemeData(
-              barBackgroundColor: Color(0xFF1b1b1b),
-              brightness: Brightness.dark,
-              textTheme: CupertinoTextThemeData(primaryColor: Colors.white)),
-          brightness: Brightness.dark),
+        useMaterial3: true,
+        cupertinoOverrideTheme: CupertinoThemeData(
+            barBackgroundColor: Color(0xFF1b1b1b),
+            brightness: Brightness.dark,
+            textTheme: CupertinoTextThemeData(primaryColor: Colors.white)),
+        brightness: Brightness.dark,
+      ),
       title: 'Settings UI Demo',
       home: GalleryScreen(),
     );
