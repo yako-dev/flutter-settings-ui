@@ -19,8 +19,8 @@ class IOSSettingsTile extends StatefulWidget {
     this.titlePadding,
     this.leadingPadding,
     this.titleDescriptionPadding,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   final SettingsTileType tileType;
   final Widget? leading;
@@ -131,52 +131,60 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
   }) {
     final scaleFactor = MediaQuery.of(context).textScaleFactor;
 
-    return Row(
-      children: [
-        if (widget.trailing != null)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: IconTheme(
-              data: IconTheme.of(context).copyWith(
-                color: widget.enabled
-                    ? theme.themeData.leadingIconsColor
-                    : theme.themeData.inactiveTitleColor,
+    final isShowValue = widget.tileType == SettingsTileType.navigationTile &&
+        widget.value != null;
+
+    return Flexible(
+      flex: isShowValue ? 1 : 0,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          if (widget.trailing != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: IconTheme(
+                data: IconTheme.of(context).copyWith(
+                  color: widget.enabled
+                      ? theme.themeData.leadingIconsColor
+                      : theme.themeData.inactiveTitleColor,
+                ),
+                child: widget.trailing!,
               ),
-              child: widget.trailing!,
             ),
-          ),
-        if (widget.tileType == SettingsTileType.switchTile)
-          CupertinoSwitch(
-            value: widget.initialValue ?? true,
-            onChanged: widget.onToggle,
-            activeColor: widget.enabled
-                ? widget.activeSwitchColor
-                : theme.themeData.inactiveTitleColor,
-          ),
-        if (widget.tileType == SettingsTileType.navigationTile &&
-            widget.value != null)
-          DefaultTextStyle(
-            style: TextStyle(
-              color: widget.enabled
-                  ? theme.themeData.trailingTextColor
+          if (widget.tileType == SettingsTileType.switchTile)
+            CupertinoSwitch(
+              value: widget.initialValue ?? true,
+              onChanged: widget.onToggle,
+              activeColor: widget.enabled
+                  ? widget.activeSwitchColor
                   : theme.themeData.inactiveTitleColor,
-              fontSize: 17,
             ),
-            child: widget.value!,
-          ),
-        if (widget.tileType == SettingsTileType.navigationTile)
-          Padding(
-            padding: const EdgeInsetsDirectional.only(start: 6, end: 2),
-            child: IconTheme(
-              data: IconTheme.of(context)
-                  .copyWith(color: theme.themeData.leadingIconsColor),
-              child: Icon(
-                CupertinoIcons.chevron_forward,
-                size: 18 * scaleFactor,
+          if (isShowValue)
+            Expanded(
+              child: DefaultTextStyle(
+                style: TextStyle(
+                  color: widget.enabled
+                      ? theme.themeData.trailingTextColor
+                      : theme.themeData.inactiveTitleColor,
+                  fontSize: 17,
+                ),
+                child: widget.value!,
               ),
             ),
-          ),
-      ],
+          if (widget.tileType == SettingsTileType.navigationTile)
+            Padding(
+              padding: const EdgeInsetsDirectional.only(start: 6, end: 2),
+              child: IconTheme(
+                data: IconTheme.of(context)
+                    .copyWith(color: theme.themeData.leadingIconsColor),
+                child: Icon(
+                  CupertinoIcons.chevron_forward,
+                  size: 18 * scaleFactor,
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 
