@@ -16,3 +16,11 @@ dev_dependencies:
   flutter_lints: ^3.0.1
 
 flutter:
+
+platforms:
+  android:
+  ios:
+  linux:
+  macos:
+  web:
+  windows:
