@@ -48,4 +48,24 @@ class PlatformUtils {
         return DevicePlatform.windows;
     }
   }
+
+  static bool languageIsRTL(BuildContext context) {
+    const rtlLanguages = [
+      "ar",
+      "arc",
+      "dv",
+      "fa",
+      "ha",
+      "he",
+      "khw",
+      "ks",
+      "ku",
+      "ps",
+      "ur",
+      "yi"
+    ];
+    final language = Localizations.localeOf(context).languageCode.toLowerCase();
+
+    return rtlLanguages.contains(language);
+  }
 }
