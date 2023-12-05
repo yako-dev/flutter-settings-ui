@@ -12,6 +12,7 @@ class AndroidSettingsTile extends StatelessWidget {
     required this.value,
     required this.initialValue,
     required this.activeSwitchColor,
+    required this.inActiveSwitchColor,
     required this.enabled,
     required this.trailing,
     this.titlePadding,
@@ -31,6 +32,7 @@ class AndroidSettingsTile extends StatelessWidget {
   final bool initialValue;
   final bool enabled;
   final Color? activeSwitchColor;
+  final Color? inActiveSwitchColor;
   final Widget? trailing;
   final EdgeInsetsGeometry? titlePadding;
   final EdgeInsetsGeometry? leadingPadding;
@@ -151,6 +153,8 @@ class AndroidSettingsTile extends StatelessWidget {
                     activeColor: enabled
                         ? activeSwitchColor
                         : theme.themeData.inactiveTitleColor,
+                    inactiveTrackColor: inActiveSwitchColor?.withOpacity(0.4),
+                    inactiveThumbColor: inActiveSwitchColor,
                   ),
                 )
               else if (trailing != null)

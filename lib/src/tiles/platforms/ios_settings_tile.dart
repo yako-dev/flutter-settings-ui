@@ -14,6 +14,7 @@ class IOSSettingsTile extends StatefulWidget {
     required this.value,
     required this.initialValue,
     required this.activeSwitchColor,
+    required this.inActiveSwitchColor,
     required this.enabled,
     required this.trailing,
     this.titlePadding,
@@ -33,6 +34,7 @@ class IOSSettingsTile extends StatefulWidget {
   final bool? initialValue;
   final bool enabled;
   final Color? activeSwitchColor;
+  final Color? inActiveSwitchColor;
   final Widget? trailing;
   final EdgeInsetsGeometry? titlePadding;
   final EdgeInsetsGeometry? leadingPadding;
@@ -149,9 +151,11 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
           CupertinoSwitch(
             value: widget.initialValue ?? true,
             onChanged: widget.onToggle,
+            applyTheme: true,
             activeColor: widget.enabled
                 ? widget.activeSwitchColor
                 : theme.themeData.inactiveTitleColor,
+            trackColor: widget.inActiveSwitchColor,
           ),
         if (widget.tileType == SettingsTileType.navigationTile &&
             widget.value != null)

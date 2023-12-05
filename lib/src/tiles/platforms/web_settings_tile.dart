@@ -12,6 +12,7 @@ class WebSettingsTile extends StatelessWidget {
     required this.value,
     required this.initialValue,
     required this.activeSwitchColor,
+    required this.inActiveSwitchColor,
     required this.enabled,
     required this.trailing,
     this.titlePadding,
@@ -32,6 +33,7 @@ class WebSettingsTile extends StatelessWidget {
   final bool enabled;
   final Widget? trailing;
   final Color? activeSwitchColor;
+  final Color? inActiveSwitchColor;
   final EdgeInsetsGeometry? titlePadding;
   final EdgeInsetsGeometry? leadingPadding;
   final EdgeInsetsGeometry? trailingPadding;
@@ -156,9 +158,11 @@ class WebSettingsTile extends StatelessWidget {
                       padding: const EdgeInsetsDirectional.only(end: 8),
                       child: Switch(
                         activeColor: enabled
-                            ? (activeSwitchColor ??
-                                const Color.fromRGBO(138, 180, 248, 1.0))
+                            ? activeSwitchColor
                             : theme.themeData.inactiveTitleColor,
+                        inactiveTrackColor:
+                            inActiveSwitchColor?.withOpacity(0.4),
+                        inactiveThumbColor: inActiveSwitchColor,
                         value: initialValue,
                         onChanged: onToggle,
                       ),
@@ -171,9 +175,10 @@ class WebSettingsTile extends StatelessWidget {
                   child: Switch(
                     value: initialValue,
                     activeColor: enabled
-                        ? (activeSwitchColor ??
-                            const Color.fromRGBO(138, 180, 248, 1.0))
+                        ? activeSwitchColor
                         : theme.themeData.inactiveTitleColor,
+                    inactiveTrackColor: inActiveSwitchColor?.withOpacity(0.4),
+                    inactiveThumbColor: inActiveSwitchColor,
                     onChanged: onToggle,
                   ),
                 )

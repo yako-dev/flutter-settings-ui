@@ -28,6 +28,7 @@ class SettingsTile extends AbstractSettingsTile {
     onToggle = null;
     initialValue = null;
     activeSwitchColor = null;
+    inActiveSwitchColor = null;
     tileType = SettingsTileType.simpleTile;
   }
 
@@ -50,6 +51,7 @@ class SettingsTile extends AbstractSettingsTile {
     onToggle = null;
     initialValue = null;
     activeSwitchColor = null;
+    inActiveSwitchColor = null;
     tileType = SettingsTileType.navigationTile;
   }
 
@@ -57,6 +59,7 @@ class SettingsTile extends AbstractSettingsTile {
     required this.initialValue,
     required this.onToggle,
     this.activeSwitchColor,
+    this.inActiveSwitchColor,
     this.leading,
     this.trailing,
     required this.title,
@@ -100,6 +103,7 @@ class SettingsTile extends AbstractSettingsTile {
   final EdgeInsetsGeometry? titleDescriptionPadding;
 
   late final Color? activeSwitchColor;
+  late final Color? inActiveSwitchColor;
   late final Widget? value;
   late final Function(bool value)? onToggle;
   late final SettingsTileType tileType;
@@ -124,6 +128,7 @@ class SettingsTile extends AbstractSettingsTile {
           title: title,
           enabled: enabled,
           activeSwitchColor: activeSwitchColor,
+          inActiveSwitchColor: inActiveSwitchColor,
           initialValue: initialValue ?? false,
           trailing: trailing,
           titlePadding: titlePadding,
@@ -146,6 +151,7 @@ class SettingsTile extends AbstractSettingsTile {
           trailing: trailing,
           enabled: enabled,
           activeSwitchColor: activeSwitchColor,
+          inActiveSwitchColor: inActiveSwitchColor,
           initialValue: initialValue ?? false,
           titlePadding: titlePadding,
           leadingPadding: leadingPadding,
@@ -163,6 +169,7 @@ class SettingsTile extends AbstractSettingsTile {
           enabled: enabled,
           trailing: trailing,
           activeSwitchColor: activeSwitchColor,
+          inActiveSwitchColor: inActiveSwitchColor,
           initialValue: initialValue ?? false,
           titlePadding: titlePadding,
           leadingPadding: leadingPadding,
