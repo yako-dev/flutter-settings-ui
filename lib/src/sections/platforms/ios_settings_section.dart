@@ -7,25 +7,29 @@ class IOSSettingsSection extends StatelessWidget {
     required this.tiles,
     required this.margin,
     required this.title,
-    Key? key,
-  }) : super(key: key);
+    this.titlePadding,
+    super.key,
+  });
 
   final List<AbstractSettingsTile> tiles;
   final EdgeInsetsDirectional? margin;
   final Widget? title;
+  final EdgeInsetsGeometry? titlePadding;
 
   @override
   Widget build(BuildContext context) {
     final theme = SettingsTheme.of(context);
     final isLastNonDescriptive = tiles.last is SettingsTile &&
         (tiles.last as SettingsTile).description == null;
-    final scaleFactor = MediaQuery.of(context).textScaleFactor;
+    final textScaler = MediaQuery.textScalerOf(context);
 
     return Padding(
       padding: margin ??
           EdgeInsets.only(
-            top: 14.0 * scaleFactor,
-            bottom: isLastNonDescriptive ? 27 * scaleFactor : 10 * scaleFactor,
+            top: textScaler.scale(14.0),
+            bottom: isLastNonDescriptive
+                ? textScaler.scale(27)
+                : textScaler.scale(10),
             left: 16,
             right: 16,
           ),
@@ -34,15 +38,15 @@ class IOSSettingsSection extends StatelessWidget {
         children: [
           if (title != null)
             Padding(
-              padding: EdgeInsetsDirectional.only(
-                start: 18,
-                bottom: 5 * scaleFactor,
-              ),
+              padding: titlePadding ??
+                  EdgeInsetsDirectional.only(
+                    start: 18,
+                    bottom: textScaler.scale(5),
+                  ),
               child: DefaultTextStyle(
-                style: TextStyle(
-                  color: theme.themeData.titleTextColor,
-                  fontSize: 13,
-                ),
+                style: (theme.themeData.titleTextStyle ??
+                        const TextStyle(fontSize: 13))
+                    .copyWith(color: theme.themeData.titleTextColor),
                 child: title!,
               ),
             ),
@@ -57,7 +61,7 @@ class IOSSettingsSection extends StatelessWidget {
       shrinkWrap: true,
       itemCount: tiles.length,
       padding: EdgeInsets.zero,
-      physics: NeverScrollableScrollPhysics(),
+      physics: const NeverScrollableScrollPhysics(),
       itemBuilder: (BuildContext context, int index) {
         final tile = tiles[index];
 

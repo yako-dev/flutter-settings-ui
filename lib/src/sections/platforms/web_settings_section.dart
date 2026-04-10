@@ -6,12 +6,14 @@ class WebSettingsSection extends StatelessWidget {
     required this.tiles,
     required this.margin,
     required this.title,
-    Key? key,
-  }) : super(key: key);
+    this.titlePadding,
+    super.key,
+  });
 
   final List<AbstractSettingsTile> tiles;
   final EdgeInsetsDirectional? margin;
   final Widget? title;
+  final EdgeInsetsGeometry? titlePadding;
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +22,7 @@ class WebSettingsSection extends StatelessWidget {
 
   Widget buildSectionBody(BuildContext context) {
     final theme = SettingsTheme.of(context);
-    final scaleFactor = MediaQuery.of(context).textScaleFactor;
+    final textScaler = MediaQuery.textScalerOf(context);
 
     return Padding(
       padding: margin ?? EdgeInsets.zero,
@@ -29,17 +31,17 @@ class WebSettingsSection extends StatelessWidget {
         children: [
           if (title != null)
             Container(
-              height: 65 * scaleFactor,
-              padding: EdgeInsetsDirectional.only(
-                bottom: 5 * scaleFactor,
-                start: 6,
-                top: 40 * scaleFactor,
-              ),
+              height: textScaler.scale(65),
+              padding: titlePadding ??
+                  EdgeInsetsDirectional.only(
+                    bottom: textScaler.scale(5),
+                    start: 6,
+                    top: textScaler.scale(40),
+                  ),
               child: DefaultTextStyle(
-                style: TextStyle(
-                  color: theme.themeData.titleTextColor,
-                  fontSize: 15,
-                ),
+                style: (theme.themeData.titleTextStyle ??
+                        const TextStyle(fontSize: 15))
+                    .copyWith(color: theme.themeData.titleTextColor),
                 child: title!,
               ),
             ),
@@ -60,12 +62,12 @@ class WebSettingsSection extends StatelessWidget {
       shrinkWrap: true,
       itemCount: tiles.length,
       padding: EdgeInsets.zero,
-      physics: NeverScrollableScrollPhysics(),
+      physics: const NeverScrollableScrollPhysics(),
       itemBuilder: (BuildContext context, int index) {
         return tiles[index];
       },
       separatorBuilder: (BuildContext context, int index) {
-        return Divider(
+        return const Divider(
           height: 0,
           thickness: 1,
         );

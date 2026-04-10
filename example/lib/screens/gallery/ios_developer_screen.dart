@@ -3,14 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
 
 class IosDeveloperScreen extends StatefulWidget {
-  const IosDeveloperScreen({Key key}) : super(key: key);
+  const IosDeveloperScreen({super.key});
 
   @override
-  _IosDeveloperScreen createState() => _IosDeveloperScreen();
+  State<IosDeveloperScreen> createState() => _IosDeveloperScreenState();
 }
 
-class _IosDeveloperScreen extends State<IosDeveloperScreen> {
+class _IosDeveloperScreenState extends State<IosDeveloperScreen> {
   bool darkTheme = true;
+  final ScrollController settingsListController = ScrollController();
 
   @override
   Widget build(BuildContext context) {
@@ -19,6 +20,7 @@ class _IosDeveloperScreen extends State<IosDeveloperScreen> {
       child: SafeArea(
         bottom: false,
         child: SettingsList(
+          scrollController: settingsListController,
           applicationType: ApplicationType.cupertino,
           platform: DevicePlatform.iOS,
           sections: [
@@ -40,7 +42,13 @@ class _IosDeveloperScreen extends State<IosDeveloperScreen> {
               title: Text('DISPLAY ZOOM'),
               tiles: [
                 SettingsTile.navigation(
-                  onPressed: (_) {},
+                  onPressed: (_) {
+                    settingsListController.animateTo(
+                      100,
+                      duration: Duration(seconds: 1),
+                      curve: Curves.linear,
+                    );
+                  },
                   title: Text('View'),
                   value: Text('Standard'),
                   description: Text(
@@ -90,7 +98,21 @@ class _IosDeveloperScreen extends State<IosDeveloperScreen> {
               title: Text('IAD DEVELOPER APP TESTING'),
               tiles: [
                 SettingsTile.navigation(
-                  title: Text('Fill Rate'),
+                  title: Text('Downtime'),
+                  titleDescription: Text('Schedule time away from the screen.'),
+                  leading: Container(
+                    height: 32,
+                    width: 32,
+                    decoration: BoxDecoration(
+                      color: Colors.deepPurple,
+                      borderRadius: BorderRadius.all(Radius.circular(5)),
+                    ),
+                    child: Icon(
+                      CupertinoIcons.clock,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
                 ),
                 SettingsTile.navigation(
                   title: Text('Add Refresh Rate'),

@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
 
@@ -15,8 +14,13 @@ class WebSettingsTile extends StatelessWidget {
     required this.activeSwitchColor,
     required this.enabled,
     required this.trailing,
-    Key? key,
-  }) : super(key: key);
+    this.compact = false,
+    this.titlePadding,
+    this.leadingPadding,
+    this.trailingPadding,
+    this.descriptionPadding,
+    super.key,
+  });
 
   final SettingsTileType tileType;
   final Widget? leading;
@@ -27,13 +31,18 @@ class WebSettingsTile extends StatelessWidget {
   final Widget? value;
   final bool initialValue;
   final bool enabled;
+  final bool compact;
   final Widget? trailing;
   final Color? activeSwitchColor;
+  final EdgeInsetsGeometry? titlePadding;
+  final EdgeInsetsGeometry? leadingPadding;
+  final EdgeInsetsGeometry? trailingPadding;
+  final EdgeInsetsGeometry? descriptionPadding;
 
   @override
   Widget build(BuildContext context) {
     final theme = SettingsTheme.of(context);
-    final scaleFactor = MediaQuery.of(context).textScaleFactor;
+    final textScaler = MediaQuery.textScalerOf(context);
 
     final cantShowAnimation = tileType == SettingsTileType.switchTile
         ? onToggle == null && onPressed == null
@@ -54,110 +63,143 @@ class WebSettingsTile extends StatelessWidget {
                   }
                 },
           highlightColor: theme.themeData.tileHighlightColor,
-          child: Container(
-            child: Row(
-              children: [
-                if (leading != null)
-                  Padding(
-                    padding: const EdgeInsetsDirectional.only(
-                      start: 24,
-                    ),
-                    child: IconTheme(
-                      data: IconTheme.of(context).copyWith(
-                        color: theme.themeData.leadingIconsColor,
+          child: Row(
+            children: [
+              if (leading != null)
+                Padding(
+                  padding: leadingPadding ??
+                      const EdgeInsetsDirectional.only(
+                        start: 24,
                       ),
-                      child: leading!,
+                  child: IconTheme(
+                    data: IconTheme.of(context).copyWith(
+                      color: enabled
+                          ? theme.themeData.leadingIconsColor
+                          : theme.themeData.inactiveTitleColor,
                     ),
-                  ),
-                Expanded(
-                  child: Padding(
-                    padding: EdgeInsetsDirectional.only(
-                      start: 24,
-                      end: 24,
-                      bottom: 19 * scaleFactor,
-                      top: 19 * scaleFactor,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        DefaultTextStyle(
-                          style: TextStyle(
-                            color: theme.themeData.settingsTileTextColor,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w400,
-                          ),
-                          child: title ?? Container(),
-                        ),
-                        if (value != null)
-                          Padding(
-                            padding: EdgeInsets.only(top: 4.0),
-                            child: DefaultTextStyle(
-                              style: TextStyle(
-                                color: theme.themeData.tileDescriptionTextColor,
-                              ),
-                              child: value!,
-                            ),
-                          )
-                        else if (description != null)
-                          Padding(
-                            padding: EdgeInsets.only(top: 4.0),
-                            child: DefaultTextStyle(
-                              style: TextStyle(
-                                color: theme.themeData.tileDescriptionTextColor,
-                              ),
-                              child: description!,
-                            ),
-                          ),
-                      ],
-                    ),
+                    child: leading!,
                   ),
                 ),
-                // if (tileType == SettingsTileType.navigationTile)
-                //   Padding(
-                //     padding:
-                //         const EdgeInsetsDirectional.only(start: 6, end: 15),
-                //     child: IconTheme(
-                //       data: IconTheme.of(context)
-                //           .copyWith(color: theme.themeData.leadingIconsColor),
-                //       child: Icon(
-                //         CupertinoIcons.chevron_forward,
-                //         size: 18 * scaleFactor,
-                //       ),
-                //     ),
-                //   ),
-                if (trailing != null && tileType == SettingsTileType.switchTile)
-                  Row(
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsetsDirectional.only(
+                    start: 24,
+                    end: 24,
+                    bottom: textScaler.scale(compact ? 9 : 19),
+                    top: textScaler.scale(compact ? 9 : 19),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      trailing!,
-                      Padding(
-                        padding: const EdgeInsetsDirectional.only(end: 8),
-                        child: Switch(
-                          activeColor: activeSwitchColor ??
-                              Color.fromRGBO(138, 180, 248, 1.0),
-                          value: initialValue,
-                          onChanged: onToggle,
+                      DefaultTextStyle(
+                        style: (theme.themeData.tileTextStyle ??
+                                const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w400,
+                                ))
+                            .copyWith(
+                          color: enabled
+                              ? theme.themeData.settingsTileTextColor
+                              : theme.themeData.inactiveTitleColor,
                         ),
+                        child: title ?? Container(),
                       ),
+                      if (value != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4.0),
+                          child: DefaultTextStyle(
+                            style: (theme.themeData.tileDescriptionTextStyle ??
+                                    const TextStyle())
+                                .copyWith(
+                              color: enabled
+                                  ? theme.themeData.tileDescriptionTextColor
+                                  : theme.themeData.inactiveSubtitleColor,
+                            ),
+                            child: value!,
+                          ),
+                        )
+                      else if (description != null)
+                        Padding(
+                          padding: descriptionPadding ??
+                              const EdgeInsets.only(top: 4.0),
+                          child: DefaultTextStyle(
+                            style: (theme.themeData.tileDescriptionTextStyle ??
+                                    const TextStyle())
+                                .copyWith(
+                              color: enabled
+                                  ? theme.themeData.tileDescriptionTextColor
+                                  : theme.themeData.inactiveSubtitleColor,
+                            ),
+                            child: description!,
+                          ),
+                        ),
                     ],
-                  )
-                else if (tileType == SettingsTileType.switchTile)
-                  Padding(
-                    padding:
-                        const EdgeInsetsDirectional.only(start: 16, end: 8),
-                    child: Switch(
-                      value: initialValue,
-                      activeColor: activeSwitchColor ??
-                          Color.fromRGBO(138, 180, 248, 1.0),
-                      onChanged: onToggle,
+                  ),
+                ),
+              ),
+              // if (tileType == SettingsTileType.navigationTile)
+              //   Padding(
+              //     padding:
+              //         const EdgeInsetsDirectional.only(start: 6, end: 15),
+              //     child: IconTheme(
+              //       data: IconTheme.of(context)
+              //           .copyWith(color: theme.themeData.leadingIconsColor),
+              //       child: Icon(
+              //         CupertinoIcons.chevron_forward,
+              //         size: 18 * scaleFactor,
+              //       ),
+              //     ),
+              //   ),
+              if (trailing != null && tileType == SettingsTileType.switchTile)
+                Row(
+                  children: [
+                    IconTheme(
+                      data: IconTheme.of(context).copyWith(
+                        color: enabled
+                            ? theme.themeData.leadingIconsColor
+                            : theme.themeData.inactiveTitleColor,
+                      ),
+                      child: trailing!,
                     ),
-                  )
-                else if (trailing != null)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    Padding(
+                      padding: const EdgeInsetsDirectional.only(end: 8),
+                      child: Switch(
+                        activeThumbColor: enabled
+                            ? (activeSwitchColor ??
+                                const Color.fromRGBO(138, 180, 248, 1.0))
+                            : theme.themeData.inactiveTitleColor,
+                        value: initialValue,
+                        onChanged: onToggle,
+                      ),
+                    ),
+                  ],
+                )
+              else if (tileType == SettingsTileType.switchTile)
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(start: 16, end: 8),
+                  child: Switch(
+                    value: initialValue,
+                    activeThumbColor: !enabled
+                        ? (theme.themeData.inactiveSwitchColor ??
+                            theme.themeData.inactiveTitleColor)
+                        : activeSwitchColor,
+                    onChanged: onToggle,
+                  ),
+                )
+              else if (trailing != null)
+                Padding(
+                  padding: trailingPadding ??
+                      const EdgeInsets.symmetric(horizontal: 16),
+                  child: IconTheme(
+                    data: IconTheme.of(context).copyWith(
+                      color: enabled
+                          ? theme.themeData.leadingIconsColor
+                          : theme.themeData.inactiveTitleColor,
+                    ),
                     child: trailing!,
                   ),
-              ],
-            ),
+                ),
+            ],
           ),
         ),
       ),

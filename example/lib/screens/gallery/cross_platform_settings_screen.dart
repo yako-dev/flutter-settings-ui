@@ -1,12 +1,9 @@
 import 'package:example/utils/navigation.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
 
 class CrossPlatformSettingsScreen extends StatefulWidget {
-  const CrossPlatformSettingsScreen({
-    Key key,
-  }) : super(key: key);
+  const CrossPlatformSettingsScreen({super.key});
 
   @override
   State<CrossPlatformSettingsScreen> createState() =>
@@ -90,13 +87,13 @@ class _CrossPlatformSettingsScreenState
                     ),
                   );
 
-                  if (platform != null && platform is DevicePlatform) {
+                  if (platform != null) {
                     setState(() {
                       selectedPlatform = platform;
                     });
                   }
                 },
-                value: Text(platformsMap[selectedPlatform]),
+                value: Text(platformsMap[selectedPlatform]!),
               ),
               SettingsTile.switchTile(
                 onToggle: (value) {
@@ -181,10 +178,10 @@ class _CrossPlatformSettingsScreenState
 
 class PlatformPickerScreen extends StatelessWidget {
   const PlatformPickerScreen({
-    Key key,
-    @required this.platform,
-    @required this.platforms,
-  }) : super(key: key);
+    super.key,
+    required this.platform,
+    required this.platforms,
+  });
 
   final DevicePlatform platform;
   final Map<DevicePlatform, String> platforms;
@@ -200,9 +197,8 @@ class PlatformPickerScreen extends StatelessWidget {
             title: Text('Select the platform you want'),
             tiles: platforms.keys.map((e) {
               final platform = platforms[e];
-
               return SettingsTile(
-                title: Text(platform),
+                title: Text(platform!),
                 onPressed: (_) {
                   Navigator.of(context).pop(e);
                 },

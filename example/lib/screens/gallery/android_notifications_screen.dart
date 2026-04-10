@@ -2,16 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
 
 class AndroidNotificationsScreen extends StatefulWidget {
-  const AndroidNotificationsScreen({Key key}) : super(key: key);
+  const AndroidNotificationsScreen({super.key});
 
   @override
-  _AndroidNotificationsScreenState createState() =>
+  State<AndroidNotificationsScreen> createState() =>
       _AndroidNotificationsScreenState();
 }
 
 class _AndroidNotificationsScreenState
     extends State<AndroidNotificationsScreen> {
   bool useNotificationDotOnAppIcon = true;
+  final ScrollController settingsListController = ScrollController();
 
   @override
   Widget build(BuildContext context) {
@@ -20,6 +21,7 @@ class _AndroidNotificationsScreenState
         title: Text('Notifications'),
       ),
       body: SettingsList(
+        scrollController: settingsListController,
         platform: DevicePlatform.android,
         sections: [
           SettingsSection(
@@ -28,6 +30,13 @@ class _AndroidNotificationsScreenState
               SettingsTile(
                 title: Text('App settings'),
                 description: Text('Control notifications from individual apps'),
+                onPressed: (context) {
+                  settingsListController.animateTo(
+                    150,
+                    duration: Duration(seconds: 1),
+                    curve: Curves.linear,
+                  );
+                },
               ),
               SettingsTile(
                 title: Text('Notification history'),

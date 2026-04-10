@@ -1,0 +1,9 @@
+# IDE project files — not needed by package consumers
+*.iml
+
+# Internal planning docs
+V3_PLAN.md
+CLAUDE.md
+
+# Coverage output
+coverage/

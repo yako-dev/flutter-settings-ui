@@ -4,9 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
 
 class AndroidSettingsScreen extends StatelessWidget {
-  const AndroidSettingsScreen({
-    Key key,
-  }) : super(key: key);
+  const AndroidSettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
