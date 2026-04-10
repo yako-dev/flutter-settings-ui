@@ -16,11 +16,12 @@ class IOSSettingsTile extends StatefulWidget {
     required this.activeSwitchColor,
     required this.enabled,
     required this.trailing,
+    this.compact = false,
     this.titlePadding,
     this.leadingPadding,
     this.titleDescriptionPadding,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   final SettingsTileType tileType;
   final Widget? leading;
@@ -32,6 +33,7 @@ class IOSSettingsTile extends StatefulWidget {
   final Widget? value;
   final bool? initialValue;
   final bool enabled;
+  final bool compact;
   final Color? activeSwitchColor;
   final Widget? trailing;
   final EdgeInsetsGeometry? titlePadding;
@@ -76,8 +78,9 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
     required IOSSettingsTileAdditionalInfo additionalInfo,
   }) {
     Widget content = buildTileContent(context, theme, additionalInfo);
-    DevicePlatform platform = PlatformUtils.detectPlatform(context);
-    if (platform != DevicePlatform.iOS) {
+    // Use the platform from SettingsTheme (respects user's explicit choice)
+    // rather than re-detecting from the system, which ignored platform overrides.
+    if (theme.platform != DevicePlatform.iOS) {
       content = Material(
         color: Colors.transparent,
         child: content,
@@ -102,36 +105,40 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
     required SettingsTheme theme,
     required IOSSettingsTileAdditionalInfo additionalInfo,
   }) {
-    final scaleFactor = MediaQuery.of(context).textScaleFactor;
+    final textScaler = MediaQuery.textScalerOf(context);
 
     return Container(
       width: MediaQuery.of(context).size.width,
       padding: EdgeInsets.only(
         left: 18,
         right: 18,
-        top: 8 * scaleFactor,
-        bottom: additionalInfo.needToShowDivider ? 24 : 8 * scaleFactor,
+        top: textScaler.scale(8),
+        bottom: additionalInfo.needToShowDivider ? 24 : textScaler.scale(8),
       ),
       decoration: BoxDecoration(
         color: theme.themeData.settingsListBackground,
       ),
       child: DefaultTextStyle(
-        style: TextStyle(
-          color: theme.themeData.titleTextColor,
-          fontSize: 13,
-        ),
+        style: (theme.themeData.tileDescriptionTextStyle ??
+                const TextStyle(fontSize: 13))
+            .copyWith(color: theme.themeData.titleTextColor),
         child: widget.description!,
       ),
     );
   }
 
+  /// Returns the non-value trailing controls (switch, trailing icon, chevron).
+  /// The value widget is placed directly in the inner Row of [buildTileContent]
+  /// as a [Flexible] so it can shrink without pushing the title.
   Widget buildTrailing({
     required BuildContext context,
     required SettingsTheme theme,
   }) {
-    final scaleFactor = MediaQuery.of(context).textScaleFactor;
+    final textScaler = MediaQuery.textScalerOf(context);
+    final isRTL = Directionality.of(context) == TextDirection.rtl;
 
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         if (widget.trailing != null)
           Padding(
@@ -149,20 +156,10 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
           CupertinoSwitch(
             value: widget.initialValue ?? true,
             onChanged: widget.onToggle,
-            activeColor: widget.enabled
+            activeTrackColor: widget.enabled
                 ? widget.activeSwitchColor
-                : theme.themeData.inactiveTitleColor,
-          ),
-        if (widget.tileType == SettingsTileType.navigationTile &&
-            widget.value != null)
-          DefaultTextStyle(
-            style: TextStyle(
-              color: widget.enabled
-                  ? theme.themeData.trailingTextColor
-                  : theme.themeData.inactiveTitleColor,
-              fontSize: 17,
-            ),
-            child: widget.value!,
+                : (theme.themeData.inactiveSwitchColor ??
+                    theme.themeData.inactiveTitleColor),
           ),
         if (widget.tileType == SettingsTileType.navigationTile)
           Padding(
@@ -171,8 +168,10 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
               data: IconTheme.of(context)
                   .copyWith(color: theme.themeData.leadingIconsColor),
               child: Icon(
-                CupertinoIcons.chevron_forward,
-                size: 18 * scaleFactor,
+                isRTL
+                    ? CupertinoIcons.chevron_back
+                    : CupertinoIcons.chevron_forward,
+                size: textScaler.scale(18),
               ),
             ),
           ),
@@ -193,7 +192,7 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
     SettingsTheme theme,
     IOSSettingsTileAdditionalInfo additionalInfo,
   ) {
-    final scaleFactor = MediaQuery.of(context).textScaleFactor;
+    final textScaler = MediaQuery.textScalerOf(context);
 
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
@@ -251,17 +250,21 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
                               Padding(
                                 padding: widget.titlePadding ??
                                     EdgeInsetsDirectional.only(
-                                      top: 12.5 * scaleFactor,
+                                      top: textScaler
+                                          .scale(widget.compact ? 6.0 : 12.5),
                                       bottom: widget.titleDescription == null
-                                          ? (12.5 * scaleFactor)
-                                          : (3.5 * scaleFactor),
+                                          ? textScaler.scale(
+                                              widget.compact ? 6.0 : 12.5)
+                                          : textScaler.scale(
+                                              widget.compact ? 2.0 : 3.5),
                                     ),
                                 child: DefaultTextStyle(
-                                  style: TextStyle(
+                                  style: (theme.themeData.tileTextStyle ??
+                                          const TextStyle(fontSize: 16))
+                                      .copyWith(
                                     color: widget.enabled
                                         ? theme.themeData.settingsTileTextColor
                                         : theme.themeData.inactiveTitleColor,
-                                    fontSize: 16,
                                   ),
                                   child: widget.title!,
                                 ),
@@ -270,7 +273,7 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
                                 Padding(
                                   padding: widget.titleDescriptionPadding ??
                                       EdgeInsetsDirectional.only(
-                                        bottom: 12.5 * scaleFactor,
+                                        bottom: textScaler.scale(12.5),
                                       ),
                                   child: DefaultTextStyle(
                                     style: TextStyle(
@@ -285,6 +288,23 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
                             ],
                           ),
                         ),
+                        // Value is Flexible here so it can shrink without
+                        // pushing the title when the text is long. (Issue #186)
+                        if (widget.tileType ==
+                                SettingsTileType.navigationTile &&
+                            widget.value != null)
+                          Flexible(
+                            child: DefaultTextStyle(
+                              style: TextStyle(
+                                color: widget.enabled
+                                    ? theme.themeData.trailingTextColor
+                                    : theme.themeData.inactiveTitleColor,
+                                fontSize: 17,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              child: widget.value!,
+                            ),
+                          ),
                         buildTrailing(context: context, theme: theme),
                       ],
                     ),
@@ -312,12 +332,12 @@ class IOSSettingsTileAdditionalInfo extends InheritedWidget {
   final bool enableBottomBorderRadius;
 
   const IOSSettingsTileAdditionalInfo({
-    Key? key,
+    super.key,
     required this.needToShowDivider,
     required this.enableTopBorderRadius,
     required this.enableBottomBorderRadius,
-    required Widget child,
-  }) : super(key: key, child: child);
+    required super.child,
+  });
 
   @override
   bool updateShouldNotify(IOSSettingsTileAdditionalInfo oldWidget) => true;

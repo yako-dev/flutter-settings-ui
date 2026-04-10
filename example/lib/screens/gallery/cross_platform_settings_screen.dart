@@ -3,9 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
 
 class CrossPlatformSettingsScreen extends StatefulWidget {
-  const CrossPlatformSettingsScreen({
-    Key? key,
-  }) : super(key: key);
+  const CrossPlatformSettingsScreen({super.key});
 
   @override
   State<CrossPlatformSettingsScreen> createState() =>
@@ -180,10 +178,10 @@ class _CrossPlatformSettingsScreenState
 
 class PlatformPickerScreen extends StatelessWidget {
   const PlatformPickerScreen({
-    Key? key,
+    super.key,
     required this.platform,
     required this.platforms,
-  }) : super(key: key);
+  });
 
   final DevicePlatform platform;
   final Map<DevicePlatform, String> platforms;

@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:settings_ui/src/utils/platform_utils.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 
@@ -27,59 +28,33 @@ class ThemeProvider {
     }
   }
 
+  /// Derives Material 3 colors from the active [ColorScheme].
+  /// Falls back to hardcoded values when a color is not available in the
+  /// scheme, ensuring backwards compatibility with Material 2 apps.
   static SettingsThemeData _androidTheme({
     required BuildContext context,
     required Brightness brightness,
   }) {
-    const lightLeadingIconsColor = Color.fromARGB(255, 70, 70, 70);
-    const darkLeadingIconsColor = Color.fromARGB(255, 197, 197, 197);
-
-    const lightSettingsListBackground = Color.fromRGBO(240, 240, 240, 1);
-    const darkSettingsListBackground = Color.fromRGBO(27, 27, 27, 1);
-
-    const lightSettingsTitleColor = Color.fromRGBO(11, 87, 208, 1);
-    const darkSettingsTitleColor = Color.fromRGBO(211, 227, 253, 1);
-
-    const lightTileHighlightColor = Color.fromARGB(255, 220, 220, 220);
-    const darkTileHighlightColor = Color.fromARGB(255, 46, 46, 46);
-
-    const lightSettingsTileTextColor = Color.fromARGB(255, 27, 27, 27);
-    const darkSettingsTileTextColor = Color.fromARGB(255, 240, 240, 240);
-
-    const lightInactiveTitleColor = Color.fromARGB(255, 146, 144, 148);
-    const darkInactiveTitleColor = Color.fromARGB(255, 118, 117, 122);
-
-    const lightInactiveSubtitleColor = Color.fromARGB(255, 197, 196, 201);
-    const darkInactiveSubtitleColor = Color.fromARGB(255, 71, 70, 74);
-
-    const lightTileDescriptionTextColor = Color.fromARGB(255, 70, 70, 70);
-    const darkTileDescriptionTextColor = Color.fromARGB(255, 198, 198, 198);
-
+    final colorScheme = Theme.of(context).colorScheme;
     final isLight = brightness == Brightness.light;
 
-    final listBackground =
-        isLight ? lightSettingsListBackground : darkSettingsListBackground;
+    final listBackground = isLight
+        ? colorScheme.surfaceContainerLow
+        : colorScheme.surfaceContainerLow;
 
-    final titleTextColor =
-        isLight ? lightSettingsTitleColor : darkSettingsTitleColor;
+    final titleTextColor = colorScheme.primary;
 
-    final settingsTileTextColor =
-        isLight ? lightSettingsTileTextColor : darkSettingsTileTextColor;
+    final settingsTileTextColor = colorScheme.onSurface;
 
-    final tileHighlightColor =
-        isLight ? lightTileHighlightColor : darkTileHighlightColor;
+    final tileDescriptionTextColor = colorScheme.onSurfaceVariant;
 
-    final tileDescriptionTextColor =
-        isLight ? lightTileDescriptionTextColor : darkTileDescriptionTextColor;
+    final leadingIconsColor = colorScheme.onSurfaceVariant;
 
-    final leadingIconsColor =
-        isLight ? lightLeadingIconsColor : darkLeadingIconsColor;
+    final tileHighlightColor = colorScheme.secondaryContainer;
 
-    final inactiveTitleColor =
-        isLight ? lightInactiveTitleColor : darkInactiveTitleColor;
+    final inactiveTitleColor = colorScheme.onSurface.withValues(alpha: 0.38);
 
-    final inactiveSubtitleColor =
-        isLight ? lightInactiveSubtitleColor : darkInactiveSubtitleColor;
+    final inactiveSubtitleColor = colorScheme.onSurface.withValues(alpha: 0.22);
 
     return SettingsThemeData(
       tileHighlightColor: tileHighlightColor,
@@ -93,6 +68,8 @@ class ThemeProvider {
     );
   }
 
+  /// Uses Cupertino system colors for iOS/macOS/Windows — these are not
+  /// derived from [ColorScheme] because Cupertino doesn't use Material theming.
   static SettingsThemeData _iosTheme({
     required BuildContext context,
     required Brightness brightness,
@@ -123,111 +100,50 @@ class ThemeProvider {
 
     final isLight = brightness == Brightness.light;
 
-    final listBackground =
-        isLight ? lightSettingsListBackground : darkSettingsListBackground;
-
-    final sectionBackground =
-        isLight ? lightSettingSectionColor : darkSettingSectionColor;
-
-    final titleTextColor =
-        isLight ? lightSettingsTitleColor : darkSettingsTitleColor;
-
-    final settingsTileTextColor =
-        isLight ? lightSettingsTileTextColor : darkSettingsTileTextColor;
-
-    final dividerColor = isLight ? lightDividerColor : darkDividerColor;
-
-    final trailingTextColor =
-        isLight ? lightTrailingTextColor : darkTrailingTextColor;
-
-    final tileHighlightColor =
-        isLight ? lightTileHighlightColor : darkTileHighlightColor;
-
-    final leadingIconsColor =
-        isLight ? lightLeadingIconsColor : darkLeadingIconsColor;
-
     return SettingsThemeData(
-      tileHighlightColor: tileHighlightColor,
-      settingsListBackground: listBackground,
-      settingsSectionBackground: sectionBackground,
-      titleTextColor: titleTextColor,
-      dividerColor: dividerColor,
-      trailingTextColor: trailingTextColor,
-      settingsTileTextColor: settingsTileTextColor,
-      leadingIconsColor: leadingIconsColor,
+      tileHighlightColor:
+          isLight ? lightTileHighlightColor : darkTileHighlightColor,
+      settingsListBackground:
+          isLight ? lightSettingsListBackground : darkSettingsListBackground,
+      settingsSectionBackground:
+          isLight ? lightSettingSectionColor : darkSettingSectionColor,
+      titleTextColor:
+          isLight ? lightSettingsTitleColor : darkSettingsTitleColor,
+      dividerColor: isLight ? lightDividerColor : darkDividerColor,
+      trailingTextColor:
+          isLight ? lightTrailingTextColor : darkTrailingTextColor,
+      settingsTileTextColor:
+          isLight ? lightSettingsTileTextColor : darkSettingsTileTextColor,
+      leadingIconsColor:
+          isLight ? lightLeadingIconsColor : darkLeadingIconsColor,
       inactiveTitleColor: CupertinoColors.inactiveGray,
       inactiveSubtitleColor: CupertinoColors.inactiveGray,
     );
   }
 
+  /// Web theme mirrors the Android Material 3 derivation but also sets
+  /// [settingsSectionBackground] for the card background.
   static SettingsThemeData _webTheme({
     required BuildContext context,
     required Brightness brightness,
   }) {
-    const lightLeadingIconsColor = Color.fromARGB(255, 70, 70, 70);
-    const darkLeadingIconsColor = Color.fromARGB(255, 197, 197, 197);
+    final colorScheme = Theme.of(context).colorScheme;
 
-    const lightSettingsListBackground = Color.fromRGBO(240, 240, 240, 1);
-    //done
-    const darkSettingsListBackground = Color.fromRGBO(32, 33, 36, 1);
-
-    const lightSettingSectionColor = CupertinoColors.white;
-    //done
-    const darkSettingSectionColor = Color(0xFF292a2d);
-
-    const lightSettingsTitleColor = Color.fromRGBO(11, 87, 208, 1);
-    //done
-    const darkSettingsTitleColor = Color.fromRGBO(232, 234, 237, 1);
-
-    const lightTileHighlightColor = Color.fromARGB(255, 220, 220, 220);
-    const darkTileHighlightColor = Color.fromARGB(255, 46, 46, 46);
-
-    const lightSettingsTileTextColor = Color.fromARGB(255, 27, 27, 27);
-    const darkSettingsTileTextColor = Color.fromARGB(232, 234, 237, 240);
-
-    const lightTileDescriptionTextColor = Color.fromARGB(255, 70, 70, 70);
-    const darkTileDescriptionTextColor = Color.fromARGB(154, 160, 166, 198);
-
-    const lightInactiveTitleColor = Color.fromARGB(255, 146, 144, 148);
-    const darkInactiveTitleColor = Color.fromARGB(255, 118, 117, 122);
-
-    const lightInactiveSubtitleColor = Color.fromARGB(255, 197, 196, 201);
-    const darkInactiveSubtitleColor = Color.fromARGB(255, 71, 70, 74);
-
-    final isLight = brightness == Brightness.light;
-
-    final listBackground =
-        isLight ? lightSettingsListBackground : darkSettingsListBackground;
-
-    final titleTextColor =
-        isLight ? lightSettingsTitleColor : darkSettingsTitleColor;
-
-    final settingsTileTextColor =
-        isLight ? lightSettingsTileTextColor : darkSettingsTileTextColor;
-
-    final tileHighlightColor =
-        isLight ? lightTileHighlightColor : darkTileHighlightColor;
-
-    final tileDescriptionTextColor =
-        isLight ? lightTileDescriptionTextColor : darkTileDescriptionTextColor;
-
-    final leadingIconsColor =
-        isLight ? lightLeadingIconsColor : darkLeadingIconsColor;
-
-    final sectionBackground =
-        isLight ? lightSettingSectionColor : darkSettingSectionColor;
-
-    final inactiveTitleColor =
-        isLight ? lightInactiveTitleColor : darkInactiveTitleColor;
-
-    final inactiveSubtitleColor =
-        isLight ? lightInactiveSubtitleColor : darkInactiveSubtitleColor;
+    final listBackground = colorScheme.surfaceContainerLow;
+    final sectionBackground = colorScheme.surface;
+    final titleTextColor = colorScheme.primary;
+    final settingsTileTextColor = colorScheme.onSurface;
+    final tileDescriptionTextColor = colorScheme.onSurfaceVariant;
+    final leadingIconsColor = colorScheme.onSurfaceVariant;
+    final tileHighlightColor = colorScheme.secondaryContainer;
+    final inactiveTitleColor = colorScheme.onSurface.withValues(alpha: 0.38);
+    final inactiveSubtitleColor = colorScheme.onSurface.withValues(alpha: 0.22);
 
     return SettingsThemeData(
       tileHighlightColor: tileHighlightColor,
       settingsListBackground: listBackground,
-      titleTextColor: titleTextColor,
       settingsSectionBackground: sectionBackground,
+      titleTextColor: titleTextColor,
       settingsTileTextColor: settingsTileTextColor,
       tileDescriptionTextColor: tileDescriptionTextColor,
       leadingIconsColor: leadingIconsColor,

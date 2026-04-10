@@ -8,8 +8,8 @@ class AndroidSettingsSection extends StatelessWidget {
     required this.margin,
     this.title,
     this.titlePadding,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   final List<AbstractSettingsTile> tiles;
   final EdgeInsetsDirectional? margin;
@@ -23,7 +23,7 @@ class AndroidSettingsSection extends StatelessWidget {
 
   Widget buildSectionBody(BuildContext context) {
     final theme = SettingsTheme.of(context);
-    final scaleFactor = MediaQuery.of(context).textScaleFactor;
+    final textScaler = MediaQuery.textScalerOf(context);
     final tileList = buildTileList();
 
     if (title == null) {
@@ -38,15 +38,14 @@ class AndroidSettingsSection extends StatelessWidget {
           Padding(
             padding: titlePadding ??
                 EdgeInsetsDirectional.only(
-                  top: 24 * scaleFactor,
-                  bottom: 10 * scaleFactor,
+                  top: textScaler.scale(24),
+                  bottom: textScaler.scale(10),
                   start: 24,
                   end: 24,
                 ),
             child: DefaultTextStyle(
-              style: TextStyle(
-                color: theme.themeData.titleTextColor,
-              ),
+              style: (theme.themeData.titleTextStyle ?? const TextStyle())
+                  .copyWith(color: theme.themeData.titleTextColor),
               child: title!,
             ),
           ),

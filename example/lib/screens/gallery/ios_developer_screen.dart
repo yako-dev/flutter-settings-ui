@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
 
 class IosDeveloperScreen extends StatefulWidget {
-  const IosDeveloperScreen({Key? key}) : super(key: key);
+  const IosDeveloperScreen({super.key});
 
   @override
-  _IosDeveloperScreen createState() => _IosDeveloperScreen();
+  State<IosDeveloperScreen> createState() => _IosDeveloperScreenState();
 }
 
-class _IosDeveloperScreen extends State<IosDeveloperScreen> {
+class _IosDeveloperScreenState extends State<IosDeveloperScreen> {
   bool darkTheme = true;
   final ScrollController settingsListController = ScrollController();
 

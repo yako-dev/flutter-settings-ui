@@ -14,12 +14,13 @@ class WebSettingsTile extends StatelessWidget {
     required this.activeSwitchColor,
     required this.enabled,
     required this.trailing,
+    this.compact = false,
     this.titlePadding,
     this.leadingPadding,
     this.trailingPadding,
     this.descriptionPadding,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   final SettingsTileType tileType;
   final Widget? leading;
@@ -30,6 +31,7 @@ class WebSettingsTile extends StatelessWidget {
   final Widget? value;
   final bool initialValue;
   final bool enabled;
+  final bool compact;
   final Widget? trailing;
   final Color? activeSwitchColor;
   final EdgeInsetsGeometry? titlePadding;
@@ -40,7 +42,7 @@ class WebSettingsTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = SettingsTheme.of(context);
-    final scaleFactor = MediaQuery.of(context).textScaleFactor;
+    final textScaler = MediaQuery.textScalerOf(context);
 
     final cantShowAnimation = tileType == SettingsTileType.switchTile
         ? onToggle == null && onPressed == null
@@ -83,19 +85,22 @@ class WebSettingsTile extends StatelessWidget {
                   padding: EdgeInsetsDirectional.only(
                     start: 24,
                     end: 24,
-                    bottom: 19 * scaleFactor,
-                    top: 19 * scaleFactor,
+                    bottom: textScaler.scale(compact ? 9 : 19),
+                    top: textScaler.scale(compact ? 9 : 19),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       DefaultTextStyle(
-                        style: TextStyle(
+                        style: (theme.themeData.tileTextStyle ??
+                                const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w400,
+                                ))
+                            .copyWith(
                           color: enabled
                               ? theme.themeData.settingsTileTextColor
                               : theme.themeData.inactiveTitleColor,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w400,
                         ),
                         child: title ?? Container(),
                       ),
@@ -103,7 +108,9 @@ class WebSettingsTile extends StatelessWidget {
                         Padding(
                           padding: const EdgeInsets.only(top: 4.0),
                           child: DefaultTextStyle(
-                            style: TextStyle(
+                            style: (theme.themeData.tileDescriptionTextStyle ??
+                                    const TextStyle())
+                                .copyWith(
                               color: enabled
                                   ? theme.themeData.tileDescriptionTextColor
                                   : theme.themeData.inactiveSubtitleColor,
@@ -116,7 +123,9 @@ class WebSettingsTile extends StatelessWidget {
                           padding: descriptionPadding ??
                               const EdgeInsets.only(top: 4.0),
                           child: DefaultTextStyle(
-                            style: TextStyle(
+                            style: (theme.themeData.tileDescriptionTextStyle ??
+                                    const TextStyle())
+                                .copyWith(
                               color: enabled
                                   ? theme.themeData.tileDescriptionTextColor
                                   : theme.themeData.inactiveSubtitleColor,
@@ -155,7 +164,7 @@ class WebSettingsTile extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsetsDirectional.only(end: 8),
                       child: Switch(
-                        activeColor: enabled
+                        activeThumbColor: enabled
                             ? (activeSwitchColor ??
                                 const Color.fromRGBO(138, 180, 248, 1.0))
                             : theme.themeData.inactiveTitleColor,
@@ -170,10 +179,10 @@ class WebSettingsTile extends StatelessWidget {
                   padding: const EdgeInsetsDirectional.only(start: 16, end: 8),
                   child: Switch(
                     value: initialValue,
-                    activeColor: enabled
-                        ? (activeSwitchColor ??
-                            const Color.fromRGBO(138, 180, 248, 1.0))
-                        : theme.themeData.inactiveTitleColor,
+                    activeThumbColor: !enabled
+                        ? (theme.themeData.inactiveSwitchColor ??
+                            theme.themeData.inactiveTitleColor)
+                        : activeSwitchColor,
                     onChanged: onToggle,
                   ),
                 )

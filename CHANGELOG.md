@@ -1,3 +1,29 @@
+## [3.0.0] - [April 10, 2026]
+
+### Breaking changes
+* Requires Flutter >=3.16.0 and Dart SDK >=3.5.0
+* Android and Web themes now derive colors from `Theme.of(context).colorScheme` (Material 3). Custom color overrides via `SettingsThemeData` still work.
+
+### New features
+* `compact: bool` parameter on `SettingsTile` — use smaller vertical padding for dense layouts
+* `crossAxisAlignment` parameter on `SettingsList`
+* `titleTextStyle`, `tileTextStyle`, `tileDescriptionTextStyle`, `inactiveSwitchColor` fields on `SettingsThemeData`
+
+### Bug fixes
+* Fixed iOS value text overflow in narrow tiles (#186)
+* Fixed RTL chevron direction — now shows back-arrow in right-to-left layouts
+* Fixed platform override being ignored on macOS host when `platform: android/web` was set (#139)
+* Fixed web switch ignoring `SwitchTheme` due to hardcoded fallback color (#188)
+* Fixed disabled switch using wrong inactive color on all platforms
+
+### Maintenance
+* Migrated all constructors to super-parameters (`super.key`, `super.child`)
+* Replaced deprecated `textScaleFactor` with `MediaQuery.textScalerOf`
+* Replaced deprecated `Switch.activeColor` with `Switch.activeThumbColor`
+* Replaced deprecated `CupertinoSwitch.activeColor` with `CupertinoSwitch.activeTrackColor`
+* Updated CI to `actions/checkout@v4`, coverage gate raised from 35% → 60%
+* Updated example app with Material 3 demo screen
+
 ## [2.0.3] - [June 13, 2022]
 * Updated documentation
 * Fixed display of web support on pub.dev

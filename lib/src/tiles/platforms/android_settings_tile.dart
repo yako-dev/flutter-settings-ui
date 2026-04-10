@@ -14,12 +14,13 @@ class AndroidSettingsTile extends StatelessWidget {
     required this.activeSwitchColor,
     required this.enabled,
     required this.trailing,
+    this.compact = false,
     this.titlePadding,
     this.leadingPadding,
     this.trailingPadding,
     this.descriptionPadding,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   final SettingsTileType tileType;
   final Widget? leading;
@@ -30,6 +31,7 @@ class AndroidSettingsTile extends StatelessWidget {
   final Widget? value;
   final bool initialValue;
   final bool enabled;
+  final bool compact;
   final Color? activeSwitchColor;
   final Widget? trailing;
   final EdgeInsetsGeometry? titlePadding;
@@ -40,7 +42,7 @@ class AndroidSettingsTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = SettingsTheme.of(context);
-    final scaleFactor = MediaQuery.of(context).textScaleFactor;
+    final textScaler = MediaQuery.textScalerOf(context);
 
     final cantShowAnimation = tileType == SettingsTileType.switchTile
         ? onToggle == null && onPressed == null
@@ -81,19 +83,22 @@ class AndroidSettingsTile extends StatelessWidget {
                   padding: EdgeInsetsDirectional.only(
                     start: 24,
                     end: 24,
-                    bottom: 19 * scaleFactor,
-                    top: 19 * scaleFactor,
+                    bottom: textScaler.scale(compact ? 9 : 19),
+                    top: textScaler.scale(compact ? 9 : 19),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       DefaultTextStyle(
-                        style: TextStyle(
+                        style: (theme.themeData.tileTextStyle ??
+                                const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w400,
+                                ))
+                            .copyWith(
                           color: enabled
                               ? theme.themeData.settingsTileTextColor
                               : theme.themeData.inactiveTitleColor,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w400,
                         ),
                         child: title ?? Container(),
                       ),
@@ -101,7 +106,9 @@ class AndroidSettingsTile extends StatelessWidget {
                         Padding(
                           padding: const EdgeInsets.only(top: 4.0),
                           child: DefaultTextStyle(
-                            style: TextStyle(
+                            style: (theme.themeData.tileDescriptionTextStyle ??
+                                    const TextStyle())
+                                .copyWith(
                               color: enabled
                                   ? theme.themeData.tileDescriptionTextColor
                                   : theme.themeData.inactiveSubtitleColor,
@@ -114,7 +121,9 @@ class AndroidSettingsTile extends StatelessWidget {
                           padding: descriptionPadding ??
                               const EdgeInsets.only(top: 4.0),
                           child: DefaultTextStyle(
-                            style: TextStyle(
+                            style: (theme.themeData.tileDescriptionTextStyle ??
+                                    const TextStyle())
+                                .copyWith(
                               color: enabled
                                   ? theme.themeData.tileDescriptionTextColor
                                   : theme.themeData.inactiveSubtitleColor,
@@ -135,9 +144,10 @@ class AndroidSettingsTile extends StatelessWidget {
                       child: Switch(
                         value: initialValue,
                         onChanged: onToggle,
-                        activeColor: enabled
+                        activeThumbColor: enabled
                             ? activeSwitchColor
-                            : theme.themeData.inactiveTitleColor,
+                            : (theme.themeData.inactiveSwitchColor ??
+                                theme.themeData.inactiveTitleColor),
                       ),
                     ),
                   ],
@@ -148,7 +158,7 @@ class AndroidSettingsTile extends StatelessWidget {
                   child: Switch(
                     value: initialValue,
                     onChanged: onToggle,
-                    activeColor: enabled
+                    activeThumbColor: enabled
                         ? activeSwitchColor
                         : theme.themeData.inactiveTitleColor,
                   ),

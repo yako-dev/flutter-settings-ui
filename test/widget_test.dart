@@ -4,6 +4,7 @@ import 'package:settings_ui/settings_ui.dart';
 import 'package:settings_ui/src/sections/platforms/android_settings_section.dart';
 import 'package:settings_ui/src/tiles/platforms/android_settings_tile.dart';
 
+import 'settings_tests/bug_fix_tests.dart';
 import 'settings_tests/setting_tile_tests.dart';
 import 'settings_tests/settings_list_tests.dart';
 import 'settings_tests/settings_sections_tests.dart';
@@ -43,6 +44,9 @@ void main() {
         DevicePlatform.android,
       ));
 
+      final context = tester.element(find.byType(SettingsList));
+      final colorScheme = Theme.of(context).colorScheme;
+
       final defaultTextFinder = find.ancestor(
           of: find.text('Network & internet'),
           matching: find.byType(DefaultTextStyle));
@@ -50,7 +54,7 @@ void main() {
       final DefaultTextStyle titleWidget =
           tester.firstWidget(defaultTextFinder);
 
-      expect(titleWidget.style.color, const Color(0xff1b1b1b));
+      expect(titleWidget.style.color, colorScheme.onSurface);
       expect(titleWidget.style.fontSize, 18);
       expect(titleWidget.style.fontWeight, FontWeight.w400);
     });
@@ -70,6 +74,9 @@ void main() {
         DevicePlatform.android,
       ));
 
+      final context = tester.element(find.byType(SettingsList));
+      final colorScheme = Theme.of(context).colorScheme;
+
       final defaultTextFinder = find.ancestor(
           of: find.text('Mobile, Wi-Fi, hotspot'),
           matching: find.byType(DefaultTextStyle));
@@ -77,7 +84,7 @@ void main() {
       final DefaultTextStyle descriptionWidget =
           tester.firstWidget(defaultTextFinder);
 
-      expect(descriptionWidget.style.color, const Color(0xff464646));
+      expect(descriptionWidget.style.color, colorScheme.onSurfaceVariant);
       expect(descriptionWidget.style.fontSize, null);
       expect(descriptionWidget.style.fontWeight, null);
     });
@@ -97,6 +104,9 @@ void main() {
         DevicePlatform.android,
       ));
 
+      final context = tester.element(find.byType(SettingsList));
+      final colorScheme = Theme.of(context).colorScheme;
+
       final iconThemeFinder = find.ancestor(
         of: find.byIcon(Icons.wifi),
         matching: find.byType(IconTheme),
@@ -104,7 +114,7 @@ void main() {
 
       final IconTheme iconWidget = tester.firstWidget(iconThemeFinder);
 
-      expect(iconWidget.data.color, const Color(0xff464646));
+      expect(iconWidget.data.color, colorScheme.onSurfaceVariant);
     });
   });
 
@@ -148,6 +158,10 @@ void main() {
     settingsTileTests(DevicePlatform.macOS);
     settingsTileTests(DevicePlatform.windows);
     settingsTileTests(DevicePlatform.web);
+  });
+
+  group('Bug fix regression tests (v3.0.0)', () {
+    bugFixTests();
   });
 
   group('Settings tile on Tap tests for different platforms', () {

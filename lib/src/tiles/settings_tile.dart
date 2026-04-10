@@ -18,13 +18,14 @@ class SettingsTile extends AbstractSettingsTile {
     this.description,
     this.onPressed,
     this.enabled = true,
+    this.compact = false,
     this.titlePadding,
     this.leadingPadding,
     this.trailingPadding,
     this.descriptionPadding,
     this.titleDescriptionPadding,
-    Key? key,
-  }) : super(key: key) {
+    super.key,
+  }) {
     onToggle = null;
     initialValue = null;
     activeSwitchColor = null;
@@ -40,13 +41,14 @@ class SettingsTile extends AbstractSettingsTile {
     this.description,
     this.onPressed,
     this.enabled = true,
+    this.compact = false,
     this.titlePadding,
     this.leadingPadding,
     this.trailingPadding,
     this.descriptionPadding,
     this.titleDescriptionPadding,
-    Key? key,
-  }) : super(key: key) {
+    super.key,
+  }) {
     onToggle = null;
     initialValue = null;
     activeSwitchColor = null;
@@ -64,13 +66,14 @@ class SettingsTile extends AbstractSettingsTile {
     this.description,
     this.onPressed,
     this.enabled = true,
+    this.compact = false,
     this.titlePadding,
     this.leadingPadding,
     this.trailingPadding,
     this.descriptionPadding,
     this.titleDescriptionPadding,
-    Key? key,
-  }) : super(key: key) {
+    super.key,
+  }) {
     value = null;
     tileType = SettingsTileType.switchTile;
   }
@@ -92,6 +95,10 @@ class SettingsTile extends AbstractSettingsTile {
 
   /// A function that is called by tap on a tile
   final Function(BuildContext context)? onPressed;
+
+  /// When true, reduces the tile's vertical padding by half for a more
+  /// compact appearance in dense settings lists.
+  final bool compact;
 
   final EdgeInsetsGeometry? titlePadding;
   final EdgeInsetsGeometry? leadingPadding;
@@ -123,6 +130,7 @@ class SettingsTile extends AbstractSettingsTile {
           leading: leading,
           title: title,
           enabled: enabled,
+          compact: compact,
           activeSwitchColor: activeSwitchColor,
           initialValue: initialValue ?? false,
           trailing: trailing,
@@ -145,6 +153,7 @@ class SettingsTile extends AbstractSettingsTile {
           titleDescription: titleDescription,
           trailing: trailing,
           enabled: enabled,
+          compact: compact,
           activeSwitchColor: activeSwitchColor,
           initialValue: initialValue ?? false,
           titlePadding: titlePadding,
@@ -161,6 +170,7 @@ class SettingsTile extends AbstractSettingsTile {
           leading: leading,
           title: title,
           enabled: enabled,
+          compact: compact,
           trailing: trailing,
           activeSwitchColor: activeSwitchColor,
           initialValue: initialValue ?? false,

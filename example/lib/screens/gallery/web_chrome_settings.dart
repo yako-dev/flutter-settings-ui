@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
 
 class WebChromeSettings extends StatefulWidget {
-  const WebChromeSettings({Key? key}) : super(key: key);
+  const WebChromeSettings({super.key});
 
   @override
   State<WebChromeSettings> createState() => _WebChromeSettingsState();

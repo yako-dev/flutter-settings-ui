@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
 
 class IosNativeSettingsScreen extends StatefulWidget {
-  const IosNativeSettingsScreen({Key? key}) : super(key: key);
+  const IosNativeSettingsScreen({super.key});
 
   @override
   State<IosNativeSettingsScreen> createState() =>
@@ -36,13 +36,13 @@ class _IosNativeSettingsScreenState extends State<IosNativeSettingsScreen> {
                   leading: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8.0),
                     child: CircleAvatar(
+                      radius: 25,
+                      backgroundColor: Colors.grey,
                       child: Icon(
                         CupertinoIcons.person_alt_circle,
                         size: 45,
                         color: Colors.white,
                       ),
-                      radius: 25,
-                      backgroundColor: Colors.grey,
                     ),
                   ),
                   title: Text(

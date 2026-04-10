@@ -7,8 +7,8 @@ class WebSettingsSection extends StatelessWidget {
     required this.margin,
     required this.title,
     this.titlePadding,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   final List<AbstractSettingsTile> tiles;
   final EdgeInsetsDirectional? margin;
@@ -22,7 +22,7 @@ class WebSettingsSection extends StatelessWidget {
 
   Widget buildSectionBody(BuildContext context) {
     final theme = SettingsTheme.of(context);
-    final scaleFactor = MediaQuery.of(context).textScaleFactor;
+    final textScaler = MediaQuery.textScalerOf(context);
 
     return Padding(
       padding: margin ?? EdgeInsets.zero,
@@ -31,18 +31,17 @@ class WebSettingsSection extends StatelessWidget {
         children: [
           if (title != null)
             Container(
-              height: 65 * scaleFactor,
+              height: textScaler.scale(65),
               padding: titlePadding ??
                   EdgeInsetsDirectional.only(
-                    bottom: 5 * scaleFactor,
+                    bottom: textScaler.scale(5),
                     start: 6,
-                    top: 40 * scaleFactor,
+                    top: textScaler.scale(40),
                   ),
               child: DefaultTextStyle(
-                style: TextStyle(
-                  color: theme.themeData.titleTextColor,
-                  fontSize: 15,
-                ),
+                style: (theme.themeData.titleTextStyle ??
+                        const TextStyle(fontSize: 15))
+                    .copyWith(color: theme.themeData.titleTextColor),
                 child: title!,
               ),
             ),

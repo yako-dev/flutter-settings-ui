@@ -29,8 +29,9 @@ class SettingsList extends StatelessWidget {
     this.contentPadding,
     this.scrollController,
     this.applicationType = ApplicationType.material,
-    Key? key,
-  }) : super(key: key);
+    this.crossAxisAlignment = CrossAxisAlignment.center,
+    super.key,
+  });
 
   final bool shrinkWrap;
   final ScrollPhysics? physics;
@@ -42,6 +43,11 @@ class SettingsList extends StatelessWidget {
   final List<AbstractSettingsSection> sections;
   final ApplicationType applicationType;
   final ScrollController? scrollController;
+
+  /// Controls how the settings list is aligned along the cross axis.
+  /// Defaults to [CrossAxisAlignment.center] (content is centered on wide
+  /// screens). Use [CrossAxisAlignment.start] for left-aligned content.
+  final CrossAxisAlignment crossAxisAlignment;
 
   @override
   Widget build(BuildContext context) {
@@ -63,7 +69,9 @@ class SettingsList extends StatelessWidget {
     return Container(
       color: themeData.settingsListBackground,
       width: MediaQuery.of(context).size.width,
-      alignment: Alignment.center,
+      alignment: crossAxisAlignment == CrossAxisAlignment.start
+          ? Alignment.topLeft
+          : Alignment.center,
       child: SettingsTheme(
         themeData: themeData,
         platform: platform,
@@ -99,10 +107,6 @@ class SettingsList extends StatelessWidget {
           throw Exception(
             'You can\'t use the DevicePlatform.device in this context. '
             'Incorrect platform: SettingsList.calculateDefaultPadding',
-          );
-        default:
-          return EdgeInsets.symmetric(
-            horizontal: padding,
           );
       }
     }

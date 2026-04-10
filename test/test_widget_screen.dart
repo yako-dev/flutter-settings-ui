@@ -7,11 +7,11 @@ class TestWidgetScreen extends StatefulWidget {
   final List<AbstractSettingsTile> settingsTiles;
 
   const TestWidgetScreen({
-    Key? key,
+    super.key,
     this.platform,
     this.applicationType = ApplicationType.material,
     required this.settingsTiles,
-  }) : super(key: key);
+  });
 
   @override
   State<TestWidgetScreen> createState() => _TestWidgetScreenState();

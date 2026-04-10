@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
 
 class AndroidNotificationsScreen extends StatefulWidget {
-  const AndroidNotificationsScreen({Key? key}) : super(key: key);
+  const AndroidNotificationsScreen({super.key});
 
   @override
-  _AndroidNotificationsScreenState createState() =>
+  State<AndroidNotificationsScreen> createState() =>
       _AndroidNotificationsScreenState();
 }
 

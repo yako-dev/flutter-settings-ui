@@ -73,9 +73,9 @@ void settingsListTests(DevicePlatform? platform) {
 
     testWidgets('Settings list with big size screen should render correctly',
         (tester) async {
-      tester.binding.window.devicePixelRatioTestValue = (2.625);
-      final dpi = tester.binding.window.devicePixelRatio;
-      tester.binding.window.physicalSizeTestValue = Size(900 * dpi, 1200 * dpi);
+      tester.view.devicePixelRatio = 2.625;
+      final dpi = tester.view.devicePixelRatio;
+      tester.view.physicalSize = Size(900 * dpi, 1200 * dpi);
 
       await tester.pumpWidget(
         MediaQuery(
@@ -107,7 +107,7 @@ void settingsListTests(DevicePlatform? platform) {
 
       expect(find.byType(SettingsList), findsOneWidget);
       expect(find.byType(SettingsSection), findsOneWidget);
-      tester.binding.window.clearAllTestValues();
+      tester.view.reset();
     });
   });
 
