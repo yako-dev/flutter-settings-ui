@@ -7,7 +7,7 @@
 A Flutter package for building settings screens that look native on **Android**, **iOS**, and **Web** — all from a single API. The UI automatically adapts to each platform's visual style: Material for Android, Cupertino for iOS, and a card-based Web layout. Also runs on macOS, Windows, Linux, and Fuchsia (macOS/Windows use the Cupertino style; Linux uses Material).
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master/assets/v2/settings_ui_cover.png" height="400px">
+  <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master/assets/v2/settings_ui_cover.png" height="560px">
 </p>
 
 ---
