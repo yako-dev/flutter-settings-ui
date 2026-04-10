@@ -1,153 +1,434 @@
 # Settings UI for Flutter
 
 [![Pub Version](https://img.shields.io/pub/v/settings_ui?color=blueviolet)](https://pub.dev/packages/settings_ui)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-android%20%7C%20ios%20%7C%20web%20%7C%20macos%20%7C%20windows%20%7C%20linux-lightgrey)](https://pub.dev/packages/settings_ui)
 
-## Overview:
+A Flutter package for building native-looking settings screens across **Android, iOS, Web, macOS, Windows, and Linux** from a single API. The UI automatically adapts to each platform's visual style — Material for Android/Web/Linux, Cupertino for iOS/macOS/Windows.
 
-Build the beautiful settings screen UI in one moment with `Settings UI for Flutter`
+<p align="center">
+  <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master/assets/v2/android/mockup_01.png" height="540px">
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master/assets/v2/iOS/mockup_01.png" height="540px">
+</p>
 
-<p align="center">  
-  <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master/assets/v2/settings_ui_cover.png" height="700px">  
-</p>  
+---
 
-<br>
-<br>
+## Contents
 
-## Installing:
+- [Installing](#installing)
+- [Quick start](#quick-start)
+- [Tile types](#tile-types)
+- [Platform rendering](#platform-rendering)
+- [Theming](#theming)
+- [Advanced usage](#advanced-usage)
+- [API reference](#api-reference)
 
-1. Add the dependency in your `pubspec.yaml` file.
+---
 
-```yaml  
-dependencies:  
- settings_ui: <latest version>
- ```  
+## Installing
 
-2. Import the `settings_ui` package.
+Add to your `pubspec.yaml`:
 
-```dart  
+```yaml
+dependencies:
+  settings_ui: ^3.0.0
+```
+
+Then import:
+
+```dart
 import 'package:settings_ui/settings_ui.dart';
-```  
+```
 
-<br>
-<br>
+---
 
-## Basic Usage:
+## Quick start
 
-```dart  
-    SettingsList(
-      sections: [
-        SettingsSection(
-          title: Text('Common'),
-          tiles: <SettingsTile>[
-            SettingsTile.navigation(
-              leading: Icon(Icons.language),
-              title: Text('Language'),
-              value: Text('English'),
-            ),
-            SettingsTile.switchTile(
-              onToggle: (value) {},
-              initialValue: true,
-              leading: Icon(Icons.format_paint),
-              title: Text('Enable custom theme'),
-            ),
-          ],
+```dart
+class SettingsScreen extends StatefulWidget {
+  const SettingsScreen({super.key});
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  bool _notificationsEnabled = true;
+  bool _darkMode = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Settings')),
+      body: SettingsList(
+        sections: [
+          SettingsSection(
+            title: const Text('General'),
+            tiles: [
+              SettingsTile.navigation(
+                leading: const Icon(Icons.language),
+                title: const Text('Language'),
+                value: const Text('English'),
+                onPressed: (context) {
+                  // navigate to language picker
+                },
+              ),
+            ],
+          ),
+          SettingsSection(
+            title: const Text('Appearance'),
+            tiles: [
+              SettingsTile.switchTile(
+                leading: const Icon(Icons.dark_mode),
+                title: const Text('Dark mode'),
+                initialValue: _darkMode,
+                onToggle: (value) => setState(() => _darkMode = value),
+              ),
+              SettingsTile.switchTile(
+                leading: const Icon(Icons.notifications),
+                title: const Text('Notifications'),
+                description: const Text('Alerts, sounds, badges'),
+                initialValue: _notificationsEnabled,
+                onToggle: (value) =>
+                    setState(() => _notificationsEnabled = value),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+```
+
+---
+
+## Tile types
+
+### `SettingsTile` — basic tile
+
+A simple tappable tile with optional leading icon, description, and trailing widget.
+
+```dart
+SettingsTile(
+  leading: const Icon(Icons.storage),
+  title: const Text('Storage'),
+  description: const Text('30% used — 5.60 GB free'),
+  trailing: const Icon(Icons.chevron_right),
+  onPressed: (context) { /* ... */ },
+)
+```
+
+### `SettingsTile.navigation` — navigation tile
+
+Adds a platform-appropriate trailing chevron (right arrow on LTR, left arrow on RTL). Use this for tiles that push a new screen.
+
+```dart
+SettingsTile.navigation(
+  leading: const Icon(Icons.language),
+  title: const Text('Language'),
+  value: const Text('English'),     // shown next to the chevron
+  titleDescription: const Text('Choose your preferred language'),
+  onPressed: (context) {
+    Navigator.of(context).push(/* language screen */);
+  },
+)
+```
+
+### `SettingsTile.switchTile` — switch tile
+
+A tile with a `Switch` (Material) or `CupertinoSwitch` (Cupertino) depending on the active platform.
+
+```dart
+SettingsTile.switchTile(
+  leading: const Icon(Icons.fingerprint),
+  title: const Text('Use biometrics'),
+  description: const Text('Unlock with fingerprint or Face ID'),
+  initialValue: _biometricsEnabled,
+  onToggle: (value) => setState(() => _biometricsEnabled = value),
+)
+```
+
+### `CustomSettingsTile` — fully custom tile
+
+Place any widget inside a section as if it were a tile.
+
+```dart
+CustomSettingsTile(
+  child: Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    child: LinearProgressIndicator(value: 0.3),
+  ),
+)
+```
+
+### `CustomSettingsSection` — fully custom section
+
+Place any widget as an entire section, outside the standard section chrome.
+
+```dart
+CustomSettingsSection(
+  child: Column(
+    children: [
+      const SizedBox(height: 16),
+      CircleAvatar(radius: 40, child: Icon(Icons.person, size: 40)),
+      const SizedBox(height: 8),
+      const Text('Danny Yako', style: TextStyle(fontSize: 18)),
+      const SizedBox(height: 16),
+    ],
+  ),
+)
+```
+
+---
+
+## Platform rendering
+
+By default `SettingsList` detects the running platform automatically (`DevicePlatform.device`). You can override it to force a specific style:
+
+```dart
+SettingsList(
+  platform: DevicePlatform.iOS,   // always render iOS style
+  sections: [ /* ... */ ],
+)
+```
+
+| `DevicePlatform` value | Style used |
+|---|---|
+| `device` *(default)* | Auto-detected at runtime |
+| `android`, `fuchsia`, `linux` | Material |
+| `iOS`, `macOS`, `windows` | Cupertino |
+| `web` | Web (Material with card layout) |
+
+---
+
+## Theming
+
+### Material 3 (v3.0.0+)
+
+On Android and Web, colors are automatically derived from your app's `ColorScheme`. No configuration needed — if you use `ThemeData(colorSchemeSeed: ...)` or a custom `ColorScheme`, the settings list will match.
+
+```dart
+MaterialApp(
+  theme: ThemeData(
+    colorSchemeSeed: Colors.indigo,
+    useMaterial3: true,
+  ),
+  home: const SettingsScreen(),
+)
+```
+
+### Custom theme overrides
+
+Pass a `SettingsThemeData` to `lightTheme` and/or `darkTheme` on `SettingsList` to override individual colors. Any field you leave `null` falls back to the platform default.
+
+```dart
+SettingsList(
+  lightTheme: const SettingsThemeData(
+    settingsListBackground: Color(0xFFF2F2F7),
+    settingsSectionBackground: Colors.white,
+    titleTextColor: Colors.indigo,
+  ),
+  darkTheme: const SettingsThemeData(
+    settingsListBackground: Color(0xFF1C1C1E),
+    settingsSectionBackground: Color(0xFF2C2C2E),
+    titleTextColor: Colors.indigoAccent,
+  ),
+  sections: [ /* ... */ ],
+)
+```
+
+### Custom fonts and text styles
+
+```dart
+SettingsList(
+  lightTheme: SettingsThemeData(
+    tileTextStyle: const TextStyle(fontFamily: 'Roboto', fontSize: 16),
+    tileDescriptionTextStyle: const TextStyle(fontSize: 12),
+    titleTextStyle: const TextStyle(
+      fontWeight: FontWeight.bold,
+      fontSize: 13,
+      letterSpacing: 0.5,
+    ),
+  ),
+  sections: [ /* ... */ ],
+)
+```
+
+### Disabled state colors
+
+```dart
+SettingsTile.switchTile(
+  title: const Text('Feature'),
+  initialValue: false,
+  onToggle: null,          // passing null disables the tile
+  enabled: false,
+)
+```
+
+To control the color of the switch when disabled:
+
+```dart
+SettingsList(
+  lightTheme: const SettingsThemeData(
+    inactiveSwitchColor: Colors.grey,
+  ),
+  sections: [ /* ... */ ],
+)
+```
+
+---
+
+## Advanced usage
+
+### Scroll controller
+
+Pass a `ScrollController` to programmatically scroll the list:
+
+```dart
+final _controller = ScrollController();
+
+SettingsList(
+  scrollController: _controller,
+  sections: [
+    SettingsSection(
+      tiles: [
+        SettingsTile.navigation(
+          title: const Text('Jump to bottom'),
+          onPressed: (_) => _controller.animateTo(
+            _controller.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          ),
         ),
       ],
     ),
-```  
+  ],
+)
+```
 
-<br>
-<br>
-<br>
+### Compact tiles
 
-## Settings List
+Reduce tile height with `compact: true` for dense layouts:
 
-Settings list it's a wrapper for your settings UI.
+```dart
+SettingsTile(
+  title: const Text('Option'),
+  compact: true,
+)
+```
 
-### Parameters
+### Embedding inside a scroll view
 
-| Parameter | Description | Required |
-|--|--|--|
-| List\<AbstractSettingsSection> sections | The list of your settings sections | +
-| bool shrinkWrap | Enable/disable the shrink wrap for the list | -
-| ScrollPhysics physics | Setup your custom scroll physics | -
-| DevicePlatform platform | Chose the platform view you prefer | -
-| SettingsThemeData lightTheme | Setup your light theme | -
-| SettingsThemeData darkTheme | Setup your dark theme | -
-| Brightness brightness | Overwrite the brightness you want | -
-| EdgeInsetsGeometry contentPadding | Set custom paddings | -
-| ApplicationType applicationType | Setup the application type you use: the material for MaterialApp, the cupertino for CupertinoApp, and the `both`, if you running the MaterialApp and the CupertinoApp depending on the device's OC | -
+When placing `SettingsList` inside another scrollable widget (e.g. a `ListView` or `CustomScrollView`), set `shrinkWrap: true` and provide non-scrolling physics:
 
-<br>
-<br>
-<br>
-<br>
+```dart
+SettingsList(
+  shrinkWrap: true,
+  physics: const NeverScrollableScrollPhysics(),
+  sections: [ /* ... */ ],
+)
+```
 
-## Settings Section
+### Wide screen / web alignment
 
-The Setting section is the block of your settings tiles located in your `SettingsList`.
+On screens wider than 810 dp the list automatically adds horizontal padding to keep content centered. To left-align instead:
 
-### Implementations
+```dart
+SettingsList(
+  crossAxisAlignment: CrossAxisAlignment.start,
+  sections: [ /* ... */ ],
+)
+```
 
-| Type | Description |
-|--|--|
-| AbstractSettingsSection | An abstract entity. Just an OOP's thing (so you can expand it yourself) |
-| CustomSettingsSection | You asked a lot. We implemented this for you. Now you can put anything you want as a child inside this custom section. Just paste the image of your cat or the weather widget inside the `SettingsList`. Feel free and enjoy |
-| SettingsSection | The default section widget, contains `Widget title`, `EdgeInsetsDirectional margin` and the required list of `AbstractSettingsTile` we called `tiles` |
+### CupertinoApp support
 
-<br>
-<br>
-<br>
-<br>
+If your app uses `CupertinoApp` instead of `MaterialApp`, set `applicationType` accordingly so brightness is read from the correct theme:
 
-## Settings Tile
+```dart
+SettingsList(
+  applicationType: ApplicationType.cupertino,
+  sections: [ /* ... */ ],
+)
+```
 
-Here it is. The section tile. It displays the elements you want to show.
+For apps that use `MaterialApp` on Android and `CupertinoApp` on iOS:
 
-| Type | Description |
-|--|--|
-| AbstractSettingsTile | One more OOP's thing (so you can expand it yourself) |
-| CustomSettingsTile | The main idea is the same as for the `CustomSettingsSection`. You can put anything as a child inside your `SettingsSection`.
-| SettingsTile | I think that we need to discuss this deeper. See below for the details.
+```dart
+SettingsList(
+  applicationType: ApplicationType.both,
+  sections: [ /* ... */ ],
+)
+```
 
-<br>
-<br>
+---
 
-### Settings tile
+## API reference
 
-The implementation of `AbstractSettingsTile`. It has a lot of fabric methods and parameters. Let's
-take a look.
+### `SettingsList`
 
-| Constructor / Fabric method | Description |
-|--|--|
-| SettingsTile | Displays the default setting tile. Nothing special. |
-| SettingsTile.navigation | Created to indicate this tile as a navigation tile. It adds a right-located arrow for the iOS design as an example.
-| SettingsTile.switchTile | Creates a switch tile. Do you want some switch? Just use this one. |
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `sections` | `List<AbstractSettingsSection>` | required | The list of sections to display |
+| `platform` | `DevicePlatform?` | `device` | Force a specific platform style |
+| `lightTheme` | `SettingsThemeData?` | — | Color/style overrides for light mode |
+| `darkTheme` | `SettingsThemeData?` | — | Color/style overrides for dark mode |
+| `brightness` | `Brightness?` | — | Override brightness detection |
+| `applicationType` | `ApplicationType` | `material` | `material`, `cupertino`, or `both` |
+| `scrollController` | `ScrollController?` | — | Control scrolling programmatically |
+| `shrinkWrap` | `bool` | `false` | Shrink-wrap the list to its content height |
+| `physics` | `ScrollPhysics?` | — | Custom scroll physics |
+| `contentPadding` | `EdgeInsetsGeometry?` | — | Override default list padding |
+| `crossAxisAlignment` | `CrossAxisAlignment` | `center` | Horizontal alignment on wide screens |
 
-<br>
-<br>
+### `SettingsSection`
 
-#### Now let's deal with all these parameters.
+| Parameter | Type | Description |
+|---|---|---|
+| `tiles` | `List<AbstractSettingsTile>` | The tiles in this section |
+| `title` | `Widget?` | Section header |
+| `margin` | `EdgeInsetsDirectional?` | Override section margin |
 
-| Parameter | Description |
-|--|--|
-| Widget leading | Adds some leading for your tile. Just like with the `ListTile`. |
-| Widget trailing | Adds some trailing for your tile. Just like with the `ListTile`. |
-| Widget title | The title of your tile.|
-| Widget description | Additional info about this tile. Displays different ways according to the platform
-| Function(BuildContext context) onPressed | More interactivity for your tiles. Just tap it.
-| Color activeSwitchColor | Set the switch color for your `SettingsTile.switchTile`
-| Widget value | Just like the `description` but more declarative. You can compare and choose which exactly you want to use.
-| Function(bool value) onToggle | Override the on switch event in your `SettingsTile.switchTile`
-| bool initialValue | Choose the initial value for your `SettingsTile.switchTile`
-| bool enabled | Mark your tile as disabled. It's pretty easy!
+### `SettingsTile`
 
+| Parameter | Type | Applies to | Description |
+|---|---|---|---|
+| `title` | `Widget` | all | Tile label |
+| `description` | `Widget?` | all | Secondary text below the title |
+| `leading` | `Widget?` | all | Icon or widget at the start of the tile |
+| `trailing` | `Widget?` | all | Widget at the end of the tile |
+| `enabled` | `bool` | all | Grays out the tile and disables interaction |
+| `compact` | `bool` | all | Halves the vertical padding |
+| `onPressed` | `Function(BuildContext)?` | all | Tap callback |
+| `value` | `Widget?` | simple, navigation | Secondary widget shown before the chevron |
+| `titleDescription` | `Widget?` | navigation | Text shown below the title (iOS/macOS/Windows only) |
+| `initialValue` | `bool?` | switchTile | Initial switch state |
+| `onToggle` | `Function(bool)?` | switchTile | Called when the switch changes; `null` disables it |
+| `activeSwitchColor` | `Color?` | switchTile | Active switch color override |
 
-<br>
-<br>
-<br>
-<br>
+### `SettingsThemeData`
+
+| Field | Type | Description |
+|---|---|---|
+| `settingsListBackground` | `Color?` | Background color of the whole list |
+| `settingsSectionBackground` | `Color?` | Background color of each section card |
+| `dividerColor` | `Color?` | Color of the dividers between tiles |
+| `tileHighlightColor` | `Color?` | Tile press/highlight color |
+| `titleTextColor` | `Color?` | Section header text color |
+| `titleTextStyle` | `TextStyle?` | Section header text style |
+| `settingsTileTextColor` | `Color?` | Tile title text color |
+| `tileTextStyle` | `TextStyle?` | Tile title text style |
+| `tileDescriptionTextColor` | `Color?` | Tile description/value text color |
+| `tileDescriptionTextStyle` | `TextStyle?` | Tile description/value text style |
+| `leadingIconsColor` | `Color?` | Color applied to leading icon widgets |
+| `trailingTextColor` | `Color?` | Color of trailing text |
+| `inactiveTitleColor` | `Color?` | Tile title color when `enabled: false` |
+| `inactiveSubtitleColor` | `Color?` | Description color when `enabled: false` |
+| `inactiveSwitchColor` | `Color?` | Switch color when `enabled: false` |
+
+---
 
 ## License
 
-This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details
+Apache License 2.0 — see the [LICENSE](LICENSE) file for details.
