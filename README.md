@@ -30,7 +30,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  settings_ui: ^3.0.0
+  settings_ui: ^3.0.1
 ```
 
 Then import:
