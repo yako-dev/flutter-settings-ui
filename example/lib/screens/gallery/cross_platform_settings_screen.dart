@@ -118,6 +118,7 @@ class _CrossPlatformSettingsScreenState
               SettingsTile.navigation(
                 leading: Icon(Icons.mail),
                 title: Text('Email'),
+                value: Text('user@example.com'),
                 enabled: false,
               ),
               SettingsTile.navigation(

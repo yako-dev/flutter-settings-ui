@@ -128,8 +128,6 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
   }
 
   /// Returns the non-value trailing controls (switch, trailing icon, chevron).
-  /// The value widget is placed directly in the inner Row of [buildTileContent]
-  /// as a [Flexible] so it can shrink without pushing the title.
   Widget buildTrailing({
     required BuildContext context,
     required SettingsTheme theme,
@@ -193,6 +191,10 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
     IOSSettingsTileAdditionalInfo additionalInfo,
   ) {
     final textScaler = MediaQuery.textScalerOf(context);
+    final shouldShowInlineValue =
+        (widget.tileType == SettingsTileType.navigationTile ||
+                widget.tileType == SettingsTileType.simpleTile) &&
+            widget.value != null;
 
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
@@ -242,71 +244,100 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
                   Padding(
                     padding: const EdgeInsetsDirectional.only(end: 16),
                     child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Padding(
-                                padding: widget.titlePadding ??
-                                    EdgeInsetsDirectional.only(
-                                      top: textScaler
-                                          .scale(widget.compact ? 6.0 : 12.5),
-                                      bottom: widget.titleDescription == null
-                                          ? textScaler.scale(
-                                              widget.compact ? 6.0 : 12.5)
-                                          : textScaler.scale(
-                                              widget.compact ? 2.0 : 3.5),
-                                    ),
-                                child: DefaultTextStyle(
-                                  style: (theme.themeData.tileTextStyle ??
-                                          const TextStyle(fontSize: 16))
-                                      .copyWith(
-                                    color: widget.enabled
-                                        ? theme.themeData.settingsTileTextColor
-                                        : theme.themeData.inactiveTitleColor,
+                          child: LayoutBuilder(
+                            builder: (context, constraints) => Row(
+                              children: [
+                                ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    maxWidth: constraints.maxWidth,
                                   ),
-                                  child: widget.title!,
-                                ),
-                              ),
-                              if (widget.titleDescription != null)
-                                Padding(
-                                  padding: widget.titleDescriptionPadding ??
-                                      EdgeInsetsDirectional.only(
-                                        bottom: textScaler.scale(12.5),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Padding(
+                                        padding: widget.titlePadding ??
+                                            EdgeInsetsDirectional.only(
+                                              top: textScaler.scale(
+                                                widget.compact ? 6.0 : 12.5,
+                                              ),
+                                              bottom: widget.titleDescription ==
+                                                      null
+                                                  ? textScaler.scale(
+                                                      widget.compact
+                                                          ? 6.0
+                                                          : 12.5,
+                                                    )
+                                                  : textScaler.scale(
+                                                      widget.compact
+                                                          ? 2.0
+                                                          : 3.5,
+                                                    ),
+                                            ),
+                                        child: DefaultTextStyle(
+                                          style:
+                                              (theme.themeData.tileTextStyle ??
+                                                      const TextStyle(
+                                                        fontSize: 16,
+                                                      ))
+                                                  .copyWith(
+                                            color: widget.enabled
+                                                ? theme.themeData
+                                                    .settingsTileTextColor
+                                                : theme.themeData
+                                                    .inactiveTitleColor,
+                                          ),
+                                          child: widget.title!,
+                                        ),
                                       ),
-                                  child: DefaultTextStyle(
-                                    style: TextStyle(
-                                      color: widget.enabled
-                                          ? theme.themeData.titleTextColor
-                                          : theme.themeData.inactiveTitleColor,
-                                      fontSize: 15,
-                                    ),
-                                    child: widget.titleDescription!,
+                                      if (widget.titleDescription != null)
+                                        Padding(
+                                          padding: widget
+                                                  .titleDescriptionPadding ??
+                                              EdgeInsetsDirectional.only(
+                                                bottom: textScaler.scale(12.5),
+                                              ),
+                                          child: DefaultTextStyle(
+                                            style: TextStyle(
+                                              color: widget.enabled
+                                                  ? theme
+                                                      .themeData.titleTextColor
+                                                  : theme.themeData
+                                                      .inactiveTitleColor,
+                                              fontSize: 15,
+                                            ),
+                                            child: widget.titleDescription!,
+                                          ),
+                                        ),
+                                    ],
                                   ),
                                 ),
-                            ],
-                          ),
-                        ),
-                        // Value is Flexible here so it can shrink without
-                        // pushing the title when the text is long. (Issue #186)
-                        if ((widget.tileType ==
-                                    SettingsTileType.navigationTile ||
-                                widget.tileType ==
-                                    SettingsTileType.simpleTile) &&
-                            widget.value != null)
-                          Flexible(
-                            child: DefaultTextStyle(
-                              style: TextStyle(
-                                color: widget.enabled
-                                    ? theme.themeData.trailingTextColor
-                                    : theme.themeData.inactiveTitleColor,
-                                fontSize: 17,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                              child: widget.value!,
+                                if (shouldShowInlineValue)
+                                  Expanded(
+                                    child: Align(
+                                      alignment: AlignmentDirectional.centerEnd,
+                                      child: DefaultTextStyle(
+                                        style: TextStyle(
+                                          color: widget.enabled
+                                              ? theme
+                                                  .themeData.trailingTextColor
+                                              : theme
+                                                  .themeData.inactiveTitleColor,
+                                          fontSize: 17,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                        textAlign: TextAlign.end,
+                                        child: widget.value!,
+                                      ),
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
+                        ),
                         buildTrailing(context: context, theme: theme),
                       ],
                     ),
