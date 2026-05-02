@@ -290,8 +290,10 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
                         ),
                         // Value is Flexible here so it can shrink without
                         // pushing the title when the text is long. (Issue #186)
-                        if (widget.tileType ==
-                                SettingsTileType.navigationTile &&
+                        if ((widget.tileType ==
+                                    SettingsTileType.navigationTile ||
+                                widget.tileType ==
+                                    SettingsTileType.simpleTile) &&
                             widget.value != null)
                           Flexible(
                             child: DefaultTextStyle(
