@@ -46,6 +46,9 @@ class PlatformUtils {
         return DevicePlatform.macOS;
       case TargetPlatform.windows:
         return DevicePlatform.windows;
+      // ohos: 鸿蒙复用 iOS 风格
+      case TargetPlatform.ohos:
+        return DevicePlatform.iOS;
     }
   }
 }
