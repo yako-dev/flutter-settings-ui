@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:settings_ui/src/tiles/platforms/ios_settings_tile.dart';
 

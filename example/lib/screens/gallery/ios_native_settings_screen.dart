@@ -1,6 +1,6 @@
 import 'package:example/widgets/leading_ios_widget.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/settings_ui.dart';
 
 class IosNativeSettingsScreen extends StatefulWidget {

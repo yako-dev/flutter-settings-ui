@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/settings_ui.dart';
 
 /// Demonstrates Material 3 theme integration.

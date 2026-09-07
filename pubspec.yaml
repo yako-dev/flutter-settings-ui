@@ -12,16 +12,18 @@ platforms:
   windows:
 
 environment:
-  sdk: ">=3.5.0 <4.0.0"
-  flutter: ">=3.16.0"
+  sdk: ">=3.13.0 <4.0.0"
+  flutter: ">=3.47.0"
 
 dependencies:
   flutter:
     sdk: flutter
+  cupertino_ui: ^1.0.2
+  material_ui: ^1.1.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
 
 flutter:
