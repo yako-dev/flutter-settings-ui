@@ -52,6 +52,8 @@ void settingsTileOnTapTests(DevicePlatform platform) {
         platform == DevicePlatform.macOS ||
         platform == DevicePlatform.windows) {
       await tester.tap(find.byType(CupertinoSettingsSwitch));
+    } else if (platform == DevicePlatform.linux) {
+      await tester.tap(find.byType(AdwaitaSettingsSwitch));
     } else {
       await tester.tap(find.byType(Switch));
     }

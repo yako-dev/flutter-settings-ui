@@ -2,6 +2,7 @@ import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:settings_ui/settings_ui.dart';
+import 'package:settings_ui/src/tiles/platforms/adwaita_settings_tile.dart';
 import 'package:settings_ui/src/tiles/platforms/android_settings_tile.dart';
 import 'package:settings_ui/src/tiles/platforms/ios_settings_tile.dart';
 import 'package:settings_ui/src/tiles/platforms/web_settings_tile.dart';
@@ -31,9 +32,15 @@ void settingsTileTests(DevicePlatform platform) {
     expect(find.byIcon(Icons.ac_unit), findsOneWidget);
 
     if (platform == DevicePlatform.android ||
-        platform == DevicePlatform.fuchsia ||
-        platform == DevicePlatform.linux) {
+        platform == DevicePlatform.fuchsia) {
       expect(find.byType(AndroidSettingsTile), findsWidgets);
+      expect(find.byType(IOSSettingsTile), findsNothing);
+      expect(find.byType(WebSettingsTile), findsNothing);
+      expect(find.text('Tile Value'), findsOneWidget);
+    }
+    if (platform == DevicePlatform.linux) {
+      expect(find.byType(AdwaitaSettingsTile), findsWidgets);
+      expect(find.byType(AndroidSettingsTile), findsNothing);
       expect(find.byType(IOSSettingsTile), findsNothing);
       expect(find.byType(WebSettingsTile), findsNothing);
       expect(find.text('Tile Value'), findsOneWidget);
@@ -81,9 +88,13 @@ void settingsTileTests(DevicePlatform platform) {
 
     if (platform == DevicePlatform.android ||
         platform == DevicePlatform.fuchsia ||
-        platform == DevicePlatform.linux ||
         platform == DevicePlatform.web) {
       expect(find.byType(Switch), findsWidgets);
+      expect(find.byType(CupertinoSettingsSwitch), findsNothing);
+    }
+    if (platform == DevicePlatform.linux) {
+      expect(find.byType(AdwaitaSettingsSwitch), findsNWidgets(2));
+      expect(find.byType(Switch), findsNothing);
       expect(find.byType(CupertinoSettingsSwitch), findsNothing);
     }
     if (platform == DevicePlatform.iOS ||

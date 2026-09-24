@@ -4,6 +4,7 @@ import 'package:settings_ui/settings_ui.dart';
 import 'package:settings_ui/src/sections/platforms/android_settings_section.dart';
 import 'package:settings_ui/src/tiles/platforms/android_settings_tile.dart';
 
+import 'settings_tests/adwaita_style_tests.dart';
 import 'settings_tests/app_theme_tests.dart';
 import 'settings_tests/bug_fix_tests.dart';
 import 'settings_tests/cupertino_switch_tests.dart';
@@ -181,6 +182,10 @@ void main() {
 
   group('CupertinoSettingsSwitch (iOS 26+ switch)', () {
     cupertinoSwitchTests();
+  });
+
+  group('GNOME (libadwaita) style for Linux', () {
+    adwaitaStyleTests();
   });
 
   group('SettingsList and SettingsSection fixes (v4.0.0)', () {

@@ -1,6 +1,9 @@
+import 'dart:math' as math;
+
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/src/sections/abstract_settings_section.dart';
+import 'package:settings_ui/src/sections/platforms/adwaita_settings_section.dart';
 import 'package:settings_ui/src/utils/platform_utils.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 import 'package:settings_ui/src/utils/theme_provider.dart';
@@ -151,26 +154,42 @@ class SettingsList extends StatelessWidget {
     BuildContext context, {
     double? width,
   }) {
-    final double maxContentWidth;
+    final availableWidth = width ?? MediaQuery.sizeOf(context).width;
+    final double contentWidth;
     final double minSidePadding;
-    final double verticalPadding;
+    final double topPadding;
+    final double bottomPadding;
     switch (platform) {
       case DevicePlatform.android:
       case DevicePlatform.fuchsia:
-      case DevicePlatform.linux:
       case DevicePlatform.iOS:
       case DevicePlatform.macOS:
       case DevicePlatform.windows:
-        maxContentWidth = 810;
+        contentWidth = math.min(availableWidth, 810);
         minSidePadding = 0;
-        verticalPadding = 0;
+        topPadding = 0;
+        bottomPadding = 0;
+      case DevicePlatform.linux:
+        // A GNOME preferences page clamps its content like AdwClamp: at most
+        // 600sp wide, easing in from 400sp. The groups keep their own 12px
+        // side margins and 24px gap below; the page adds 24px on top.
+        final textScaler = MediaQuery.textScalerOf(context);
+        contentWidth = adwaitaClampWidth(
+          availableWidth,
+          maximumSize: textScaler.scale(600),
+          tighteningThreshold: textScaler.scale(400),
+        );
+        minSidePadding = 0;
+        topPadding = kAdwaitaPageTopMargin;
+        bottomPadding = 0;
       case DevicePlatform.web:
         // Chrome's settings page uses a narrower 680px column than the other
         // platforms' 810px, and keeps the cards off the edges of narrow
         // browser windows.
-        maxContentWidth = 680;
+        contentWidth = math.min(availableWidth, 680);
         minSidePadding = 16;
-        verticalPadding = 20;
+        topPadding = 20;
+        bottomPadding = 20;
       case DevicePlatform.device:
         throw Exception(
           'You can\'t use the DevicePlatform.device in this context. '
@@ -178,8 +197,7 @@ class SettingsList extends StatelessWidget {
         );
     }
 
-    final availableWidth = width ?? MediaQuery.sizeOf(context).width;
-    final centeredSidePadding = (availableWidth - maxContentWidth) / 2;
+    final centeredSidePadding = (availableWidth - contentWidth) / 2;
     final sidePadding = centeredSidePadding > minSidePadding
         ? centeredSidePadding
         : minSidePadding;
@@ -189,13 +207,15 @@ class SettingsList extends StatelessWidget {
       return EdgeInsetsDirectional.only(
         start: minSidePadding,
         end: 2 * sidePadding - minSidePadding,
-        top: verticalPadding,
-        bottom: verticalPadding,
+        top: topPadding,
+        bottom: bottomPadding,
       ).resolve(Directionality.maybeOf(context) ?? TextDirection.ltr);
     }
-    return EdgeInsets.symmetric(
-      horizontal: sidePadding,
-      vertical: verticalPadding,
+    return EdgeInsets.only(
+      left: sidePadding,
+      right: sidePadding,
+      top: topPadding,
+      bottom: bottomPadding,
     );
   }
 

@@ -1,10 +1,12 @@
 import 'package:example/screens/gallery/android_native_settings_screen.dart';
 import 'package:example/screens/gallery/android_settings_screen.dart';
 import 'package:example/screens/gallery/cross_platform_settings_screen.dart';
+import 'package:example/screens/gallery/gnome_power_settings_screen.dart';
 import 'package:example/screens/gallery/ios_developer_screen.dart';
 import 'package:example/screens/gallery/ios_native_settings_screen.dart';
 import 'package:example/screens/gallery/material3_demo_screen.dart';
 import 'package:example/screens/gallery/web_chrome_settings.dart';
+import 'package:example/utils/launch_options.dart';
 import 'package:example/utils/navigation.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:material_ui/material_ui.dart';
@@ -18,6 +20,7 @@ class GalleryScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Gallery')),
       body: SettingsList(
+        platform: LaunchOptions.platform,
         sections: [
           SettingsSection(
             title: const Text('General'),
@@ -110,6 +113,17 @@ class GalleryScreen extends StatelessWidget {
                     context: context,
                     screen: const AndroidNativeSettingsScreen(),
                     style: NavigationRouteStyle.cupertino,
+                  );
+                },
+              ),
+              SettingsTile.navigation(
+                leading: const Icon(Icons.computer),
+                title: const Text('GNOME Settings (Power)'),
+                onPressed: (context) {
+                  Navigation.navigateTo(
+                    context: context,
+                    screen: const GnomePowerSettingsScreen(),
+                    style: NavigationRouteStyle.material,
                   );
                 },
               ),

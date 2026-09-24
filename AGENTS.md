@@ -38,10 +38,11 @@ cd example && flutter test integration_test/integration_test.dart -d <device-id>
 
 ### Platform dispatch
 
-Every public widget (`SettingsSection`, `SettingsTile`) is a thin dispatcher. At build time it reads `SettingsTheme.of(context).platform` and returns one of three implementations:
+Every public widget (`SettingsSection`, `SettingsTile`) is a thin dispatcher. At build time it reads `SettingsTheme.of(context).platform` and returns one of four implementations:
 
 - `iOS`, `macOS`, `windows` → iOS style (`platforms/ios_*`)
-- `android`, `fuchsia`, `linux` → Android style (`platforms/android_*`)
+- `android`, `fuchsia` → Android style (`platforms/android_*`)
+- `linux` → GNOME style (`platforms/adwaita_*`)
 - `web` → web style (`platforms/web_*`)
 
 ```
@@ -52,6 +53,7 @@ lib/src/tiles/
     ios_settings_tile.dart
     web_settings_tile.dart
     cupertino_settings_switch.dart  ← public, used by the iOS tile
+    adwaita_settings_switch.dart    ← public, used by the GNOME tile
 ```
 
 Same pattern for `lib/src/sections/`. `lib/src/list/settings_list.dart` resolves the platform, brightness and default padding.
@@ -60,11 +62,11 @@ Same pattern for `lib/src/sections/`. `lib/src/list/settings_list.dart` resolves
 
 `SettingsList` resolves the platform and brightness, gets the style defaults from `ThemeProvider.getTheme()`, merges the user's `lightTheme`/`darkTheme` (`SettingsThemeData`) over them, and pushes the result down through `SettingsTheme` (an `InheritedWidget`). Tiles and sections read `SettingsTheme.of(context).themeData`; never pass theme values through constructors.
 
-`ThemeProvider` (`lib/src/utils/theme_provider.dart`) holds the defaults: Android and web derive colors from the Material 3 `ColorScheme`; iOS uses fixed iOS system colors and ignores `ColorScheme`.
+`ThemeProvider` (`lib/src/utils/theme_provider.dart`) holds the defaults: Android and web derive colors from the Material 3 `ColorScheme`; iOS uses fixed iOS system colors and GNOME fixed libadwaita colors, and both ignore `ColorScheme`.
 
 Brightness: `SettingsList.brightness` if set; otherwise `applicationType` picks `Theme` (`material`), `CupertinoTheme` (`cupertino`), or, for `both`, `CupertinoTheme` when the app runs on iOS/macOS and `Theme` elsewhere (by the detected platform, not the `platform` override).
 
-Layout: `SettingsList` sizes its default padding from its own width (`LayoutBuilder`), keeping content in an 810 column (680 on web), centered or at the start edge (`crossAxisAlignment: start`). `contentPadding` replaces all of that. An empty `SettingsSection` renders `SizedBox.shrink()`.
+Layout: `SettingsList` sizes its default padding from its own width (`LayoutBuilder`), keeping content in an 810 column (680 on web; on Linux an `AdwClamp`-style column that eases from 400 to at most 600, in sp), centered or at the start edge (`crossAxisAlignment: start`). `contentPadding` replaces all of that. An empty `SettingsSection` renders `SizedBox.shrink()`.
 
 ### `DevicePlatform.device` is a sentinel
 
@@ -79,9 +81,11 @@ An internal `InheritedWidget` that `IOSSettingsSection` puts above each tile to 
 - **iOS** (iOS 26/27 Settings): 26pt continuous corners (`ClipRSuperellipse`), 20pt side margins, 52pt rows (16 + 17pt text + 16), 17pt tile text, 17pt semibold section headers in the secondary grey, value at most half the row on one line, chevron on navigation tiles, `CupertinoSettingsSwitch`. Headers are not upper-cased.
 - **Android** (Android 16/17 Settings): each tile on its own card, 2dp apart, 20dp outer / 4dp inner corners, 16dp side margins, on a `surfaceContainer` page; 16sp titles, 14sp medium section titles in `primary`; Material `Switch` with check/cross thumb icons; no chevron.
 - **Web** (Chrome settings): cards with 8px corners and elevation 2, 14px titles, 13px descriptions, 20px leading icons, chevron on navigation tiles, 680px max column (810 for the other styles), 16px side margins in narrow windows.
+- **GNOME** (GNOME Settings 51, libadwaita 1.10): one card per section (`.boxed-list`: 12px corners, 3-layer soft shadow painted only outside the card), 12px side margins, 24px between groups and above the first, 54px rows (2 + 50 + 2), full-width 1px separators, text 14px in, 16px leading icons 12px before the title, 14.67px titles, 12.22px subtitles at 55% opacity (`description` and `titleDescription` both become subtitles), bold 14.67px group titles in a 34px row 6px above the card, dimmed `value` at the end, painted `go-next-symbolic` arrow on navigation tiles, hover 3% / pressed 8% of the foreground, 2px accent focus ring, fixed libadwaita colors. Sources: the libadwaita 1.10 stylesheet (`src/stylesheet/_colors.scss`, `widgets/_lists.scss`, `_preferences.scss`, `_switch.scss`) and `src/adw-clamp-layout.c`.
+- **`AdwaitaSettingsSwitch`**: GtkSwitch drawn with a `CustomPainter`: 46x26 pill, round 20px knob inset 3px, `#3584E4` when on, foreground at 15% when off (lighter on hover, darker while pressed), grey knob when off in dark mode, 100ms ease-out-cubic, drag past the middle, Space/Enter, half opacity when disabled.
 - **`CupertinoSettingsSwitch`**: iOS 26 switch drawn with a `CustomPainter` (no platform view, shader or backdrop filter). 63x28 track, 37x24 thumb, Liquid Glass-style lens while pressed or dragged. The lens paints outside the 63x28 box, so don't clip it tightly.
 
-Tap behavior on switch tiles differs on purpose: Android and web toggle on a row tap and never call `onPressed`; iOS toggles only on the switch and calls `onPressed` for the rest of the row.
+Tap behavior on switch tiles differs on purpose: Android, GNOME and web toggle on a row tap and never call `onPressed`; iOS toggles only on the switch and calls `onPressed` for the rest of the row. GNOME rows take the keyboard focus themselves; the switch inside is excluded from focus.
 
 ### Public API surface (the only exports)
 
@@ -90,7 +94,7 @@ Tap behavior on switch tiles differs on purpose: Android and web toggle on a row
 - `SettingsList` (+ `ApplicationType`)
 - `SettingsSection`, `AbstractSettingsSection`, `CustomSettingsSection`
 - `SettingsTile` (+ `SettingsTileType`), `AbstractSettingsTile`, `CustomSettingsTile`
-- `CupertinoSettingsSwitch`
+- `CupertinoSettingsSwitch`, `AdwaitaSettingsSwitch`
 - `DevicePlatform`, `PlatformUtils`
 - `SettingsTheme`, `SettingsThemeData`
 
@@ -100,7 +104,7 @@ Everything else in `platforms/` is internal. Don't export it.
 
 - `test/widget_test.dart` is the only entry point with a `main()`. Each file in `test/settings_tests/*_tests.dart` (and `test/utils_tests/`) defines a function such as `settingsTileTests(DevicePlatform platform)` or `nativeLookTests()`, and `widget_test.dart` calls it inside a `group`. A new test file does nothing until you call its function from `widget_test.dart`.
 - Platform-parameterized helpers are called once per `DevicePlatform`. Tests pass the platform explicitly to `SettingsList` (via `TestWidgetScreen` in `test/test_widget_screen.dart` or `_wrapWithMaterialApp`) so they don't depend on the host.
-- Wrap widgets in `MaterialApp`/`CupertinoApp` from material_ui/cupertino_ui. Find iOS-style switches with `find.byType(CupertinoSettingsSwitch)`, others with `find.byType(Switch)`.
+- Wrap widgets in `MaterialApp`/`CupertinoApp` from material_ui/cupertino_ui. Find iOS-style switches with `find.byType(CupertinoSettingsSwitch)`, GNOME-style (Linux) ones with `find.byType(AdwaitaSettingsSwitch)`, others with `find.byType(Switch)`.
 - `example/integration_test/integration_test.dart` drives the example app's gallery screens. It runs on a device, simulator or emulator (`-d`), not in CI.
 
 ## CI and release
