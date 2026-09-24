@@ -30,28 +30,34 @@ class WebSettingsSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (title != null)
-            Container(
-              height: textScaler.scale(65),
+            Padding(
               padding:
                   titlePadding ??
                   EdgeInsetsDirectional.only(
-                    bottom: textScaler.scale(5),
-                    start: 6,
-                    top: textScaler.scale(40),
+                    top: textScaler.scale(24),
+                    bottom: textScaler.scale(12),
                   ),
               child: DefaultTextStyle(
                 style:
                     (theme.themeData.titleTextStyle ??
-                            const TextStyle(fontSize: 15))
+                            const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ))
                         .copyWith(color: theme.themeData.titleTextColor),
                 child: title!,
               ),
-            ),
+            )
+          else
+            // Card no longer has a margin, so keep untitled sections apart.
+            SizedBox(height: textScaler.scale(8)),
           Card(
+            // No margin, so the card's left edge lines up with the title.
+            margin: EdgeInsets.zero,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(8),
             ),
-            elevation: 4,
+            elevation: 2,
             color: theme.themeData.settingsSectionBackground,
             child: buildTileList(),
           ),
@@ -70,7 +76,11 @@ class WebSettingsSection extends StatelessWidget {
         return tiles[index];
       },
       separatorBuilder: (BuildContext context, int index) {
-        return const Divider(height: 0, thickness: 1);
+        return Divider(
+          height: 0,
+          thickness: 1,
+          color: SettingsTheme.of(context).themeData.dividerColor,
+        );
       },
     );
   }

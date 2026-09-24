@@ -25,7 +25,7 @@ class _IosDeveloperScreenState extends State<IosDeveloperScreen> {
           platform: DevicePlatform.iOS,
           sections: [
             SettingsSection(
-              title: Text('APPEARANCE'),
+              title: Text('Appearance'),
               tiles: [
                 SettingsTile.switchTile(
                   onToggle: (value) {
@@ -39,7 +39,7 @@ class _IosDeveloperScreenState extends State<IosDeveloperScreen> {
               ],
             ),
             SettingsSection(
-              title: Text('DISPLAY ZOOM'),
+              title: Text('Display zoom'),
               tiles: [
                 SettingsTile.navigation(
                   onPressed: (_) {
@@ -60,7 +60,7 @@ class _IosDeveloperScreenState extends State<IosDeveloperScreen> {
               ],
             ),
             SettingsSection(
-              title: Text('UI AUTOMATION'),
+              title: Text('UI automation'),
               tiles: [
                 SettingsTile.switchTile(
                   onToggle: (_) {},
@@ -78,7 +78,7 @@ class _IosDeveloperScreenState extends State<IosDeveloperScreen> {
               ],
             ),
             SettingsSection(
-              title: Text('STATE RESTORATION TESTING'),
+              title: Text('State restoration testing'),
               tiles: [
                 SettingsTile.switchTile(
                   onToggle: (_) {},
@@ -95,7 +95,7 @@ class _IosDeveloperScreenState extends State<IosDeveloperScreen> {
               ],
             ),
             SettingsSection(
-              title: Text('IAD DEVELOPER APP TESTING'),
+              title: Text('iAd developer app testing'),
               tiles: [
                 SettingsTile.navigation(
                   title: Text('Downtime'),

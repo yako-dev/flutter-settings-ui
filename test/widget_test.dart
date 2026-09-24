@@ -7,6 +7,7 @@ import 'package:settings_ui/src/tiles/platforms/android_settings_tile.dart';
 import 'settings_tests/app_theme_tests.dart';
 import 'settings_tests/bug_fix_tests.dart';
 import 'settings_tests/ios_value_layout_tests.dart';
+import 'settings_tests/native_look_tests.dart';
 import 'settings_tests/setting_tile_tests.dart';
 import 'settings_tests/settings_list_tests.dart';
 import 'settings_tests/settings_sections_tests.dart';
@@ -56,7 +57,7 @@ void main() {
       );
 
       expect(titleWidget.style.color, colorScheme.onSurface);
-      expect(titleWidget.style.fontSize, 18);
+      expect(titleWidget.style.fontSize, 16);
       expect(titleWidget.style.fontWeight, FontWeight.w400);
     });
 
@@ -169,6 +170,10 @@ void main() {
 
   group('iOS tile value layout (Issues #201, #203)', () {
     iosValueLayoutTests();
+  });
+
+  group('Native look (2026)', () {
+    nativeLookTests();
   });
 
   group('Settings tile on Tap tests for different platforms', () {

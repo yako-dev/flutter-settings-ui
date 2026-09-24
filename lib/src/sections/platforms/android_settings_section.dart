@@ -24,50 +24,69 @@ class AndroidSettingsSection extends StatelessWidget {
   Widget buildSectionBody(BuildContext context) {
     final theme = SettingsTheme.of(context);
     final textScaler = MediaQuery.textScalerOf(context);
-    final tileList = buildTileList();
-
-    if (title == null) {
-      return tileList;
-    }
 
     return Padding(
       padding: margin ?? EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding:
-                titlePadding ??
-                EdgeInsetsDirectional.only(
-                  top: textScaler.scale(24),
-                  bottom: textScaler.scale(10),
-                  start: 24,
-                  end: 24,
-                ),
-            child: DefaultTextStyle(
-              style: (theme.themeData.titleTextStyle ?? const TextStyle())
-                  .copyWith(color: theme.themeData.titleTextColor),
-              child: title!,
-            ),
-          ),
-          Container(
-            color: theme.themeData.settingsSectionBackground,
-            child: tileList,
-          ),
+          if (title != null)
+            Padding(
+              padding:
+                  titlePadding ??
+                  EdgeInsetsDirectional.only(
+                    top: textScaler.scale(24),
+                    bottom: textScaler.scale(8),
+                    start: 24,
+                    end: 24,
+                  ),
+              child: DefaultTextStyle(
+                style:
+                    (theme.themeData.titleTextStyle ??
+                            const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ))
+                        .copyWith(color: theme.themeData.titleTextColor),
+                child: title!,
+              ),
+            )
+          else
+            SizedBox(height: textScaler.scale(16)),
+          buildTileList(theme),
         ],
       ),
     );
   }
 
-  Widget buildTileList() {
-    return ListView.builder(
-      shrinkWrap: true,
-      itemCount: tiles.length,
-      padding: EdgeInsets.zero,
-      physics: const NeverScrollableScrollPhysics(),
-      itemBuilder: (BuildContext context, int index) {
-        return tiles[index];
-      },
+  /// Android 16+ settings put each tile on its own card: 2dp apart, with
+  /// large corners at the ends of the group and small ones in between.
+  Widget buildTileList(SettingsTheme theme) {
+    const outer = Radius.circular(20);
+    const inner = Radius.circular(4);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        children: [
+          for (var i = 0; i < tiles.length; i++)
+            Padding(
+              padding: EdgeInsets.only(top: i == 0 ? 0 : 2),
+              child: ClipRRect(
+                borderRadius: BorderRadius.vertical(
+                  top: i == 0 ? outer : inner,
+                  bottom: i == tiles.length - 1 ? outer : inner,
+                ),
+                child: ColoredBox(
+                  color:
+                      theme.themeData.settingsSectionBackground ??
+                      const Color(0x00000000),
+                  child: tiles[i],
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

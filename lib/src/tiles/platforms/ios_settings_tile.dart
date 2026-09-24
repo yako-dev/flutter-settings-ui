@@ -84,13 +84,15 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
       content = Material(color: Colors.transparent, child: content);
     }
 
-    return ClipRRect(
+    // Continuous (superellipse) corners, like the grouped cards in iOS
+    // Settings.
+    return ClipRSuperellipse(
       borderRadius: BorderRadius.vertical(
         top: additionalInfo.enableTopBorderRadius
-            ? const Radius.circular(12)
+            ? const Radius.circular(26)
             : Radius.zero,
         bottom: additionalInfo.enableBottomBorderRadius
-            ? const Radius.circular(12)
+            ? const Radius.circular(26)
             : Radius.zero,
       ),
       child: content,
@@ -107,8 +109,8 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
     return Container(
       width: MediaQuery.of(context).size.width,
       padding: EdgeInsets.only(
-        left: 18,
-        right: 18,
+        left: 16,
+        right: 16,
         top: textScaler.scale(8),
         bottom: additionalInfo.needToShowDivider ? 24 : textScaler.scale(8),
       ),
@@ -217,7 +219,7 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
         color: isPressed
             ? theme.themeData.tileHighlightColor
             : theme.themeData.settingsSectionBackground,
-        padding: const EdgeInsetsDirectional.only(start: 18),
+        padding: const EdgeInsetsDirectional.only(start: 16),
         child: Row(
           children: [
             if (widget.leading != null)
@@ -260,29 +262,31 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
                                       Padding(
                                         padding:
                                             widget.titlePadding ??
+                                            // 16 + 17pt text + 16 gives the
+                                            // 52pt row of iOS Settings.
                                             EdgeInsetsDirectional.only(
                                               top: textScaler.scale(
-                                                widget.compact ? 6.0 : 12.5,
+                                                widget.compact ? 8.0 : 16.0,
                                               ),
                                               bottom:
                                                   widget.titleDescription ==
                                                       null
                                                   ? textScaler.scale(
                                                       widget.compact
-                                                          ? 6.0
-                                                          : 12.5,
+                                                          ? 8.0
+                                                          : 16.0,
                                                     )
                                                   : textScaler.scale(
                                                       widget.compact
                                                           ? 2.0
-                                                          : 3.5,
+                                                          : 4.0,
                                                     ),
                                             ),
                                         child: DefaultTextStyle(
                                           style:
                                               (theme.themeData.tileTextStyle ??
                                                       const TextStyle(
-                                                        fontSize: 16,
+                                                        fontSize: 17,
                                                       ))
                                                   .copyWith(
                                                     color: widget.enabled
@@ -301,7 +305,9 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
                                           padding:
                                               widget.titleDescriptionPadding ??
                                               EdgeInsetsDirectional.only(
-                                                bottom: textScaler.scale(12.5),
+                                                bottom: textScaler.scale(
+                                                  widget.compact ? 8.0 : 16.0,
+                                                ),
                                               ),
                                           child: DefaultTextStyle(
                                             style: TextStyle(

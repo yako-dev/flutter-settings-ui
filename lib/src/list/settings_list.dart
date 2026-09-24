@@ -126,8 +126,12 @@ class SettingsList extends StatelessWidget {
     DevicePlatform platform,
     BuildContext context,
   ) {
-    if (MediaQuery.of(context).size.width > 810) {
-      double padding = (MediaQuery.of(context).size.width - 810) / 2;
+    // Chrome's settings page uses a narrower 680px column than the other
+    // platforms' 810px.
+    final maxContentWidth = platform == DevicePlatform.web ? 680.0 : 810.0;
+    final screenWidth = MediaQuery.of(context).size.width;
+    if (screenWidth > maxContentWidth) {
+      double padding = (screenWidth - maxContentWidth) / 2;
       switch (platform) {
         case DevicePlatform.android:
         case DevicePlatform.fuchsia:
@@ -137,7 +141,10 @@ class SettingsList extends StatelessWidget {
         case DevicePlatform.windows:
           return EdgeInsets.symmetric(horizontal: padding);
         case DevicePlatform.web:
-          return EdgeInsets.symmetric(vertical: 20, horizontal: padding);
+          return EdgeInsets.symmetric(
+            vertical: 20,
+            horizontal: padding < 16 ? 16 : padding,
+          );
         case DevicePlatform.device:
           throw Exception(
             'You can\'t use the DevicePlatform.device in this context. '
@@ -154,7 +161,8 @@ class SettingsList extends StatelessWidget {
       case DevicePlatform.windows:
         return const EdgeInsets.symmetric(vertical: 0);
       case DevicePlatform.web:
-        return const EdgeInsets.symmetric(vertical: 20);
+        // Keep the cards off the screen edges in narrow browser windows.
+        return const EdgeInsets.symmetric(vertical: 20, horizontal: 16);
       case DevicePlatform.device:
         throw Exception(
           'You can\'t use the DevicePlatform.device in this context. '

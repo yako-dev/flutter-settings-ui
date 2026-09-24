@@ -28,9 +28,8 @@ class ThemeProvider {
     }
   }
 
-  /// Derives Material 3 colors from the active [ColorScheme].
-  /// Falls back to hardcoded values when a color is not available in the
-  /// scheme, ensuring backwards compatibility with Material 2 apps.
+  /// Derives Material 3 colors from the active [ColorScheme], like Android
+  /// 16+ settings: a tinted page with lighter cards for the tiles.
   static SettingsThemeData _androidTheme({
     required BuildContext context,
     required Brightness brightness,
@@ -38,9 +37,10 @@ class ThemeProvider {
     final colorScheme = Theme.of(context).colorScheme;
     final isLight = brightness == Brightness.light;
 
-    final listBackground = isLight
-        ? colorScheme.surfaceContainerLow
-        : colorScheme.surfaceContainerLow;
+    final listBackground = colorScheme.surfaceContainer;
+    final sectionBackground = isLight
+        ? colorScheme.surfaceBright
+        : colorScheme.surfaceContainerHighest;
 
     final titleTextColor = colorScheme.primary;
 
@@ -59,6 +59,7 @@ class ThemeProvider {
     return SettingsThemeData(
       tileHighlightColor: tileHighlightColor,
       settingsListBackground: listBackground,
+      settingsSectionBackground: sectionBackground,
       titleTextColor: titleTextColor,
       settingsTileTextColor: settingsTileTextColor,
       tileDescriptionTextColor: tileDescriptionTextColor,
@@ -80,7 +81,7 @@ class ThemeProvider {
     const lightSettingSectionColor = CupertinoColors.white;
     const darkSettingSectionColor = Color.fromARGB(255, 28, 28, 30);
 
-    const lightSettingsTitleColor = Color.fromRGBO(109, 109, 114, 1);
+    const lightSettingsTitleColor = Color.fromRGBO(60, 60, 67, 0.6);
     const darkSettingsTitleColor = CupertinoColors.systemGrey;
 
     const lightDividerColor = Color.fromARGB(255, 238, 238, 238);
@@ -128,17 +129,22 @@ class ThemeProvider {
     );
   }
 
-  /// Web theme mirrors the Android Material 3 derivation but also sets
-  /// [settingsSectionBackground] for the card background.
+  /// Web theme follows desktop Chrome settings: white page and cards (the
+  /// card shadow separates them) and near-black section titles.
   static SettingsThemeData _webTheme({
     required BuildContext context,
     required Brightness brightness,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isLight = brightness == Brightness.light;
 
-    final listBackground = colorScheme.surfaceContainerLow;
-    final sectionBackground = colorScheme.surface;
-    final titleTextColor = colorScheme.primary;
+    final listBackground = isLight
+        ? colorScheme.surfaceContainerLowest
+        : colorScheme.surface;
+    final sectionBackground = isLight
+        ? colorScheme.surfaceContainerLowest
+        : colorScheme.surfaceContainerLow;
+    final titleTextColor = colorScheme.onSurface;
     final settingsTileTextColor = colorScheme.onSurface;
     final tileDescriptionTextColor = colorScheme.onSurfaceVariant;
     final leadingIconsColor = colorScheme.onSurfaceVariant;

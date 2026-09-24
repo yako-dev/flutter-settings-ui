@@ -32,8 +32,8 @@ class IOSSettingsSection extends StatelessWidget {
             bottom: isLastNonDescriptive
                 ? textScaler.scale(27)
                 : textScaler.scale(10),
-            left: 16,
-            right: 16,
+            left: 20,
+            right: 20,
           ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -43,13 +43,16 @@ class IOSSettingsSection extends StatelessWidget {
               padding:
                   titlePadding ??
                   EdgeInsetsDirectional.only(
-                    start: 18,
-                    bottom: textScaler.scale(5),
+                    start: 16,
+                    bottom: textScaler.scale(8),
                   ),
               child: DefaultTextStyle(
                 style:
                     (theme.themeData.titleTextStyle ??
-                            const TextStyle(fontSize: 13))
+                            const TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w600,
+                            ))
                         .copyWith(color: theme.themeData.titleTextColor),
                 child: title!,
               ),

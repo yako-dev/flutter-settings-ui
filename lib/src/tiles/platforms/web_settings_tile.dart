@@ -63,108 +63,139 @@ class WebSettingsTile extends StatelessWidget {
                   }
                 },
           highlightColor: theme.themeData.tileHighlightColor,
-          child: Row(
-            children: [
-              if (leading != null)
-                Padding(
-                  padding:
-                      leadingPadding ??
-                      const EdgeInsetsDirectional.only(start: 24),
-                  child: IconTheme(
-                    data: IconTheme.of(context).copyWith(
-                      color: enabled
-                          ? theme.themeData.leadingIconsColor
-                          : theme.themeData.inactiveTitleColor,
-                    ),
-                    child: leading!,
-                  ),
-                ),
-              Expanded(
-                child: Padding(
-                  padding: EdgeInsetsDirectional.only(
-                    start: 24,
-                    end: 24,
-                    bottom: textScaler.scale(compact ? 9 : 19),
-                    top: textScaler.scale(compact ? 9 : 19),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      DefaultTextStyle(
-                        style:
-                            (theme.themeData.tileTextStyle ??
-                                    const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w400,
-                                    ))
-                                .copyWith(
-                                  color: enabled
-                                      ? theme.themeData.settingsTileTextColor
-                                      : theme.themeData.inactiveTitleColor,
-                                ),
-                        child: title ?? Container(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: textScaler.scale(48)),
+            child: Row(
+              children: [
+                if (leading != null)
+                  Padding(
+                    padding:
+                        leadingPadding ??
+                        const EdgeInsetsDirectional.only(start: 20),
+                    child: IconTheme(
+                      data: IconTheme.of(context).copyWith(
+                        color: enabled
+                            ? theme.themeData.leadingIconsColor
+                            : theme.themeData.inactiveTitleColor,
+                        size: 20,
                       ),
-                      if (value != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4.0),
-                          child: DefaultTextStyle(
-                            style:
-                                (theme.themeData.tileDescriptionTextStyle ??
-                                        const TextStyle())
-                                    .copyWith(
-                                      color: enabled
-                                          ? theme
-                                                .themeData
-                                                .tileDescriptionTextColor
-                                          : theme
-                                                .themeData
-                                                .inactiveSubtitleColor,
-                                    ),
-                            child: value!,
-                          ),
-                        )
-                      else if (description != null)
-                        Padding(
-                          padding:
-                              descriptionPadding ??
-                              const EdgeInsets.only(top: 4.0),
-                          child: DefaultTextStyle(
-                            style:
-                                (theme.themeData.tileDescriptionTextStyle ??
-                                        const TextStyle())
-                                    .copyWith(
-                                      color: enabled
-                                          ? theme
-                                                .themeData
-                                                .tileDescriptionTextColor
-                                          : theme
-                                                .themeData
-                                                .inactiveSubtitleColor,
-                                    ),
-                            child: description!,
-                          ),
+                      child: leading!,
+                    ),
+                  ),
+                Expanded(
+                  child: Padding(
+                    padding: EdgeInsetsDirectional.only(
+                      start: leading != null ? 16 : 20,
+                      end: 20,
+                      bottom: textScaler.scale(compact ? 6 : 12),
+                      top: textScaler.scale(compact ? 6 : 12),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        DefaultTextStyle(
+                          style:
+                              (theme.themeData.tileTextStyle ??
+                                      const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w400,
+                                      ))
+                                  .copyWith(
+                                    color: enabled
+                                        ? theme.themeData.settingsTileTextColor
+                                        : theme.themeData.inactiveTitleColor,
+                                  ),
+                          child: title ?? Container(),
                         ),
-                    ],
+                        if (value != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4.0),
+                            child: DefaultTextStyle(
+                              style:
+                                  (theme.themeData.tileDescriptionTextStyle ??
+                                          const TextStyle(fontSize: 13))
+                                      .copyWith(
+                                        color: enabled
+                                            ? theme
+                                                  .themeData
+                                                  .tileDescriptionTextColor
+                                            : theme
+                                                  .themeData
+                                                  .inactiveSubtitleColor,
+                                      ),
+                              child: value!,
+                            ),
+                          )
+                        else if (description != null)
+                          Padding(
+                            padding:
+                                descriptionPadding ??
+                                const EdgeInsets.only(top: 4.0),
+                            child: DefaultTextStyle(
+                              style:
+                                  (theme.themeData.tileDescriptionTextStyle ??
+                                          const TextStyle(fontSize: 13))
+                                      .copyWith(
+                                        color: enabled
+                                            ? theme
+                                                  .themeData
+                                                  .tileDescriptionTextColor
+                                            : theme
+                                                  .themeData
+                                                  .inactiveSubtitleColor,
+                                      ),
+                              child: description!,
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              // if (tileType == SettingsTileType.navigationTile)
-              //   Padding(
-              //     padding:
-              //         const EdgeInsetsDirectional.only(start: 6, end: 15),
-              //     child: IconTheme(
-              //       data: IconTheme.of(context)
-              //           .copyWith(color: theme.themeData.leadingIconsColor),
-              //       child: Icon(
-              //         CupertinoIcons.chevron_forward,
-              //         size: 18 * scaleFactor,
-              //       ),
-              //     ),
-              //   ),
-              if (trailing != null && tileType == SettingsTileType.switchTile)
-                Row(
-                  children: [
-                    IconTheme(
+                if (trailing != null && tileType == SettingsTileType.switchTile)
+                  Row(
+                    children: [
+                      IconTheme(
+                        data: IconTheme.of(context).copyWith(
+                          color: enabled
+                              ? theme.themeData.leadingIconsColor
+                              : theme.themeData.inactiveTitleColor,
+                        ),
+                        child: trailing!,
+                      ),
+                      Padding(
+                        padding: const EdgeInsetsDirectional.only(end: 8),
+                        child: Switch(
+                          activeThumbColor: enabled
+                              ? (activeSwitchColor ??
+                                    const Color.fromRGBO(138, 180, 248, 1.0))
+                              : theme.themeData.inactiveTitleColor,
+                          value: initialValue,
+                          onChanged: onToggle,
+                        ),
+                      ),
+                    ],
+                  )
+                else if (tileType == SettingsTileType.switchTile)
+                  Padding(
+                    padding: const EdgeInsetsDirectional.only(
+                      start: 16,
+                      end: 8,
+                    ),
+                    child: Switch(
+                      value: initialValue,
+                      activeThumbColor: !enabled
+                          ? (theme.themeData.inactiveSwitchColor ??
+                                theme.themeData.inactiveTitleColor)
+                          : activeSwitchColor,
+                      onChanged: onToggle,
+                    ),
+                  )
+                else if (trailing != null)
+                  Padding(
+                    padding:
+                        trailingPadding ??
+                        const EdgeInsets.symmetric(horizontal: 16),
+                    child: IconTheme(
                       data: IconTheme.of(context).copyWith(
                         color: enabled
                             ? theme.themeData.leadingIconsColor
@@ -172,46 +203,28 @@ class WebSettingsTile extends StatelessWidget {
                       ),
                       child: trailing!,
                     ),
-                    Padding(
-                      padding: const EdgeInsetsDirectional.only(end: 8),
-                      child: Switch(
-                        activeThumbColor: enabled
-                            ? (activeSwitchColor ??
-                                  const Color.fromRGBO(138, 180, 248, 1.0))
+                  ),
+                // Chrome shows a chevron on rows that open a sub-page.
+                if (tileType == SettingsTileType.navigationTile)
+                  Padding(
+                    padding: const EdgeInsetsDirectional.only(
+                      start: 8,
+                      end: 16,
+                    ),
+                    child: IconTheme(
+                      data: IconTheme.of(context).copyWith(
+                        color: enabled
+                            ? theme.themeData.leadingIconsColor
                             : theme.themeData.inactiveTitleColor,
-                        value: initialValue,
-                        onChanged: onToggle,
+                      ),
+                      child: Icon(
+                        Icons.chevron_right,
+                        size: textScaler.scale(20),
                       ),
                     ),
-                  ],
-                )
-              else if (tileType == SettingsTileType.switchTile)
-                Padding(
-                  padding: const EdgeInsetsDirectional.only(start: 16, end: 8),
-                  child: Switch(
-                    value: initialValue,
-                    activeThumbColor: !enabled
-                        ? (theme.themeData.inactiveSwitchColor ??
-                              theme.themeData.inactiveTitleColor)
-                        : activeSwitchColor,
-                    onChanged: onToggle,
                   ),
-                )
-              else if (trailing != null)
-                Padding(
-                  padding:
-                      trailingPadding ??
-                      const EdgeInsets.symmetric(horizontal: 16),
-                  child: IconTheme(
-                    data: IconTheme.of(context).copyWith(
-                      color: enabled
-                          ? theme.themeData.leadingIconsColor
-                          : theme.themeData.inactiveTitleColor,
-                    ),
-                    child: trailing!,
-                  ),
-                ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

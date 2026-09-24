@@ -1,6 +1,12 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/settings_ui.dart';
 
+/// Pixel settings switches show a check when on and a cross when off.
+final _thumbIcon = WidgetStateProperty.resolveWith<Icon>(
+  (states) =>
+      Icon(states.contains(WidgetState.selected) ? Icons.check : Icons.close),
+);
+
 class AndroidSettingsTile extends StatelessWidget {
   const AndroidSettingsTile({
     required this.tileType,
@@ -69,7 +75,7 @@ class AndroidSettingsTile extends StatelessWidget {
                 Padding(
                   padding:
                       leadingPadding ??
-                      const EdgeInsetsDirectional.only(start: 24),
+                      const EdgeInsetsDirectional.only(start: 16),
                   child: IconTheme(
                     data: IconTheme.of(context).copyWith(
                       color: enabled
@@ -82,10 +88,10 @@ class AndroidSettingsTile extends StatelessWidget {
               Expanded(
                 child: Padding(
                   padding: EdgeInsetsDirectional.only(
-                    start: 24,
-                    end: 24,
-                    bottom: textScaler.scale(compact ? 9 : 19),
-                    top: textScaler.scale(compact ? 9 : 19),
+                    start: 16,
+                    end: 16,
+                    bottom: textScaler.scale(compact ? 6 : 12),
+                    top: textScaler.scale(compact ? 6 : 12),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -94,7 +100,7 @@ class AndroidSettingsTile extends StatelessWidget {
                         style:
                             (theme.themeData.tileTextStyle ??
                                     const TextStyle(
-                                      fontSize: 18,
+                                      fontSize: 16,
                                       fontWeight: FontWeight.w400,
                                     ))
                                 .copyWith(
@@ -153,10 +159,11 @@ class AndroidSettingsTile extends StatelessWidget {
                   children: [
                     trailing!,
                     Padding(
-                      padding: const EdgeInsetsDirectional.only(end: 8),
+                      padding: const EdgeInsetsDirectional.only(end: 12),
                       child: Switch(
                         value: initialValue,
                         onChanged: onToggle,
+                        thumbIcon: _thumbIcon,
                         activeThumbColor: enabled
                             ? activeSwitchColor
                             : (theme.themeData.inactiveSwitchColor ??
@@ -167,10 +174,11 @@ class AndroidSettingsTile extends StatelessWidget {
                 )
               else if (tileType == SettingsTileType.switchTile)
                 Padding(
-                  padding: const EdgeInsetsDirectional.only(start: 16, end: 8),
+                  padding: const EdgeInsetsDirectional.only(start: 16, end: 12),
                   child: Switch(
                     value: initialValue,
                     onChanged: onToggle,
+                    thumbIcon: _thumbIcon,
                     activeThumbColor: enabled
                         ? activeSwitchColor
                         : theme.themeData.inactiveTitleColor,
