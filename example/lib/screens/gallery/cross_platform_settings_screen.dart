@@ -1,3 +1,4 @@
+import 'package:example/utils/launch_options.dart';
 import 'package:example/utils/navigation.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/settings_ui.dart';
@@ -24,7 +25,8 @@ class _CrossPlatformSettingsScreenState
     DevicePlatform.macOS: 'MacOS',
     DevicePlatform.windows: 'Windows',
   };
-  DevicePlatform selectedPlatform = DevicePlatform.device;
+  DevicePlatform selectedPlatform =
+      LaunchOptions.platform ?? DevicePlatform.device;
 
   @override
   Widget build(BuildContext context) {

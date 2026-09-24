@@ -49,6 +49,7 @@ void main() {
       expect(find.text('Web Settings'), findsOneWidget);
       expect(find.text('iOS Native Settings Screen'), findsOneWidget);
       expect(find.text('Android Native Settings Screen'), findsOneWidget);
+      expect(find.text('GNOME Settings (Power)'), findsOneWidget);
 
       // Section titles
       expect(find.text('General'), findsOneWidget);
@@ -98,54 +99,25 @@ void main() {
       await tester.tap(find.text('Abstract settings screen'));
       await pumpSettled(tester);
 
-      // Detect the switch type based on running platform
+      // The switch type depends on the platform the app runs on.
       final switchFinder = find.descendant(
         of: find.widgetWithText(SettingsTile, 'Enable custom theme'),
-        matching: find.byType(Switch),
+        matching: find.byWidgetPredicate(_isSettingsSwitch),
       );
-      final cupertinoSwitchFinder = find.descendant(
-        of: find.widgetWithText(SettingsTile, 'Enable custom theme'),
-        matching: find.byType(CupertinoSettingsSwitch),
-      );
-
-      final bool hasMaterialSwitch = switchFinder.evaluate().isNotEmpty;
-      final bool hasCupertinoSwitch = cupertinoSwitchFinder
-          .evaluate()
-          .isNotEmpty;
-
       expect(
-        hasMaterialSwitch || hasCupertinoSwitch,
-        isTrue,
+        switchFinder,
+        findsOneWidget,
         reason: 'Enable custom theme tile should contain a Switch widget',
       );
 
-      if (hasMaterialSwitch) {
-        expect(tester.widget<Switch>(switchFinder).value, false);
-        await tester.tap(switchFinder);
-        await pumpSettled(tester);
-        expect(tester.widget<Switch>(switchFinder).value, true);
-        // Toggle back
-        await tester.tap(switchFinder);
-        await pumpSettled(tester);
-        expect(tester.widget<Switch>(switchFinder).value, false);
-      } else {
-        expect(
-          tester.widget<CupertinoSettingsSwitch>(cupertinoSwitchFinder).value,
-          false,
-        );
-        await tester.tap(cupertinoSwitchFinder);
-        await pumpSettled(tester);
-        expect(
-          tester.widget<CupertinoSettingsSwitch>(cupertinoSwitchFinder).value,
-          true,
-        );
-        await tester.tap(cupertinoSwitchFinder);
-        await pumpSettled(tester);
-        expect(
-          tester.widget<CupertinoSettingsSwitch>(cupertinoSwitchFinder).value,
-          false,
-        );
-      }
+      expect(_switchValue(tester.widget(switchFinder)), false);
+      await tester.tap(switchFinder);
+      await pumpSettled(tester);
+      expect(_switchValue(tester.widget(switchFinder)), true);
+      // Toggle back
+      await tester.tap(switchFinder);
+      await pumpSettled(tester);
+      expect(_switchValue(tester.widget(switchFinder)), false);
 
       await goBack(tester);
     });
@@ -275,19 +247,13 @@ void main() {
       await tester.tap(find.text('Material 3 Theme Demo'));
       await pumpSettled(tester);
 
-      // The tile shows a Switch on Android and a CupertinoSettingsSwitch on iOS.
+      // The tile shows a Switch on Android, a CupertinoSettingsSwitch on iOS
+      // and an AdwaitaSettingsSwitch on Linux.
       final darkModeSwitchFinder = find.descendant(
         of: find.widgetWithText(SettingsTile, 'Dark mode'),
-        matching: find.byWidgetPredicate(
-          (widget) => widget is Switch || widget is CupertinoSettingsSwitch,
-        ),
+        matching: find.byWidgetPredicate(_isSettingsSwitch),
       );
-      bool darkModeValue() {
-        final widget = tester.widget(darkModeSwitchFinder);
-        return widget is Switch
-            ? widget.value
-            : (widget as CupertinoSettingsSwitch).value;
-      }
+      bool darkModeValue() => _switchValue(tester.widget(darkModeSwitchFinder));
 
       expect(darkModeSwitchFinder, findsOneWidget);
       expect(darkModeValue(), false);
@@ -521,6 +487,39 @@ void main() {
     });
   });
 
+  group('GNOME Settings (Power) screen', () {
+    testWidgets('Renders the Linux style and toggles a switch row', (
+      tester,
+    ) async {
+      app.main();
+      await pumpSettled(tester);
+
+      await tester.scrollUntilVisible(
+        find.text('GNOME Settings (Power)'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.tap(find.text('GNOME Settings (Power)'));
+      await pumpSettled(tester);
+
+      expect(find.text('Power Mode'), findsOneWidget);
+      expect(find.text('Balanced'), findsOneWidget);
+      expect(find.text('Automatic Suspend'), findsOneWidget);
+
+      final dimScreen = find.descendant(
+        of: find.widgetWithText(SettingsTile, 'Dim Screen'),
+        matching: find.byType(AdwaitaSettingsSwitch),
+      );
+      expect(tester.widget<AdwaitaSettingsSwitch>(dimScreen).value, true);
+      // Like GNOME, a click anywhere on the row toggles the switch.
+      await tester.tap(find.text('Dim Screen'));
+      await pumpSettled(tester);
+      expect(tester.widget<AdwaitaSettingsSwitch>(dimScreen).value, false);
+
+      await goBack(tester);
+    });
+  });
+
   group('SettingsTile states', () {
     testWidgets('Disabled tile is not interactive', (tester) async {
       app.main();
@@ -561,3 +560,16 @@ void main() {
     );
   });
 }
+
+/// The switch of a switch tile, in any style.
+bool _isSettingsSwitch(Widget widget) =>
+    widget is Switch ||
+    widget is CupertinoSettingsSwitch ||
+    widget is AdwaitaSettingsSwitch;
+
+bool _switchValue(Widget widget) => switch (widget) {
+  Switch(:final value) => value,
+  CupertinoSettingsSwitch(:final value) => value,
+  AdwaitaSettingsSwitch(:final value) => value,
+  _ => throw ArgumentError('$widget is not a settings switch'),
+};
