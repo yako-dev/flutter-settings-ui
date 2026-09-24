@@ -246,12 +246,13 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
                       children: [
                         Expanded(
                           child: LayoutBuilder(
+                            // The title fills the row. The value keeps its
+                            // natural width, up to half the row, so neither a
+                            // long title nor a long value can hide the other
+                            // (Issues #186, #203).
                             builder: (context, constraints) => Row(
                               children: [
-                                ConstrainedBox(
-                                  constraints: BoxConstraints(
-                                    maxWidth: constraints.maxWidth,
-                                  ),
+                                Expanded(
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
@@ -320,9 +321,14 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
                                   ),
                                 ),
                                 if (shouldShowInlineValue)
-                                  Expanded(
-                                    child: Align(
-                                      alignment: AlignmentDirectional.centerEnd,
+                                  Padding(
+                                    padding: const EdgeInsetsDirectional.only(
+                                      start: 8,
+                                    ),
+                                    child: ConstrainedBox(
+                                      constraints: BoxConstraints(
+                                        maxWidth: constraints.maxWidth / 2,
+                                      ),
                                       child: DefaultTextStyle(
                                         style: TextStyle(
                                           color: widget.enabled
@@ -335,6 +341,7 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
                                           fontSize: 17,
                                         ),
                                         overflow: TextOverflow.ellipsis,
+                                        maxLines: 1,
                                         textAlign: TextAlign.end,
                                         child: widget.value!,
                                       ),
