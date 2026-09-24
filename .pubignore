@@ -1,9 +1,10 @@
 # IDE project files — not needed by package consumers
 *.iml
 
-# Internal planning docs
+# Internal planning and agent docs
 V3_PLAN.md
 CLAUDE.md
+AGENTS.md
 
 # Coverage output
 coverage/
