@@ -401,6 +401,46 @@ void macosStyleTests() {
       expect(find.text('Custom section'), findsOneWidget);
     });
 
+    testWidgets('works in a CupertinoApp, with Material widgets in tiles', (
+      tester,
+    ) async {
+      var taps = 0;
+      await tester.pumpWidget(
+        CupertinoApp(
+          theme: const CupertinoThemeData(brightness: Brightness.dark),
+          home: SettingsList(
+            platform: DevicePlatform.macOS,
+            applicationType: ApplicationType.cupertino,
+            sections: [
+              SettingsSection(
+                title: const Text('Header'),
+                tiles: [
+                  SettingsTile(
+                    title: const Text('Tile'),
+                    trailing: IconButton(
+                      onPressed: () => taps++,
+                      icon: const Icon(Icons.info_outline),
+                    ),
+                  ),
+                  SettingsTile.switchTile(
+                    title: const Text('Switch'),
+                    initialValue: true,
+                    onToggle: (_) {},
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(_themeData(tester, 'Tile').settingsSectionBackground, _darkCard);
+      await tester.tap(find.byType(IconButton));
+      await tester.pumpAndSettle();
+      expect(taps, 1);
+    });
+
     testWidgets('a tile outside a section draws its own card and footer', (
       tester,
     ) async {
