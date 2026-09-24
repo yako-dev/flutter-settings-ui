@@ -1,4 +1,5 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/settings_ui.dart';
@@ -24,6 +25,13 @@ List<AbstractSettingsSection> _sections() => [
 
 SettingsThemeData _themeData(WidgetTester tester) =>
     SettingsTheme.of(tester.element(find.text('Tile'))).themeData;
+
+/// The width of the content column on wide screens.
+double _column(DevicePlatform platform) => switch (platform) {
+  DevicePlatform.web => 680,
+  DevicePlatform.macOS => 640,
+  _ => 810,
+};
 
 Future<void> _setScreen(WidgetTester tester, Size size) async {
   tester.view.physicalSize = size;
@@ -109,7 +117,10 @@ void listFixTests() {
 
         expect(
           _themeData(tester).settingsListBackground,
-          CupertinoColors.black,
+          defaultTargetPlatform == TargetPlatform.macOS
+              // macOS windowBackgroundColor in dark mode.
+              ? const Color(0xFF1E1E1E)
+              : CupertinoColors.black,
         );
       },
       variant: const TargetPlatformVariant({
@@ -168,11 +179,11 @@ void listFixTests() {
     for (final platform in [
       DevicePlatform.android,
       DevicePlatform.iOS,
+      DevicePlatform.macOS,
       DevicePlatform.web,
     ]) {
-      final isWeb = platform == DevicePlatform.web;
-      final column = isWeb ? 680.0 : 810.0;
-      final edge = isWeb ? 16.0 : 0.0;
+      final column = _column(platform);
+      final edge = platform == DevicePlatform.web ? 16.0 : 0.0;
 
       for (final direction in TextDirection.values) {
         testWidgets(
@@ -269,11 +280,11 @@ void listFixTests() {
     for (final platform in [
       DevicePlatform.android,
       DevicePlatform.iOS,
+      DevicePlatform.macOS,
       DevicePlatform.web,
     ]) {
-      final isWeb = platform == DevicePlatform.web;
-      final column = isWeb ? 680.0 : 810.0;
-      final edge = isWeb ? 16.0 : 0.0;
+      final column = _column(platform);
+      final edge = platform == DevicePlatform.web ? 16.0 : 0.0;
 
       Widget pane(double width) => MaterialApp(
         home: Scaffold(

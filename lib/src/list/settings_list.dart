@@ -1,6 +1,7 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/src/sections/abstract_settings_section.dart';
+import 'package:settings_ui/src/sections/settings_section.dart';
 import 'package:settings_ui/src/utils/platform_utils.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 import 'package:settings_ui/src/utils/theme_provider.dart';
@@ -153,24 +154,38 @@ class SettingsList extends StatelessWidget {
   }) {
     final double maxContentWidth;
     final double minSidePadding;
-    final double verticalPadding;
+    final double topPadding;
+    final double bottomPadding;
     switch (platform) {
       case DevicePlatform.android:
       case DevicePlatform.fuchsia:
       case DevicePlatform.linux:
       case DevicePlatform.iOS:
-      case DevicePlatform.macOS:
       case DevicePlatform.windows:
         maxContentWidth = 810;
         minSidePadding = 0;
-        verticalPadding = 0;
+        topPadding = 0;
+        bottomPadding = 0;
+      case DevicePlatform.macOS:
+        // System Settings has a fixed-width window, so its cards are never
+        // wider than about 470pt. A 640pt column (600pt cards) keeps each
+        // label close to its control in wide windows.
+        maxContentWidth = 640;
+        minSidePadding = 0;
+        // The first card starts 12pt down, and a first header 20pt down
+        // (its section's own top margin), like in System Settings.
+        topPadding = _startsWithHeader ? 0 : 12;
+        // With the last section's 10pt bottom margin: 20pt below the last
+        // card, like System Settings.
+        bottomPadding = 10;
       case DevicePlatform.web:
         // Chrome's settings page uses a narrower 680px column than the other
         // platforms' 810px, and keeps the cards off the edges of narrow
         // browser windows.
         maxContentWidth = 680;
         minSidePadding = 16;
-        verticalPadding = 20;
+        topPadding = 20;
+        bottomPadding = 20;
       case DevicePlatform.device:
         throw Exception(
           'You can\'t use the DevicePlatform.device in this context. '
@@ -189,14 +204,29 @@ class SettingsList extends StatelessWidget {
       return EdgeInsetsDirectional.only(
         start: minSidePadding,
         end: 2 * sidePadding - minSidePadding,
-        top: verticalPadding,
-        bottom: verticalPadding,
+        top: topPadding,
+        bottom: bottomPadding,
       ).resolve(Directionality.maybeOf(context) ?? TextDirection.ltr);
     }
-    return EdgeInsets.symmetric(
-      horizontal: sidePadding,
-      vertical: verticalPadding,
+    return EdgeInsets.only(
+      left: sidePadding,
+      right: sidePadding,
+      top: topPadding,
+      bottom: bottomPadding,
     );
+  }
+
+  /// Whether the first section that shows anything is a [SettingsSection]
+  /// with a title.
+  bool get _startsWithHeader {
+    for (final section in sections) {
+      if (section is SettingsSection) {
+        if (section.tiles.isEmpty) continue;
+        return section.title != null;
+      }
+      return false;
+    }
+    return false;
   }
 
   Brightness calculateBrightness(BuildContext context) {

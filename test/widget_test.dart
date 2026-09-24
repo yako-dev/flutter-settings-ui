@@ -9,6 +9,7 @@ import 'settings_tests/bug_fix_tests.dart';
 import 'settings_tests/cupertino_switch_tests.dart';
 import 'settings_tests/ios_value_layout_tests.dart';
 import 'settings_tests/list_fix_tests.dart';
+import 'settings_tests/macos_style_tests.dart';
 import 'settings_tests/native_look_tests.dart';
 import 'settings_tests/setting_tile_tests.dart';
 import 'settings_tests/settings_list_tests.dart';
@@ -181,6 +182,10 @@ void main() {
 
   group('CupertinoSettingsSwitch (iOS 26+ switch)', () {
     cupertinoSwitchTests();
+  });
+
+  group('macOS System Settings style', () {
+    macosStyleTests();
   });
 
   group('SettingsList and SettingsSection fixes (v4.0.0)', () {

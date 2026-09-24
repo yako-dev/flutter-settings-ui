@@ -14,8 +14,9 @@ class ThemeProvider {
       case DevicePlatform.fuchsia:
       case DevicePlatform.linux:
         return _androidTheme(context: context, brightness: brightness);
-      case DevicePlatform.iOS:
       case DevicePlatform.macOS:
+        return _macosTheme(brightness: brightness);
+      case DevicePlatform.iOS:
       case DevicePlatform.windows:
         return _iosTheme(context: context, brightness: brightness);
       case DevicePlatform.web:
@@ -69,7 +70,50 @@ class ThemeProvider {
     );
   }
 
-  /// Uses Cupertino system colors for iOS/macOS/Windows — these are not
+  /// macOS 26/27 System Settings (a SwiftUI grouped `Form`): a white or
+  /// #1E1E1E window background with #F7F7F7 or #252525 cards, and the
+  /// translucent `NSColor` label colors, which blend with whatever is behind
+  /// them like AppKit's do. Like the iOS style, it ignores [ColorScheme].
+  static SettingsThemeData _macosTheme({required Brightness brightness}) {
+    final isLight = brightness == Brightness.light;
+
+    // labelColor, secondaryLabelColor and tertiaryLabelColor.
+    const lightLabel = Color(0xD8000000);
+    const darkLabel = Color(0xD8FFFFFF);
+    const lightSecondaryLabel = Color(0x7F000000);
+    const darkSecondaryLabel = Color(0x8CFFFFFF);
+    const lightTertiaryLabel = Color(0x42000000);
+    const darkTertiaryLabel = Color(0x3FFFFFFF);
+
+    final label = isLight ? lightLabel : darkLabel;
+    final secondaryLabel = isLight ? lightSecondaryLabel : darkSecondaryLabel;
+    final tertiaryLabel = isLight ? lightTertiaryLabel : darkTertiaryLabel;
+
+    return SettingsThemeData(
+      // windowBackgroundColor, without the wallpaper tint of macOS 26+.
+      settingsListBackground: isLight
+          ? const Color(0xFFFFFFFF)
+          : const Color(0xFF1E1E1E),
+      settingsSectionBackground: isLight
+          ? const Color(0xFFF7F7F7)
+          : const Color(0xFF252525),
+      // 1pt separators: black 5% or white 4.7% over the card.
+      dividerColor: isLight ? const Color(0xFFEBEBEB) : const Color(0xFF2F2F2F),
+      // A pressed row: a light fill over the card.
+      tileHighlightColor: isLight
+          ? const Color(0x0F000000)
+          : const Color(0x14FFFFFF),
+      titleTextColor: label,
+      settingsTileTextColor: label,
+      trailingTextColor: secondaryLabel,
+      tileDescriptionTextColor: secondaryLabel,
+      leadingIconsColor: secondaryLabel,
+      inactiveTitleColor: tertiaryLabel,
+      inactiveSubtitleColor: tertiaryLabel,
+    );
+  }
+
+  /// Uses Cupertino system colors for iOS/Windows — these are not
   /// derived from [ColorScheme] because Cupertino doesn't use Material theming.
   static SettingsThemeData _iosTheme({
     required BuildContext context,

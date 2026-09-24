@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:settings_ui/src/sections/platforms/android_settings_section.dart';
 import 'package:settings_ui/src/sections/platforms/ios_settings_section.dart';
+import 'package:settings_ui/src/sections/platforms/macos_settings_section.dart';
 import 'package:settings_ui/src/sections/platforms/web_settings_section.dart';
 
 import '../test_widget_screen.dart';
@@ -44,10 +45,15 @@ void settingsSectionsTests(DevicePlatform? platform) {
       expect(find.byType(IOSSettingsSection), findsNothing);
       expect(find.byType(WebSettingsSection), findsNothing);
     }
-    if (platform == DevicePlatform.iOS ||
-        platform == DevicePlatform.macOS ||
-        platform == DevicePlatform.windows) {
+    if (platform == DevicePlatform.iOS || platform == DevicePlatform.windows) {
       expect(find.byType(IOSSettingsSection), findsOneWidget);
+      expect(find.byType(AndroidSettingsSection), findsNothing);
+      expect(find.byType(WebSettingsSection), findsNothing);
+      expect(find.byType(MacosSettingsSection), findsNothing);
+    }
+    if (platform == DevicePlatform.macOS) {
+      expect(find.byType(MacosSettingsSection), findsOneWidget);
+      expect(find.byType(IOSSettingsSection), findsNothing);
       expect(find.byType(AndroidSettingsSection), findsNothing);
       expect(find.byType(WebSettingsSection), findsNothing);
     }
