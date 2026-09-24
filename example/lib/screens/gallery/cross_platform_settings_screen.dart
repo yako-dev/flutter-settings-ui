@@ -110,13 +110,15 @@ class _CrossPlatformSettingsScreenState
           SettingsSection(
             title: Text('Account'),
             tiles: <SettingsTile>[
-              SettingsTile.navigation(
+              SettingsTile(
                 leading: Icon(Icons.phone),
                 title: Text('Phone number'),
+                value: Text('+1 123 456 789'),
               ),
               SettingsTile.navigation(
                 leading: Icon(Icons.mail),
                 title: Text('Email'),
+                value: Text('user@example.com'),
                 enabled: false,
               ),
               SettingsTile.navigation(
