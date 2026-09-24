@@ -48,6 +48,7 @@ void main() {
       expect(find.text('Android Settings Screen'), findsOneWidget);
       expect(find.text('Web Settings'), findsOneWidget);
       expect(find.text('iOS Native Settings Screen'), findsOneWidget);
+      expect(find.text('macOS System Settings'), findsOneWidget);
       expect(find.text('Android Native Settings Screen'), findsOneWidget);
 
       // Section titles
@@ -107,19 +108,34 @@ void main() {
         of: find.widgetWithText(SettingsTile, 'Enable custom theme'),
         matching: find.byType(CupertinoSettingsSwitch),
       );
+      final macosSwitchFinder = find.descendant(
+        of: find.widgetWithText(SettingsTile, 'Enable custom theme'),
+        matching: find.byType(MacosSettingsSwitch),
+      );
 
       final bool hasMaterialSwitch = switchFinder.evaluate().isNotEmpty;
       final bool hasCupertinoSwitch = cupertinoSwitchFinder
           .evaluate()
           .isNotEmpty;
+      final bool hasMacosSwitch = macosSwitchFinder.evaluate().isNotEmpty;
 
       expect(
-        hasMaterialSwitch || hasCupertinoSwitch,
+        hasMaterialSwitch || hasCupertinoSwitch || hasMacosSwitch,
         isTrue,
         reason: 'Enable custom theme tile should contain a Switch widget',
       );
 
-      if (hasMaterialSwitch) {
+      if (hasMacosSwitch) {
+        bool value() =>
+            tester.widget<MacosSettingsSwitch>(macosSwitchFinder).value;
+        expect(value(), false);
+        await tester.tap(macosSwitchFinder);
+        await pumpSettled(tester);
+        expect(value(), true);
+        await tester.tap(macosSwitchFinder);
+        await pumpSettled(tester);
+        expect(value(), false);
+      } else if (hasMaterialSwitch) {
         expect(tester.widget<Switch>(switchFinder).value, false);
         await tester.tap(switchFinder);
         await pumpSettled(tester);
@@ -275,19 +291,23 @@ void main() {
       await tester.tap(find.text('Material 3 Theme Demo'));
       await pumpSettled(tester);
 
-      // The tile shows a Switch on Android and a CupertinoSettingsSwitch on iOS.
+      // The tile shows a Switch on Android, a CupertinoSettingsSwitch on iOS
+      // and a MacosSettingsSwitch on macOS.
       final darkModeSwitchFinder = find.descendant(
         of: find.widgetWithText(SettingsTile, 'Dark mode'),
         matching: find.byWidgetPredicate(
-          (widget) => widget is Switch || widget is CupertinoSettingsSwitch,
+          (widget) =>
+              widget is Switch ||
+              widget is CupertinoSettingsSwitch ||
+              widget is MacosSettingsSwitch,
         ),
       );
-      bool darkModeValue() {
-        final widget = tester.widget(darkModeSwitchFinder);
-        return widget is Switch
-            ? widget.value
-            : (widget as CupertinoSettingsSwitch).value;
-      }
+      bool darkModeValue() => switch (tester.widget(darkModeSwitchFinder)) {
+        final Switch widget => widget.value,
+        final CupertinoSettingsSwitch widget => widget.value,
+        final MacosSettingsSwitch widget => widget.value,
+        _ => throw StateError('Not a switch'),
+      };
 
       expect(darkModeSwitchFinder, findsOneWidget);
       expect(darkModeValue(), false);
@@ -314,6 +334,12 @@ void main() {
 
       expect(find.text('Notifications'), findsOneWidget);
       expect(find.text('Location access'), findsOneWidget);
+      // Desktop windows can be short: scroll to the last section.
+      await tester.scrollUntilVisible(
+        find.text('Compact tiles'),
+        100,
+        scrollable: find.byType(Scrollable).last,
+      );
       expect(find.text('Compact tiles'), findsOneWidget);
 
       await goBack(tester);
@@ -505,11 +531,43 @@ void main() {
     });
   });
 
+  group('macOS System Settings replica', () {
+    testWidgets('Renders the Notifications pane and toggles a switch', (
+      tester,
+    ) async {
+      app.main();
+      await pumpSettled(tester);
+
+      await tester.ensureVisible(find.text('macOS System Settings'));
+      await tester.pump();
+      await tester.tap(find.text('macOS System Settings'));
+      await pumpSettled(tester);
+
+      expect(find.text('Notifications'), findsOneWidget);
+      expect(find.text('Notification Center'), findsOneWidget);
+      expect(find.text('Show previews'), findsOneWidget);
+      expect(find.text('Allow notifications'), findsOneWidget);
+
+      final lockedSwitch = find.descendant(
+        of: find.widgetWithText(SettingsTile, 'When the screen is locked'),
+        matching: find.byType(MacosSettingsSwitch),
+      );
+      expect(tester.widget<MacosSettingsSwitch>(lockedSwitch).value, true);
+      await tester.tap(lockedSwitch);
+      await pumpSettled(tester);
+      expect(tester.widget<MacosSettingsSwitch>(lockedSwitch).value, false);
+
+      await goBack(tester);
+    });
+  });
+
   group('Android Native Settings Screen', () {
     testWidgets('Renders native settings layout', (tester) async {
       app.main();
       await pumpSettled(tester);
 
+      await tester.ensureVisible(find.text('Android Native Settings Screen'));
+      await tester.pump();
       await tester.tap(find.text('Android Native Settings Screen'));
       await pumpSettled(tester);
 

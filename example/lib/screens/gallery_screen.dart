@@ -3,6 +3,7 @@ import 'package:example/screens/gallery/android_settings_screen.dart';
 import 'package:example/screens/gallery/cross_platform_settings_screen.dart';
 import 'package:example/screens/gallery/ios_developer_screen.dart';
 import 'package:example/screens/gallery/ios_native_settings_screen.dart';
+import 'package:example/screens/gallery/macos_notifications_screen.dart';
 import 'package:example/screens/gallery/material3_demo_screen.dart';
 import 'package:example/screens/gallery/web_chrome_settings.dart';
 import 'package:example/utils/navigation.dart';
@@ -99,6 +100,17 @@ class GalleryScreen extends StatelessWidget {
                     context: context,
                     screen: const IosNativeSettingsScreen(),
                     style: NavigationRouteStyle.cupertino,
+                  );
+                },
+              ),
+              SettingsTile.navigation(
+                leading: const Icon(Icons.laptop_mac),
+                title: const Text('macOS System Settings'),
+                onPressed: (context) {
+                  Navigation.navigateTo(
+                    context: context,
+                    screen: const MacosNotificationsScreen(),
+                    style: NavigationRouteStyle.material,
                   );
                 },
               ),

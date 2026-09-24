@@ -14,3 +14,13 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter, view our
 [online documentation](https://flutter.dev/docs), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+
+## Opening a screen directly
+
+Screenshot scripts can skip the gallery and force light or dark mode:
+
+- Web: `?screen=macos&theme=dark`
+- Other platforms: `flutter run --dart-define=SCREEN=macos --dart-define=THEME=dark`
+
+`screen=macos` opens the macOS System Settings replica. `theme` is `light` or
+`dark`; without it the app follows the system.
