@@ -12,8 +12,9 @@ class ThemeProvider {
     switch (platform) {
       case DevicePlatform.android:
       case DevicePlatform.fuchsia:
-      case DevicePlatform.linux:
         return _androidTheme(context: context, brightness: brightness);
+      case DevicePlatform.linux:
+        return _adwaitaTheme(brightness: brightness);
       case DevicePlatform.iOS:
       case DevicePlatform.macOS:
       case DevicePlatform.windows:
@@ -126,6 +127,45 @@ class ThemeProvider {
           : darkLeadingIconsColor,
       inactiveTitleColor: CupertinoColors.inactiveGray,
       inactiveSubtitleColor: CupertinoColors.inactiveGray,
+    );
+  }
+
+  /// GNOME (libadwaita 1.10) colors, like GNOME Settings 51. As in the
+  /// libadwaita stylesheet, most colors are the foreground color at some
+  /// strength: `rgba(0, 0, 6, 0.8)` in light mode and white in dark mode.
+  /// Like the iOS style, this ignores the [ColorScheme].
+  static SettingsThemeData _adwaitaTheme({required Brightness brightness}) {
+    final isLight = brightness == Brightness.light;
+    final foreground = isLight
+        ? const Color.fromRGBO(0, 0, 6, 0.8)
+        : const Color(0xFFFFFFFF);
+    Color dim(double opacity) =>
+        foreground.withValues(alpha: foreground.a * opacity);
+
+    return SettingsThemeData(
+      // --window-bg-color
+      settingsListBackground: isLight
+          ? const Color(0xFFFAFAFB)
+          : const Color(0xFF222226),
+      // --card-bg-color
+      settingsSectionBackground: isLight
+          ? const Color(0xFFFFFFFF)
+          : const Color.fromRGBO(255, 255, 255, 0.08),
+      // --card-shade-color, between rows
+      dividerColor: isLight
+          ? const Color.fromRGBO(0, 0, 6, 0.07)
+          : const Color.fromRGBO(0, 0, 6, 0.36),
+      titleTextColor: foreground,
+      settingsTileTextColor: foreground,
+      leadingIconsColor: foreground,
+      // .dim-label (opacity 0.55) for subtitles and values
+      tileDescriptionTextColor: dim(0.55),
+      trailingTextColor: dim(0.55),
+      // Pressed rows; hovered rows use 3/8 of it (3%).
+      tileHighlightColor: dim(0.08),
+      // Disabled rows are drawn at opacity 0.5.
+      inactiveTitleColor: dim(0.5),
+      inactiveSubtitleColor: dim(0.55 * 0.5),
     );
   }
 
