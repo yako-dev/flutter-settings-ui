@@ -7,9 +7,16 @@
 
 ### Bug fixes
 * Colors, dark mode and platform now follow the app theme in apps built on `material_ui` (#206)
+* iOS: values are right-aligned next to the chevron again (#203, #202)
+* iOS: simple tiles now show their `value`, like on Android (#201)
+* iOS: a long title no longer hides the value. The value takes at most half the row, on one line
+* Compiles on Flutter forks that add platforms, such as OpenHarmony, which get the Cupertino style (#205)
 
 ### New features
 * Debug builds print a one-time warning when `SettingsList` finds no `material_ui` or `cupertino_ui` theme above it
+
+### Documentation
+* To show a value without the chevron, use `SettingsTile` instead of `SettingsTile.navigation` (#204)
 
 ### Maintenance
 * CI now checks formatting with `dart format` (`flutter format` was removed from Flutter)

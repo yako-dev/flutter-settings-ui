@@ -46,6 +46,11 @@ class PlatformUtils {
         return DevicePlatform.macOS;
       case TargetPlatform.windows:
         return DevicePlatform.windows;
+      // Forks of Flutter can add platforms, e.g. TargetPlatform.ohos on
+      // OpenHarmony, which would not compile without a default (#205).
+      // ignore: unreachable_switch_default
+      default:
+        return DevicePlatform.iOS;
     }
   }
 }

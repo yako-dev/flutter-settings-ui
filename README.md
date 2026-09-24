@@ -126,20 +126,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
 ### `SettingsTile` — basic tile
 
-A tappable tile with optional leading icon, description, and trailing widget.
+A tappable tile with optional leading icon, value, description, and trailing widget. It never shows a chevron, so use it when you want a value without the arrow.
 
 ```dart
 SettingsTile(
   leading: const Icon(Icons.storage),
   title: const Text('Storage'),
-  description: const Text('30% used — 5.60 GB free'),
+  value: const Text('5.60 GB free'),
+  description: const Text('30% used'),
   onPressed: (context) { /* ... */ },
 )
 ```
 
 ### `SettingsTile.navigation` — navigation tile
 
-Adds a platform-appropriate trailing chevron. Right arrow in LTR, left arrow in RTL.
+On iOS, macOS and Windows it adds a chevron after the value: a right arrow in LTR, a left arrow in RTL. Material and Web styles show no chevron.
 
 ```dart
 SettingsTile.navigation(
@@ -220,6 +221,8 @@ SettingsList(
 | `android`, `fuchsia`, `linux` | Material |
 | `iOS`, `macOS`, `windows` | Cupertino |
 | `web` | Web (card layout) |
+
+Platforms that only exist in forks of Flutter, such as OpenHarmony, use the Cupertino style.
 
 ---
 
@@ -412,7 +415,7 @@ SettingsList(
 | `enabled` | `bool` | all | Grays out and disables interaction |
 | `compact` | `bool` | all | Halves the vertical padding |
 | `onPressed` | `Function(BuildContext)?` | all | Tap callback |
-| `value` | `Widget?` | simple, navigation | Widget shown before the chevron |
+| `value` | `Widget?` | simple, navigation | Shown at the end of the tile, before the chevron. On iOS it takes at most half the row, on one line |
 | `titleDescription` | `Widget?` | navigation | Text below title (iOS/macOS/Windows) |
 | `initialValue` | `bool?` | switchTile | Initial switch state |
 | `onToggle` | `Function(bool)?` | switchTile | Toggle callback; `null` disables the switch |
