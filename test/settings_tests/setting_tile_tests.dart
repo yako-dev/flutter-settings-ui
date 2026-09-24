@@ -18,14 +18,9 @@ void settingsTileTests(DevicePlatform platform) {
             SettingsTile(
               title: const Text('Abstract settings tile'),
               value: const Text('Tile Value'),
-              trailing: const Icon(
-                Icons.ac_unit,
-                size: 24,
-              ),
+              trailing: const Icon(Icons.ac_unit, size: 24),
             ),
-            SettingsTile(
-              title: const Text('UI settings screen'),
-            ),
+            SettingsTile(title: const Text('UI settings screen')),
           ],
         ),
       ),
@@ -68,10 +63,7 @@ void settingsTileTests(DevicePlatform platform) {
               title: const Text('Switch tile with null toggle value'),
               initialValue: true,
               onToggle: null,
-              trailing: const Icon(
-                Icons.ac_unit,
-                size: 24,
-              ),
+              trailing: const Icon(Icons.ac_unit, size: 24),
             ),
             SettingsTile.switchTile(
               title: const Text('Switch tile without null toggle value'),
@@ -102,8 +94,9 @@ void settingsTileTests(DevicePlatform platform) {
     }
   });
 
-  testWidgets('Settings IOS Navigation Tile should render correctly',
-      (tester) async {
+  testWidgets('Settings IOS Navigation Tile should render correctly', (
+    tester,
+  ) async {
     if (platform == DevicePlatform.iOS ||
         platform == DevicePlatform.macOS ||
         platform == DevicePlatform.windows) {
@@ -121,10 +114,7 @@ void settingsTileTests(DevicePlatform platform) {
                 title: const Text('Navigation tile without value'),
                 onPressed: (context) {},
                 titleDescription: const Text('Title description value'),
-                trailing: const Icon(
-                  Icons.ac_unit,
-                  size: 24,
-                ),
+                trailing: const Icon(Icons.ac_unit, size: 24),
               ),
             ],
           ),

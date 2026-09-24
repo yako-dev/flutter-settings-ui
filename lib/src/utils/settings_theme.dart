@@ -16,8 +16,8 @@ class SettingsTheme extends InheritedWidget {
   bool updateShouldNotify(SettingsTheme oldWidget) => true;
 
   static SettingsTheme of(BuildContext context) {
-    final SettingsTheme? result =
-        context.dependOnInheritedWidgetOfExactType<SettingsTheme>();
+    final SettingsTheme? result = context
+        .dependOnInheritedWidgetOfExactType<SettingsTheme>();
     return result!;
   }
 }
@@ -67,9 +67,7 @@ class SettingsThemeData {
   /// Override the text style for tile descriptions/values.
   final TextStyle? tileDescriptionTextStyle;
 
-  SettingsThemeData merge({
-    SettingsThemeData? theme,
-  }) {
+  SettingsThemeData merge({SettingsThemeData? theme}) {
     if (theme == null) return this;
 
     return copyWith(

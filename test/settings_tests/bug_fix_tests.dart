@@ -7,8 +7,9 @@ import 'package:settings_ui/settings_ui.dart';
 
 void bugFixTests() {
   group('iOS value overflow (Issue #186)', () {
-    testWidgets('Long value text is clipped and does not overflow',
-        (tester) async {
+    testWidgets('Long value text is clipped and does not overflow', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -49,9 +50,7 @@ void bugFixTests() {
                 sections: [
                   SettingsSection(
                     tiles: [
-                      SettingsTile.navigation(
-                        title: const Text('Language'),
-                      ),
+                      SettingsTile.navigation(title: const Text('Language')),
                     ],
                   ),
                 ],
@@ -77,9 +76,7 @@ void bugFixTests() {
                 sections: [
                   SettingsSection(
                     tiles: [
-                      SettingsTile.navigation(
-                        title: const Text('Language'),
-                      ),
+                      SettingsTile.navigation(title: const Text('Language')),
                     ],
                   ),
                 ],
@@ -100,8 +97,9 @@ void bugFixTests() {
       DevicePlatform.iOS,
       DevicePlatform.web,
     ]) {
-      testWidgets('Compact tile renders on $platform without errors',
-          (tester) async {
+      testWidgets('Compact tile renders on $platform without errors', (
+        tester,
+      ) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -134,8 +132,9 @@ void bugFixTests() {
   });
 
   group('Web switch color (Issue #188)', () {
-    testWidgets('Disabled web switch uses inactive color, not hardcoded blue',
-        (tester) async {
+    testWidgets('Disabled web switch uses inactive color, not hardcoded blue', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -166,31 +165,28 @@ void bugFixTests() {
 
   group('Platform override (Issue #139)', () {
     testWidgets(
-        'Setting platform: android uses Android tile even on macOS platform',
-        (tester) async {
-      // Simulate macOS host but explicitly request android tiles.
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: SettingsList(
-              platform: DevicePlatform.android,
-              sections: [
-                SettingsSection(
-                  tiles: [
-                    SettingsTile.navigation(
-                      title: const Text('Item'),
-                    ),
-                  ],
-                ),
-              ],
+      'Setting platform: android uses Android tile even on macOS platform',
+      (tester) async {
+        // Simulate macOS host but explicitly request android tiles.
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: SettingsList(
+                platform: DevicePlatform.android,
+                sections: [
+                  SettingsSection(
+                    tiles: [SettingsTile.navigation(title: const Text('Item'))],
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-      );
+        );
 
-      expect(tester.takeException(), isNull);
-      // On android there should be no Cupertino chevron.
-      expect(find.byIcon(CupertinoIcons.chevron_forward), findsNothing);
-    });
+        expect(tester.takeException(), isNull);
+        // On android there should be no Cupertino chevron.
+        expect(find.byIcon(CupertinoIcons.chevron_forward), findsNothing);
+      },
+    );
   });
 }

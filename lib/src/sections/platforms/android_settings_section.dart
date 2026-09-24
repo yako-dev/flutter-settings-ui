@@ -36,7 +36,8 @@ class AndroidSettingsSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: titlePadding ??
+            padding:
+                titlePadding ??
                 EdgeInsetsDirectional.only(
                   top: textScaler.scale(24),
                   bottom: textScaler.scale(10),

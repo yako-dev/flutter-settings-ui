@@ -19,10 +19,7 @@ void settingsTileOnTapTests(DevicePlatform platform) {
               onPressed: (context) {
                 isPressed = true;
               },
-              trailing: const Icon(
-                Icons.ac_unit,
-                size: 24,
-              ),
+              trailing: const Icon(Icons.ac_unit, size: 24),
             ),
           ],
         ),

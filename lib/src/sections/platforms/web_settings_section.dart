@@ -32,22 +32,25 @@ class WebSettingsSection extends StatelessWidget {
           if (title != null)
             Container(
               height: textScaler.scale(65),
-              padding: titlePadding ??
+              padding:
+                  titlePadding ??
                   EdgeInsetsDirectional.only(
                     bottom: textScaler.scale(5),
                     start: 6,
                     top: textScaler.scale(40),
                   ),
               child: DefaultTextStyle(
-                style: (theme.themeData.titleTextStyle ??
-                        const TextStyle(fontSize: 15))
-                    .copyWith(color: theme.themeData.titleTextColor),
+                style:
+                    (theme.themeData.titleTextStyle ??
+                            const TextStyle(fontSize: 15))
+                        .copyWith(color: theme.themeData.titleTextColor),
                 child: title!,
               ),
             ),
           Card(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
             elevation: 4,
             color: theme.themeData.settingsSectionBackground,
             child: buildTileList(),
@@ -67,10 +70,7 @@ class WebSettingsSection extends StatelessWidget {
         return tiles[index];
       },
       separatorBuilder: (BuildContext context, int index) {
-        return const Divider(
-          height: 0,
-          thickness: 1,
-        );
+        return const Divider(height: 0, thickness: 1);
       },
     );
   }

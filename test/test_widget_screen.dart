@@ -48,7 +48,7 @@ class _TestWidgetScreenState extends State<TestWidgetScreen> {
               color: Colors.red,
               child: const Text('Custom settings section'),
             ),
-          )
+          ),
         ],
       ),
     );
