@@ -1,3 +1,20 @@
+## [4.0.0] - [September 24, 2026]
+
+### Breaking changes
+* Migrated from `package:flutter/material.dart` and `package:flutter/cupertino.dart` to the decoupled [`material_ui`](https://pub.dev/packages/material_ui) and [`cupertino_ui`](https://pub.dev/packages/cupertino_ui) packages (#207)
+* Requires Flutter >=3.44.0 and Dart SDK >=3.12.0
+* Your app must use `MaterialApp`/`CupertinoApp` from `material_ui`/`cupertino_ui`. In an app still on `package:flutter/material.dart`, `SettingsList` can't read your theme and falls back to default colors and light mode. Stay on `^3.0.1` until your app has migrated.
+
+### Bug fixes
+* Colors, dark mode and platform now follow the app theme in apps built on `material_ui` (#206)
+
+### New features
+* Debug builds print a one-time warning when `SettingsList` finds no `material_ui` or `cupertino_ui` theme above it
+
+### Maintenance
+* CI now checks formatting with `dart format` (`flutter format` was removed from Flutter)
+* Example app: updated Android Gradle setup, and moved the iOS runner to the UIScene lifecycle required on iOS 27
+
 ## [3.0.0] - [April 10, 2026]
 
 ### Breaking changes
