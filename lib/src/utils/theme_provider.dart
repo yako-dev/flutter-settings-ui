@@ -1,5 +1,5 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/src/utils/platform_utils.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 
@@ -101,21 +101,28 @@ class ThemeProvider {
     final isLight = brightness == Brightness.light;
 
     return SettingsThemeData(
-      tileHighlightColor:
-          isLight ? lightTileHighlightColor : darkTileHighlightColor,
-      settingsListBackground:
-          isLight ? lightSettingsListBackground : darkSettingsListBackground,
-      settingsSectionBackground:
-          isLight ? lightSettingSectionColor : darkSettingSectionColor,
-      titleTextColor:
-          isLight ? lightSettingsTitleColor : darkSettingsTitleColor,
+      tileHighlightColor: isLight
+          ? lightTileHighlightColor
+          : darkTileHighlightColor,
+      settingsListBackground: isLight
+          ? lightSettingsListBackground
+          : darkSettingsListBackground,
+      settingsSectionBackground: isLight
+          ? lightSettingSectionColor
+          : darkSettingSectionColor,
+      titleTextColor: isLight
+          ? lightSettingsTitleColor
+          : darkSettingsTitleColor,
       dividerColor: isLight ? lightDividerColor : darkDividerColor,
-      trailingTextColor:
-          isLight ? lightTrailingTextColor : darkTrailingTextColor,
-      settingsTileTextColor:
-          isLight ? lightSettingsTileTextColor : darkSettingsTileTextColor,
-      leadingIconsColor:
-          isLight ? lightLeadingIconsColor : darkLeadingIconsColor,
+      trailingTextColor: isLight
+          ? lightTrailingTextColor
+          : darkTrailingTextColor,
+      settingsTileTextColor: isLight
+          ? lightSettingsTileTextColor
+          : darkSettingsTileTextColor,
+      leadingIconsColor: isLight
+          ? lightLeadingIconsColor
+          : darkLeadingIconsColor,
       inactiveTitleColor: CupertinoColors.inactiveGray,
       inactiveSubtitleColor: CupertinoColors.inactiveGray,
     );

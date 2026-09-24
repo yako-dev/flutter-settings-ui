@@ -1,5 +1,5 @@
 import 'package:example/utils/navigation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/settings_ui.dart';
 
 class CrossPlatformSettingsScreen extends StatefulWidget {

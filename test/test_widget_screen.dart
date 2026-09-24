@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/settings_ui.dart';
 
 class TestWidgetScreen extends StatefulWidget {
@@ -48,7 +48,7 @@ class _TestWidgetScreenState extends State<TestWidgetScreen> {
               color: Colors.red,
               child: const Text('Custom settings section'),
             ),
-          )
+          ),
         ],
       ),
     );

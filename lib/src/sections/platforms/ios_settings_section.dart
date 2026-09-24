@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:settings_ui/src/tiles/platforms/ios_settings_tile.dart';
 
@@ -19,12 +19,14 @@ class IOSSettingsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = SettingsTheme.of(context);
-    final isLastNonDescriptive = tiles.last is SettingsTile &&
+    final isLastNonDescriptive =
+        tiles.last is SettingsTile &&
         (tiles.last as SettingsTile).description == null;
     final textScaler = MediaQuery.textScalerOf(context);
 
     return Padding(
-      padding: margin ??
+      padding:
+          margin ??
           EdgeInsets.only(
             top: textScaler.scale(14.0),
             bottom: isLastNonDescriptive
@@ -38,15 +40,17 @@ class IOSSettingsSection extends StatelessWidget {
         children: [
           if (title != null)
             Padding(
-              padding: titlePadding ??
+              padding:
+                  titlePadding ??
                   EdgeInsetsDirectional.only(
                     start: 18,
                     bottom: textScaler.scale(5),
                   ),
               child: DefaultTextStyle(
-                style: (theme.themeData.titleTextStyle ??
-                        const TextStyle(fontSize: 13))
-                    .copyWith(color: theme.themeData.titleTextColor),
+                style:
+                    (theme.themeData.titleTextStyle ??
+                            const TextStyle(fontSize: 13))
+                        .copyWith(color: theme.themeData.titleTextColor),
                 child: title!,
               ),
             ),

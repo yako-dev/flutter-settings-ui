@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/settings_ui.dart';
 
 class WebSettingsTile extends StatelessWidget {
@@ -67,10 +67,9 @@ class WebSettingsTile extends StatelessWidget {
             children: [
               if (leading != null)
                 Padding(
-                  padding: leadingPadding ??
-                      const EdgeInsetsDirectional.only(
-                        start: 24,
-                      ),
+                  padding:
+                      leadingPadding ??
+                      const EdgeInsetsDirectional.only(start: 24),
                   child: IconTheme(
                     data: IconTheme.of(context).copyWith(
                       color: enabled
@@ -92,44 +91,56 @@ class WebSettingsTile extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       DefaultTextStyle(
-                        style: (theme.themeData.tileTextStyle ??
-                                const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w400,
-                                ))
-                            .copyWith(
-                          color: enabled
-                              ? theme.themeData.settingsTileTextColor
-                              : theme.themeData.inactiveTitleColor,
-                        ),
+                        style:
+                            (theme.themeData.tileTextStyle ??
+                                    const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w400,
+                                    ))
+                                .copyWith(
+                                  color: enabled
+                                      ? theme.themeData.settingsTileTextColor
+                                      : theme.themeData.inactiveTitleColor,
+                                ),
                         child: title ?? Container(),
                       ),
                       if (value != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 4.0),
                           child: DefaultTextStyle(
-                            style: (theme.themeData.tileDescriptionTextStyle ??
-                                    const TextStyle())
-                                .copyWith(
-                              color: enabled
-                                  ? theme.themeData.tileDescriptionTextColor
-                                  : theme.themeData.inactiveSubtitleColor,
-                            ),
+                            style:
+                                (theme.themeData.tileDescriptionTextStyle ??
+                                        const TextStyle())
+                                    .copyWith(
+                                      color: enabled
+                                          ? theme
+                                                .themeData
+                                                .tileDescriptionTextColor
+                                          : theme
+                                                .themeData
+                                                .inactiveSubtitleColor,
+                                    ),
                             child: value!,
                           ),
                         )
                       else if (description != null)
                         Padding(
-                          padding: descriptionPadding ??
+                          padding:
+                              descriptionPadding ??
                               const EdgeInsets.only(top: 4.0),
                           child: DefaultTextStyle(
-                            style: (theme.themeData.tileDescriptionTextStyle ??
-                                    const TextStyle())
-                                .copyWith(
-                              color: enabled
-                                  ? theme.themeData.tileDescriptionTextColor
-                                  : theme.themeData.inactiveSubtitleColor,
-                            ),
+                            style:
+                                (theme.themeData.tileDescriptionTextStyle ??
+                                        const TextStyle())
+                                    .copyWith(
+                                      color: enabled
+                                          ? theme
+                                                .themeData
+                                                .tileDescriptionTextColor
+                                          : theme
+                                                .themeData
+                                                .inactiveSubtitleColor,
+                                    ),
                             child: description!,
                           ),
                         ),
@@ -166,7 +177,7 @@ class WebSettingsTile extends StatelessWidget {
                       child: Switch(
                         activeThumbColor: enabled
                             ? (activeSwitchColor ??
-                                const Color.fromRGBO(138, 180, 248, 1.0))
+                                  const Color.fromRGBO(138, 180, 248, 1.0))
                             : theme.themeData.inactiveTitleColor,
                         value: initialValue,
                         onChanged: onToggle,
@@ -181,14 +192,15 @@ class WebSettingsTile extends StatelessWidget {
                     value: initialValue,
                     activeThumbColor: !enabled
                         ? (theme.themeData.inactiveSwitchColor ??
-                            theme.themeData.inactiveTitleColor)
+                              theme.themeData.inactiveTitleColor)
                         : activeSwitchColor,
                     onChanged: onToggle,
                   ),
                 )
               else if (trailing != null)
                 Padding(
-                  padding: trailingPadding ??
+                  padding:
+                      trailingPadding ??
                       const EdgeInsets.symmetric(horizontal: 16),
                   child: IconTheme(
                     data: IconTheme.of(context).copyWith(

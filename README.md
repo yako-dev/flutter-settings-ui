@@ -30,13 +30,35 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  settings_ui: ^3.0.1
+  settings_ui: ^4.0.0
 ```
 
 Then import:
 
 ```dart
 import 'package:settings_ui/settings_ui.dart';
+```
+
+### Requirements
+
+Version 4 needs **Flutter 3.44+** and an app built on the
+[`material_ui`](https://pub.dev/packages/material_ui) and
+[`cupertino_ui`](https://pub.dev/packages/cupertino_ui) packages:
+
+```dart
+import 'package:material_ui/material_ui.dart'; // not package:flutter/material.dart
+import 'package:cupertino_ui/cupertino_ui.dart'; // not package:flutter/cupertino.dart
+```
+
+`SettingsList` reads colors, dark mode and platform from the `Theme` and
+`CupertinoTheme` of those packages. In an app still built on
+`package:flutter/material.dart` it can't see your theme, so it falls back to
+default colors and light mode (a debug build prints a warning). If your app
+hasn't switched yet, stay on version 3:
+
+```yaml
+dependencies:
+  settings_ui: ^3.0.1
 ```
 
 ---

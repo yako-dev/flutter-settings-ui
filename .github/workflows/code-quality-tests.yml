@@ -19,7 +19,7 @@ jobs:
         run: flutter pub get
 
       - name: Check format errors
-        run: flutter format --set-exit-if-changed .
+        run: dart format --output=none --set-exit-if-changed .
 
       - name: Check lint errors
         run: flutter analyze .

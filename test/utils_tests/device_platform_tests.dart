@@ -1,6 +1,6 @@
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:settings_ui/src/sections/platforms/android_settings_section.dart';
@@ -20,15 +20,17 @@ void devicePlatformTest(TargetPlatform targetPlatform) {
             SettingsTile.navigation(
               title: const Text('Abstract settings screen'),
               leading: const Icon(CupertinoIcons.wrench),
-              description:
-                  const Text('UI created to show plugin\'s possibilities'),
+              description: const Text(
+                'UI created to show plugin\'s possibilities',
+              ),
               onPressed: (context) {},
             ),
             SettingsTile.navigation(
               title: const Text('Abstract settings screen'),
               leading: const Icon(CupertinoIcons.wrench),
-              description:
-                  const Text('UI created to show plugin\'s possibilities'),
+              description: const Text(
+                'UI created to show plugin\'s possibilities',
+              ),
               onPressed: (context) {},
             ),
           ],
