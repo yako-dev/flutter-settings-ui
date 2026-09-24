@@ -1,0 +1,225 @@
+# settings_ui
+
+> Flutter package for settings screens that look native on each platform from one API: iOS 26-style grouped cards on iOS, macOS and Windows, Android 16-style cards on Android, Linux and Fuchsia, and Chrome-style cards on the web. The style is picked at runtime. Import `package:settings_ui/settings_ui.dart`.
+
+The public API is the same in 3.x and 4.x, apart from the new `CupertinoSettingsSwitch`. What differs is the Flutter UI library the app must use, and the look.
+
+## Install and requirements
+
+| App imports | Add | Requires |
+|---|---|---|
+| `package:material_ui/material_ui.dart`, `package:cupertino_ui/cupertino_ui.dart` | `settings_ui: ^4.0.0` | Flutter >=3.44, Dart >=3.12 |
+| `package:flutter/material.dart`, `package:flutter/cupertino.dart` | `settings_ui: ^3.0.1` | Flutter >=3.16 |
+
+- 4.x reads colors, brightness and platform from the `Theme` and `CupertinoTheme` of material_ui and cupertino_ui. In an app still on `package:flutter/material.dart` it compiles, but uses default colors, stays light in dark mode, and debug builds print once: `settings_ui: SettingsList found no Theme from package:material_ui ...`.
+- settings_ui depends on material_ui and cupertino_ui, but an app that imports them must list them in its own `pubspec.yaml` too (`flutter pub add material_ui cupertino_ui`). Otherwise the `depend_on_referenced_packages` lint fails.
+- Moving an app to material_ui: `dart fix --apply --code=migrate_design_widgets`, see https://pub.dev/packages/material_ui.
+
+## Minimal example (4.x)
+
+```dart
+import 'package:material_ui/material_ui.dart';
+import 'package:settings_ui/settings_ui.dart';
+
+void main() => runApp(const MaterialApp(home: SettingsScreen()));
+
+class SettingsScreen extends StatefulWidget {
+  const SettingsScreen({super.key});
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  bool _notifications = true; // load from and save to your store
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Settings')),
+      body: SettingsList(
+        sections: [
+          SettingsSection(
+            title: const Text('General'),
+            tiles: [
+              SettingsTile.navigation(
+                leading: const Icon(Icons.language),
+                title: const Text('Language'),
+                value: const Text('English'),
+                onPressed: (context) {/* push a picker screen */},
+              ),
+              SettingsTile.switchTile(
+                leading: const Icon(Icons.notifications),
+                title: const Text('Notifications'),
+                initialValue: _notifications,
+                onToggle: (value) => setState(() => _notifications = value),
+              ),
+            ],
+          ),
+          SettingsSection(
+            title: const Text('About'),
+            tiles: [
+              SettingsTile(
+                title: const Text('Version'),
+                value: const Text('1.4.0 (57)'),
+              ),
+              SettingsTile.navigation(
+                title: const Text('Open-source licenses'),
+                onPressed: (context) => showLicensePage(context: context),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+```
+
+## Widgets and parameters
+
+### SettingsList
+
+- `sections` (required): `List<AbstractSettingsSection>`, so `SettingsSection`, `CustomSettingsSection` or your own subclass.
+- `platform`: `DevicePlatform?`. `null` or `DevicePlatform.device` means auto-detect (default).
+- `applicationType`: `ApplicationType`, default `.material`. Where light or dark comes from: `.material` reads `Theme`, `.cupertino` reads `CupertinoTheme` (then the platform brightness), for a `CupertinoApp`. `.both` reads `CupertinoTheme` when the app runs on iOS or macOS and `Theme` elsewhere; it goes by the detected platform, not by `platform:`.
+- `brightness`: `Brightness?`. Forces light or dark, overriding the detected brightness. Leave it null to follow the app theme.
+- `lightTheme`, `darkTheme`: `SettingsThemeData?`, merged over the platform defaults.
+- `contentPadding`: `EdgeInsetsGeometry?`, padding of the inner `ListView`. Default: none, and 20 vertical / 16 horizontal on web. When the list is wider than 810 (680 on web), side padding keeps the tiles in a column of that width. The width is the list's own, so it works in split views and side panels.
+- `crossAxisAlignment`: `CrossAxisAlignment`, default `center`. `start` puts that column at the start edge (left in LTR, right in RTL) on wide lists instead of centering it. No effect when `contentPadding` is set.
+- `scrollController`, `physics`, `shrinkWrap` (default `false`): passed to the inner `ListView`.
+
+### SettingsSection
+
+- `tiles` (required): `List<AbstractSettingsTile>`. With an empty list the section renders nothing, title included.
+- `title`: `Widget?`. Use sentence case ("Notifications"); the iOS style no longer upper-cases headers.
+- `margin`: `EdgeInsetsDirectional?` (not `EdgeInsets`).
+- `titlePadding`: `EdgeInsetsGeometry?`, padding around the title.
+
+### CustomSettingsSection, CustomSettingsTile
+
+`CustomSettingsSection(child: ...)` and `CustomSettingsTile(child: ...)` render `child` as it is. Inside a `SettingsList`, `SettingsTheme.of(context).themeData` and `SettingsTheme.of(context).platform` give the resolved colors and style.
+
+### SettingsTile
+
+None of the constructors is `const`.
+
+| Constructor | Use for | End of row |
+|---|---|---|
+| `SettingsTile(...)` | read-only values and actions (version, sign out) | never a chevron |
+| `SettingsTile.navigation(...)` | rows that open another screen or picker | a chevron in the iOS and web styles, none in the Android style |
+| `SettingsTile.switchTile(...)` | on/off settings | `CupertinoSettingsSwitch` in the iOS style, Material `Switch` elsewhere |
+
+All constructors:
+
+- `title` (required): `Widget`.
+- `leading`, `trailing`: `Widget?`.
+- `description`: `Widget?`. Android and web: second line under the title, hidden when `value` is set. iOS style: footer text under the row, outside the card; the tiles after it start a new card.
+- `titleDescription`: `Widget?`. Second line inside the row, iOS style only (ignored on Android and web).
+- `onPressed`: `Function(BuildContext context)?`, written `onPressed: (context) { ... }`.
+- `enabled`: `bool`, default `true`. `false` greys the row and ignores taps.
+- `compact`: `bool`, default `false`. Halves the vertical padding.
+- Padding, all `EdgeInsetsGeometry?`, each replacing the default padding around that part: `leadingPadding`, `titlePadding`, `trailingPadding` (in the Android and web styles not on switch tiles), `descriptionPadding`, and `titleDescriptionPadding` (iOS style, the only one that shows `titleDescription`).
+
+`SettingsTile` and `SettingsTile.navigation` only:
+
+- `value`: `Widget?`. iOS style: grey text at the end of the row, one line, at most half the row. Android and web: second line under the title, shown instead of `description`.
+
+`SettingsTile.switchTile` only:
+
+- `initialValue` (required): `bool?`. The current value. The tile is controlled and keeps no state of its own.
+- `onToggle` (required, nullable): `Function(bool value)?`. `null` disables the switch.
+- `activeSwitchColor`: `Color?`. On-state color of the switch.
+- It has no `value` parameter.
+
+Taps on switch tiles: in the Android and web styles, tapping anywhere on the row toggles the switch and `onPressed` is never called. In the iOS style, as in iOS Settings, only the switch itself toggles; tapping the rest of the row calls `onPressed` (if set).
+
+### CupertinoSettingsSwitch
+
+The iOS 26 switch, drawn in Flutter: a 63x28 track with a pill thumb that turns into a Liquid Glass-style lens while pressed or dragged. Switch tiles in the iOS style use it, and you can use it on its own anywhere.
+
+- `value` (required): `bool`.
+- `onChanged` (required, nullable): `ValueChanged<bool>?`. `null` disables it (half opacity).
+- `activeTrackColor`: `Color?`, default system green.
+- `inactiveTrackColor`: `Color?`, default `#C5C5C7` light, `#5A5A5E` dark.
+
+It is controlled (rebuild it with the new value), plays a light haptic on iOS and macOS, and its lens paints up to about 12.5pt past the track ends and 6pt above and below, so don't clip it tightly.
+
+### Other exports
+
+`DevicePlatform` (`android`, `fuchsia`, `iOS`, `linux`, `macOS`, `windows`, `web`, `device`), `PlatformUtils.detectPlatform(context)`, `ApplicationType`, `SettingsTileType`, `SettingsTheme`, `SettingsThemeData`, `AbstractSettingsSection`, `AbstractSettingsTile`.
+
+## Platform styles
+
+| `DevicePlatform` | Style | Look |
+|---|---|---|
+| `iOS`, `macOS`, `windows` | iOS 26+ | 26pt rounded cards with 20pt side margins, 52pt rows, 17pt text, 17pt semibold section headers, `description` as grey footers, `CupertinoSettingsSwitch`, chevron on navigation tiles. Fixed iOS system colors. |
+| `android`, `linux`, `fuchsia` | Android 16+ | each tile on its own card, 2dp apart, 20dp corners at the ends of a group; 16sp titles; Material `Switch` with a check or cross on the thumb; no chevron. Colors from `ColorScheme`. |
+| `web` | Chrome settings | cards with 8px corners and a light shadow, 14px titles, 13px descriptions, chevron on navigation tiles, 680px column. Colors from `ColorScheme`. |
+| platforms added by Flutter forks (e.g. OpenHarmony) | iOS 26+ | |
+
+Auto-detection: `kIsWeb` gives `web` in every browser, phones included. Otherwise it uses `Theme.of(context).platform`, so `ThemeData(platform: ...)` and `TargetPlatformVariant` in tests change the style.
+
+## Theming with SettingsThemeData
+
+Defaults: the Android and web styles derive colors from `Theme.of(context).colorScheme` (Material 3). The iOS style uses fixed iOS system colors (grouped grey page, white or #1C1C1E cards) and ignores `ColorScheme`. Light or dark follows the app theme (see `applicationType`, `brightness`).
+
+Override per brightness with `SettingsList(lightTheme: SettingsThemeData(...), darkTheme: SettingsThemeData(...))`. `SettingsThemeData` has a `const` constructor; fields left null keep the default. All fields are optional:
+
+- `settingsListBackground` (`Color?`): page background.
+- `settingsSectionBackground` (`Color?`): card background.
+- `dividerColor` (`Color?`): line between tiles in the iOS and web styles (Android cards have none).
+- `tileHighlightColor` (`Color?`): pressed row.
+- `titleTextColor` (`Color?`), `titleTextStyle` (`TextStyle?`): section titles. In the iOS style the color also applies to `titleDescription` and `description`.
+- `settingsTileTextColor` (`Color?`), `tileTextStyle` (`TextStyle?`): tile titles.
+- `tileDescriptionTextColor` (`Color?`): `description` and `value` on Android and web.
+- `tileDescriptionTextStyle` (`TextStyle?`): `description` everywhere, and `value` on Android and web.
+- `trailingTextColor` (`Color?`): `value` in the iOS style.
+- `leadingIconsColor` (`Color?`): leading and trailing icons, and the chevron.
+- `inactiveTitleColor` (`Color?`): title and icons of a disabled tile.
+- `inactiveSubtitleColor` (`Color?`): `description` and `value` of a disabled tile on Android and web.
+- `inactiveSwitchColor` (`Color?`): switch of a disabled tile.
+
+## Testing
+
+- 4.x: pump the screen inside `MaterialApp` or `CupertinoApp` from material_ui or cupertino_ui, and import `Switch` and `Icons` from those packages in tests too.
+- `flutter test` renders the Android style by default. Cover the iOS style with `variant: TargetPlatformVariant.only(TargetPlatform.iOS)` instead of setting `platform:` in app code.
+- Find switches with `find.byType(Switch)` (Android, web) or `find.byType(CupertinoSettingsSwitch)` (iOS, macOS, Windows; it is not a `CupertinoSwitch`). Tap the switch itself: tapping the title only toggles on Android and web.
+
+## Rules for agents
+
+Do:
+
+- Choose the version from the app's imports (table above). Don't add 4.x to an app still on `package:flutter/material.dart`, and don't migrate the app unless the user asks.
+- With 4.x, add `material_ui` and `cupertino_ui` to the app's `pubspec.yaml` when its code imports them.
+- Leave `platform` unset so each OS gets its own style. Set it only when the user wants one look everywhere.
+- Use `SettingsTile` to show a value or run an action without a chevron (version, sign out, delete account). Use `SettingsTile.navigation` only when the row opens another screen or picker. Use `SettingsTile.switchTile` for on/off.
+- Treat `initialValue` as the current value: in `onToggle`, update and persist the state, then rebuild. Give every switch an `onToggle`, because `null` disables it.
+- Write section titles in sentence case.
+- Build tiles with collection `if`. A section left with no tiles renders nothing, so it needs no extra check.
+- Wrap other widgets in `CustomSettingsTile` or `CustomSettingsSection`. Plain widgets aren't accepted in `tiles` or `sections`.
+- Give `SettingsList` a bounded height (`Scaffold.body`, `Expanded`). Inside another scroll view, set `shrinkWrap: true` and `physics: const NeverScrollableScrollPhysics()`.
+- Control dark mode through the app theme (`MaterialApp.themeMode`, `ThemeData`). In a `CupertinoApp`, pass `applicationType: ApplicationType.cupertino`. Use `brightness:` only to force one mode.
+- Put explanatory text in `description`, best on the last tile of a section, since the iOS style shows it as a footer that ends the card.
+- Change colors through `SettingsThemeData`, per brightness.
+
+Don't:
+
+- Don't write `const SettingsTile(...)` or put tiles in a `const` list.
+- Don't pass strings. `title`, `value`, `description` and `leading` are widgets such as `Text` and `Icon`.
+- Don't write `onPressed: () {}`. It takes a context: `onPressed: (context) {}`.
+- Don't put toggle logic in a switch tile's `onPressed`. It never runs on Android and web, and on iOS it runs for taps beside the switch, not on it.
+- Don't set `value` and `description` on one tile expecting both on Android and web. Only `value` shows.
+- Don't expect `titleDescription` to show on Android or web.
+- Don't pass `EdgeInsets` to `SettingsSection.margin`. It takes `EdgeInsetsDirectional`.
+- Don't expect `ColorScheme` or `CupertinoThemeData.primaryColor` to recolor the iOS style. Use `SettingsThemeData`.
+- Don't hardcode colors on tiles; they break dark mode.
+- Don't look for `CupertinoSwitch` in 4.x tests. The iOS style uses `CupertinoSettingsSwitch`.
+- 3.x only: the iOS style of a plain `SettingsTile` doesn't show `value`. Use `SettingsTile.navigation` or `trailing` there. Fixed in 4.0.0.
+
+## Optional
+
+- [README](https://github.com/yako-dev/flutter-settings-ui/blob/master/README.md): screenshots, theming examples, API tables, prompts for coding agents
+- [CHANGELOG](https://github.com/yako-dev/flutter-settings-ui/blob/master/CHANGELOG.md): breaking changes in 4.0.0
+- [Example app](https://github.com/yako-dev/flutter-settings-ui/tree/master/example/lib): iOS, Android, web and Material 3 screens
+- [material_ui](https://pub.dev/packages/material_ui): moving an app off `package:flutter/material.dart`
