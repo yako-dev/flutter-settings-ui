@@ -156,7 +156,7 @@ SettingsTile.navigation(
 
 ### `SettingsTile.switchTile` — switch tile
 
-Renders a `Switch` on Material platforms and a `CupertinoSwitch` on iOS/macOS.
+Renders a `Switch` on Material platforms and a `CupertinoSettingsSwitch` (the iOS 26+ switch) on iOS/macOS.
 
 ```dart
 SettingsTile.switchTile(

@@ -103,7 +103,7 @@ void main() {
       );
       final cupertinoSwitchFinder = find.descendant(
         of: find.widgetWithText(SettingsTile, 'Enable custom theme'),
-        matching: find.byType(CupertinoSwitch),
+        matching: find.byType(CupertinoSettingsSwitch),
       );
 
       final bool hasMaterialSwitch = switchFinder.evaluate().isNotEmpty;
@@ -124,15 +124,18 @@ void main() {
         expect(tester.widget<Switch>(switchFinder).value, false);
       } else {
         expect(
-            tester.widget<CupertinoSwitch>(cupertinoSwitchFinder).value, false);
+            tester.widget<CupertinoSettingsSwitch>(cupertinoSwitchFinder).value,
+            false);
         await tester.tap(cupertinoSwitchFinder);
         await pumpSettled(tester);
         expect(
-            tester.widget<CupertinoSwitch>(cupertinoSwitchFinder).value, true);
+            tester.widget<CupertinoSettingsSwitch>(cupertinoSwitchFinder).value,
+            true);
         await tester.tap(cupertinoSwitchFinder);
         await pumpSettled(tester);
         expect(
-            tester.widget<CupertinoSwitch>(cupertinoSwitchFinder).value, false);
+            tester.widget<CupertinoSettingsSwitch>(cupertinoSwitchFinder).value,
+            false);
       }
 
       await goBack(tester);
@@ -207,13 +210,14 @@ void main() {
           .widget<SettingsTile>(find.widgetWithText(SettingsTile, 'Platform'));
       expect((iosTile.value as Text).data, 'iOS');
 
-      // iOS uses CupertinoSwitch
+      // iOS uses CupertinoSettingsSwitch
       final iosSwitchFinder = find.descendant(
         of: find.widgetWithText(SettingsTile, 'Enable custom theme'),
-        matching: find.byType(CupertinoSwitch),
+        matching: find.byType(CupertinoSettingsSwitch),
       );
       expect(iosSwitchFinder, findsOneWidget);
-      expect(tester.widget<CupertinoSwitch>(iosSwitchFinder).value, false);
+      expect(
+          tester.widget<CupertinoSettingsSwitch>(iosSwitchFinder).value, false);
 
       await goBack(tester);
     });
@@ -256,18 +260,18 @@ void main() {
       await tester.tap(find.text('Material 3 Theme Demo'));
       await pumpSettled(tester);
 
-      // The tile shows a Switch on Android and a CupertinoSwitch on iOS.
+      // The tile shows a Switch on Android and a CupertinoSettingsSwitch on iOS.
       final darkModeSwitchFinder = find.descendant(
         of: find.widgetWithText(SettingsTile, 'Dark mode'),
         matching: find.byWidgetPredicate(
-          (widget) => widget is Switch || widget is CupertinoSwitch,
+          (widget) => widget is Switch || widget is CupertinoSettingsSwitch,
         ),
       );
       bool darkModeValue() {
         final widget = tester.widget(darkModeSwitchFinder);
         return widget is Switch
             ? widget.value
-            : (widget as CupertinoSwitch).value;
+            : (widget as CupertinoSettingsSwitch).value;
       }
 
       expect(darkModeSwitchFinder, findsOneWidget);
@@ -317,15 +321,19 @@ void main() {
       // Toggle Dark Appearance
       final darkAppearanceSwitchFinder = find.descendant(
         of: find.widgetWithText(SettingsTile, 'Dark Appearance'),
-        matching: find.byType(CupertinoSwitch),
+        matching: find.byType(CupertinoSettingsSwitch),
       );
       expect(darkAppearanceSwitchFinder, findsOneWidget);
-      final initial =
-          tester.widget<CupertinoSwitch>(darkAppearanceSwitchFinder).value;
+      final initial = tester
+          .widget<CupertinoSettingsSwitch>(darkAppearanceSwitchFinder)
+          .value;
 
       await tester.tap(darkAppearanceSwitchFinder);
       await pumpSettled(tester);
-      expect(tester.widget<CupertinoSwitch>(darkAppearanceSwitchFinder).value,
+      expect(
+          tester
+              .widget<CupertinoSettingsSwitch>(darkAppearanceSwitchFinder)
+              .value,
           !initial);
 
       await goBack(tester);

@@ -1,4 +1,3 @@
-import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:settings_ui/settings_ui.dart';
@@ -52,7 +51,7 @@ void settingsTileOnTapTests(DevicePlatform platform) {
     if (platform == DevicePlatform.iOS ||
         platform == DevicePlatform.macOS ||
         platform == DevicePlatform.windows) {
-      await tester.tap(find.byType(CupertinoSwitch));
+      await tester.tap(find.byType(CupertinoSettingsSwitch));
     } else {
       await tester.tap(find.byType(Switch));
     }

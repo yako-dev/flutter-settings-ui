@@ -84,13 +84,13 @@ void settingsTileTests(DevicePlatform platform) {
         platform == DevicePlatform.linux ||
         platform == DevicePlatform.web) {
       expect(find.byType(Switch), findsWidgets);
-      expect(find.byType(CupertinoSwitch), findsNothing);
+      expect(find.byType(CupertinoSettingsSwitch), findsNothing);
     }
     if (platform == DevicePlatform.iOS ||
         platform == DevicePlatform.macOS ||
         platform == DevicePlatform.windows) {
       expect(find.byType(Switch), findsNothing);
-      expect(find.byType(CupertinoSwitch), findsWidgets);
+      expect(find.byType(CupertinoSettingsSwitch), findsWidgets);
     }
   });
 

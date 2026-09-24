@@ -148,8 +148,11 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
               child: widget.trailing!,
             ),
           ),
+        // The switch's glass lens paints up to ~12.5pt past its end and ~6pt
+        // above and below it. The 16pt end padding and the 52pt row keep it
+        // inside the card.
         if (widget.tileType == SettingsTileType.switchTile)
-          CupertinoSwitch(
+          CupertinoSettingsSwitch(
             value: widget.initialValue ?? true,
             onChanged: widget.onToggle,
             activeTrackColor: widget.enabled
