@@ -151,26 +151,39 @@ class SettingsList extends StatelessWidget {
     BuildContext context, {
     double? width,
   }) {
+    final availableWidth = width ?? MediaQuery.sizeOf(context).width;
+
     final double maxContentWidth;
     final double minSidePadding;
-    final double verticalPadding;
+    final double topPadding;
+    final double bottomPadding;
     switch (platform) {
       case DevicePlatform.android:
       case DevicePlatform.fuchsia:
       case DevicePlatform.linux:
       case DevicePlatform.iOS:
       case DevicePlatform.macOS:
-      case DevicePlatform.windows:
         maxContentWidth = 810;
         minSidePadding = 0;
-        verticalPadding = 0;
+        topPadding = 0;
+        bottomPadding = 0;
+      case DevicePlatform.windows:
+        // Windows 11 Settings pages: 36 margins, down to 16 below the
+        // NavigationView's minimal-mode width (641), a column of at most
+        // 1000, and 36 at the bottom (the last section adds 4). Section
+        // headers bring their own 30 at the top.
+        maxContentWidth = 1000;
+        minSidePadding = availableWidth < 641 ? 16 : 36;
+        topPadding = 0;
+        bottomPadding = 32;
       case DevicePlatform.web:
         // Chrome's settings page uses a narrower 680px column than the other
         // platforms' 810px, and keeps the cards off the edges of narrow
         // browser windows.
         maxContentWidth = 680;
         minSidePadding = 16;
-        verticalPadding = 20;
+        topPadding = 20;
+        bottomPadding = 20;
       case DevicePlatform.device:
         throw Exception(
           'You can\'t use the DevicePlatform.device in this context. '
@@ -178,7 +191,6 @@ class SettingsList extends StatelessWidget {
         );
     }
 
-    final availableWidth = width ?? MediaQuery.sizeOf(context).width;
     final centeredSidePadding = (availableWidth - maxContentWidth) / 2;
     final sidePadding = centeredSidePadding > minSidePadding
         ? centeredSidePadding
@@ -189,13 +201,15 @@ class SettingsList extends StatelessWidget {
       return EdgeInsetsDirectional.only(
         start: minSidePadding,
         end: 2 * sidePadding - minSidePadding,
-        top: verticalPadding,
-        bottom: verticalPadding,
+        top: topPadding,
+        bottom: bottomPadding,
       ).resolve(Directionality.maybeOf(context) ?? TextDirection.ltr);
     }
-    return EdgeInsets.symmetric(
-      horizontal: sidePadding,
-      vertical: verticalPadding,
+    return EdgeInsets.fromLTRB(
+      sidePadding,
+      topPadding,
+      sidePadding,
+      bottomPadding,
     );
   }
 

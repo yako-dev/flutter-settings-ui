@@ -7,6 +7,8 @@ import 'package:settings_ui/src/tiles/platforms/android_settings_tile.dart';
 import 'settings_tests/app_theme_tests.dart';
 import 'settings_tests/bug_fix_tests.dart';
 import 'settings_tests/cupertino_switch_tests.dart';
+import 'settings_tests/fluent_style_tests.dart';
+import 'settings_tests/fluent_switch_tests.dart';
 import 'settings_tests/ios_value_layout_tests.dart';
 import 'settings_tests/list_fix_tests.dart';
 import 'settings_tests/native_look_tests.dart';
@@ -181,6 +183,14 @@ void main() {
 
   group('CupertinoSettingsSwitch (iOS 26+ switch)', () {
     cupertinoSwitchTests();
+  });
+
+  group('Fluent style (Windows 11)', () {
+    fluentStyleTests();
+  });
+
+  group('FluentSettingsSwitch (Windows 11 switch)', () {
+    fluentSwitchTests();
   });
 
   group('SettingsList and SettingsSection fixes (v4.0.0)', () {
