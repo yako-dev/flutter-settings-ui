@@ -256,20 +256,30 @@ void main() {
       await tester.tap(find.text('Material 3 Theme Demo'));
       await pumpSettled(tester);
 
+      // The tile shows a Switch on Android and a CupertinoSwitch on iOS.
       final darkModeSwitchFinder = find.descendant(
         of: find.widgetWithText(SettingsTile, 'Dark mode'),
-        matching: find.byType(Switch),
+        matching: find.byWidgetPredicate(
+          (widget) => widget is Switch || widget is CupertinoSwitch,
+        ),
       );
+      bool darkModeValue() {
+        final widget = tester.widget(darkModeSwitchFinder);
+        return widget is Switch
+            ? widget.value
+            : (widget as CupertinoSwitch).value;
+      }
+
       expect(darkModeSwitchFinder, findsOneWidget);
-      expect(tester.widget<Switch>(darkModeSwitchFinder).value, false);
+      expect(darkModeValue(), false);
 
       await tester.tap(darkModeSwitchFinder);
       await pumpSettled(tester);
-      expect(tester.widget<Switch>(darkModeSwitchFinder).value, true);
+      expect(darkModeValue(), true);
 
       await tester.tap(darkModeSwitchFinder);
       await pumpSettled(tester);
-      expect(tester.widget<Switch>(darkModeSwitchFinder).value, false);
+      expect(darkModeValue(), false);
 
       await goBack(tester);
     });
