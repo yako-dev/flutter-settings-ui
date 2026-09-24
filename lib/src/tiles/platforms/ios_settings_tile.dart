@@ -19,6 +19,8 @@ class IOSSettingsTile extends StatefulWidget {
     this.compact = false,
     this.titlePadding,
     this.leadingPadding,
+    this.trailingPadding,
+    this.descriptionPadding,
     this.titleDescriptionPadding,
     super.key,
   });
@@ -38,6 +40,8 @@ class IOSSettingsTile extends StatefulWidget {
   final Widget? trailing;
   final EdgeInsetsGeometry? titlePadding;
   final EdgeInsetsGeometry? leadingPadding;
+  final EdgeInsetsGeometry? trailingPadding;
+  final EdgeInsetsGeometry? descriptionPadding;
   final EdgeInsetsGeometry? titleDescriptionPadding;
 
   @override
@@ -108,12 +112,14 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
 
     return Container(
       width: MediaQuery.of(context).size.width,
-      padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        top: textScaler.scale(8),
-        bottom: additionalInfo.needToShowDivider ? 24 : textScaler.scale(8),
-      ),
+      padding:
+          widget.descriptionPadding ??
+          EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: textScaler.scale(8),
+            bottom: additionalInfo.needToShowDivider ? 24 : textScaler.scale(8),
+          ),
       decoration: BoxDecoration(color: theme.themeData.settingsListBackground),
       child: DefaultTextStyle(
         style:
@@ -138,7 +144,9 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
       children: [
         if (widget.trailing != null)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding:
+                widget.trailingPadding ??
+                const EdgeInsets.symmetric(horizontal: 16),
             child: IconTheme(
               data: IconTheme.of(context).copyWith(
                 color: widget.enabled

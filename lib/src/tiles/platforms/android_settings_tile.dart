@@ -96,19 +96,22 @@ class AndroidSettingsTile extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      DefaultTextStyle(
-                        style:
-                            (theme.themeData.tileTextStyle ??
-                                    const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w400,
-                                    ))
-                                .copyWith(
-                                  color: enabled
-                                      ? theme.themeData.settingsTileTextColor
-                                      : theme.themeData.inactiveTitleColor,
-                                ),
-                        child: title ?? Container(),
+                      Padding(
+                        padding: titlePadding ?? EdgeInsets.zero,
+                        child: DefaultTextStyle(
+                          style:
+                              (theme.themeData.tileTextStyle ??
+                                      const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w400,
+                                      ))
+                                  .copyWith(
+                                    color: enabled
+                                        ? theme.themeData.settingsTileTextColor
+                                        : theme.themeData.inactiveTitleColor,
+                                  ),
+                          child: title ?? Container(),
+                        ),
                       ),
                       if (value != null)
                         Padding(
@@ -181,7 +184,8 @@ class AndroidSettingsTile extends StatelessWidget {
                     thumbIcon: _thumbIcon,
                     activeThumbColor: enabled
                         ? activeSwitchColor
-                        : theme.themeData.inactiveTitleColor,
+                        : (theme.themeData.inactiveSwitchColor ??
+                              theme.themeData.inactiveTitleColor),
                   ),
                 )
               else if (trailing != null)

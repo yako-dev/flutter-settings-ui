@@ -158,7 +158,9 @@ class SettingsTile extends AbstractSettingsTile {
           initialValue: initialValue ?? false,
           titlePadding: titlePadding,
           leadingPadding: leadingPadding,
-          titleDescriptionPadding: titlePadding,
+          trailingPadding: trailingPadding,
+          descriptionPadding: descriptionPadding,
+          titleDescriptionPadding: titleDescriptionPadding,
         );
       case DevicePlatform.web:
         return WebSettingsTile(

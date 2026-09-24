@@ -23,6 +23,10 @@ class SettingsSection extends AbstractSettingsSection {
 
   @override
   Widget build(BuildContext context) {
+    // A section with no tiles (e.g. all of them are conditional) shows
+    // nothing, not a header over an empty card.
+    if (tiles.isEmpty) return const SizedBox.shrink();
+
     final theme = SettingsTheme.of(context);
 
     switch (theme.platform) {

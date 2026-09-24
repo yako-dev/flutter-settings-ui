@@ -19,6 +19,14 @@
 * iOS: simple tiles now show their `value`, like on Android (#201)
 * iOS: a long title no longer hides the value. The value takes at most half the row, on one line
 * Compiles on Flutter forks that add platforms, such as OpenHarmony, which get the Cupertino style (#205)
+* `SettingsList.brightness` now overrides the brightness from the app theme. It was ignored
+* `ApplicationType.both` now goes by the platform the app runs on: the `CupertinoTheme` on iOS and macOS, the Material `Theme` elsewhere. Before, it read the Material brightness unless `platform: DevicePlatform.iOS` was set, so a `CupertinoApp` that follows the system could show light colors in dark mode
+* `crossAxisAlignment: CrossAxisAlignment.start` now puts the content at the start edge on wide screens (left in LTR, right in RTL). The default padding used to keep it centered
+* The wide-screen side padding now comes from the width the list gets, not the screen width, so a `SettingsList` in a narrow pane of a wide window fits the pane
+* A `SettingsSection` with no tiles no longer crashes on iOS, macOS and Windows. Empty sections now show nothing on every platform
+* `SettingsTile.titleDescriptionPadding` now pads the title description on iOS. `titlePadding` was used instead
+* `SettingsTile.trailingPadding` and `descriptionPadding` now work on iOS, macOS and Windows, and `titlePadding` on Android and web. They were ignored there
+* Android and web: disabled switches use `SettingsThemeData.inactiveSwitchColor` with or without a `trailing` widget, and a web switch next to a `trailing` widget no longer has a hard-coded blue active color (#188)
 
 ### New features
 * Debug builds print a one-time warning when `SettingsList` finds no `material_ui` or `cupertino_ui` theme above it
@@ -29,6 +37,9 @@
 ### Maintenance
 * CI now checks formatting with `dart format` (`flutter format` was removed from Flutter)
 * Example app: updated Android Gradle setup, and moved the iOS runner to the UIScene lifecycle required on iOS 27
+
+## [3.0.1] - [April 10, 2026]
+* README rewritten with a full API reference, examples and screenshots. No code changes
 
 ## [3.0.0] - [April 10, 2026]
 

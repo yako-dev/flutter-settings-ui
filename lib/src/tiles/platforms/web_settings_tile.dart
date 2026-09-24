@@ -93,19 +93,24 @@ class WebSettingsTile extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        DefaultTextStyle(
-                          style:
-                              (theme.themeData.tileTextStyle ??
-                                      const TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w400,
-                                      ))
-                                  .copyWith(
-                                    color: enabled
-                                        ? theme.themeData.settingsTileTextColor
-                                        : theme.themeData.inactiveTitleColor,
-                                  ),
-                          child: title ?? Container(),
+                        Padding(
+                          padding: titlePadding ?? EdgeInsets.zero,
+                          child: DefaultTextStyle(
+                            style:
+                                (theme.themeData.tileTextStyle ??
+                                        const TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w400,
+                                        ))
+                                    .copyWith(
+                                      color: enabled
+                                          ? theme
+                                                .themeData
+                                                .settingsTileTextColor
+                                          : theme.themeData.inactiveTitleColor,
+                                    ),
+                            child: title ?? Container(),
+                          ),
                         ),
                         if (value != null)
                           Padding(
@@ -166,9 +171,9 @@ class WebSettingsTile extends StatelessWidget {
                         padding: const EdgeInsetsDirectional.only(end: 8),
                         child: Switch(
                           activeThumbColor: enabled
-                              ? (activeSwitchColor ??
-                                    const Color.fromRGBO(138, 180, 248, 1.0))
-                              : theme.themeData.inactiveTitleColor,
+                              ? activeSwitchColor
+                              : (theme.themeData.inactiveSwitchColor ??
+                                    theme.themeData.inactiveTitleColor),
                           value: initialValue,
                           onChanged: onToggle,
                         ),

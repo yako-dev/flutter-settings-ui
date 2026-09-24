@@ -12,8 +12,9 @@ enum ApplicationType {
   /// Use this parameter is you are using the CupertinoApp
   cupertino,
 
-  /// Use this parameter is you are using the MaterialApp for Android
-  /// and the CupertinoApp for iOS.
+  /// Use this parameter if you are using the MaterialApp for Android
+  /// and the CupertinoApp for iOS. On iOS and macOS the brightness comes from
+  /// the CupertinoTheme, which follows the Material theme in a MaterialApp.
   both,
 }
 
@@ -38,6 +39,9 @@ class SettingsList extends StatelessWidget {
   final DevicePlatform? platform;
   final SettingsThemeData? lightTheme;
   final SettingsThemeData? darkTheme;
+
+  /// Forces light or dark colors. When null, the brightness comes from the
+  /// app theme, as set by [applicationType].
   final Brightness? brightness;
   final EdgeInsetsGeometry? contentPadding;
   final List<AbstractSettingsSection> sections;
@@ -46,7 +50,9 @@ class SettingsList extends StatelessWidget {
 
   /// Controls how the settings list is aligned along the cross axis.
   /// Defaults to [CrossAxisAlignment.center] (content is centered on wide
-  /// screens). Use [CrossAxisAlignment.start] for left-aligned content.
+  /// screens). Use [CrossAxisAlignment.start] to align the content with the
+  /// start edge (left in LTR, right in RTL). Has no effect when
+  /// [contentPadding] is set.
   final CrossAxisAlignment crossAxisAlignment;
 
   static bool _debugDidWarnMissingTheme = false;
@@ -99,59 +105,55 @@ class SettingsList extends StatelessWidget {
       brightness: brightness,
     ).merge(theme: brightness == Brightness.dark ? darkTheme : lightTheme);
 
-    return Container(
-      color: themeData.settingsListBackground,
-      width: MediaQuery.of(context).size.width,
-      alignment: crossAxisAlignment == CrossAxisAlignment.start
-          ? Alignment.topLeft
-          : Alignment.center,
-      child: SettingsTheme(
-        themeData: themeData,
-        platform: platform,
-        child: ListView.builder(
-          controller: scrollController,
-          physics: physics,
-          shrinkWrap: shrinkWrap,
-          itemCount: sections.length,
-          padding: contentPadding ?? calculateDefaultPadding(platform, context),
-          itemBuilder: (BuildContext context, int index) {
-            return sections[index];
-          },
-        ),
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Use the width the parent gives the list, not the screen width, so
+        // a list in a narrow pane of a wide window fits the pane. Fall back to
+        // the screen width when the width is unbounded.
+        final width = constraints.hasBoundedWidth
+            ? constraints.maxWidth
+            : MediaQuery.sizeOf(context).width;
+
+        return Container(
+          color: themeData.settingsListBackground,
+          width: width,
+          alignment: crossAxisAlignment == CrossAxisAlignment.start
+              ? AlignmentDirectional.topStart
+              : Alignment.center,
+          child: SettingsTheme(
+            themeData: themeData,
+            platform: platform,
+            child: ListView.builder(
+              controller: scrollController,
+              physics: physics,
+              shrinkWrap: shrinkWrap,
+              itemCount: sections.length,
+              padding:
+                  contentPadding ??
+                  calculateDefaultPadding(platform, context, width: width),
+              itemBuilder: (BuildContext context, int index) {
+                return sections[index];
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 
+  /// The list padding used when [contentPadding] is null.
+  ///
+  /// When [width] (the list's width, the screen width by default) is wider
+  /// than the content column, the spare width becomes side padding. It is
+  /// split evenly, or all put at the end with [CrossAxisAlignment.start].
   EdgeInsets calculateDefaultPadding(
     DevicePlatform platform,
-    BuildContext context,
-  ) {
-    // Chrome's settings page uses a narrower 680px column than the other
-    // platforms' 810px.
-    final maxContentWidth = platform == DevicePlatform.web ? 680.0 : 810.0;
-    final screenWidth = MediaQuery.of(context).size.width;
-    if (screenWidth > maxContentWidth) {
-      double padding = (screenWidth - maxContentWidth) / 2;
-      switch (platform) {
-        case DevicePlatform.android:
-        case DevicePlatform.fuchsia:
-        case DevicePlatform.linux:
-        case DevicePlatform.iOS:
-        case DevicePlatform.macOS:
-        case DevicePlatform.windows:
-          return EdgeInsets.symmetric(horizontal: padding);
-        case DevicePlatform.web:
-          return EdgeInsets.symmetric(
-            vertical: 20,
-            horizontal: padding < 16 ? 16 : padding,
-          );
-        case DevicePlatform.device:
-          throw Exception(
-            'You can\'t use the DevicePlatform.device in this context. '
-            'Incorrect platform: SettingsList.calculateDefaultPadding',
-          );
-      }
-    }
+    BuildContext context, {
+    double? width,
+  }) {
+    final double maxContentWidth;
+    final double minSidePadding;
+    final double verticalPadding;
     switch (platform) {
       case DevicePlatform.android:
       case DevicePlatform.fuchsia:
@@ -159,19 +161,48 @@ class SettingsList extends StatelessWidget {
       case DevicePlatform.iOS:
       case DevicePlatform.macOS:
       case DevicePlatform.windows:
-        return const EdgeInsets.symmetric(vertical: 0);
+        maxContentWidth = 810;
+        minSidePadding = 0;
+        verticalPadding = 0;
       case DevicePlatform.web:
-        // Keep the cards off the screen edges in narrow browser windows.
-        return const EdgeInsets.symmetric(vertical: 20, horizontal: 16);
+        // Chrome's settings page uses a narrower 680px column than the other
+        // platforms' 810px, and keeps the cards off the edges of narrow
+        // browser windows.
+        maxContentWidth = 680;
+        minSidePadding = 16;
+        verticalPadding = 20;
       case DevicePlatform.device:
         throw Exception(
           'You can\'t use the DevicePlatform.device in this context. '
           'Incorrect platform: SettingsList.calculateDefaultPadding',
         );
     }
+
+    final availableWidth = width ?? MediaQuery.sizeOf(context).width;
+    final centeredSidePadding = (availableWidth - maxContentWidth) / 2;
+    final sidePadding = centeredSidePadding > minSidePadding
+        ? centeredSidePadding
+        : minSidePadding;
+
+    if (crossAxisAlignment == CrossAxisAlignment.start) {
+      // Same column width as when centered, at the start edge.
+      return EdgeInsetsDirectional.only(
+        start: minSidePadding,
+        end: 2 * sidePadding - minSidePadding,
+        top: verticalPadding,
+        bottom: verticalPadding,
+      ).resolve(Directionality.maybeOf(context) ?? TextDirection.ltr);
+    }
+    return EdgeInsets.symmetric(
+      horizontal: sidePadding,
+      vertical: verticalPadding,
+    );
   }
 
   Brightness calculateBrightness(BuildContext context) {
+    final brightness = this.brightness;
+    if (brightness != null) return brightness;
+
     final materialBrightness = Theme.of(context).brightness;
     final cupertinoBrightness =
         CupertinoTheme.of(context).brightness ??
@@ -183,9 +214,15 @@ class SettingsList extends StatelessWidget {
       case ApplicationType.cupertino:
         return cupertinoBrightness;
       case ApplicationType.both:
-        return platform != DevicePlatform.iOS
-            ? materialBrightness
-            : cupertinoBrightness;
+        // Decide by the platform the app runs on, which picks the app widget,
+        // not by the tile style set in [platform]. Inside a MaterialApp the
+        // CupertinoTheme follows the Material theme, so the Cupertino
+        // brightness is also right for a MaterialApp on iOS or macOS.
+        final hostPlatform = PlatformUtils.detectPlatform(context);
+        return hostPlatform == DevicePlatform.iOS ||
+                hostPlatform == DevicePlatform.macOS
+            ? cupertinoBrightness
+            : materialBrightness;
     }
   }
 }

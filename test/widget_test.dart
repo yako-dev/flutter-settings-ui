@@ -8,11 +8,13 @@ import 'settings_tests/app_theme_tests.dart';
 import 'settings_tests/bug_fix_tests.dart';
 import 'settings_tests/cupertino_switch_tests.dart';
 import 'settings_tests/ios_value_layout_tests.dart';
+import 'settings_tests/list_fix_tests.dart';
 import 'settings_tests/native_look_tests.dart';
 import 'settings_tests/setting_tile_tests.dart';
 import 'settings_tests/settings_list_tests.dart';
 import 'settings_tests/settings_sections_tests.dart';
 import 'settings_tests/settings_tile_on_tap_tests.dart';
+import 'settings_tests/tile_padding_tests.dart';
 import 'utils_tests/device_platform_tests.dart';
 
 void main() {
@@ -179,6 +181,14 @@ void main() {
 
   group('CupertinoSettingsSwitch (iOS 26+ switch)', () {
     cupertinoSwitchTests();
+  });
+
+  group('SettingsList and SettingsSection fixes (v4.0.0)', () {
+    listFixTests();
+  });
+
+  group('SettingsTile paddings and switch colors (v4.0.0)', () {
+    tilePaddingTests();
   });
 
   group('Settings tile on Tap tests for different platforms', () {
