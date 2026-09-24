@@ -4,7 +4,7 @@
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-android%20%7C%20ios%20%7C%20macos%20%7C%20windows%20%7C%20linux%20%7C%20web-lightgrey)](https://pub.dev/packages/settings_ui)
 
-A Flutter package for building settings screens that look native on **iOS**, **Android** and the **web**, from a single API. The style is picked at runtime: iOS 26-style grouped cards on iOS, macOS and Windows, Android 16-style cards on Android, Linux and Fuchsia, and Chrome-style cards on the web.
+A Flutter package for building settings screens that look native on **iOS**, **Android**, **Linux (GNOME)** and the **web**, from a single API. The style is picked at runtime: iOS 26-style grouped cards on iOS, macOS and Windows, Android 16-style cards on Android and Fuchsia, GNOME-style boxed lists on Linux, and Chrome-style cards on the web.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master/assets/v2/settings_ui_cover.png" height="560px">
@@ -317,7 +317,7 @@ SettingsTile(
 
 ### `SettingsTile.navigation`: navigation tile
 
-For rows that open another screen or a picker. In the iOS and web styles it adds a chevron after the value (it points left in right-to-left layouts). The Android style shows no chevron, like Android's own settings.
+For rows that open another screen or a picker. In the iOS and web styles it adds a chevron after the value, and in the GNOME style GNOME's `go-next` arrow (both point left in right-to-left layouts). The Android style shows no chevron, like Android's own settings.
 
 ```dart
 SettingsTile.navigation(
@@ -332,7 +332,7 @@ SettingsTile.navigation(
 
 ### `SettingsTile.switchTile`: switch tile
 
-In the iOS style it shows `CupertinoSettingsSwitch`, the iOS 26 switch. In the Android style it shows a Material `Switch` with a check or a cross on the thumb, and on the web a Material `Switch`.
+In the iOS style it shows `CupertinoSettingsSwitch`, the iOS 26 switch. In the Android style it shows a Material `Switch` with a check or a cross on the thumb, on the web a Material `Switch`, and in the GNOME style `AdwaitaSettingsSwitch`, the GNOME switch.
 
 ```dart
 SettingsTile.switchTile(
@@ -346,17 +346,17 @@ SettingsTile.switchTile(
 
 The tile is controlled: `initialValue` is the current value, and `onToggle` gets the new one. Passing `onToggle: null` disables the switch.
 
-Tapping the row works like each platform's settings app. In the Android and web styles, tapping anywhere on the row toggles the switch, and `onPressed` isn't called. In the iOS style only the switch itself toggles; tapping the rest of the row calls `onPressed`, if you set one.
+Tapping the row works like each platform's settings app. In the Android, GNOME and web styles, tapping anywhere on the row toggles the switch, and `onPressed` isn't called. In the iOS style only the switch itself toggles; tapping the rest of the row calls `onPressed`, if you set one.
 
 ### `value`, `description` and `titleDescription`
 
 The same tile shows its secondary text in different places, following each platform:
 
-| Parameter | iOS style | Android and web styles |
-|---|---|---|
-| `value` | Grey text at the end of the row, one line, at most half the row | Second line under the title |
-| `description` | Footer text under the card; the tiles after it start a new card | Second line under the title, only when `value` is not set |
-| `titleDescription` | Second line inside the row, under the title | Not shown |
+| Parameter | iOS style | Android and web styles | GNOME style |
+|---|---|---|---|
+| `value` | Grey text at the end of the row, one line, at most half the row | Second line under the title | Dimmed text at the end of the row, one line, at most half the row |
+| `description` | Footer text under the card; the tiles after it start a new card | Second line under the title, only when `value` is not set | Second line under the title |
+| `titleDescription` | Second line inside the row, under the title | Not shown | Second line under the title, above `description` |
 
 So on Android and the web, a tile with both `value` and `description` shows only `value`. `value` exists on `SettingsTile` and `SettingsTile.navigation`; `description` and `titleDescription` exist on all three constructors.
 
@@ -413,11 +413,13 @@ SettingsList(
 |---|---|
 | `device` *(default)* | Auto-detected at runtime |
 | `iOS`, `macOS`, `windows` | iOS |
-| `android`, `fuchsia`, `linux` | Android |
+| `android`, `fuchsia` | Android |
+| `linux` | GNOME |
 | `web` | Web |
 
 - **iOS** matches iOS 26 Settings: cards with 26pt continuous corners and 20pt side margins, 52pt rows with 17pt text, 17pt semibold section headers, grey footers, the `CupertinoSettingsSwitch`, and a chevron on navigation tiles.
 - **Android** matches Android 16 Settings: every tile sits on its own card, 2dp apart, with 20dp corners at the ends of a group, on a tinted page. 16sp titles and switches with a check or a cross.
+- **GNOME** matches GNOME Settings 51 (libadwaita 1.10): each section is a boxed list, a card with 12px corners and a soft shadow, with 54px rows and full-width separators; bold 14.67px group titles, 14.67px titles and dimmed 12.22px subtitles, 16px leading icons, the `AdwaitaSettingsSwitch` in the GNOME accent blue, a `go-next` arrow on navigation tiles, hover and focus highlights, and a content column that eases from 400 to at most 600px wide like `AdwClamp`. It uses fixed GNOME colors, not the `ColorScheme`. No font is bundled: GNOME uses Adwaita Sans, so set it with `tileTextStyle` and `titleTextStyle` if your app ships it.
 - **Web** matches Chrome's settings page: cards with 8px corners and a light shadow, 14px titles, 13px descriptions, a chevron on navigation tiles, and a 680px column on wide windows.
 
 In a browser, the web style is used on every device, phones included. Elsewhere the style follows `Theme.of(context).platform`, so `ThemeData(platform: ...)` changes it too. Platforms that only exist in forks of Flutter, such as OpenHarmony, get the iOS style.
@@ -642,7 +644,7 @@ None of the constructors is `const`.
 | `trailing` | `Widget?` | all | Widget at the end |
 | `value` | `Widget?` | default, navigation | Current value; see [where it shows](#value-description-and-titledescription) |
 | `description` | `Widget?` | all | Secondary text; see [where it shows](#value-description-and-titledescription) |
-| `titleDescription` | `Widget?` | all | Line under the title, iOS style only |
+| `titleDescription` | `Widget?` | all | Line under the title, iOS and GNOME styles only |
 | `onPressed` | `Function(BuildContext)?` | all | Tap callback |
 | `enabled` | `bool` | all | `false` greys out the tile and ignores taps. Default `true` |
 | `compact` | `bool` | all | Halves the vertical padding. Default `false` |
@@ -651,7 +653,7 @@ None of the constructors is `const`.
 | `activeSwitchColor` | `Color?` | switchTile | Switch color when on |
 | `leadingPadding` | `EdgeInsetsGeometry?` | all | Padding around `leading` |
 | `titlePadding` | `EdgeInsetsGeometry?` | all | Padding around `title` |
-| `titleDescriptionPadding` | `EdgeInsetsGeometry?` | all | Padding around `titleDescription` (iOS style) |
+| `titleDescriptionPadding` | `EdgeInsetsGeometry?` | all | Padding around `titleDescription` (iOS and GNOME styles) |
 | `trailingPadding` | `EdgeInsetsGeometry?` | all | Padding around `trailing` (Android and web styles: not on switch tiles) |
 | `descriptionPadding` | `EdgeInsetsGeometry?` | all | Padding around `description` |
 
@@ -664,24 +666,37 @@ None of the constructors is `const`.
 | `activeTrackColor` | `Color?` | Track color when on. Default: iOS system green |
 | `inactiveTrackColor` | `Color?` | Track color when off. Default: `#C5C5C7` light, `#5A5A5E` dark |
 
+### `AdwaitaSettingsSwitch`
+
+The switch of the GNOME style, drawn in Flutter: a 46x26 track with a round 20px knob. It toggles on a tap, a drag past the middle or Space/Enter, and you can use it anywhere.
+
+| Parameter | Type | Description |
+|---|---|---|
+| `value` | `bool` | Whether the switch is on (required) |
+| `onChanged` | `ValueChanged<bool>?` | Called with the new value (required); `null` disables the switch |
+| `activeTrackColor` | `Color?` | Track color when on. Default: GNOME blue `#3584E4` |
+| `inactiveTrackColor` | `Color?` | Track color when off. Default: black 12% light, white 15% dark |
+| `brightness` | `Brightness?` | Light or dark colors. Default: from the `CupertinoTheme`, or the platform |
+| `focusNode`, `autofocus` | `FocusNode?`, `bool` | Keyboard focus |
+
 ### `SettingsThemeData`
 
 | Field | Type | Description |
 |---|---|---|
 | `settingsListBackground` | `Color?` | Background of the whole list |
 | `settingsSectionBackground` | `Color?` | Background of the cards |
-| `dividerColor` | `Color?` | Line between tiles (iOS and web styles) |
-| `tileHighlightColor` | `Color?` | Tile press highlight color |
+| `dividerColor` | `Color?` | Line between tiles (iOS, GNOME and web styles) |
+| `tileHighlightColor` | `Color?` | Tile press highlight color. The GNOME style also hovers with 3/8 of its opacity |
 | `titleTextColor` | `Color?` | Section header text color. In the iOS style also `titleDescription` and `description` |
 | `titleTextStyle` | `TextStyle?` | Section header text style |
 | `settingsTileTextColor` | `Color?` | Tile title text color |
 | `tileTextStyle` | `TextStyle?` | Tile title text style |
-| `tileDescriptionTextColor` | `Color?` | `description` and `value` text color (Android and web styles) |
-| `tileDescriptionTextStyle` | `TextStyle?` | `description` text style, and `value` in the Android and web styles |
-| `trailingTextColor` | `Color?` | `value` text color (iOS style) |
+| `tileDescriptionTextColor` | `Color?` | `description` and `value` text color (Android and web styles), `description` (GNOME style) |
+| `tileDescriptionTextStyle` | `TextStyle?` | `description` text style, and `value` in the Android, GNOME and web styles |
+| `trailingTextColor` | `Color?` | `value` text color (iOS and GNOME styles) |
 | `leadingIconsColor` | `Color?` | Leading and trailing icons, and the chevron |
 | `inactiveTitleColor` | `Color?` | Title and icon color of a disabled tile |
-| `inactiveSubtitleColor` | `Color?` | `description` and `value` color of a disabled tile (Android and web styles) |
+| `inactiveSubtitleColor` | `Color?` | `description` and `value` color of a disabled tile (Android, GNOME and web styles) |
 | `inactiveSwitchColor` | `Color?` | Switch color of a disabled tile |
 
 ---
