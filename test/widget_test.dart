@@ -4,6 +4,7 @@ import 'package:settings_ui/settings_ui.dart';
 import 'package:settings_ui/src/sections/platforms/android_settings_section.dart';
 import 'package:settings_ui/src/tiles/platforms/android_settings_tile.dart';
 
+import 'settings_tests/app_theme_tests.dart';
 import 'settings_tests/bug_fix_tests.dart';
 import 'settings_tests/setting_tile_tests.dart';
 import 'settings_tests/settings_list_tests.dart';
@@ -20,39 +21,38 @@ void main() {
     );
 
     testWidgets('Widget should render correctly', (tester) async {
-      await tester.pumpWidget(_wrapWithMaterialApp(
-        settingsTile,
-        DevicePlatform.android,
-      ));
+      await tester.pumpWidget(
+        _wrapWithMaterialApp(settingsTile, DevicePlatform.android),
+      );
 
       expect(find.byType(AndroidSettingsSection), findsOneWidget);
       expect(find.byType(AndroidSettingsTile), findsOneWidget);
     });
 
     testWidgets('Title content should match', (tester) async {
-      await tester.pumpWidget(_wrapWithMaterialApp(
-        settingsTile,
-        DevicePlatform.android,
-      ));
+      await tester.pumpWidget(
+        _wrapWithMaterialApp(settingsTile, DevicePlatform.android),
+      );
 
       expect(find.text('Network & internet'), findsOneWidget);
     });
 
     testWidgets('Title style should match', (tester) async {
-      await tester.pumpWidget(_wrapWithMaterialApp(
-        settingsTile,
-        DevicePlatform.android,
-      ));
+      await tester.pumpWidget(
+        _wrapWithMaterialApp(settingsTile, DevicePlatform.android),
+      );
 
       final context = tester.element(find.byType(SettingsList));
       final colorScheme = Theme.of(context).colorScheme;
 
       final defaultTextFinder = find.ancestor(
-          of: find.text('Network & internet'),
-          matching: find.byType(DefaultTextStyle));
+        of: find.text('Network & internet'),
+        matching: find.byType(DefaultTextStyle),
+      );
 
-      final DefaultTextStyle titleWidget =
-          tester.firstWidget(defaultTextFinder);
+      final DefaultTextStyle titleWidget = tester.firstWidget(
+        defaultTextFinder,
+      );
 
       expect(titleWidget.style.color, colorScheme.onSurface);
       expect(titleWidget.style.fontSize, 18);
@@ -60,29 +60,29 @@ void main() {
     });
 
     testWidgets('Description content should match', (tester) async {
-      await tester.pumpWidget(_wrapWithMaterialApp(
-        settingsTile,
-        DevicePlatform.android,
-      ));
+      await tester.pumpWidget(
+        _wrapWithMaterialApp(settingsTile, DevicePlatform.android),
+      );
 
       expect(find.text('Mobile, Wi-Fi, hotspot'), findsOneWidget);
     });
 
     testWidgets('Description style should match', (tester) async {
-      await tester.pumpWidget(_wrapWithMaterialApp(
-        settingsTile,
-        DevicePlatform.android,
-      ));
+      await tester.pumpWidget(
+        _wrapWithMaterialApp(settingsTile, DevicePlatform.android),
+      );
 
       final context = tester.element(find.byType(SettingsList));
       final colorScheme = Theme.of(context).colorScheme;
 
       final defaultTextFinder = find.ancestor(
-          of: find.text('Mobile, Wi-Fi, hotspot'),
-          matching: find.byType(DefaultTextStyle));
+        of: find.text('Mobile, Wi-Fi, hotspot'),
+        matching: find.byType(DefaultTextStyle),
+      );
 
-      final DefaultTextStyle descriptionWidget =
-          tester.firstWidget(defaultTextFinder);
+      final DefaultTextStyle descriptionWidget = tester.firstWidget(
+        defaultTextFinder,
+      );
 
       expect(descriptionWidget.style.color, colorScheme.onSurfaceVariant);
       expect(descriptionWidget.style.fontSize, null);
@@ -90,19 +90,17 @@ void main() {
     });
 
     testWidgets('Leading content should match', (tester) async {
-      await tester.pumpWidget(_wrapWithMaterialApp(
-        settingsTile,
-        DevicePlatform.android,
-      ));
+      await tester.pumpWidget(
+        _wrapWithMaterialApp(settingsTile, DevicePlatform.android),
+      );
 
       expect(find.byIcon(Icons.wifi), findsOneWidget);
     });
 
     testWidgets('Leading color should match', (tester) async {
-      await tester.pumpWidget(_wrapWithMaterialApp(
-        settingsTile,
-        DevicePlatform.android,
-      ));
+      await tester.pumpWidget(
+        _wrapWithMaterialApp(settingsTile, DevicePlatform.android),
+      );
 
       final context = tester.element(find.byType(SettingsList));
       final colorScheme = Theme.of(context).colorScheme;
@@ -164,6 +162,10 @@ void main() {
     bugFixTests();
   });
 
+  group('App theme (Issue #206)', () {
+    appThemeTests();
+  });
+
   group('Settings tile on Tap tests for different platforms', () {
     settingsTileOnTapTests(DevicePlatform.android);
     settingsTileOnTapTests(DevicePlatform.fuchsia);
@@ -185,9 +187,7 @@ Widget _wrapWithMaterialApp(
       body: SettingsList(
         platform: platform,
         sections: [
-          SettingsSection(
-            tiles: [testWidget],
-          )
+          SettingsSection(tiles: [testWidget]),
         ],
       ),
     ),
