@@ -4,7 +4,7 @@
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-android%20%7C%20ios%20%7C%20macos%20%7C%20windows%20%7C%20linux%20%7C%20web-lightgrey)](https://pub.dev/packages/settings_ui)
 
-A Flutter package for building settings screens that look native on **iOS**, **Android** and the **web**, from a single API. The style is picked at runtime: iOS 26-style grouped cards on iOS, macOS and Windows, Android 16-style cards on Android, Linux and Fuchsia, and Chrome-style cards on the web.
+A Flutter package for building settings screens that look native on **iOS**, **Android** and the **web**, from a single API. The style is picked at runtime: iOS 26-style grouped cards on iOS and Windows, macOS 26 System Settings-style forms on macOS, Android 16-style cards on Android, Linux and Fuchsia, and Chrome-style cards on the web.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master/assets/v2/settings_ui_cover.png" height="560px">
@@ -332,7 +332,7 @@ SettingsTile.navigation(
 
 ### `SettingsTile.switchTile`: switch tile
 
-In the iOS style it shows `CupertinoSettingsSwitch`, the iOS 26 switch. In the Android style it shows a Material `Switch` with a check or a cross on the thumb, and on the web a Material `Switch`.
+In the iOS style it shows `CupertinoSettingsSwitch`, the iOS 26 switch, and in the macOS style `MacosSettingsSwitch`, the System Settings switch. In the Android style it shows a Material `Switch` with a check or a cross on the thumb, and on the web a Material `Switch`.
 
 ```dart
 SettingsTile.switchTile(
@@ -346,13 +346,13 @@ SettingsTile.switchTile(
 
 The tile is controlled: `initialValue` is the current value, and `onToggle` gets the new one. Passing `onToggle: null` disables the switch.
 
-Tapping the row works like each platform's settings app. In the Android and web styles, tapping anywhere on the row toggles the switch, and `onPressed` isn't called. In the iOS style only the switch itself toggles; tapping the rest of the row calls `onPressed`, if you set one.
+Tapping the row works like each platform's settings app. In the Android and web styles, tapping anywhere on the row toggles the switch, and `onPressed` isn't called. In the iOS and macOS styles only the switch itself toggles; tapping the rest of the row calls `onPressed`, if you set one.
 
 ### `value`, `description` and `titleDescription`
 
 The same tile shows its secondary text in different places, following each platform:
 
-| Parameter | iOS style | Android and web styles |
+| Parameter | iOS and macOS styles | Android and web styles |
 |---|---|---|
 | `value` | Grey text at the end of the row, one line, at most half the row | Second line under the title |
 | `description` | Footer text under the card; the tiles after it start a new card | Second line under the title, only when `value` is not set |
@@ -412,11 +412,13 @@ SettingsList(
 | `DevicePlatform` | Style |
 |---|---|
 | `device` *(default)* | Auto-detected at runtime |
-| `iOS`, `macOS`, `windows` | iOS |
+| `iOS`, `windows` | iOS |
+| `macOS` | macOS |
 | `android`, `fuchsia`, `linux` | Android |
 | `web` | Web |
 
 - **iOS** matches iOS 26 Settings: cards with 26pt continuous corners and 20pt side margins, 52pt rows with 17pt text, 17pt semibold section headers, grey footers, the `CupertinoSettingsSwitch`, and a chevron on navigation tiles.
+- **macOS** matches macOS 26/27 System Settings: `#F7F7F7` cards (`#252525` in dark mode) with 12pt continuous corners on a white page, 36pt rows with 13pt text and 1pt separators inset 10pt, 13pt semibold headers above the cards, 11pt grey footers, value text before a light chevron, `MacosSettingsSwitch`, and a 640pt column. Like System Settings, rows don't highlight on hover; rows with `onPressed` tint while pressed and take keyboard focus. For the colored icon squares of System Settings, pass your own widget as `leading` (the example app has `MacosIconBadge`); rows with a `leading` widget are 48pt.
 - **Android** matches Android 16 Settings: every tile sits on its own card, 2dp apart, with 20dp corners at the ends of a group, on a tinted page. 16sp titles and switches with a check or a cross.
 - **Web** matches Chrome's settings page: cards with 8px corners and a light shadow, 14px titles, 13px descriptions, a chevron on navigation tiles, and a 680px column on wide windows.
 
@@ -441,7 +443,7 @@ MaterialApp(
 )
 ```
 
-The iOS style uses fixed iOS system colors, like the Settings app: a grey grouped background, white cards (`#1C1C1E` in dark mode) and grey headers and values. It doesn't read your `ColorScheme`. Light or dark mode follows your app theme in every style.
+The iOS style uses fixed iOS system colors, like the Settings app: a grey grouped background, white cards (`#1C1C1E` in dark mode) and grey headers and values. The macOS style uses fixed macOS system colors the same way. Neither reads your `ColorScheme`. Light or dark mode follows your app theme in every style.
 
 ### Custom theme overrides
 
@@ -602,6 +604,18 @@ CupertinoSettingsSwitch(
 
 The lens paints a little outside the switch (about 12.5pt past each end and 6pt above and below), so don't clip it tightly.
 
+### The macOS switch on its own
+
+`MacosSettingsSwitch` is the switch the macOS style uses, also drawn in Flutter: a 36x16 track with a capsule knob, or the 44x20 one System Settings uses for the main switch of a pane:
+
+```dart
+MacosSettingsSwitch(
+  value: _wifi,
+  size: MacosSettingsSwitchSize.large,
+  onChanged: (value) => setState(() => _wifi = value),
+)
+```
+
 ---
 
 ## API reference
@@ -642,7 +656,7 @@ None of the constructors is `const`.
 | `trailing` | `Widget?` | all | Widget at the end |
 | `value` | `Widget?` | default, navigation | Current value; see [where it shows](#value-description-and-titledescription) |
 | `description` | `Widget?` | all | Secondary text; see [where it shows](#value-description-and-titledescription) |
-| `titleDescription` | `Widget?` | all | Line under the title, iOS style only |
+| `titleDescription` | `Widget?` | all | Line under the title, iOS and macOS styles only |
 | `onPressed` | `Function(BuildContext)?` | all | Tap callback |
 | `enabled` | `bool` | all | `false` greys out the tile and ignores taps. Default `true` |
 | `compact` | `bool` | all | Halves the vertical padding. Default `false` |
@@ -651,7 +665,7 @@ None of the constructors is `const`.
 | `activeSwitchColor` | `Color?` | switchTile | Switch color when on |
 | `leadingPadding` | `EdgeInsetsGeometry?` | all | Padding around `leading` |
 | `titlePadding` | `EdgeInsetsGeometry?` | all | Padding around `title` |
-| `titleDescriptionPadding` | `EdgeInsetsGeometry?` | all | Padding around `titleDescription` (iOS style) |
+| `titleDescriptionPadding` | `EdgeInsetsGeometry?` | all | Padding around `titleDescription` (iOS and macOS styles) |
 | `trailingPadding` | `EdgeInsetsGeometry?` | all | Padding around `trailing` (Android and web styles: not on switch tiles) |
 | `descriptionPadding` | `EdgeInsetsGeometry?` | all | Padding around `description` |
 
@@ -664,21 +678,31 @@ None of the constructors is `const`.
 | `activeTrackColor` | `Color?` | Track color when on. Default: iOS system green |
 | `inactiveTrackColor` | `Color?` | Track color when off. Default: `#C5C5C7` light, `#5A5A5E` dark |
 
+### `MacosSettingsSwitch`
+
+| Parameter | Type | Description |
+|---|---|---|
+| `value` | `bool` | Whether the switch is on (required) |
+| `onChanged` | `ValueChanged<bool>?` | Called with the new value (required); `null` disables the switch |
+| `activeTrackColor` | `Color?` | Track color when on. Default: the macOS accent blue |
+| `inactiveTrackColor` | `Color?` | Track color when off. Default: black 10% light, white 10% dark |
+| `size` | `MacosSettingsSwitchSize` | `regular` (36x16, default) or `large` (44x20) |
+
 ### `SettingsThemeData`
 
 | Field | Type | Description |
 |---|---|---|
 | `settingsListBackground` | `Color?` | Background of the whole list |
 | `settingsSectionBackground` | `Color?` | Background of the cards |
-| `dividerColor` | `Color?` | Line between tiles (iOS and web styles) |
+| `dividerColor` | `Color?` | Line between tiles (iOS, macOS and web styles) |
 | `tileHighlightColor` | `Color?` | Tile press highlight color |
 | `titleTextColor` | `Color?` | Section header text color. In the iOS style also `titleDescription` and `description` |
 | `titleTextStyle` | `TextStyle?` | Section header text style |
 | `settingsTileTextColor` | `Color?` | Tile title text color |
 | `tileTextStyle` | `TextStyle?` | Tile title text style |
-| `tileDescriptionTextColor` | `Color?` | `description` and `value` text color (Android and web styles) |
+| `tileDescriptionTextColor` | `Color?` | `description` and `value` text color (Android and web styles); `description` and `titleDescription` (macOS style) |
 | `tileDescriptionTextStyle` | `TextStyle?` | `description` text style, and `value` in the Android and web styles |
-| `trailingTextColor` | `Color?` | `value` text color (iOS style) |
+| `trailingTextColor` | `Color?` | `value` text color (iOS and macOS styles) |
 | `leadingIconsColor` | `Color?` | Leading and trailing icons, and the chevron |
 | `inactiveTitleColor` | `Color?` | Title and icon color of a disabled tile |
 | `inactiveSubtitleColor` | `Color?` | `description` and `value` color of a disabled tile (Android and web styles) |
