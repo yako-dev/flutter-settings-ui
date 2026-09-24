@@ -45,20 +45,16 @@ class _AndroidNativeSettingsScreenState
             padding: EdgeInsets.symmetric(horizontal: 24),
             child: TextField(
               autofocus: false,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w400,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
               decoration: InputDecoration(
-                prefixIcon: Icon(
-                  Icons.search,
-                  color: Colors.black,
-                ),
+                prefixIcon: Icon(Icons.search, color: Colors.black),
                 filled: true,
                 fillColor: Colors.white,
                 hintText: 'Search Settings',
                 contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 14.0, vertical: 13.0),
+                  horizontal: 14.0,
+                  vertical: 13.0,
+                ),
                 focusedBorder: OutlineInputBorder(
                   borderSide: BorderSide(color: Colors.white),
                   borderRadius: BorderRadius.circular(25.7),

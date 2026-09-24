@@ -27,8 +27,9 @@ void main() {
       if (backIos.evaluate().isNotEmpty) {
         await tester.tap(backIos);
       } else {
-        final NavigatorState nav =
-            tester.state<NavigatorState>(find.byType(Navigator).last);
+        final NavigatorState nav = tester.state<NavigatorState>(
+          find.byType(Navigator).last,
+        );
         nav.pop(null);
       }
     }
@@ -82,8 +83,9 @@ void main() {
       expect(find.text('Use fingerprint'), findsOneWidget);
 
       // Platform value defaults to 'Default'
-      final platformTile = tester
-          .widget<SettingsTile>(find.widgetWithText(SettingsTile, 'Platform'));
+      final platformTile = tester.widget<SettingsTile>(
+        find.widgetWithText(SettingsTile, 'Platform'),
+      );
       expect((platformTile.value as Text).data, 'Default');
 
       await goBack(tester);
@@ -107,11 +109,15 @@ void main() {
       );
 
       final bool hasMaterialSwitch = switchFinder.evaluate().isNotEmpty;
-      final bool hasCupertinoSwitch =
-          cupertinoSwitchFinder.evaluate().isNotEmpty;
+      final bool hasCupertinoSwitch = cupertinoSwitchFinder
+          .evaluate()
+          .isNotEmpty;
 
-      expect(hasMaterialSwitch || hasCupertinoSwitch, isTrue,
-          reason: 'Enable custom theme tile should contain a Switch widget');
+      expect(
+        hasMaterialSwitch || hasCupertinoSwitch,
+        isTrue,
+        reason: 'Enable custom theme tile should contain a Switch widget',
+      );
 
       if (hasMaterialSwitch) {
         expect(tester.widget<Switch>(switchFinder).value, false);
@@ -124,25 +130,29 @@ void main() {
         expect(tester.widget<Switch>(switchFinder).value, false);
       } else {
         expect(
-            tester.widget<CupertinoSettingsSwitch>(cupertinoSwitchFinder).value,
-            false);
+          tester.widget<CupertinoSettingsSwitch>(cupertinoSwitchFinder).value,
+          false,
+        );
         await tester.tap(cupertinoSwitchFinder);
         await pumpSettled(tester);
         expect(
-            tester.widget<CupertinoSettingsSwitch>(cupertinoSwitchFinder).value,
-            true);
+          tester.widget<CupertinoSettingsSwitch>(cupertinoSwitchFinder).value,
+          true,
+        );
         await tester.tap(cupertinoSwitchFinder);
         await pumpSettled(tester);
         expect(
-            tester.widget<CupertinoSettingsSwitch>(cupertinoSwitchFinder).value,
-            false);
+          tester.widget<CupertinoSettingsSwitch>(cupertinoSwitchFinder).value,
+          false,
+        );
       }
 
       await goBack(tester);
     });
 
-    testWidgets('Platform picker navigates and changes platform',
-        (tester) async {
+    testWidgets('Platform picker navigates and changes platform', (
+      tester,
+    ) async {
       app.main();
       await pumpSettled(tester);
 
@@ -162,8 +172,9 @@ void main() {
       await tester.tap(find.text('Android'));
       await pumpSettled(tester);
 
-      final androidTile = tester
-          .widget<SettingsTile>(find.widgetWithText(SettingsTile, 'Platform'));
+      final androidTile = tester.widget<SettingsTile>(
+        find.widgetWithText(SettingsTile, 'Platform'),
+      );
       expect((androidTile.value as Text).data, 'Android');
 
       // Android platform uses material Switch
@@ -181,8 +192,9 @@ void main() {
       await tester.tap(find.text('Web'));
       await pumpSettled(tester);
 
-      final webTile = tester
-          .widget<SettingsTile>(find.widgetWithText(SettingsTile, 'Platform'));
+      final webTile = tester.widget<SettingsTile>(
+        find.widgetWithText(SettingsTile, 'Platform'),
+      );
       expect((webTile.value as Text).data, 'Web');
 
       // Web uses material Switch
@@ -206,8 +218,9 @@ void main() {
       await tester.tap(find.text('iOS'));
       await pumpSettled(tester);
 
-      final iosTile = tester
-          .widget<SettingsTile>(find.widgetWithText(SettingsTile, 'Platform'));
+      final iosTile = tester.widget<SettingsTile>(
+        find.widgetWithText(SettingsTile, 'Platform'),
+      );
       expect((iosTile.value as Text).data, 'iOS');
 
       // iOS uses CupertinoSettingsSwitch
@@ -217,7 +230,9 @@ void main() {
       );
       expect(iosSwitchFinder, findsOneWidget);
       expect(
-          tester.widget<CupertinoSettingsSwitch>(iosSwitchFinder).value, false);
+        tester.widget<CupertinoSettingsSwitch>(iosSwitchFinder).value,
+        false,
+      );
 
       await goBack(tester);
     });
@@ -288,8 +303,9 @@ void main() {
       await goBack(tester);
     });
 
-    testWidgets('Notifications and location access tiles visible',
-        (tester) async {
+    testWidgets('Notifications and location access tiles visible', (
+      tester,
+    ) async {
       app.main();
       await pumpSettled(tester);
 
@@ -331,10 +347,11 @@ void main() {
       await tester.tap(darkAppearanceSwitchFinder);
       await pumpSettled(tester);
       expect(
-          tester
-              .widget<CupertinoSettingsSwitch>(darkAppearanceSwitchFinder)
-              .value,
-          !initial);
+        tester
+            .widget<CupertinoSettingsSwitch>(darkAppearanceSwitchFinder)
+            .value,
+        !initial,
+      );
 
       await goBack(tester);
     });
@@ -513,8 +530,9 @@ void main() {
       await pumpSettled(tester);
 
       // Email tile is disabled
-      final emailTile = tester
-          .widget<SettingsTile>(find.widgetWithText(SettingsTile, 'Email'));
+      final emailTile = tester.widget<SettingsTile>(
+        find.widgetWithText(SettingsTile, 'Email'),
+      );
       expect(emailTile.enabled, false);
 
       await goBack(tester);
@@ -522,22 +540,24 @@ void main() {
   });
 
   group('SettingsList scroll controller', () {
-    testWidgets('Web settings can scroll via controller (tap triggers scroll)',
-        (tester) async {
-      app.main();
-      await pumpSettled(tester);
+    testWidgets(
+      'Web settings can scroll via controller (tap triggers scroll)',
+      (tester) async {
+        app.main();
+        await pumpSettled(tester);
 
-      await tester.tap(find.text('Web Settings'));
-      await pumpSettled(tester);
+        await tester.tap(find.text('Web Settings'));
+        await pumpSettled(tester);
 
-      // Tap Passwords tile which animates the scroll controller
-      await tester.tap(find.text('Passwords'));
-      await pumpSettled(tester);
+        // Tap Passwords tile which animates the scroll controller
+        await tester.tap(find.text('Passwords'));
+        await pumpSettled(tester);
 
-      // No crash — the scroll animation completed
-      expect(find.text('Auto-fill'), findsOneWidget);
+        // No crash — the scroll animation completed
+        expect(find.text('Auto-fill'), findsOneWidget);
 
-      await goBack(tester);
-    });
+        await goBack(tester);
+      },
+    );
   });
 }

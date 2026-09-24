@@ -67,9 +67,7 @@ class _IosDeveloperScreenState extends State<IosDeveloperScreen> {
                   initialValue: true,
                   title: Text('Enable UI Automation'),
                 ),
-                SettingsTile.navigation(
-                  title: Text('Multipath Networking'),
-                ),
+                SettingsTile.navigation(title: Text('Multipath Networking')),
                 SettingsTile.switchTile(
                   onToggle: (_) {},
                   initialValue: false,
@@ -83,9 +81,7 @@ class _IosDeveloperScreenState extends State<IosDeveloperScreen> {
                 SettingsTile.switchTile(
                   onToggle: (_) {},
                   initialValue: false,
-                  title: Text(
-                    'Fast App Termination',
-                  ),
+                  title: Text('Fast App Termination'),
                   description: Text(
                     'Terminate instead of suspending apps when backgrounded to '
                     'force apps to be relaunched when tray '
@@ -114,9 +110,7 @@ class _IosDeveloperScreenState extends State<IosDeveloperScreen> {
                     ),
                   ),
                 ),
-                SettingsTile.navigation(
-                  title: Text('Add Refresh Rate'),
-                ),
+                SettingsTile.navigation(title: Text('Add Refresh Rate')),
                 SettingsTile.switchTile(
                   onToggle: (_) {},
                   initialValue: false,

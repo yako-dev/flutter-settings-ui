@@ -29,9 +29,7 @@ class _CrossPlatformSettingsScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Settings'),
-      ),
+      appBar: AppBar(title: Text('Settings')),
       body: SettingsList(
         platform: selectedPlatform,
         lightTheme: !useCustomTheme

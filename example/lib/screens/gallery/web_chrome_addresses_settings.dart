@@ -32,7 +32,8 @@ class _WebChromeAddressesScreenState extends State<WebChromeAddressesScreen> {
                 trailing: Icon(Icons.info),
                 title: Text('Save and fill addresses'),
                 description: Text(
-                    'Include information like phone numbers, email, and shipping addresses'),
+                  'Include information like phone numbers, email, and shipping addresses',
+                ),
               ),
             ],
           ),

@@ -127,14 +127,16 @@ class _Material3DemoScreenState extends State<Material3DemoScreen> {
               ),
               CustomSettingsSection(
                 child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   child: Text(
                     'Colors automatically adapt to the selected ColorScheme seed. '
                     'Try switching seeds or toggling dark mode above.',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ),
               ),

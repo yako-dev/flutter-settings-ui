@@ -25,8 +25,9 @@ class GalleryScreen extends StatelessWidget {
               SettingsTile.navigation(
                 title: const Text('Abstract settings screen'),
                 leading: const Icon(CupertinoIcons.wrench),
-                description:
-                    const Text('UI created to show plugin\'s possibilities'),
+                description: const Text(
+                  'UI created to show plugin\'s possibilities',
+                ),
                 onPressed: (context) {
                   Navigation.navigateTo(
                     context: context,

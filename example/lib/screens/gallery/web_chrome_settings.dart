@@ -66,22 +66,25 @@ class _WebChromeSettingsState extends State<WebChromeSettings> {
                 onPressed: (_) {},
                 leading: Icon(Icons.web),
                 title: Text('Cookies and other site data'),
-                description:
-                    Text('Third-party cookies are blocked in Incognito mode'),
+                description: Text(
+                  'Third-party cookies are blocked in Incognito mode',
+                ),
               ),
               SettingsTile.navigation(
                 onPressed: (_) {},
                 leading: Icon(Icons.security),
                 title: Text('Security'),
                 description: Text(
-                    'Safe Browsing (protection from dangerous sites) and other security settings'),
+                  'Safe Browsing (protection from dangerous sites) and other security settings',
+                ),
               ),
               SettingsTile.navigation(
                 onPressed: (_) {},
                 leading: Icon(Icons.settings),
                 title: Text('Site settings'),
                 description: Text(
-                    'Controls what information sites can use and show (location, camera, pop-ups and more)'),
+                  'Controls what information sites can use and show (location, camera, pop-ups and more)',
+                ),
               ),
               SettingsTile.navigation(
                 onPressed: (_) {},

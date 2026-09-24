@@ -17,9 +17,7 @@ class _AndroidNotificationsScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Notifications'),
-      ),
+      appBar: AppBar(title: Text('Notifications')),
       body: SettingsList(
         scrollController: settingsListController,
         platform: DevicePlatform.android,
@@ -81,9 +79,7 @@ class _AndroidNotificationsScreenState
                 title: Text('Do Not Disturb'),
                 description: Text('Off / 1 schedule can turn on automatically'),
               ),
-              SettingsTile(
-                title: Text('Wireless emergency alerts'),
-              ),
+              SettingsTile(title: Text('Wireless emergency alerts')),
               SettingsTile.switchTile(
                 initialValue: false,
                 onToggle: (_) {},
