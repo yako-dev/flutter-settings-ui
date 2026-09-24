@@ -1,5 +1,5 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/settings_ui.dart';
 
 class IOSSettingsTile extends StatefulWidget {
@@ -81,10 +81,7 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
     // Use the platform from SettingsTheme (respects user's explicit choice)
     // rather than re-detecting from the system, which ignored platform overrides.
     if (theme.platform != DevicePlatform.iOS) {
-      content = Material(
-        color: Colors.transparent,
-        child: content,
-      );
+      content = Material(color: Colors.transparent, child: content);
     }
 
     return ClipRRect(
@@ -115,13 +112,12 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
         top: textScaler.scale(8),
         bottom: additionalInfo.needToShowDivider ? 24 : textScaler.scale(8),
       ),
-      decoration: BoxDecoration(
-        color: theme.themeData.settingsListBackground,
-      ),
+      decoration: BoxDecoration(color: theme.themeData.settingsListBackground),
       child: DefaultTextStyle(
-        style: (theme.themeData.tileDescriptionTextStyle ??
-                const TextStyle(fontSize: 13))
-            .copyWith(color: theme.themeData.titleTextColor),
+        style:
+            (theme.themeData.tileDescriptionTextStyle ??
+                    const TextStyle(fontSize: 13))
+                .copyWith(color: theme.themeData.titleTextColor),
         child: widget.description!,
       ),
     );
@@ -157,14 +153,15 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
             activeTrackColor: widget.enabled
                 ? widget.activeSwitchColor
                 : (theme.themeData.inactiveSwitchColor ??
-                    theme.themeData.inactiveTitleColor),
+                      theme.themeData.inactiveTitleColor),
           ),
         if (widget.tileType == SettingsTileType.navigationTile)
           Padding(
             padding: const EdgeInsetsDirectional.only(start: 6, end: 2),
             child: IconTheme(
-              data: IconTheme.of(context)
-                  .copyWith(color: theme.themeData.leadingIconsColor),
+              data: IconTheme.of(
+                context,
+              ).copyWith(color: theme.themeData.leadingIconsColor),
               child: Icon(
                 isRTL
                     ? CupertinoIcons.chevron_back
@@ -193,8 +190,8 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
     final textScaler = MediaQuery.textScalerOf(context);
     final shouldShowInlineValue =
         (widget.tileType == SettingsTileType.navigationTile ||
-                widget.tileType == SettingsTileType.simpleTile) &&
-            widget.value != null;
+            widget.tileType == SettingsTileType.simpleTile) &&
+        widget.value != null;
 
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
@@ -225,7 +222,8 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
           children: [
             if (widget.leading != null)
               Padding(
-                padding: widget.leadingPadding ??
+                padding:
+                    widget.leadingPadding ??
                     const EdgeInsetsDirectional.only(end: 12.0),
                 child: IconTheme.merge(
                   data: IconThemeData(
@@ -259,12 +257,14 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Padding(
-                                        padding: widget.titlePadding ??
+                                        padding:
+                                            widget.titlePadding ??
                                             EdgeInsetsDirectional.only(
                                               top: textScaler.scale(
                                                 widget.compact ? 6.0 : 12.5,
                                               ),
-                                              bottom: widget.titleDescription ==
+                                              bottom:
+                                                  widget.titleDescription ==
                                                       null
                                                   ? textScaler.scale(
                                                       widget.compact
@@ -284,19 +284,21 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
                                                         fontSize: 16,
                                                       ))
                                                   .copyWith(
-                                            color: widget.enabled
-                                                ? theme.themeData
-                                                    .settingsTileTextColor
-                                                : theme.themeData
-                                                    .inactiveTitleColor,
-                                          ),
+                                                    color: widget.enabled
+                                                        ? theme
+                                                              .themeData
+                                                              .settingsTileTextColor
+                                                        : theme
+                                                              .themeData
+                                                              .inactiveTitleColor,
+                                                  ),
                                           child: widget.title!,
                                         ),
                                       ),
                                       if (widget.titleDescription != null)
                                         Padding(
-                                          padding: widget
-                                                  .titleDescriptionPadding ??
+                                          padding:
+                                              widget.titleDescriptionPadding ??
                                               EdgeInsetsDirectional.only(
                                                 bottom: textScaler.scale(12.5),
                                               ),
@@ -304,9 +306,11 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
                                             style: TextStyle(
                                               color: widget.enabled
                                                   ? theme
-                                                      .themeData.titleTextColor
-                                                  : theme.themeData
-                                                      .inactiveTitleColor,
+                                                        .themeData
+                                                        .titleTextColor
+                                                  : theme
+                                                        .themeData
+                                                        .inactiveTitleColor,
                                               fontSize: 15,
                                             ),
                                             child: widget.titleDescription!,
@@ -323,9 +327,11 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
                                         style: TextStyle(
                                           color: widget.enabled
                                               ? theme
-                                                  .themeData.trailingTextColor
+                                                    .themeData
+                                                    .trailingTextColor
                                               : theme
-                                                  .themeData.inactiveTitleColor,
+                                                    .themeData
+                                                    .inactiveTitleColor,
                                           fontSize: 17,
                                         ),
                                         overflow: TextOverflow.ellipsis,

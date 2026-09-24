@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:settings_ui/src/tiles/abstract_settings_tile.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 
@@ -36,7 +36,8 @@ class AndroidSettingsSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: titlePadding ??
+            padding:
+                titlePadding ??
                 EdgeInsetsDirectional.only(
                   top: textScaler.scale(24),
                   bottom: textScaler.scale(10),

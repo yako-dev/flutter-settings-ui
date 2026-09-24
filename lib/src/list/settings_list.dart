@@ -1,5 +1,5 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/src/sections/abstract_settings_section.dart';
 import 'package:settings_ui/src/utils/platform_utils.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
@@ -49,8 +49,41 @@ class SettingsList extends StatelessWidget {
   /// screens). Use [CrossAxisAlignment.start] for left-aligned content.
   final CrossAxisAlignment crossAxisAlignment;
 
+  static bool _debugDidWarnMissingTheme = false;
+
+  /// Lets tests see the missing-theme warning again after it was printed.
+  @visibleForTesting
+  static void debugResetMissingThemeWarning() {
+    _debugDidWarnMissingTheme = false;
+  }
+
+  /// Since v4, colors and brightness come from `package:material_ui` and
+  /// `package:cupertino_ui`. An app still built on `package:flutter/material`
+  /// has neither theme above this widget, so it silently gets default colors.
+  /// Say so once in debug builds.
+  void _debugWarnIfMissingTheme(BuildContext context) {
+    if (_debugDidWarnMissingTheme) return;
+    if (context.findAncestorWidgetOfExactType<Theme>() != null ||
+        context.findAncestorWidgetOfExactType<CupertinoTheme>() != null) {
+      return;
+    }
+    _debugDidWarnMissingTheme = true;
+    debugPrint(
+      'settings_ui: SettingsList found no Theme from package:material_ui or '
+      'CupertinoTheme from package:cupertino_ui above it, so it uses default '
+      'colors and brightness. Since settings_ui 4.0.0 the app must use '
+      'MaterialApp/CupertinoApp from those packages. Apps still on '
+      'package:flutter/material.dart should stay on settings_ui ^3.0.1.',
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    assert(() {
+      _debugWarnIfMissingTheme(context);
+      return true;
+    }());
+
     DevicePlatform platform;
     if (this.platform == null || this.platform == DevicePlatform.device) {
       platform = PlatformUtils.detectPlatform(context);
@@ -90,7 +123,9 @@ class SettingsList extends StatelessWidget {
   }
 
   EdgeInsets calculateDefaultPadding(
-      DevicePlatform platform, BuildContext context) {
+    DevicePlatform platform,
+    BuildContext context,
+  ) {
     if (MediaQuery.of(context).size.width > 810) {
       double padding = (MediaQuery.of(context).size.width - 810) / 2;
       switch (platform) {
@@ -130,7 +165,8 @@ class SettingsList extends StatelessWidget {
 
   Brightness calculateBrightness(BuildContext context) {
     final materialBrightness = Theme.of(context).brightness;
-    final cupertinoBrightness = CupertinoTheme.of(context).brightness ??
+    final cupertinoBrightness =
+        CupertinoTheme.of(context).brightness ??
         MediaQuery.of(context).platformBrightness;
 
     switch (applicationType) {

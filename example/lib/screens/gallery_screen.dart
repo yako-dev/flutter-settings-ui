@@ -6,8 +6,8 @@ import 'package:example/screens/gallery/ios_native_settings_screen.dart';
 import 'package:example/screens/gallery/material3_demo_screen.dart';
 import 'package:example/screens/gallery/web_chrome_settings.dart';
 import 'package:example/utils/navigation.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/settings_ui.dart';
 
 class GalleryScreen extends StatelessWidget {

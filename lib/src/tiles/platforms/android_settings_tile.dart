@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/settings_ui.dart';
 
 class AndroidSettingsTile extends StatelessWidget {
@@ -67,7 +67,8 @@ class AndroidSettingsTile extends StatelessWidget {
             children: [
               if (leading != null)
                 Padding(
-                  padding: leadingPadding ??
+                  padding:
+                      leadingPadding ??
                       const EdgeInsetsDirectional.only(start: 24),
                   child: IconTheme(
                     data: IconTheme.of(context).copyWith(
@@ -90,44 +91,56 @@ class AndroidSettingsTile extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       DefaultTextStyle(
-                        style: (theme.themeData.tileTextStyle ??
-                                const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w400,
-                                ))
-                            .copyWith(
-                          color: enabled
-                              ? theme.themeData.settingsTileTextColor
-                              : theme.themeData.inactiveTitleColor,
-                        ),
+                        style:
+                            (theme.themeData.tileTextStyle ??
+                                    const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w400,
+                                    ))
+                                .copyWith(
+                                  color: enabled
+                                      ? theme.themeData.settingsTileTextColor
+                                      : theme.themeData.inactiveTitleColor,
+                                ),
                         child: title ?? Container(),
                       ),
                       if (value != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 4.0),
                           child: DefaultTextStyle(
-                            style: (theme.themeData.tileDescriptionTextStyle ??
-                                    const TextStyle())
-                                .copyWith(
-                              color: enabled
-                                  ? theme.themeData.tileDescriptionTextColor
-                                  : theme.themeData.inactiveSubtitleColor,
-                            ),
+                            style:
+                                (theme.themeData.tileDescriptionTextStyle ??
+                                        const TextStyle())
+                                    .copyWith(
+                                      color: enabled
+                                          ? theme
+                                                .themeData
+                                                .tileDescriptionTextColor
+                                          : theme
+                                                .themeData
+                                                .inactiveSubtitleColor,
+                                    ),
                             child: value!,
                           ),
                         )
                       else if (description != null)
                         Padding(
-                          padding: descriptionPadding ??
+                          padding:
+                              descriptionPadding ??
                               const EdgeInsets.only(top: 4.0),
                           child: DefaultTextStyle(
-                            style: (theme.themeData.tileDescriptionTextStyle ??
-                                    const TextStyle())
-                                .copyWith(
-                              color: enabled
-                                  ? theme.themeData.tileDescriptionTextColor
-                                  : theme.themeData.inactiveSubtitleColor,
-                            ),
+                            style:
+                                (theme.themeData.tileDescriptionTextStyle ??
+                                        const TextStyle())
+                                    .copyWith(
+                                      color: enabled
+                                          ? theme
+                                                .themeData
+                                                .tileDescriptionTextColor
+                                          : theme
+                                                .themeData
+                                                .inactiveSubtitleColor,
+                                    ),
                             child: description!,
                           ),
                         ),
@@ -147,7 +160,7 @@ class AndroidSettingsTile extends StatelessWidget {
                         activeThumbColor: enabled
                             ? activeSwitchColor
                             : (theme.themeData.inactiveSwitchColor ??
-                                theme.themeData.inactiveTitleColor),
+                                  theme.themeData.inactiveTitleColor),
                       ),
                     ),
                   ],
@@ -165,7 +178,8 @@ class AndroidSettingsTile extends StatelessWidget {
                 )
               else if (trailing != null)
                 Padding(
-                  padding: trailingPadding ??
+                  padding:
+                      trailingPadding ??
                       const EdgeInsets.symmetric(horizontal: 16),
                   child: IconTheme(
                     data: IconTheme.of(context).copyWith(
@@ -175,7 +189,7 @@ class AndroidSettingsTile extends StatelessWidget {
                     ),
                     child: trailing!,
                   ),
-                )
+                ),
             ],
           ),
         ),

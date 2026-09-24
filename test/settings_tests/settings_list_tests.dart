@@ -1,5 +1,5 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:settings_ui/settings_ui.dart';
 
@@ -8,71 +8,78 @@ import '../test_widget_screen.dart';
 void settingsListTests(DevicePlatform? platform) {
   group('Settings List tests in Material App ', () {
     testWidgets(
-        'Settings list with material application type should render correctly',
-        (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: TestWidgetScreen(
-            platform: platform,
-            applicationType: ApplicationType.material,
-            settingsTiles: [
-              SettingsTile.navigation(
-                title: const Text('Abstract settings screen'),
-                leading: const Icon(CupertinoIcons.wrench),
-                description:
-                    const Text('UI created to show plugin\'s possibilities'),
-                onPressed: (context) {},
-              ),
-              SettingsTile.navigation(
-                title: const Text('Abstract settings screen'),
-                leading: const Icon(CupertinoIcons.wrench),
-                description:
-                    const Text('UI created to show plugin\'s possibilities'),
-                onPressed: (context) {},
-              ),
-            ],
+      'Settings list with material application type should render correctly',
+      (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: TestWidgetScreen(
+              platform: platform,
+              applicationType: ApplicationType.material,
+              settingsTiles: [
+                SettingsTile.navigation(
+                  title: const Text('Abstract settings screen'),
+                  leading: const Icon(CupertinoIcons.wrench),
+                  description: const Text(
+                    'UI created to show plugin\'s possibilities',
+                  ),
+                  onPressed: (context) {},
+                ),
+                SettingsTile.navigation(
+                  title: const Text('Abstract settings screen'),
+                  leading: const Icon(CupertinoIcons.wrench),
+                  description: const Text(
+                    'UI created to show plugin\'s possibilities',
+                  ),
+                  onPressed: (context) {},
+                ),
+              ],
+            ),
           ),
-        ),
-      );
+        );
 
-      expect(find.byType(SettingsList), findsOneWidget);
-      expect(find.byType(SettingsSection), findsOneWidget);
-    });
+        expect(find.byType(SettingsList), findsOneWidget);
+        expect(find.byType(SettingsSection), findsOneWidget);
+      },
+    );
 
     testWidgets(
-        'Settings list with both application type should render correctly',
-        (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: TestWidgetScreen(
-            platform: platform,
-            applicationType: ApplicationType.both,
-            settingsTiles: [
-              SettingsTile.navigation(
-                title: const Text('Abstract settings screen'),
-                leading: const Icon(CupertinoIcons.wrench),
-                description:
-                    const Text('UI created to show plugin\'s possibilities'),
-                onPressed: (context) {},
-              ),
-              SettingsTile.navigation(
-                title: const Text('Abstract settings screen'),
-                leading: const Icon(CupertinoIcons.wrench),
-                description:
-                    const Text('UI created to show plugin\'s possibilities'),
-                onPressed: (context) {},
-              ),
-            ],
+      'Settings list with both application type should render correctly',
+      (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: TestWidgetScreen(
+              platform: platform,
+              applicationType: ApplicationType.both,
+              settingsTiles: [
+                SettingsTile.navigation(
+                  title: const Text('Abstract settings screen'),
+                  leading: const Icon(CupertinoIcons.wrench),
+                  description: const Text(
+                    'UI created to show plugin\'s possibilities',
+                  ),
+                  onPressed: (context) {},
+                ),
+                SettingsTile.navigation(
+                  title: const Text('Abstract settings screen'),
+                  leading: const Icon(CupertinoIcons.wrench),
+                  description: const Text(
+                    'UI created to show plugin\'s possibilities',
+                  ),
+                  onPressed: (context) {},
+                ),
+              ],
+            ),
           ),
-        ),
-      );
+        );
 
-      expect(find.byType(SettingsList), findsOneWidget);
-      expect(find.byType(SettingsSection), findsOneWidget);
-    });
+        expect(find.byType(SettingsList), findsOneWidget);
+        expect(find.byType(SettingsSection), findsOneWidget);
+      },
+    );
 
-    testWidgets('Settings list with big size screen should render correctly',
-        (tester) async {
+    testWidgets('Settings list with big size screen should render correctly', (
+      tester,
+    ) async {
       tester.view.devicePixelRatio = 2.625;
       final dpi = tester.view.devicePixelRatio;
       tester.view.physicalSize = Size(900 * dpi, 1200 * dpi);
@@ -88,15 +95,17 @@ void settingsListTests(DevicePlatform? platform) {
                 SettingsTile.navigation(
                   title: const Text('Abstract settings screen'),
                   leading: const Icon(CupertinoIcons.wrench),
-                  description:
-                      const Text('UI created to show plugin\'s possibilities'),
+                  description: const Text(
+                    'UI created to show plugin\'s possibilities',
+                  ),
                   onPressed: (context) {},
                 ),
                 SettingsTile.navigation(
                   title: const Text('Abstract settings screen'),
                   leading: const Icon(CupertinoIcons.wrench),
-                  description:
-                      const Text('UI created to show plugin\'s possibilities'),
+                  description: const Text(
+                    'UI created to show plugin\'s possibilities',
+                  ),
                   onPressed: (context) {},
                 ),
               ],
@@ -127,15 +136,17 @@ void settingsListTests(DevicePlatform? platform) {
               SettingsTile.navigation(
                 title: const Text('Abstract settings screen'),
                 leading: const Icon(CupertinoIcons.wrench),
-                description:
-                    const Text('UI created to show plugin\'s possibilities'),
+                description: const Text(
+                  'UI created to show plugin\'s possibilities',
+                ),
                 onPressed: (context) {},
               ),
               SettingsTile.navigation(
                 title: const Text('Abstract settings screen'),
                 leading: const Icon(CupertinoIcons.wrench),
-                description:
-                    const Text('UI created to show plugin\'s possibilities'),
+                description: const Text(
+                  'UI created to show plugin\'s possibilities',
+                ),
                 onPressed: (context) {},
               ),
             ],
