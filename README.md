@@ -4,7 +4,7 @@
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-android%20%7C%20ios%20%7C%20macos%20%7C%20windows%20%7C%20linux%20%7C%20web-lightgrey)](https://pub.dev/packages/settings_ui)
 
-A Flutter package for building settings screens that look native on **iOS**, **Android** and the **web**, from a single API. The style is picked at runtime: iOS 26-style grouped cards on iOS, macOS and Windows, Android 16-style cards on Android, Linux and Fuchsia, and Chrome-style cards on the web.
+A Flutter package for building settings screens that look native on **iOS**, **Android** and the **web**, from a single API. The style is picked at runtime: iOS 26-style grouped cards on iOS and macOS, Windows 11-style cards on Windows, Android 16-style cards on Android, Linux and Fuchsia, and Chrome-style cards on the web.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master/assets/v2/settings_ui_cover.png" height="560px">
@@ -317,7 +317,7 @@ SettingsTile(
 
 ### `SettingsTile.navigation`: navigation tile
 
-For rows that open another screen or a picker. In the iOS and web styles it adds a chevron after the value (it points left in right-to-left layouts). The Android style shows no chevron, like Android's own settings.
+For rows that open another screen or a picker. In the iOS, Windows and web styles it adds a chevron after the value (it points left in right-to-left layouts). The Android style shows no chevron, like Android's own settings.
 
 ```dart
 SettingsTile.navigation(
@@ -332,7 +332,7 @@ SettingsTile.navigation(
 
 ### `SettingsTile.switchTile`: switch tile
 
-In the iOS style it shows `CupertinoSettingsSwitch`, the iOS 26 switch. In the Android style it shows a Material `Switch` with a check or a cross on the thumb, and on the web a Material `Switch`.
+In the iOS style it shows `CupertinoSettingsSwitch`, the iOS 26 switch, and in the Windows style `FluentSettingsSwitch`, the Windows 11 toggle. In the Android style it shows a Material `Switch` with a check or a cross on the thumb, and on the web a Material `Switch`.
 
 ```dart
 SettingsTile.switchTile(
@@ -346,17 +346,17 @@ SettingsTile.switchTile(
 
 The tile is controlled: `initialValue` is the current value, and `onToggle` gets the new one. Passing `onToggle: null` disables the switch.
 
-Tapping the row works like each platform's settings app. In the Android and web styles, tapping anywhere on the row toggles the switch, and `onPressed` isn't called. In the iOS style only the switch itself toggles; tapping the rest of the row calls `onPressed`, if you set one.
+Tapping the row works like each platform's settings app. In the Android and web styles, tapping anywhere on the row toggles the switch, and `onPressed` isn't called. In the iOS and Windows styles only the switch itself toggles; tapping the rest of the row calls `onPressed`, if you set one.
 
 ### `value`, `description` and `titleDescription`
 
 The same tile shows its secondary text in different places, following each platform:
 
-| Parameter | iOS style | Android and web styles |
-|---|---|---|
-| `value` | Grey text at the end of the row, one line, at most half the row | Second line under the title |
-| `description` | Footer text under the card; the tiles after it start a new card | Second line under the title, only when `value` is not set |
-| `titleDescription` | Second line inside the row, under the title | Not shown |
+| Parameter | iOS style | Windows style | Android and web styles |
+|---|---|---|---|
+| `value` | Grey text at the end of the row, one line, at most half the row | Grey text at the end of the row, one line, at most half the row | Second line under the title |
+| `description` | Footer text under the card; the tiles after it start a new card | Grey second line inside the card | Second line under the title, only when `value` is not set |
+| `titleDescription` | Second line inside the row, under the title | Grey line under the title, above `description` | Not shown |
 
 So on Android and the web, a tile with both `value` and `description` shows only `value`. `value` exists on `SettingsTile` and `SettingsTile.navigation`; `description` and `titleDescription` exist on all three constructors.
 
@@ -412,12 +412,14 @@ SettingsList(
 | `DevicePlatform` | Style |
 |---|---|
 | `device` *(default)* | Auto-detected at runtime |
-| `iOS`, `macOS`, `windows` | iOS |
+| `iOS`, `macOS` | iOS |
+| `windows` | Windows 11 |
 | `android`, `fuchsia`, `linux` | Android |
 | `web` | Web |
 
 - **iOS** matches iOS 26 Settings: cards with 26pt continuous corners and 20pt side margins, 52pt rows with 17pt text, 17pt semibold section headers, grey footers, the `CupertinoSettingsSwitch`, and a chevron on navigation tiles.
 - **Android** matches Android 16 Settings: every tile sits on its own card, 2dp apart, with 20dp corners at the ends of a group, on a tinted page. 16sp titles and switches with a check or a cross.
+- **Windows** matches Windows 11 Settings (WinUI 3): every tile is its own card with 4px corners and a hairline border, 4px apart, at least 68px tall, with 14px titles, 12px descriptions, 20px icons, 14px semibold section headers, a thin chevron on navigation tiles, and the `FluentSettingsSwitch`. Clickable cards show the Windows hover, pressed and keyboard focus states. The content is a 1000px column with 36px margins (16px in narrow windows).
 - **Web** matches Chrome's settings page: cards with 8px corners and a light shadow, 14px titles, 13px descriptions, a chevron on navigation tiles, and a 680px column on wide windows.
 
 In a browser, the web style is used on every device, phones included. Elsewhere the style follows `Theme.of(context).platform`, so `ThemeData(platform: ...)` changes it too. Platforms that only exist in forks of Flutter, such as OpenHarmony, get the iOS style.
@@ -441,7 +443,7 @@ MaterialApp(
 )
 ```
 
-The iOS style uses fixed iOS system colors, like the Settings app: a grey grouped background, white cards (`#1C1C1E` in dark mode) and grey headers and values. It doesn't read your `ColorScheme`. Light or dark mode follows your app theme in every style.
+The iOS style uses fixed iOS system colors, like the Settings app: a grey grouped background, white cards (`#1C1C1E` in dark mode) and grey headers and values. The Windows style uses the Windows 11 colors: a `#F3F3F3` page with `#FBFBFB` cards (`#202020` and `#2B2B2B` in dark mode) and the Windows accent `#005FB8` (`#60CDFF` in dark mode) for switches. Neither reads your `ColorScheme`. Light or dark mode follows your app theme in every style.
 
 ### Custom theme overrides
 
@@ -535,7 +537,7 @@ SettingsList(
 
 ### Wide screens and split views
 
-When the list is wider than 810 (680 on the web), the tiles sit in a centered column of that width. The width is the list's own, not the screen's, so a list in a split view or side panel is laid out for that pane. To put the column at the start edge (left, or right in right-to-left layouts) instead of centering it:
+When the list is wider than 810 (680 on the web, 1000 on Windows), the tiles sit in a centered column of that width. The width is the list's own, not the screen's, so a list in a split view or side panel is laid out for that pane. To put the column at the start edge (left, or right in right-to-left layouts) instead of centering it:
 
 ```dart
 SettingsList(
@@ -602,6 +604,19 @@ CupertinoSettingsSwitch(
 
 The lens paints a little outside the switch (about 12.5pt past each end and 6pt above and below), so don't clip it tightly.
 
+### The Windows 11 switch on its own
+
+`FluentSettingsSwitch` is the switch the Windows style uses: the WinUI 3 `ToggleSwitch`, a 40x20 outlined track whose knob grows on hover and stretches while pressed, filled with the accent when on. It supports dragging, keyboard focus (Space or Enter toggles) and right-to-left layouts:
+
+```dart
+FluentSettingsSwitch(
+  value: _wifi,
+  onChanged: (value) => setState(() => _wifi = value),
+)
+```
+
+The keyboard focus rectangle paints a little outside the switch (7px to the sides, 8px above and below).
+
 ---
 
 ## API reference
@@ -642,7 +657,7 @@ None of the constructors is `const`.
 | `trailing` | `Widget?` | all | Widget at the end |
 | `value` | `Widget?` | default, navigation | Current value; see [where it shows](#value-description-and-titledescription) |
 | `description` | `Widget?` | all | Secondary text; see [where it shows](#value-description-and-titledescription) |
-| `titleDescription` | `Widget?` | all | Line under the title, iOS style only |
+| `titleDescription` | `Widget?` | all | Line under the title, iOS and Windows styles only |
 | `onPressed` | `Function(BuildContext)?` | all | Tap callback |
 | `enabled` | `bool` | all | `false` greys out the tile and ignores taps. Default `true` |
 | `compact` | `bool` | all | Halves the vertical padding. Default `false` |
@@ -651,7 +666,7 @@ None of the constructors is `const`.
 | `activeSwitchColor` | `Color?` | switchTile | Switch color when on |
 | `leadingPadding` | `EdgeInsetsGeometry?` | all | Padding around `leading` |
 | `titlePadding` | `EdgeInsetsGeometry?` | all | Padding around `title` |
-| `titleDescriptionPadding` | `EdgeInsetsGeometry?` | all | Padding around `titleDescription` (iOS style) |
+| `titleDescriptionPadding` | `EdgeInsetsGeometry?` | all | Padding around `titleDescription` (iOS and Windows styles) |
 | `trailingPadding` | `EdgeInsetsGeometry?` | all | Padding around `trailing` (Android and web styles: not on switch tiles) |
 | `descriptionPadding` | `EdgeInsetsGeometry?` | all | Padding around `description` |
 
@@ -664,24 +679,33 @@ None of the constructors is `const`.
 | `activeTrackColor` | `Color?` | Track color when on. Default: iOS system green |
 | `inactiveTrackColor` | `Color?` | Track color when off. Default: `#C5C5C7` light, `#5A5A5E` dark |
 
+### `FluentSettingsSwitch`
+
+| Parameter | Type | Description |
+|---|---|---|
+| `value` | `bool` | Whether the switch is on (required) |
+| `onChanged` | `ValueChanged<bool>?` | Called with the new value (required); `null` disables the switch |
+| `activeTrackColor` | `Color?` | Track color when on. Default: the Windows accent, `#005FB8` light, `#60CDFF` dark. The knob turns white or black to contrast |
+| `inactiveTrackColor` | `Color?` | Outline and knob color when off. Default: the Windows control stroke and secondary text colors |
+
 ### `SettingsThemeData`
 
 | Field | Type | Description |
 |---|---|---|
 | `settingsListBackground` | `Color?` | Background of the whole list |
 | `settingsSectionBackground` | `Color?` | Background of the cards |
-| `dividerColor` | `Color?` | Line between tiles (iOS and web styles) |
+| `dividerColor` | `Color?` | Line between tiles (iOS and web styles), card border (Windows style) |
 | `tileHighlightColor` | `Color?` | Tile press highlight color |
 | `titleTextColor` | `Color?` | Section header text color. In the iOS style also `titleDescription` and `description` |
 | `titleTextStyle` | `TextStyle?` | Section header text style |
 | `settingsTileTextColor` | `Color?` | Tile title text color |
 | `tileTextStyle` | `TextStyle?` | Tile title text style |
-| `tileDescriptionTextColor` | `Color?` | `description` and `value` text color (Android and web styles) |
+| `tileDescriptionTextColor` | `Color?` | `description` and `value` text color (Android and web styles), `description` (Windows style) |
 | `tileDescriptionTextStyle` | `TextStyle?` | `description` text style, and `value` in the Android and web styles |
-| `trailingTextColor` | `Color?` | `value` text color (iOS style) |
+| `trailingTextColor` | `Color?` | `value` text color (iOS and Windows styles) |
 | `leadingIconsColor` | `Color?` | Leading and trailing icons, and the chevron |
 | `inactiveTitleColor` | `Color?` | Title and icon color of a disabled tile |
-| `inactiveSubtitleColor` | `Color?` | `description` and `value` color of a disabled tile (Android and web styles) |
+| `inactiveSubtitleColor` | `Color?` | `description` and `value` color of a disabled tile (Android, Windows and web styles) |
 | `inactiveSwitchColor` | `Color?` | Switch color of a disabled tile |
 
 ---

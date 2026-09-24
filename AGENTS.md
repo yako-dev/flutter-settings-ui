@@ -38,9 +38,10 @@ cd example && flutter test integration_test/integration_test.dart -d <device-id>
 
 ### Platform dispatch
 
-Every public widget (`SettingsSection`, `SettingsTile`) is a thin dispatcher. At build time it reads `SettingsTheme.of(context).platform` and returns one of three implementations:
+Every public widget (`SettingsSection`, `SettingsTile`) is a thin dispatcher. At build time it reads `SettingsTheme.of(context).platform` and returns one of four implementations:
 
-- `iOS`, `macOS`, `windows` → iOS style (`platforms/ios_*`)
+- `iOS`, `macOS` → iOS style (`platforms/ios_*`)
+- `windows` → Windows 11 (Fluent) style (`platforms/fluent_*`)
 - `android`, `fuchsia`, `linux` → Android style (`platforms/android_*`)
 - `web` → web style (`platforms/web_*`)
 
@@ -51,7 +52,9 @@ lib/src/tiles/
     android_settings_tile.dart
     ios_settings_tile.dart
     web_settings_tile.dart
+    fluent_settings_tile.dart
     cupertino_settings_switch.dart  ← public, used by the iOS tile
+    fluent_settings_switch.dart     ← public, used by the Windows tile
 ```
 
 Same pattern for `lib/src/sections/`. `lib/src/list/settings_list.dart` resolves the platform, brightness and default padding.
@@ -64,7 +67,7 @@ Same pattern for `lib/src/sections/`. `lib/src/list/settings_list.dart` resolves
 
 Brightness: `SettingsList.brightness` if set; otherwise `applicationType` picks `Theme` (`material`), `CupertinoTheme` (`cupertino`), or, for `both`, `CupertinoTheme` when the app runs on iOS/macOS and `Theme` elsewhere (by the detected platform, not the `platform` override).
 
-Layout: `SettingsList` sizes its default padding from its own width (`LayoutBuilder`), keeping content in an 810 column (680 on web), centered or at the start edge (`crossAxisAlignment: start`). `contentPadding` replaces all of that. An empty `SettingsSection` renders `SizedBox.shrink()`.
+Layout: `SettingsList` sizes its default padding from its own width (`LayoutBuilder`), keeping content in an 810 column (680 on web, 1000 with 36 margins on Windows), centered or at the start edge (`crossAxisAlignment: start`). `contentPadding` replaces all of that. An empty `SettingsSection` renders `SizedBox.shrink()`.
 
 ### `DevicePlatform.device` is a sentinel
 
@@ -78,10 +81,12 @@ An internal `InheritedWidget` that `IOSSettingsSection` puts above each tile to 
 
 - **iOS** (iOS 26/27 Settings): 26pt continuous corners (`ClipRSuperellipse`), 20pt side margins, 52pt rows (16 + 17pt text + 16), 17pt tile text, 17pt semibold section headers in the secondary grey, value at most half the row on one line, chevron on navigation tiles, `CupertinoSettingsSwitch`. Headers are not upper-cased.
 - **Android** (Android 16/17 Settings): each tile on its own card, 2dp apart, 20dp outer / 4dp inner corners, 16dp side margins, on a `surfaceContainer` page; 16sp titles, 14sp medium section titles in `primary`; Material `Switch` with check/cross thumb icons; no chevron.
-- **Web** (Chrome settings): cards with 8px corners and elevation 2, 14px titles, 13px descriptions, 20px leading icons, chevron on navigation tiles, 680px max column (810 for the other styles), 16px side margins in narrow windows.
+- **Windows** (Windows 11 Settings, WinUI 3 / CommunityToolkit `SettingsCard`): one card per tile, 4px corners, 1px border (`dividerColor`), 4px apart, 68px min height (52 compact), 16px padding inside the 1px border; 20px icons with 2/20 margins; Body 14/20 titles, Caption 12/16 descriptions; value in secondary text and a painted 13px chevron at the end; section headers 14/20 semibold with margin 1,30,0,6; below 476px card width the content moves under the header, below 286px the icon hides. Clickable cards (with `onPressed`) get the WinUI hover, pressed and 2px+1px focus-ring states; others don't react. 1000px column with 36px margins (16 below 641px), 36 at the bottom. Colors are WinUI theme resources in `lib/src/utils/fluent_tokens.dart`; inside a list the Fluent controls pick light or dark from the card color. Fonts come from the app (Segoe UI on Windows; Segoe UI Variable is not bundled).
+- **`FluentSettingsSwitch`**: WinUI `ToggleSwitch` drawn with a `CustomPainter`: 40x20 track, knob 12 / 14 hovered / 17x14 pressed (anchored 3px in), accent `#005FB8`/`#60CDFF` at 90%/80% when hovered/pressed, black knob on the dark-mode accent. The keyboard focus ring paints outside its 40x20 box.
+- **Web** (Chrome settings): cards with 8px corners and elevation 2, 14px titles, 13px descriptions, 20px leading icons, chevron on navigation tiles, 680px max column (810 for iOS and Android, 1000 for Windows), 16px side margins in narrow windows.
 - **`CupertinoSettingsSwitch`**: iOS 26 switch drawn with a `CustomPainter` (no platform view, shader or backdrop filter). 63x28 track, 37x24 thumb, Liquid Glass-style lens while pressed or dragged. The lens paints outside the 63x28 box, so don't clip it tightly.
 
-Tap behavior on switch tiles differs on purpose: Android and web toggle on a row tap and never call `onPressed`; iOS toggles only on the switch and calls `onPressed` for the rest of the row.
+Tap behavior on switch tiles differs on purpose: Android and web toggle on a row tap and never call `onPressed`; iOS and Windows toggle only on the switch and call `onPressed` for the rest of the row.
 
 ### Public API surface (the only exports)
 
@@ -90,7 +95,7 @@ Tap behavior on switch tiles differs on purpose: Android and web toggle on a row
 - `SettingsList` (+ `ApplicationType`)
 - `SettingsSection`, `AbstractSettingsSection`, `CustomSettingsSection`
 - `SettingsTile` (+ `SettingsTileType`), `AbstractSettingsTile`, `CustomSettingsTile`
-- `CupertinoSettingsSwitch`
+- `CupertinoSettingsSwitch`, `FluentSettingsSwitch`
 - `DevicePlatform`, `PlatformUtils`
 - `SettingsTheme`, `SettingsThemeData`
 
@@ -100,7 +105,7 @@ Everything else in `platforms/` is internal. Don't export it.
 
 - `test/widget_test.dart` is the only entry point with a `main()`. Each file in `test/settings_tests/*_tests.dart` (and `test/utils_tests/`) defines a function such as `settingsTileTests(DevicePlatform platform)` or `nativeLookTests()`, and `widget_test.dart` calls it inside a `group`. A new test file does nothing until you call its function from `widget_test.dart`.
 - Platform-parameterized helpers are called once per `DevicePlatform`. Tests pass the platform explicitly to `SettingsList` (via `TestWidgetScreen` in `test/test_widget_screen.dart` or `_wrapWithMaterialApp`) so they don't depend on the host.
-- Wrap widgets in `MaterialApp`/`CupertinoApp` from material_ui/cupertino_ui. Find iOS-style switches with `find.byType(CupertinoSettingsSwitch)`, others with `find.byType(Switch)`.
+- Wrap widgets in `MaterialApp`/`CupertinoApp` from material_ui/cupertino_ui. Find iOS-style switches with `find.byType(CupertinoSettingsSwitch)`, Windows ones with `find.byType(FluentSettingsSwitch)`, others with `find.byType(Switch)`.
 - `example/integration_test/integration_test.dart` drives the example app's gallery screens. It runs on a device, simulator or emulator (`-d`), not in CI.
 
 ## CI and release

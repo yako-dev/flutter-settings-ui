@@ -4,13 +4,14 @@
 * Migrated from `package:flutter/material.dart` and `package:flutter/cupertino.dart` to the decoupled [`material_ui`](https://pub.dev/packages/material_ui) and [`cupertino_ui`](https://pub.dev/packages/cupertino_ui) packages (#207)
 * Requires Flutter >=3.44.0 and Dart SDK >=3.12.0
 * Your app must use `MaterialApp`/`CupertinoApp` from `material_ui`/`cupertino_ui`. In an app still on `package:flutter/material.dart`, `SettingsList` can't read your theme and falls back to default colors and light mode. Stay on `^3.0.1` until your app has migrated.
-* New default look that matches iOS 26/27, Android 16/17 and current Chrome settings (see Design refresh). Sizes, paddings and default colors changed. Colors you set in `SettingsThemeData` still win.
-* iOS-style switch tiles (iOS, macOS, Windows) now show the new `CupertinoSettingsSwitch` instead of `CupertinoSwitch`. Tests that find `CupertinoSwitch` need to look for `CupertinoSettingsSwitch`.
+* New default look that matches iOS 26/27, Android 16/17, Windows 11 and current Chrome settings (see Design refresh). Sizes, paddings and default colors changed. Colors you set in `SettingsThemeData` still win.
+* iOS-style switch tiles (iOS, macOS) now show the new `CupertinoSettingsSwitch` instead of `CupertinoSwitch`, and Windows switch tiles the new `FluentSettingsSwitch`. Tests that find `CupertinoSwitch` need to look for `CupertinoSettingsSwitch` (or `FluentSettingsSwitch` on Windows).
 
 ### Design refresh
-* iOS, macOS, Windows: 26pt cards with continuous corners and 20pt side margins, 52pt rows with 17pt text, 17pt semibold section headers, and the iOS secondary grey for headers and footers. iOS no longer uses all-caps headers, so pass headers in sentence case.
-* iOS, macOS, Windows: a new switch that matches the iOS 26/27 one, drawn entirely in Flutter. It has a 63x28 track and a pill-shaped thumb, and while it is pressed or dragged the thumb becomes a Liquid Glass-style lens. It is public as `CupertinoSettingsSwitch`, so you can use it outside settings lists too.
+* iOS, macOS: 26pt cards with continuous corners and 20pt side margins, 52pt rows with 17pt text, 17pt semibold section headers, and the iOS secondary grey for headers and footers. iOS no longer uses all-caps headers, so pass headers in sentence case.
+* iOS, macOS: a new switch that matches the iOS 26/27 one, drawn entirely in Flutter. It has a 63x28 track and a pill-shaped thumb, and while it is pressed or dragged the thumb becomes a Liquid Glass-style lens. It is public as `CupertinoSettingsSwitch`, so you can use it outside settings lists too.
 * Android, Linux, Fuchsia: every tile sits on its own card, 2dp apart, with 20dp corners at the ends of a group and 4dp in between, on a `surfaceContainer` page. 16sp titles, tighter rows, and switches that show a check or a cross.
+* Windows: a new Windows 11 Settings style instead of the iOS one: one card per tile with 4px corners and a hairline border, 68px rows, 14px titles and 12px descriptions, the Windows hover, pressed and keyboard focus states, and `FluentSettingsSwitch`, a public WinUI-style toggle drawn in Flutter.
 * Web: Chrome-style white cards with 8px corners and a light shadow, 14px titles and 13px descriptions, 20px leading icons, a chevron on navigation tiles, near-black section titles, and a 680px column on wide screens (16px side margins in narrow windows).
 
 ### Bug fixes
