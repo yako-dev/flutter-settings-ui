@@ -49,6 +49,7 @@ void main() {
       expect(find.text('Web Settings'), findsOneWidget);
       expect(find.text('iOS Native Settings Screen'), findsOneWidget);
       expect(find.text('Android Native Settings Screen'), findsOneWidget);
+      expect(find.text('Windows Display Settings'), findsOneWidget);
 
       // Section titles
       expect(find.text('General'), findsOneWidget);
@@ -516,6 +517,34 @@ void main() {
       expect(find.text('Search Settings'), findsOneWidget);
       expect(find.text('Network & internet'), findsOneWidget);
       expect(find.text('Sound & vibration'), findsOneWidget);
+
+      await goBack(tester);
+    });
+  });
+
+  group('Windows Display Settings', () {
+    testWidgets('Renders the Windows style and toggles Night light', (
+      tester,
+    ) async {
+      app.main();
+      await pumpSettled(tester);
+
+      await tester.ensureVisible(find.text('Windows Display Settings'));
+      await pumpSettled(tester);
+      await tester.tap(find.text('Windows Display Settings'));
+      await pumpSettled(tester);
+
+      expect(find.text('Brightness & color'), findsOneWidget);
+      expect(find.text('Scale & layout'), findsOneWidget);
+      expect(find.text('150% (Recommended)'), findsOneWidget);
+
+      final nightLight = find.byType(FluentSettingsSwitch);
+      expect(tester.widget<FluentSettingsSwitch>(nightLight).value, false);
+      expect(find.text('Off'), findsOneWidget);
+      await tester.tap(nightLight);
+      await pumpSettled(tester);
+      expect(tester.widget<FluentSettingsSwitch>(nightLight).value, true);
+      expect(find.text('On'), findsOneWidget);
 
       await goBack(tester);
     });

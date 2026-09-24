@@ -1,4 +1,7 @@
+import 'package:example/screens/gallery/cross_platform_settings_screen.dart';
+import 'package:example/screens/gallery/windows_display_settings_screen.dart';
 import 'package:example/screens/gallery_screen.dart';
+import 'package:example/utils/launch_options.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -23,8 +26,13 @@ class MyApp extends StatelessWidget {
         ),
         brightness: Brightness.dark,
       ),
+      themeMode: LaunchOptions.themeMode,
       title: 'Settings UI Demo',
-      home: const GalleryScreen(),
+      home: switch (LaunchOptions.screen) {
+        'cross-platform' => const CrossPlatformSettingsScreen(),
+        'windows-display' => const WindowsDisplaySettingsScreen(),
+        _ => const GalleryScreen(),
+      },
     );
   }
 }

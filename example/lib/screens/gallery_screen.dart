@@ -5,6 +5,7 @@ import 'package:example/screens/gallery/ios_developer_screen.dart';
 import 'package:example/screens/gallery/ios_native_settings_screen.dart';
 import 'package:example/screens/gallery/material3_demo_screen.dart';
 import 'package:example/screens/gallery/web_chrome_settings.dart';
+import 'package:example/screens/gallery/windows_display_settings_screen.dart';
 import 'package:example/utils/navigation.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:material_ui/material_ui.dart';
@@ -110,6 +111,17 @@ class GalleryScreen extends StatelessWidget {
                     context: context,
                     screen: const AndroidNativeSettingsScreen(),
                     style: NavigationRouteStyle.cupertino,
+                  );
+                },
+              ),
+              SettingsTile.navigation(
+                leading: const Icon(Icons.desktop_windows_outlined),
+                title: const Text('Windows Display Settings'),
+                onPressed: (context) {
+                  Navigation.navigateTo(
+                    context: context,
+                    screen: const WindowsDisplaySettingsScreen(),
+                    style: NavigationRouteStyle.material,
                   );
                 },
               ),
