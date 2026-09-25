@@ -31,9 +31,14 @@ part 'settings_split_controller.dart';
 ///
 /// | Style | Two panes when | List pane |
 /// |---|---|---|
-/// | iOS (iOS, macOS, Windows) | width >= 600 and shortest side >= 600 (any shortest side on desktop) | 320pt sidebar |
-/// | Android (Android, Linux, Fuchsia) | width >= 720 and shortest side >= 600, like AOSP Settings | 36.36% of the width |
+/// | iOS (also macOS and Windows for now) | width >= 600 and shortest side >= 600 (any shortest side on desktop) | 320pt sidebar |
+/// | Android, Fuchsia (also GNOME for now) | width >= 720 and shortest side >= 600, like AOSP Settings | 36.36% of the width |
 /// | Web | width > 980, like Chrome | 266px menu |
+///
+/// The macOS, Windows and GNOME styles don't have their own split view look
+/// yet: they use the header and pane rules above, and their list pane draws
+/// iPad sidebar rows (macOS, Windows) or the Android cards (GNOME) in the
+/// style's colors. Their pages keep their own look in the detail pane.
 ///
 /// A separating hinge (a hinge, or a fold in the book posture) always gets a
 /// pane on each side of it. The panes follow the text direction.

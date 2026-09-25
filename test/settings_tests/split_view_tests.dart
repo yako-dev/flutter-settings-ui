@@ -5,6 +5,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/settings_ui.dart';
+import 'package:settings_ui/src/tiles/platforms/adwaita_settings_tile.dart';
+import 'package:settings_ui/src/tiles/platforms/android_settings_tile.dart';
+import 'package:settings_ui/src/tiles/platforms/fluent_settings_tile.dart';
+import 'package:settings_ui/src/tiles/platforms/ios_settings_tile.dart';
+import 'package:settings_ui/src/tiles/platforms/macos_settings_tile.dart';
+import 'package:settings_ui/src/utils/theme_provider.dart';
 
 /// Tests for SettingsSplitView, SettingsDestination and the selected-tile
 /// theme tokens.
@@ -1547,6 +1553,221 @@ void splitViewTests() {
       final copy = a.copyWith(selectedTileColor: const Color(0xFF000009));
       expect(copy.selectedTileColor, const Color(0xFF000009));
       expect(copy.listPaneBackground, const Color(0xFF000004));
+    });
+  });
+
+  group('macOS, Windows and GNOME styles', () {
+    // The style, and the tiles its list pane falls back to with two panes.
+    final cases = [
+      (
+        DevicePlatform.macOS,
+        TargetPlatform.macOS,
+        MacosSettingsTile,
+        IOSSettingsTile,
+      ),
+      (
+        DevicePlatform.windows,
+        TargetPlatform.windows,
+        FluentSettingsTile,
+        IOSSettingsTile,
+      ),
+      (
+        DevicePlatform.linux,
+        TargetPlatform.linux,
+        AdwaitaSettingsTile,
+        AndroidSettingsTile,
+      ),
+    ];
+
+    for (final (platform, target, tileType, listPaneTileType) in cases) {
+      for (final brightness in Brightness.values) {
+        testWidgets('$platform (${brightness.name}): the list pane draws '
+            'sidebar rows in the style colors, the page its own tiles', (
+          tester,
+        ) async {
+          await _setSize(tester, const Size(1280, 800));
+          await tester.pumpWidget(
+            _app(
+              _view(platform: platform),
+              platform: target,
+              brightness: brightness,
+            ),
+          );
+          await tester.pumpAndSettle();
+          expect(tester.takeException(), isNull);
+          expect(_isSplit(tester), isTrue);
+
+          final context = tester.element(find.byType(SettingsSplitView));
+          final theme = ThemeProvider.getTheme(
+            context: context,
+            platform: platform,
+            brightness: brightness,
+          );
+          final listPane = find.byKey(
+            const ValueKey('settings_split_list_pane'),
+          );
+          expect(
+            find.descendant(of: listPane, matching: find.byType(tileType)),
+            findsNothing,
+          );
+          expect(
+            find.descendant(
+              of: listPane,
+              matching: find.byType(listPaneTileType),
+            ),
+            findsWidgets,
+          );
+          expect(
+            tester
+                .widget<Material>(
+                  find
+                      .descendant(of: listPane, matching: find.byType(Material))
+                      .first,
+                )
+                .color,
+            theme.listPaneBackground,
+          );
+          expect(_selectedTitles(tester), ['Network']);
+          if (listPaneTileType == IOSSettingsTile) {
+            expect(_tileColor(tester, 'Network'), theme.selectedTileColor);
+            expect(_tileColor(tester, 'Display'), isNull);
+          } else {
+            Color? fill(String title) => tester
+                .widget<Material>(
+                  find
+                      .ancestor(
+                        of: _listTile(title),
+                        matching: find.byType(Material),
+                      )
+                      .first,
+                )
+                .color;
+            expect(fill('Network'), theme.selectedTileColor);
+            expect(fill('Display'), Colors.transparent);
+          }
+
+          // The page in the detail pane keeps the style.
+          expect(
+            find.ancestor(
+              of: find.text('Wi-Fi body'),
+              matching: find.byType(tileType),
+            ),
+            findsOneWidget,
+          );
+        });
+      }
+
+      testWidgets('$platform: one pane shows the style everywhere', (
+        tester,
+      ) async {
+        await _setSize(tester, const Size(500, 800));
+        await tester.pumpWidget(
+          _app(_view(platform: platform), platform: target),
+        );
+        await tester.pumpAndSettle();
+        expect(_isSplit(tester), isFalse);
+        expect(find.byType(listPaneTileType), findsNothing);
+        expect(find.byType(tileType), findsWidgets);
+
+        await tester.tap(_listTile('Network'));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        expect(
+          find.ancestor(
+            of: find.text('Wi-Fi body'),
+            matching: find.byType(tileType),
+          ),
+          findsOneWidget,
+        );
+      });
+    }
+
+    ListView detailList(WidgetTester tester) => tester.widget<ListView>(
+      find
+          .descendant(
+            of: find
+                .ancestor(
+                  of: find.text('Wi-Fi body'),
+                  matching: find.byType(SettingsList),
+                )
+                .first,
+            matching: find.byType(ListView),
+          )
+          .first,
+    );
+
+    double detailWidth(WidgetTester tester) => tester
+        .getSize(
+          find
+              .ancestor(
+                of: find.text('Wi-Fi body'),
+                matching: find.byType(SettingsList),
+              )
+              .first,
+        )
+        .width;
+
+    testWidgets('pages keep their column rules in the detail pane', (
+      tester,
+    ) async {
+      await _setSize(tester, const Size(1280, 800));
+
+      // macOS: the 640pt column, centered in the pane.
+      await tester.pumpWidget(
+        _app(
+          _view(platform: DevicePlatform.macOS),
+          platform: TargetPlatform.macOS,
+        ),
+      );
+      await tester.pumpAndSettle();
+      var padding = detailList(tester).padding! as EdgeInsets;
+      final macWidth = detailWidth(tester);
+      expect(padding.left, (macWidth - 640) / 2);
+      expect(padding.right, (macWidth - 640) / 2);
+
+      // Windows: 36 margins (the pane is wider than 641), not iPad's none.
+      await tester.pumpWidget(
+        _app(
+          _view(platform: DevicePlatform.windows),
+          platform: TargetPlatform.windows,
+        ),
+      );
+      await tester.pumpAndSettle();
+      padding = detailList(tester).padding! as EdgeInsets;
+      expect(padding.left, 36);
+      expect(padding.right, 36);
+
+      // iOS pages fill the pane.
+      await tester.pumpWidget(
+        _app(_view(platform: DevicePlatform.iOS), platform: TargetPlatform.iOS),
+      );
+      await tester.pumpAndSettle();
+      padding = detailList(tester).padding! as EdgeInsets;
+      expect(padding.left, 0);
+      expect(padding.right, 0);
+    });
+
+    testWidgets('the styles define the split view tokens', (tester) async {
+      await tester.pumpWidget(_app(const SizedBox()));
+      final context = tester.element(find.byType(SizedBox));
+      for (final platform in [
+        DevicePlatform.macOS,
+        DevicePlatform.windows,
+        DevicePlatform.linux,
+      ]) {
+        for (final brightness in Brightness.values) {
+          final theme = ThemeProvider.getTheme(
+            context: context,
+            platform: platform,
+            brightness: brightness,
+          );
+          final reason = '$platform ${brightness.name}';
+          expect(theme.listPaneBackground, isNotNull, reason: reason);
+          expect(theme.selectedTileColor, isNotNull, reason: reason);
+          expect(theme.selectedTileTextColor, isNotNull, reason: reason);
+          expect(theme.selectedTileIconColor, isNotNull, reason: reason);
+        }
+      }
     });
   });
 

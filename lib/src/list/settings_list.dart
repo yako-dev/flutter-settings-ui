@@ -154,9 +154,10 @@ class SettingsList extends StatelessWidget {
     double width,
   ) {
     final hint = SettingsContentColumnHint.of(context, width);
-    if (hint != null && hint.fillWidth) {
+    if (hint != null && hint.fillWidth && _fillsDetailPane(platform)) {
       // A page in the detail pane of iPad or Android Settings fills the
-      // pane: no spare width to turn into side padding.
+      // pane: no spare width to turn into side padding. (These styles have
+      // no minimum side padding, so a zero width gives just that.)
       return calculateDefaultPadding(platform, context, width: 0);
     }
     final reserve = hint?.endReserve ?? 0;
@@ -171,6 +172,27 @@ class SettingsList extends StatelessWidget {
       left: isRtl ? padding.left + reserve : null,
       right: isRtl ? null : padding.right + reserve,
     );
+  }
+
+  /// Whether a list in this style fills a split view's detail pane.
+  ///
+  /// iPad and Android Settings pages use the whole detail pane. The content
+  /// panes of macOS System Settings, Windows Settings and GNOME Settings are
+  /// what these styles' own columns and margins model, so they keep them
+  /// there; the web style keeps Chrome's 680px column.
+  static bool _fillsDetailPane(DevicePlatform platform) {
+    switch (platform) {
+      case DevicePlatform.iOS:
+      case DevicePlatform.android:
+      case DevicePlatform.fuchsia:
+        return true;
+      case DevicePlatform.macOS:
+      case DevicePlatform.windows:
+      case DevicePlatform.linux:
+      case DevicePlatform.web:
+      case DevicePlatform.device:
+        return false;
+    }
   }
 
   /// The list padding used when [contentPadding] is null.

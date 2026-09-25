@@ -127,6 +127,16 @@ class ThemeProvider {
       leadingIconsColor: secondaryLabel,
       inactiveTitleColor: tertiaryLabel,
       inactiveSubtitleColor: tertiaryLabel,
+      // The System Settings sidebar: its flat (non-glass) fill, and the
+      // accent-filled selected row with a white label.
+      listPaneBackground: isLight
+          ? const Color(0xFFEDEDED)
+          : const Color(0xFF282828),
+      selectedTileColor: isLight
+          ? const Color(0xFF0070F5)
+          : const Color(0xFF007AFF),
+      selectedTileTextColor: const Color(0xFFFFFFFF),
+      selectedTileIconColor: const Color(0xFFFFFFFF),
     );
   }
 
@@ -234,6 +244,16 @@ class ThemeProvider {
       // Disabled rows are drawn at opacity 0.5.
       inactiveTitleColor: dim(0.5),
       inactiveSubtitleColor: dim(0.55 * 0.5),
+      // The GNOME Settings sidebar (--sidebar-bg-color); a selected row is
+      // the foreground at 10% over it, not the accent, and keeps its text
+      // color. Light mode uses that result as a flat color: over a white
+      // card, 10% would look like the sidebar itself.
+      listPaneBackground: isLight
+          ? const Color(0xFFEBEBED)
+          : const Color(0xFF2E2E32),
+      selectedTileColor: isLight ? const Color(0xFFD8D8DB) : dim(0.10),
+      selectedTileTextColor: foreground,
+      selectedTileIconColor: foreground,
     );
   }
 
@@ -255,6 +275,12 @@ class ThemeProvider {
       leadingIconsColor: tokens.textPrimary,
       inactiveTitleColor: tokens.textDisabled,
       inactiveSubtitleColor: tokens.textDisabled,
+      // The NavigationView pane of Windows Settings: on the page itself, with
+      // a neutral fill for the selected item.
+      listPaneBackground: tokens.page,
+      selectedTileColor: tokens.navItemSelected,
+      selectedTileTextColor: tokens.textPrimary,
+      selectedTileIconColor: tokens.textPrimary,
     );
   }
 

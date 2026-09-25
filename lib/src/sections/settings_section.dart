@@ -6,6 +6,7 @@ import 'package:settings_ui/src/sections/platforms/fluent_settings_section.dart'
 import 'package:settings_ui/src/sections/platforms/ios_settings_section.dart';
 import 'package:settings_ui/src/sections/platforms/macos_settings_section.dart';
 import 'package:settings_ui/src/sections/platforms/web_settings_section.dart';
+import 'package:settings_ui/src/split/split_scopes.dart';
 import 'package:settings_ui/src/tiles/abstract_settings_tile.dart';
 import 'package:settings_ui/src/utils/platform_utils.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
@@ -32,7 +33,7 @@ class SettingsSection extends AbstractSettingsSection {
 
     final theme = SettingsTheme.of(context);
 
-    switch (theme.platform) {
+    switch (SettingsSplitListScope.tilePlatformOf(context, theme.platform)) {
       case DevicePlatform.android:
       case DevicePlatform.fuchsia:
         return AndroidSettingsSection(

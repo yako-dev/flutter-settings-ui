@@ -7,7 +7,9 @@ import 'package:flutter/widgets.dart';
 /// lists nested deeper in the page are not affected.
 ///
 /// - [fillWidth]: iPad and Android Settings use the whole detail pane, so
-///   the list drops its 810 column there.
+///   an iOS, Android or Fuchsia style list drops its 810 column there. The
+///   macOS, Windows and GNOME styles keep their columns and margins, which
+///   model the content panes of those platforms' settings apps.
 /// - [endReserve]: Chrome's settings page doesn't center the 680px column in
 ///   the space next to its menu: a spacer at the end grows as fast as the
 ///   content area, so the column sits closer to the menu. The web detail

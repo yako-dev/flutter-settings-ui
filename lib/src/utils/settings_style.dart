@@ -132,7 +132,10 @@ class ResolvedSettingsStyle {
   );
 }
 
-/// Which of the three looks a [DevicePlatform] uses.
+/// Which of the three split view and page header looks a [DevicePlatform]
+/// uses: the iPad one (iOS, and for now macOS and Windows), the Android one
+/// (Android, Fuchsia, and for now GNOME) or Chrome's. Tiles and sections
+/// dispatch on the [DevicePlatform] itself.
 enum SettingsStyleFamily { cupertino, material, web }
 
 SettingsStyleFamily settingsStyleFamily(DevicePlatform platform) {

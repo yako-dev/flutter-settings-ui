@@ -521,7 +521,7 @@ Each style follows its platform's Settings app:
 | Android, Fuchsia | width >= 720dp and smallest width >= 600dp (AOSP's rule): tablets and unfolded foldables, not phones in landscape. Desktop: width only | 36.36% of the width on `surfaceDim`, the same cards as the phone. No icons under 380dp | card filled with the page color |
 | Web | width > 980px (Chrome's rule) | Chrome's 266px menu | tinted pill rounded on the end side |
 | macOS, Windows (for now) | as iOS | as iOS, in the style's colors: the System Settings sidebar grey, or the Windows page color | macOS: accent capsule, white text. Windows: neutral grey |
-| Linux (GNOME, for now) | as Android | 36.36% of the width on the GNOME sidebar grey, iPad-style rows without cards | the text color at 10%, like GNOME |
+| Linux (GNOME, for now) | as Android | as Android, in GNOME's colors: the GNOME sidebar grey and white cards | a neutral grey (#D8D8DB, or white 10% in dark mode), like GNOME's selection |
 
 The macOS, Windows and GNOME styles don't have a split view look of their own yet: they take the headers and pane rules of the iOS or Android style. Their pages keep their own look in the detail pane, with their own column and margins; iOS and Android pages fill the pane.
 

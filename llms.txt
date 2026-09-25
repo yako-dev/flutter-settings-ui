@@ -213,10 +213,10 @@ Defaults per style:
 | iOS | width >= 600 and shortest side >= 600 (desktop: width only) | 320pt sidebar, `listPaneBackground` #E2E6F0 / #181D20, rows without cards | capsule #0080F5 / #13A4FF, white text |
 | macOS, Windows (for now) | as iOS | as iOS, on #EDEDED / #282828 (macOS) or the page color #F3F3F3 / #202020 (Windows) | macOS: capsule #0070F5 / #007AFF, white text; Windows: neutral #EAEAEA / #2D2D2D |
 | Android, Fuchsia | width >= 720 and shortest side >= 600 (desktop: width only) | 36.36% of the width on `surfaceDim`, phone cards; no leading icons under 380dp | card filled with `surfaceContainer` (the page color) |
-| Linux (GNOME, for now) | as Android | 36.36% of the width on #EBEBED / #2E2E32, iPad-style rows without cards | the text color at 10%, text unchanged |
+| Linux (GNOME, for now) | as Android | as Android, on #EBEBED / #2E2E32 with the GNOME cards | neutral grey #D8D8DB (dark: white 10%), text unchanged |
 | web | width > 980 | Chrome menu, 266px, 40px items, no descriptions | tint of `primary` / `primary` in dark, end-rounded pill |
 
-The macOS, Windows and GNOME styles have no split view look of their own yet: they take the headers and pane rules of the iOS or Android style, and their list pane draws iPad sidebar rows in the style's colors. Their pages keep their own look, and their own column and margins, in the detail pane; iOS and Android pages fill it.
+The macOS, Windows and GNOME styles have no split view look of their own yet: they take the headers and pane rules of the iOS or Android style, and their list pane draws iPad sidebar rows (macOS, Windows) or the Android cards (GNOME) in the style's colors. Their pages keep their own look, and their own column and margins, in the detail pane; iOS and Android pages fill it.
 
 Behavior: only tiles with a `destination` whose id is shown are highlighted, and only with two panes. Destinations of tiles inside a page push inside the detail pane. Two panes to one: a page the user opened stays on top of the list (with its pushed pages and state), the default page is dropped. Back pops pages pushed inside the detail pane, then the page over the list, then the screen; a `PopScope` in a page can veto. A separating hinge (hinge, or fold half opened) gets one pane on each side. RTL puts the list on the right.
 

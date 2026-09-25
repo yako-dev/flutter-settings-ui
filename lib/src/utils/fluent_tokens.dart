@@ -24,6 +24,7 @@ class FluentTokens {
     required this.textPrimary,
     required this.textSecondary,
     required this.textDisabled,
+    required this.navItemSelected,
     required this.focusOuter,
     required this.focusInner,
     required this.accent,
@@ -75,6 +76,10 @@ class FluentTokens {
   /// `TextFillColorDisabled` on [card].
   final Color textDisabled;
 
+  /// `SubtleFillColorSecondary` on [page]: the selected (and hovered) item
+  /// of a NavigationView pane.
+  final Color navItemSelected;
+
   /// `FocusStrokeColorOuter` (alpha), the 2px outer focus ring.
   final Color focusOuter;
 
@@ -119,6 +124,7 @@ class FluentTokens {
     textPrimary: Color(0xFF1B1B1B),
     textSecondary: Color(0xFF5F5F5F),
     textDisabled: Color(0xFFA0A0A0),
+    navItemSelected: Color(0xFFEAEAEA),
     focusOuter: Color(0xE4000000),
     focusInner: Color(0xB3FFFFFF),
     accent: Color(0xFF005FB8),
@@ -145,6 +151,7 @@ class FluentTokens {
     textPrimary: Color(0xFFFFFFFF),
     textSecondary: Color(0xFFCFCFCF),
     textDisabled: Color(0xFF787878),
+    navItemSelected: Color(0xFF2D2D2D),
     focusOuter: Color(0xFFFFFFFF),
     focusInner: Color(0xB3000000),
     accent: Color(0xFF60CDFF),

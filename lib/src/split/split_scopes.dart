@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:settings_ui/src/split/settings_destination.dart';
 import 'package:settings_ui/src/split/settings_split_view.dart';
+import 'package:settings_ui/src/utils/platform_utils.dart';
 
 /// Opens a destination from a tile of a split view's list pane.
 typedef SettingsDestinationOpener =
@@ -36,6 +37,35 @@ class SettingsSplitListScope extends InheritedWidget {
 
   static SettingsSplitListScope? maybeOf(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<SettingsSplitListScope>();
+
+  /// The style that sections and tiles at [context] draw in, for a list in
+  /// the [platform] style.
+  ///
+  /// The macOS, Windows and GNOME styles have no sidebar look of their own
+  /// yet. In the list pane of two panes, macOS and Windows draw iPad sidebar
+  /// rows (no cards, a filled selected row) and GNOME the Android homepage
+  /// cards (which keep the tiles' descriptions), in the style's own colors.
+  /// Everywhere else this is [platform].
+  static DevicePlatform tilePlatformOf(
+    BuildContext context,
+    DevicePlatform platform,
+  ) {
+    switch (platform) {
+      case DevicePlatform.macOS:
+      case DevicePlatform.windows:
+        final isSplit = maybeOf(context)?.isSplit ?? false;
+        return isSplit ? DevicePlatform.iOS : platform;
+      case DevicePlatform.linux:
+        final isSplit = maybeOf(context)?.isSplit ?? false;
+        return isSplit ? DevicePlatform.android : platform;
+      case DevicePlatform.iOS:
+      case DevicePlatform.android:
+      case DevicePlatform.fuchsia:
+      case DevicePlatform.web:
+      case DevicePlatform.device:
+        return platform;
+    }
+  }
 
   /// Whether a tile opening [destination] is drawn selected.
   bool isSelected(SettingsDestination? destination) =>

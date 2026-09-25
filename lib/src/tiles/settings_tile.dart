@@ -162,7 +162,7 @@ class SettingsTile extends AbstractSettingsTile {
     final selected = listPane?.isSelected(destination) ?? false;
     final onPressed = _effectiveOnPressed;
 
-    switch (theme.platform) {
+    switch (SettingsSplitListScope.tilePlatformOf(context, theme.platform)) {
       case DevicePlatform.android:
       case DevicePlatform.fuchsia:
         return AndroidSettingsTile(
