@@ -219,6 +219,7 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
   late final _DetailObserver _detailObserver = _DetailObserver(
     _handleDetailPush,
   );
+  late final _StackObserver _stackObserver = _StackObserver(_syncStack);
 
   /// Top-level destinations from [SettingsSplitView.sections], in order.
   Map<String, _Entry> _destinations = const {};
@@ -239,6 +240,16 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
 
   bool _detailCanPop = false;
   bool _leaving = false;
+
+  /// One pane: the top route of the stack navigator was pushed from the
+  /// list pane (a tile's own `Navigator.push`, a menu, a sheet), so back
+  /// pops it first.
+  bool _stackPagelessTop = false;
+
+  /// One pane: routes pushed from the list pane are open (or animating
+  /// out). The view keeps one pane until they are gone, so they don't
+  /// vanish when the window widens.
+  bool _holdOnePane = false;
 
   /// Whether the Windows style's compact rail is open over the detail pane.
   bool _fluentPaneOpen = false;
@@ -399,9 +410,17 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
 
   bool get _canHandleBack =>
       !_leaving &&
-      ((_detailCanPop && _detailVisible) || (!_isSplit && _pickedId != null));
+      ((!_isSplit && _stackPagelessTop) ||
+          (_detailCanPop && _detailVisible) ||
+          (!_isSplit && _pickedId != null));
 
   Future<void> _handleBack() async {
+    final stack = _stackKey.currentState;
+    if (!_isSplit && stack != null && _stackObserver.topIsPageless) {
+      // A route pushed from the list pane: pops it, or lets it veto.
+      await stack.maybePop();
+      return;
+    }
     final detail = _detailKey.currentState;
     if (detail != null && _detailVisible) {
       // Pops a page pushed inside the detail pane, or lets the page veto.
@@ -426,6 +445,35 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
   void _handleStackPageRemoved(Page<Object?> page) {
     if (page.key == _hostPageKey) _clearSelection();
   }
+
+  /// Reads the routes pushed from the list pane in one pane.
+  void _syncStack() {
+    final pagelessTop = _stackObserver.topIsPageless;
+    final hold = _stackObserver.hasPageless;
+    if (!mounted ||
+        (pagelessTop == _stackPagelessTop && hold == _holdOnePane)) {
+      return;
+    }
+    setState(() {
+      _stackPagelessTop = pagelessTop;
+      _holdOnePane = hold;
+    });
+  }
+
+  bool _handleStackNavigation(NavigationNotification notification) {
+    _syncStack();
+    // The split view's PopScope speaks for its navigators.
+    return true;
+  }
+
+  // Named routes pushed from the list pane in one pane come from the app's
+  // navigator, as they do with two panes (where the list pane isn't inside
+  // the view's own navigator).
+  Route<dynamic>? _generateStackRoute(RouteSettings settings) =>
+      Navigator.maybeOf(context)?.widget.onGenerateRoute?.call(settings);
+
+  Route<dynamic>? _unknownStackRoute(RouteSettings settings) =>
+      Navigator.maybeOf(context)?.widget.onUnknownRoute?.call(settings);
 
   bool _handleDetailNavigation(NavigationNotification notification) {
     // Read the state from the navigator instead of the notification: routes
@@ -517,7 +565,7 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
           );
         }
 
-        final geometry = computeSplitGeometry(
+        var geometry = computeSplitGeometry(
           family: settingsStyleFamily(style.platform),
           forceSingle: widget.layout == SettingsSplitLayout.single,
           forceSplit: widget.layout == SettingsSplitLayout.split,
@@ -530,6 +578,10 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
           listPaneWidth: widget.listPaneWidth,
           hinge: hinge,
         );
+        // A route pushed from the list pane lives in the one-pane navigator:
+        // keep it (and one pane) until it closes. It covers the view either
+        // way, as it does with two panes.
+        if (_holdOnePane) geometry = const SplitGeometry.single();
         return _buildLayout(context, style, geometry, canLeave);
       },
     );
@@ -783,25 +835,36 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
       if (picked != null) _hostPage(style, picked),
     ];
     return NotificationListener<NavigationNotification>(
-      // The split view's PopScope speaks for its navigators.
-      onNotification: (_) => true,
+      onNotification: _handleStackNavigation,
       child: Navigator(
         key: _stackKey,
         restorationScopeId: widget.restorationId == null ? null : 'stack',
         // Tab leaves the navigator's pages for the rest of the app, as in
         // the app's own navigator (nested ones default to a closed loop).
         routeTraversalEdgeBehavior: TraversalEdgeBehavior.parentScope,
+        observers: [_stackObserver],
         pages: pages,
+        onGenerateRoute: _generateStackRoute,
+        onUnknownRoute: _unknownStackRoute,
         onDidRemovePage: _handleStackPageRemoved,
       ),
     );
   }
 
   Page<void> _hostPage(ResolvedSettingsStyle style, String id) {
-    final child = _DetailHost(
-      generation: _hostGeneration,
-      background: style.themeData.settingsListBackground,
-      child: _buildDetailNavigator(style),
+    final child = PopScope<Object?>(
+      // The page's back swipe (and predictive back) would close it even
+      // while a page pushed inside it could go back, or the page vetoes
+      // back with a PopScope: then back goes through the split view.
+      canPop: !_detailCanPop,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) _handleBack();
+      },
+      child: _DetailHost(
+        generation: _hostGeneration,
+        background: style.themeData.settingsListBackground,
+        child: _buildDetailNavigator(style),
+      ),
     );
     if (settingsUsesCupertinoRoutes(settingsStyleFamily(style.platform))) {
       return CupertinoPage<void>(
@@ -1319,6 +1382,74 @@ class _PlainPageRoute extends PageRoute<void> {
       explicitChildNodes: true,
       child: _page.child,
     );
+  }
+}
+
+/// Watches the one-pane navigator for routes pushed from the list pane:
+/// routes without a page, such as a tile's own `Navigator.push`, a menu or
+/// a bottom sheet.
+class _StackObserver extends NavigatorObserver {
+  _StackObserver(this.onChanged);
+
+  /// Called when a route pushed from the list pane has finished animating
+  /// out. Pushes and pops also dispatch a [NavigationNotification].
+  final VoidCallback onChanged;
+
+  /// The navigator's top route.
+  Route<dynamic>? _top;
+
+  /// Routes without a page, until they have animated out.
+  final Set<Route<dynamic>> _pageless = <Route<dynamic>>{};
+
+  bool get topIsPageless {
+    final top = _top;
+    return top != null && top.settings is! Page;
+  }
+
+  bool get hasPageless => _pageless.isNotEmpty;
+
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    _top = route;
+    if (route.settings is! Page) _pageless.add(route);
+  }
+
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    if (route == _top) _top = previousRoute;
+    _release(route);
+  }
+
+  @override
+  void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    if (route == _top) _top = previousRoute;
+    _pageless.remove(route);
+  }
+
+  @override
+  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
+    if (oldRoute == _top) _top = newRoute;
+    _pageless.remove(oldRoute);
+    if (newRoute != null && newRoute.settings is! Page) _pageless.add(newRoute);
+  }
+
+  /// Forgets [route] once its exit animation is over.
+  void _release(Route<dynamic> route) {
+    if (!_pageless.contains(route)) return;
+    final animation = route is TransitionRoute<dynamic>
+        ? route.animation
+        : null;
+    if (animation == null || animation.isDismissed) {
+      _pageless.remove(route);
+      return;
+    }
+    void handleStatus(AnimationStatus status) {
+      if (!status.isDismissed) return;
+      animation.removeStatusListener(handleStatus);
+      if (_pageless.remove(route)) onChanged();
+    }
+
+    animation.addStatusListener(handleStatus);
   }
 }
 
