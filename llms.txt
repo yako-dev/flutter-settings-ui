@@ -158,6 +158,10 @@ The GNOME switch (GtkSwitch with libadwaita 1.10), drawn in Flutter: a 46x26 tra
 
 It is controlled (rebuild it with the new value). Tap to toggle, or drag the knob past the middle.
 
+### AdwaitaPanDownIcon
+
+GNOME's `pan-down-symbolic` arrow (16px box, 10x6 chevron, `IconTheme` color by default; `color`, `size`). Build a GNOME combo row with `trailing: Row(mainAxisSize: MainAxisSize.min, children: [Text('5 minutes'), SizedBox(width: 9), AdwaitaPanDownIcon()])`; in the GNOME style, text in `trailing` gets the row's font and color. Plain `value` shows dimmed instead, without the arrow.
+
 ### Other exports
 
 `DevicePlatform` (`android`, `fuchsia`, `iOS`, `linux`, `macOS`, `windows`, `web`, `device`), `PlatformUtils.detectPlatform(context)`, `ApplicationType`, `SettingsTileType`, `SettingsTheme`, `SettingsThemeData`, `AbstractSettingsSection`, `AbstractSettingsTile`.

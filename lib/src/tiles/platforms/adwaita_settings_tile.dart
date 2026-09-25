@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart' show kPrimaryButton;
 import 'package:flutter/widgets.dart';
 import 'package:settings_ui/src/tiles/platforms/adwaita_settings_switch.dart';
+import 'package:settings_ui/src/tiles/platforms/adwaita_symbolic_icons.dart';
 import 'package:settings_ui/src/tiles/settings_tile.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 
@@ -174,6 +175,9 @@ class _AdwaitaSettingsTileState extends State<AdwaitaSettingsTile> {
     final iconColor = enabled
         ? theme.leadingIconsColor
         : theme.inactiveTitleColor;
+    final titleStyle = (theme.tileTextStyle ?? _kTitleStyle).copyWith(
+      color: enabled ? theme.settingsTileTextColor : theme.inactiveTitleColor,
+    );
     final subtitleStyle = (theme.tileDescriptionTextStyle ?? _kSubtitleStyle)
         .copyWith(
           color: enabled
@@ -205,14 +209,7 @@ class _AdwaitaSettingsTileState extends State<AdwaitaSettingsTile> {
         children: [
           Padding(
             padding: widget.titlePadding ?? EdgeInsets.zero,
-            child: DefaultTextStyle(
-              style: (theme.tileTextStyle ?? _kTitleStyle).copyWith(
-                color: enabled
-                    ? theme.settingsTileTextColor
-                    : theme.inactiveTitleColor,
-              ),
-              child: widget.title,
-            ),
+            child: DefaultTextStyle(style: titleStyle, child: widget.title),
           ),
           // GNOME rows have one subtitle, under the title. Both
           // descriptions go there, the title description first.
@@ -259,12 +256,18 @@ class _AdwaitaSettingsTileState extends State<AdwaitaSettingsTile> {
               child: widget.value!,
             ),
           ),
+        // Text in `trailing` gets the title style, like a label suffix in
+        // GTK, so a combo row value (text + AdwaitaPanDownIcon) needs no
+        // style of its own.
         if (widget.trailing != null)
           Padding(
             padding: widget.trailingPadding ?? EdgeInsets.zero,
-            child: IconTheme.merge(
-              data: IconThemeData(color: iconColor, size: _kIconSize),
-              child: widget.trailing!,
+            child: DefaultTextStyle(
+              style: titleStyle,
+              child: IconTheme.merge(
+                data: IconThemeData(color: iconColor, size: _kIconSize),
+                child: widget.trailing!,
+              ),
             ),
           ),
         if (_isSwitch)
@@ -416,55 +419,4 @@ class AdwaitaSettingsTileAdditionalInfo extends InheritedWidget {
           child: SizedBox(),
         );
   }
-}
-
-/// The `go-next-symbolic` arrow that ends GNOME navigation rows: a 16 px
-/// chevron drawn with a 2 px round stroke. It points left in right-to-left
-/// layouts, like GTK's `-rtl` icon variants.
-class AdwaitaGoNextIcon extends StatelessWidget {
-  const AdwaitaGoNextIcon({super.key, this.color, this.size = _kIconSize});
-
-  /// Defaults to the ambient [IconTheme] color.
-  final Color? color;
-  final double size;
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      size: Size.square(size),
-      painter: _GoNextPainter(
-        color: color ?? IconTheme.of(context).color ?? _kForegroundLight,
-        mirrored: Directionality.maybeOf(context) == TextDirection.rtl,
-      ),
-    );
-  }
-}
-
-class _GoNextPainter extends CustomPainter {
-  const _GoNextPainter({required this.color, required this.mirrored});
-
-  final Color color;
-  final bool mirrored;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final double scale = size.shortestSide / 16;
-    double x(double value) => (mirrored ? 16 - value : value) * scale;
-    canvas.drawPath(
-      Path()
-        ..moveTo(x(5), 2 * scale)
-        ..lineTo(x(11), 8 * scale)
-        ..lineTo(x(5), 14 * scale),
-      Paint()
-        ..color = color
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2 * scale
-        ..strokeCap = StrokeCap.round
-        ..strokeJoin = StrokeJoin.round,
-    );
-  }
-
-  @override
-  bool shouldRepaint(_GoNextPainter oldDelegate) =>
-      oldDelegate.color != color || oldDelegate.mirrored != mirrored;
 }
