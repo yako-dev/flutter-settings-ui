@@ -55,6 +55,7 @@
 * CI now checks formatting with `dart format` (`flutter format` was removed from Flutter)
 * Example app: updated Android Gradle setup, moved the iOS runner to the UIScene lifecycle required on iOS 27, and added a macOS runner
 * Example app: a "Split view" demo with iPad, Android, Chrome, macOS System Settings, Windows Settings and GNOME Settings trees, a showcase screen (a fictional app's settings in every style, for screenshots), and replicas of macOS, Windows and GNOME settings pages. A screen, style and brightness can be opened directly, e.g. `cd example && flutter run --route '/split-view?platform=android&theme=dark'`, `?screen=showcase&platform=windows` on the web, or `--dart-define=SCREEN=gnome-power`
+* Example app: added a Linux runner, the showcase in the gallery, switches that toggle in every demo, and the Material 3 demo and the Android replica follow dark mode
 
 ## [3.0.1] - [April 10, 2026]
 * README rewritten with a full API reference, examples and screenshots. No code changes
