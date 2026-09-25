@@ -12,11 +12,13 @@ import 'package:settings_ui/src/utils/platform_utils.dart';
 import 'package:settings_ui/src/utils/settings_style.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 
+/// Where a [SettingsList] reads light or dark mode from when
+/// [SettingsList.brightness] is null.
 enum ApplicationType {
-  /// Use this parameter is you are using the MaterialApp
+  /// Use this parameter if you are using the MaterialApp
   material,
 
-  /// Use this parameter is you are using the CupertinoApp
+  /// Use this parameter if you are using the CupertinoApp
   cupertino,
 
   /// Use this parameter if you are using the MaterialApp for Android
@@ -25,7 +27,15 @@ enum ApplicationType {
   both,
 }
 
+/// A scrollable settings screen in the platform's style.
+///
+/// It picks one of six styles from [platform] (auto-detected by default):
+/// iOS, macOS, Windows, Android (also Fuchsia), GNOME (Linux) or web. Colors
+/// come from the style's defaults and the app theme, merged with [lightTheme]
+/// or [darkTheme], and on wide screens the content stays in a column (see
+/// [contentPadding]).
 class SettingsList extends StatelessWidget {
+  /// Creates a settings list from [sections].
   const SettingsList({
     required this.sections,
     this.shrinkWrap = false,
@@ -41,10 +51,22 @@ class SettingsList extends StatelessWidget {
     super.key,
   });
 
+  /// Passed to the inner [ListView]. Set it, with [physics], to put the list
+  /// inside another scroll view.
   final bool shrinkWrap;
+
+  /// Passed to the inner [ListView].
   final ScrollPhysics? physics;
+
+  /// The style to use. Null or [DevicePlatform.device] detects it from the
+  /// app: [DevicePlatform.web] in a browser, otherwise the one for
+  /// `Theme.of(context).platform`.
   final DevicePlatform? platform;
+
+  /// Colors and text styles merged over the style's defaults in light mode.
   final SettingsThemeData? lightTheme;
+
+  /// Colors and text styles merged over the style's defaults in dark mode.
   final SettingsThemeData? darkTheme;
 
   /// Forces light or dark colors. When null, the brightness comes from the
@@ -56,9 +78,21 @@ class SettingsList extends StatelessWidget {
   /// (`ColorScheme.fromSeed`), for the list and for the Material widgets in
   /// it.
   final Brightness? brightness;
+
+  /// Replaces the default padding of the inner [ListView]. The default keeps
+  /// the tiles in the style's content column on wide lists (810 wide, 680 on
+  /// the web, 640 on macOS, 1000 on Windows, at most 600 on Linux); see
+  /// [calculateDefaultPadding].
   final EdgeInsetsGeometry? contentPadding;
+
+  /// The sections, top to bottom: [SettingsSection]s,
+  /// `CustomSettingsSection`s or your own [AbstractSettingsSection]s.
   final List<AbstractSettingsSection> sections;
+
+  /// Where light or dark mode comes from when [brightness] is null.
   final ApplicationType applicationType;
+
+  /// Passed to the inner [ListView].
   final ScrollController? scrollController;
 
   /// Controls how the settings list is aligned along the cross axis.
@@ -350,6 +384,8 @@ class SettingsList extends StatelessWidget {
     return false;
   }
 
+  /// The brightness this list uses: [brightness], or the app theme's as
+  /// chosen by [applicationType].
   Brightness calculateBrightness(BuildContext context) {
     return SettingsStyleConfig(
       brightness: brightness,

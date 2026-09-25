@@ -1,4 +1,5 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:example/screens/gallery/demo_switches.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/settings_ui.dart';
 
@@ -20,20 +21,19 @@ SettingsTile _nav(String title, {String? value, Widget? leading}) =>
 SettingsTile _value(String title, String value) =>
     SettingsTile(title: Text(title), value: Text(value));
 
-/// A switch the demo keeps the state of.
+/// A switch the demo keeps the state of (see [demoSwitch]).
 SettingsTile _switch(
   String title, {
   bool value = false,
   Widget? leading,
   Widget? description,
   Widget? titleDescription,
-}) => SettingsTile.switchTile(
+}) => demoSwitch(
+  title,
+  value: value,
   leading: leading,
-  title: Text(title),
-  titleDescription: titleDescription,
   description: description,
-  initialValue: value,
-  onToggle: (_) {},
+  titleDescription: titleDescription,
 );
 
 /// A page with switches that toggle.
@@ -126,7 +126,7 @@ SettingsTile _macCategory(
 ) => SettingsTile.navigation(
   leading: MacSidebarIcon(icon, color),
   title: Text(title),
-  destination: SettingsDestination(id: id, builder: builder),
+  destination: SettingsDestination(id: id, builder: demoLive(builder)),
 );
 
 List<AbstractSettingsSection> macSplitSections() => [
@@ -694,7 +694,7 @@ SettingsTile _winCategory(
 ) => SettingsTile.navigation(
   leading: _WinIcon(icon, color),
   title: Text(title),
-  destination: SettingsDestination(id: id, builder: builder),
+  destination: SettingsDestination(id: id, builder: demoLive(builder)),
 );
 
 SettingsTile _card(String title, String description, IconData icon) =>
@@ -756,13 +756,12 @@ List<AbstractSettingsSection> windowsSplitSections() => [
         (_) => _page([
           SettingsSection(
             tiles: [
-              SettingsTile.switchTile(
+              demoSwitch(
+                'Bluetooth',
+                value: true,
                 leading: const Icon(Icons.bluetooth),
-                title: const Text('Bluetooth'),
                 description: const Text('Discoverable as "Desktop-PC"'),
-                trailing: const Text('On'),
-                initialValue: true,
-                onToggle: (_) {},
+                showState: true,
               ),
               _card(
                 'Devices',
@@ -1091,46 +1090,46 @@ Widget _windowsSystemPage() => _page([
         ),
         destination: SettingsDestination(
           id: 'display',
-          builder: (_) => _page([
-            SettingsSection(
-              title: const Text('Brightness & color'),
-              tiles: [
-                SettingsTile.switchTile(
-                  leading: const Icon(Icons.nightlight_outlined),
-                  title: const Text('Night light'),
-                  description: const Text(
-                    'Use warmer colors to help block blue light',
+          builder: demoLive(
+            (_) => _page([
+              SettingsSection(
+                title: const Text('Brightness & color'),
+                tiles: [
+                  demoSwitch(
+                    'Night light',
+                    leading: const Icon(Icons.nightlight_outlined),
+                    description: const Text(
+                      'Use warmer colors to help block blue light',
+                    ),
                   ),
-                  initialValue: false,
-                  onToggle: (_) {},
-                ),
-                _card('HDR', 'More about HDR', Icons.hdr_on_outlined),
-              ],
-            ),
-            SettingsSection(
-              title: const Text('Scale & layout'),
-              tiles: [
-                SettingsTile.navigation(
-                  leading: const Icon(Icons.fit_screen_outlined),
-                  title: const Text('Scale'),
-                  description: const Text(
-                    'Change the size of text, apps, and other items',
+                  _card('HDR', 'More about HDR', Icons.hdr_on_outlined),
+                ],
+              ),
+              SettingsSection(
+                title: const Text('Scale & layout'),
+                tiles: [
+                  SettingsTile.navigation(
+                    leading: const Icon(Icons.fit_screen_outlined),
+                    title: const Text('Scale'),
+                    description: const Text(
+                      'Change the size of text, apps, and other items',
+                    ),
+                    value: const Text('150% (Recommended)'),
+                    onPressed: (_) {},
                   ),
-                  value: const Text('150% (Recommended)'),
-                  onPressed: (_) {},
-                ),
-                SettingsTile.navigation(
-                  leading: const Icon(Icons.aspect_ratio),
-                  title: const Text('Display resolution'),
-                  description: const Text(
-                    'Adjust the resolution to fit your connected display',
+                  SettingsTile.navigation(
+                    leading: const Icon(Icons.aspect_ratio),
+                    title: const Text('Display resolution'),
+                    description: const Text(
+                      'Adjust the resolution to fit your connected display',
+                    ),
+                    value: const Text('2560 × 1600 (Recommended)'),
+                    onPressed: (_) {},
                   ),
-                  value: const Text('2560 × 1600 (Recommended)'),
-                  onPressed: (_) {},
-                ),
-              ],
-            ),
-          ]),
+                ],
+              ),
+            ]),
+          ),
         ),
       ),
       _card(
@@ -1178,7 +1177,7 @@ SettingsTile _gnomeCategory(
 ) => SettingsTile.navigation(
   leading: Icon(icon),
   title: Text(title),
-  destination: SettingsDestination(id: id, builder: builder),
+  destination: SettingsDestination(id: id, builder: demoLive(builder)),
 );
 
 /// A GNOME combo row's value: the choice and the pan-down arrow.

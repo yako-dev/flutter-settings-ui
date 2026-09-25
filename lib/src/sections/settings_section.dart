@@ -14,7 +14,13 @@ import 'package:settings_ui/src/tiles/abstract_settings_tile.dart';
 import 'package:settings_ui/src/utils/platform_utils.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 
+/// A group of tiles with an optional [title].
+///
+/// Each style draws it its own way: one card (iOS, macOS, web, GNOME), or a
+/// card per tile (Android, Windows). A section with no [tiles] renders
+/// nothing, so tiles can be added with collection `if`.
 class SettingsSection extends AbstractSettingsSection {
+  /// Creates a section of [tiles].
   const SettingsSection({
     required this.tiles,
     this.margin,
@@ -23,9 +29,17 @@ class SettingsSection extends AbstractSettingsSection {
     super.key,
   });
 
+  /// The tiles, top to bottom: `SettingsTile`s, `CustomSettingsTile`s or your
+  /// own [AbstractSettingsTile]s.
   final List<AbstractSettingsTile> tiles;
+
+  /// Replaces the section's default outer margin.
   final EdgeInsetsDirectional? margin;
+
+  /// The section header, usually a [Text] in sentence case.
   final Widget? title;
+
+  /// Replaces the default padding around [title].
   final EdgeInsetsGeometry? titlePadding;
 
   @override

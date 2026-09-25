@@ -152,10 +152,14 @@ class _MacosToolbar extends StatelessWidget {
     final label = isDark ? const Color(0xD8FFFFFF) : const Color(0xD8000000);
     final canPop = Navigator.of(context).canPop();
 
+    // On a phone the status bar sits over the top of the screen: draw the
+    // toolbar's color behind it and the toolbar below it.
+    final topInset = MediaQuery.paddingOf(context).top;
+
     return Container(
-      height: 52,
+      height: 52 + topInset,
       color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-      padding: const EdgeInsetsDirectional.only(start: 8, end: 20),
+      padding: EdgeInsetsDirectional.only(start: 8, end: 20, top: topInset),
       child: Row(
         children: [
           Container(

@@ -1,28 +1,29 @@
-## [4.0.0] - [September 24, 2026]
+## [4.0.0] - [Unreleased]
 
 ### Breaking changes
-* Migrated from `package:flutter/material.dart` and `package:flutter/cupertino.dart` to the decoupled [`material_ui`](https://pub.dev/packages/material_ui) and [`cupertino_ui`](https://pub.dev/packages/cupertino_ui) packages (#207)
+* Migrated from `package:flutter/material.dart` and `package:flutter/cupertino.dart` to the decoupled [`material_ui`](https://pub.dev/packages/material_ui) and [`cupertino_ui`](https://pub.dev/packages/cupertino_ui) packages (#207, thanks @SlayerOrnstein)
 * Requires Flutter >=3.44.0 and Dart SDK >=3.12.0
 * Your app must use `MaterialApp`/`CupertinoApp` from `material_ui`/`cupertino_ui`. In an app still on `package:flutter/material.dart`, `SettingsList` can't read your theme and falls back to default colors and light mode. Stay on `^3.0.1` until your app has migrated.
 * New default look that matches iOS 26/27, macOS 26/27, Android 16/17, Windows 11, GNOME 51 and current Chrome settings (see Design refresh). Sizes, paddings and default colors changed. Colors you set in `SettingsThemeData` still win.
 * iOS switch tiles now show the new `CupertinoSettingsSwitch` instead of `CupertinoSwitch`. Tests that find `CupertinoSwitch` need to look for `CupertinoSettingsSwitch`.
 * macOS now has its own macOS System Settings style instead of the iOS style. Its switch tiles show the new `MacosSettingsSwitch`, not a `CupertinoSwitch`.
 * Windows now has its own Windows 11 style instead of the iOS style. Its switch tiles show the new `FluentSettingsSwitch`, not a `CupertinoSwitch`.
-* Linux now has its own GNOME style instead of the Android style. Its switch tiles show the new `AdwaitaSettingsSwitch`, not a Material `Switch`.
+* Linux now has its own GNOME style instead of the Android style. Its switch tiles show the new `AdwaitaSettingsSwitch`, not a Material `Switch`, so tests that find `Switch` on Linux need to look for `AdwaitaSettingsSwitch`.
+* The default side padding of `SettingsList` now comes from the width the list gets, not the screen width (see Bug fixes). A list in a side panel or a narrow pane of a wide window gets less side padding than before.
 
 ### Design refresh
-* iOS: 26pt cards with continuous corners and 20pt side margins, 52pt rows with 17pt text, 17pt semibold section headers, and the iOS secondary grey for headers and footers. iOS no longer uses all-caps headers, so pass headers in sentence case.
+* iOS: 26pt cards with continuous corners and 20pt side margins, 52pt rows with 17pt text, 17pt semibold section headers, and the iOS secondary grey for headers and footers. Write section titles in sentence case, like iOS 26: if you passed ALL-CAPS titles for the old iOS look, change them.
 * iOS: a new switch that matches the iOS 26/27 one, drawn entirely in Flutter. It has a 63x28 track and a pill-shaped thumb, and while it is pressed or dragged the thumb becomes a Liquid Glass-style lens. It is public as `CupertinoSettingsSwitch`, so you can use it outside settings lists too.
-* macOS: a new style that matches macOS 26/27 System Settings, instead of the iOS one: 12pt cards on a white page, 36pt rows with 13pt text, 13pt semibold headers, a 640pt column and the new public `MacosSettingsSwitch` (36x16, or 44x20 with `MacosSettingsSwitchSize.large`).
+* macOS: a new style that matches macOS 26/27 System Settings (#148), instead of the iOS one: 12pt cards on a white page, 36pt rows with 13pt text, 13pt semibold headers, a 640pt column and the new public `MacosSettingsSwitch` (36x16, or 44x20 with `MacosSettingsSwitchSize.large`).
 * Android, Fuchsia: every tile sits on its own card, 2dp apart, with 20dp corners at the ends of a group and 4dp in between, on a `surfaceContainer` page. 16sp titles, tighter rows, and switches that show a check or a cross.
-* Windows: a new Windows 11 Settings style instead of the iOS one: one card per tile with 4px corners and a hairline border, 70px rows, 14px titles and 12px descriptions, the Windows hover, pressed and keyboard focus states, and `FluentSettingsSwitch`, a public WinUI-style toggle drawn in Flutter.
+* Windows: a new Windows 11 Settings style (#160) instead of the iOS one: one card per tile with 4px corners and a hairline border, 70px rows, 14px titles and 12px descriptions, the Windows hover, pressed and keyboard focus states, and `FluentSettingsSwitch`, a public WinUI-style toggle drawn in Flutter.
 * Linux: a new GNOME style that matches GNOME Settings 51 (libadwaita 1.10): boxed-list cards with 12px corners and a soft shadow, 54px rows with full-width separators, bold group titles, dimmed subtitles and values, a `go-next` arrow on navigation tiles, hover and keyboard focus highlights, and an `AdwClamp`-style 600px column. Its switch, a 46x26 GNOME switch drawn in Flutter, is public as `AdwaitaSettingsSwitch`, and `AdwaitaPanDownIcon` gives combo rows their arrow.
 * Web: Chrome-style white cards with 8px corners and a light shadow, 14px titles and 13px descriptions, 20px leading icons, a chevron on navigation tiles, near-black section titles, and a 680px column on wide screens (16px side margins in narrow windows).
 
 ### Bug fixes
 * Colors, dark mode and platform now follow the app theme in apps built on `material_ui` (#206)
-* iOS: values are right-aligned next to the chevron again (#203, #202)
-* iOS: simple tiles now show their `value`, like on Android (#201)
+* iOS: values are right-aligned next to the chevron again (#203, #202, thanks @mmng-a)
+* iOS: simple tiles now show their `value`, like on Android (#201, thanks @mmng-a)
 * iOS: a long title no longer hides the value. The value takes at most half the row, on one line
 * Compiles on Flutter forks that add platforms, such as OpenHarmony, which get the Cupertino style (#205)
 * `SettingsList.brightness` now overrides the brightness from the app theme. It was ignored
@@ -35,7 +36,7 @@
 * Android and web: disabled switches use `SettingsThemeData.inactiveSwitchColor` with or without a `trailing` widget, and a web switch next to a `trailing` widget no longer has a hard-coded blue active color (#188)
 
 ### New features
-* `SettingsSplitView`: the list and the selected page side by side on iPad, tablets, unfolded foldables, desktop and the web, and a list with pushed pages on phones. It follows each platform app: iPad Settings (320pt sidebar, blue capsule selection, two panes from 600pt on iPads), Android Settings (36.36% list pane on surface dim, two panes at 720dp wide with a 600dp smallest width, no icons in a list pane under 380dp) and Chrome (266px menu, two panes above 980px). It keeps pages, their state and pushed sub-pages when a device folds, unfolds or rotates, handles back and Android predictive back, restores the shown page, puts the panes on each side of a hinge, and mirrors in right-to-left layouts. Control it with `SettingsSplitController`, `SettingsSplitLayout`, `initialDestinationId` and `onDestinationChanged`. The arrow keys move through the list pane and Tab moves between the panes
+* `SettingsSplitView`: the list and the selected page side by side on iPad, tablets, unfolded foldables, desktop and the web, and a list with pushed pages on phones. It follows each platform app: iPad Settings (320pt sidebar, blue capsule selection, two panes from 600pt on iPads), Android Settings (36.36% list pane on surface dim, two panes at 720dp wide with a 600dp smallest width, no icons in a list pane under 380dp) and Chrome (266px menu, two panes above 980px). It keeps pages, their state and pushed sub-pages when a device folds, unfolds or rotates, handles back and Android predictive back, restores the shown page, puts the panes on each side of a hinge, and mirrors in right-to-left layouts. Control it with `SettingsSplitController`, `SettingsSplitLayout`, `initialDestinationId` and `onDestinationChanged`. The arrow keys move through the list pane and Tab moves between the panes (#2)
 * `SettingsSplitView` on the desktop styles: each draws its settings app's sidebar and page header.
   * macOS: the System Settings sidebar (232pt, full height, 32pt rows, an accent selection with a white label that turns grey while the app is inactive, 11pt bold section titles, no hover) and a 52pt toolbar with the page title and Liquid Glass-style back and forward buttons. Two panes from 560pt. Moving the focus with the arrow keys opens the row, like macOS sidebars.
   * Windows: the Windows 11 Settings `NavigationView` (a 300px pane from 1008px and a 48px icon rail with tooltips from 641px, whose menu button opens the pane over the page). The selected item has an accent pill that slides from the previous one. The page title is large, and pages opened from a page show a breadcrumb.
@@ -45,12 +46,16 @@
 * Debug builds print a one-time warning when `SettingsList` finds no `material_ui` or `cupertino_ui` theme above it
 
 ### Documentation
+* README rewritten for 4.0: every style, the split view, API tables, and copy-paste prompts for coding agents (Claude Code, Codex, Cursor)
+* New `llms.txt`: a compact API reference with the platform differences and the mistakes to avoid, for coding agents. It ships in the package, and the README's prompts fetch it from GitHub
+* New `AGENTS.md` with instructions for agents working on this repository
 * To show a value without the chevron, use `SettingsTile` instead of `SettingsTile.navigation` (#204)
 
 ### Maintenance
 * CI now checks formatting with `dart format` (`flutter format` was removed from Flutter)
 * Example app: updated Android Gradle setup, moved the iOS runner to the UIScene lifecycle required on iOS 27, and added a macOS runner
-* Example app: a "Split view" demo with iPad, Android, Chrome, macOS System Settings, Windows Settings and GNOME Settings trees, and replicas of macOS, Windows and GNOME settings pages. A screen, style and brightness can be opened directly, e.g. `flutter run --route '/split-view?platform=android&theme=dark'`, `?screen=split-view&platform=macOS` on the web, or `--dart-define=SCREEN=gnome-power`
+* Example app: a "Split view" demo with iPad, Android, Chrome, macOS System Settings, Windows Settings and GNOME Settings trees, a showcase screen (a fictional app's settings in every style, for screenshots), and replicas of macOS, Windows and GNOME settings pages. A screen, style and brightness can be opened directly, e.g. `cd example && flutter run --route '/split-view?platform=android&theme=dark'`, `?screen=showcase&platform=windows` on the web, or `--dart-define=SCREEN=gnome-power`
+* Example app: added a Linux runner, the showcase in the gallery, switches that toggle in every demo, and the Material 3 demo and the Android replica follow dark mode
 
 ## [3.0.1] - [April 10, 2026]
 * README rewritten with a full API reference, examples and screenshots. No code changes

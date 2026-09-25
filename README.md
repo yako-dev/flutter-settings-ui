@@ -353,7 +353,9 @@ SettingsTile.navigation(
   title: const Text('Language'),
   value: const Text('English'),
   onPressed: (context) {
-    Navigator.of(context).push(/* language screen */);
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const LanguageScreen()),
+    );
   },
 )
 ```
@@ -585,7 +587,7 @@ controller.select('display');
 SettingsSplitView.of(context).select('network');
 ```
 
-The example app's gallery has a "Split view" demo with iPad, Android, Chrome, macOS System Settings, Windows Settings and GNOME Settings trees. Open it directly in any style with `flutter run --route '/split-view?platform=android&theme=dark'` (on the web: `?screen=split-view&platform=macOS`).
+The example app's gallery has a "Split view" demo with iPad, Android, Chrome, macOS System Settings, Windows Settings and GNOME Settings trees. Open it directly in any style with `cd example && flutter run --route '/split-view?platform=android&theme=dark'` (on the web: `?screen=split-view&platform=macOS`).
 
 ---
 
@@ -803,7 +805,7 @@ The keyboard focus rectangle paints a little outside the switch (7px to the side
 | Parameter | Type | Default | Description |
 |---|---|---|---|
 | `sections` | `List<AbstractSettingsSection>` | required | Sections to display |
-| `platform` | `DevicePlatform?` | `device` | Force a specific platform style |
+| `platform` | `DevicePlatform?` | `null` (auto-detect, same as `device`) | Force a specific platform style |
 | `applicationType` | `ApplicationType` | `material` | Where dark mode comes from: `material`, `cupertino` or `both` (Cupertino theme on iOS and macOS, Material elsewhere) |
 | `brightness` | `Brightness?` | — | Force light or dark instead of following the app theme |
 | `lightTheme` | `SettingsThemeData?` | — | Overrides for light mode |
@@ -948,8 +950,8 @@ SettingsTile(
 | `titleTextStyle` | `TextStyle?` | Section header text style |
 | `settingsTileTextColor` | `Color?` | Tile title text color |
 | `tileTextStyle` | `TextStyle?` | Tile title text style |
-| `tileDescriptionTextColor` | `Color?` | `description` and `value` text color (Android and web styles), `description` (Windows and GNOME styles), `description` and `titleDescription` (macOS style) |
-| `tileDescriptionTextStyle` | `TextStyle?` | `description` text style, and `value` in the Android, GNOME and web styles |
+| `tileDescriptionTextColor` | `Color?` | `description` and `value` text color (Android and web styles), `description` and `titleDescription` (macOS, Windows and GNOME styles) |
+| `tileDescriptionTextStyle` | `TextStyle?` | `description` text style in every style; also `value` in the Android, GNOME and web styles, and `titleDescription` in the macOS, Windows and GNOME styles |
 | `trailingTextColor` | `Color?` | `value` text color (iOS, macOS, Windows and GNOME styles) |
 | `leadingIconsColor` | `Color?` | Leading and trailing icons, and the chevron |
 | `inactiveTitleColor` | `Color?` | Title and icon color of a disabled tile |
@@ -959,6 +961,12 @@ SettingsTile(
 | `selectedTileTextColor` | `Color?` | Title and value color of the selected tile |
 | `selectedTileIconColor` | `Color?` | Icon and chevron color of the selected tile |
 | `listPaneBackground` | `Color?` | Background of a split view's list pane with two panes |
+
+---
+
+## Known issues
+
+- **iOS, VoiceOver:** after a `SettingsSplitView` changes layout (for example on rotation, or when an iPad window is resized), VoiceOver can place the frames of the rows in a pane wrongly until the app restarts. This is a Flutter engine bug that also happens without settings_ui; touch input without VoiceOver is not affected.
 
 ---
 

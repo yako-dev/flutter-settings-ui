@@ -51,8 +51,8 @@ class LaunchOptions {
   };
 
   /// `platform=<DevicePlatform name>`, in any case (`linux`, `macOS`,
-  /// `ios`): the style of the gallery, the cross-platform screen and the
-  /// split view. The replica screens keep their own style.
+  /// `ios`): the style of the gallery, the cross-platform screen, the split
+  /// view and the showcase. The replica screens keep their own style.
   static DevicePlatform? get platform {
     final name = _option('platform')?.toLowerCase();
     if (name == null) return null;

@@ -13,9 +13,15 @@ class _AndroidNativeSettingsScreenState
     extends State<AndroidNativeSettingsScreen> {
   @override
   Widget build(BuildContext context) {
+    // Colors from the theme, so the header matches the list in dark mode.
+    final colors = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: Color.fromRGBO(240, 240, 240, 1),
-      appBar: AppBar(title: Text('Settings')),
+      // The Android style's page color, so the header and the list match.
+      backgroundColor: colors.surfaceContainer,
+      appBar: AppBar(
+        title: Text('Settings'),
+        backgroundColor: colors.surfaceContainer,
+      ),
       body: ListView(
         shrinkWrap: false,
         children: [
@@ -23,11 +29,7 @@ class _AndroidNativeSettingsScreenState
             alignment: Alignment.centerRight,
             child: Padding(
               padding: const EdgeInsets.only(top: 24.0, right: 24),
-              child: Icon(
-                Icons.person_pin,
-                size: 40,
-                color: Colors.blue.shade900,
-              ),
+              child: Icon(Icons.person_pin, size: 40, color: colors.primary),
             ),
           ),
           Padding(
@@ -37,7 +39,7 @@ class _AndroidNativeSettingsScreenState
               style: TextStyle(
                 fontSize: 30,
                 fontWeight: FontWeight.w400,
-                color: Colors.black,
+                color: colors.onSurface,
               ),
             ),
           ),
@@ -47,20 +49,20 @@ class _AndroidNativeSettingsScreenState
               autofocus: false,
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
               decoration: InputDecoration(
-                prefixIcon: Icon(Icons.search, color: Colors.black),
+                prefixIcon: Icon(Icons.search, color: colors.onSurfaceVariant),
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: colors.surfaceContainerHighest,
                 hintText: 'Search Settings',
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 14.0,
                   vertical: 13.0,
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.white),
+                  borderSide: BorderSide(color: colors.primary),
                   borderRadius: BorderRadius.circular(25.7),
                 ),
-                enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.white),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide.none,
                   borderRadius: BorderRadius.circular(25.7),
                 ),
               ),

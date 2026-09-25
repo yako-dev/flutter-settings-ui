@@ -1,26 +1,32 @@
-# example
+# settings_ui example
 
-A new Flutter project.
+A gallery of [settings_ui](https://pub.dev/packages/settings_ui) screens:
 
-## Getting Started
+- an abstract settings screen whose style you can switch, and a Material 3
+  theme demo;
+- a split view demo with the settings trees of iPad Settings, Android
+  Settings, Chrome, macOS System Settings, Windows Settings and GNOME Settings;
+- a showcase: the settings of a made-up app, built once and shown in every
+  style;
+- replicas of iOS, Android, Chrome, macOS, Windows and GNOME settings pages.
 
-This project is a starting point for a Flutter application.
+```bash
+cd example
+flutter run                  # iOS, Android, macOS, Windows, Linux or web
+flutter run -d chrome        # then open /?screen=showcase&platform=macOS&theme=dark
+```
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
-
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+The integration tests run on a device, simulator, emulator or desktop, one
+file at a time: `flutter test integration_test/integration_test.dart -d <device>`
+drives the gallery, and `integration_test/split_view_flows_test.dart` the split
+view demo and the showcase in every style.
 
 ## Opening a screen directly
 
 Screenshot scripts can skip the gallery, pick a style and force light or dark
-mode with four options (see `lib/utils/launch_options.dart`): `screen`,
-`platform`, `page` and `theme`. Each is read from the first of these that sets
-it:
+mode with five options (see `lib/utils/launch_options.dart`): `screen`,
+`platform`, `page`, `tab` and `theme`. Each is read from the first of these
+that sets it:
 
 - The web page's query: `/?screen=split-view&platform=macOS&theme=dark`
 - The initial route, whose path is the screen:

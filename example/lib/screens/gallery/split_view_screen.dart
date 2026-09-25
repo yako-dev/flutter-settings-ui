@@ -1,5 +1,6 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:example/screens/gallery/cross_platform_settings_screen.dart';
+import 'package:example/screens/gallery/demo_switches.dart';
 import 'package:example/screens/gallery/split_view_desktop_trees.dart';
 import 'package:example/utils/navigation.dart';
 import 'package:material_ui/material_ui.dart';
@@ -34,6 +35,7 @@ class _SplitViewScreenState extends State<SplitViewScreen> {
     DevicePlatform.device: 'Default',
     DevicePlatform.iOS: 'iOS',
     DevicePlatform.android: 'Android',
+    DevicePlatform.fuchsia: 'Fuchsia',
     DevicePlatform.web: 'Web',
     DevicePlatform.macOS: 'macOS',
     DevicePlatform.windows: 'Windows',
@@ -46,13 +48,21 @@ class _SplitViewScreenState extends State<SplitViewScreen> {
     final page = widget.initialPageId;
     // A picked page, like a deep link: it also opens in one pane.
     if (page != null) _controller.select(page);
+    // Every visit starts with the switches as the trees set them, and the
+    // list pane's switches rebuild with this screen.
+    DemoSwitches.instance
+      ..reset()
+      ..addListener(_onSwitchChanged);
   }
 
   @override
   void dispose() {
+    DemoSwitches.instance.removeListener(_onSwitchChanged);
     _controller.dispose();
     super.dispose();
   }
+
+  void _onSwitchChanged() => setState(() {});
 
   Future<void> _pickStyle(BuildContext context) async {
     final platform = await Navigation.navigateTo<DevicePlatform>(
@@ -85,7 +95,7 @@ class _SplitViewScreenState extends State<SplitViewScreen> {
             _ => const Icon(Icons.style_outlined),
           },
           title: const Text('Style'),
-          value: Text(_styles[_platform]!),
+          value: Text(_styles[_platform] ?? _platform.name),
           onPressed: _pickStyle,
         ),
       ],
@@ -210,18 +220,14 @@ SettingsTile _nav(String title, {String? value, Widget? leading}) =>
       onPressed: (_) {},
     );
 
+/// A switch the demo keeps the state of (see [demoSwitch]).
 SettingsTile _switch(
   String title, {
   bool value = false,
   Widget? leading,
   Widget? description,
-}) => SettingsTile.switchTile(
-  leading: leading,
-  title: Text(title),
-  description: description,
-  initialValue: value,
-  onToggle: (_) {},
-);
+}) =>
+    demoSwitch(title, value: value, leading: leading, description: description);
 
 class _DemoSwitch extends StatefulWidget {
   const _DemoSwitch({required this.title, this.value = false});
@@ -265,17 +271,15 @@ SettingsTile _iPadCategory(
   leading: _AppIcon(icon, color),
   title: Text(title),
   value: value == null ? null : Text(value),
-  destination: SettingsDestination(id: id, builder: builder),
+  destination: SettingsDestination(id: id, builder: demoLive(builder)),
 );
 
 List<AbstractSettingsSection> _iPadSections() => [
   SettingsSection(
     tiles: [
-      SettingsTile.switchTile(
+      demoSwitch(
+        'Airplane Mode',
         leading: const _AppIcon(CupertinoIcons.airplane, _iosOrange),
-        title: const Text('Airplane Mode'),
-        initialValue: false,
-        onToggle: (_) {},
       ),
       _iPadCategory(
         'wifi',
@@ -689,38 +693,40 @@ Widget _accessibilityPage() => _page([
         title: const Text('Display & Text Size'),
         destination: SettingsDestination(
           id: 'display-text-size',
-          builder: (_) => _page([
-            SettingsSection(
-              tiles: [
-                _switch('Bold Text'),
-                _nav('Larger Text', value: 'Off'),
-                _switch('Show Borders'),
-                _switch('On/Off Labels'),
-              ],
-            ),
-            SettingsSection(
-              tiles: [
-                _switch(
-                  'Reduce Transparency',
-                  description: const Text(
-                    'Improve contrast by reducing transparency and blurs on '
-                    'some backgrounds to increase legibility.',
+          builder: demoLive(
+            (_) => _page([
+              SettingsSection(
+                tiles: [
+                  _switch('Bold Text'),
+                  _nav('Larger Text', value: 'Off'),
+                  _switch('Show Borders'),
+                  _switch('On/Off Labels'),
+                ],
+              ),
+              SettingsSection(
+                tiles: [
+                  _switch(
+                    'Reduce Transparency',
+                    description: const Text(
+                      'Improve contrast by reducing transparency and blurs on '
+                      'some backgrounds to increase legibility.',
+                    ),
                   ),
-                ),
-              ],
-            ),
-            SettingsSection(
-              tiles: [
-                _switch(
-                  'Increase Contrast',
-                  description: const Text(
-                    'Increase color contrast between app foreground and '
-                    'background colors.',
+                ],
+              ),
+              SettingsSection(
+                tiles: [
+                  _switch(
+                    'Increase Contrast',
+                    description: const Text(
+                      'Increase color contrast between app foreground and '
+                      'background colors.',
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ]),
+                ],
+              ),
+            ]),
+          ),
         ),
       ),
       _nav(
@@ -775,7 +781,7 @@ SettingsTile _androidCategory(
   leading: Icon(icon),
   title: Text(title),
   description: Text(summary),
-  destination: SettingsDestination(id: id, builder: builder),
+  destination: SettingsDestination(id: id, builder: demoLive(builder)),
 );
 
 SettingsTile _androidNav(String title, {String? summary, IconData? icon}) =>
@@ -959,19 +965,21 @@ List<AbstractSettingsSection> _androidSections() => [
                 description: const Text('Show all notification content'),
                 destination: SettingsDestination(
                   id: 'lock-screen',
-                  builder: (_) => _page([
-                    SettingsSection(
-                      tiles: [
-                        _androidNav(
-                          'Privacy',
-                          summary: 'Show all notification content',
-                        ),
-                        _switch('Show wallet', value: true),
-                        _switch('Use device controls', value: true),
-                        _switch('Always show time and info'),
-                      ],
-                    ),
-                  ]),
+                  builder: demoLive(
+                    (_) => _page([
+                      SettingsSection(
+                        tiles: [
+                          _androidNav(
+                            'Privacy',
+                            summary: 'Show all notification content',
+                          ),
+                          _switch('Show wallet', value: true),
+                          _switch('Use device controls', value: true),
+                          _switch('Always show time and info'),
+                        ],
+                      ),
+                    ]),
+                  ),
                 ),
               ),
               _androidNav('Screen timeout', summary: 'After 30 seconds'),
@@ -1113,7 +1121,7 @@ SettingsTile _chromePage(
 ) => SettingsTile.navigation(
   leading: Icon(icon),
   title: Text(title),
-  destination: SettingsDestination(id: id, builder: builder),
+  destination: SettingsDestination(id: id, builder: demoLive(builder)),
 );
 
 SettingsTile _chromeNav(String title, {String? description}) =>
@@ -1181,32 +1189,34 @@ List<AbstractSettingsSection> _chromeSections() => [
                 ),
                 destination: SettingsDestination(
                   id: 'security',
-                  builder: (_) => _page([
-                    SettingsSection(
-                      title: const Text('Safe Browsing'),
-                      tiles: [
-                        _chromeNav(
-                          'Enhanced protection',
-                          description:
-                              'Faster, proactive protection against '
-                              'dangerous websites, downloads, and extensions',
-                        ),
-                        _chromeNav(
-                          'Standard protection',
-                          description:
-                              'Protects against sites, downloads, and '
-                              'extensions that are known to be dangerous',
-                        ),
-                      ],
-                    ),
-                    SettingsSection(
-                      title: const Text('Advanced'),
-                      tiles: [
-                        _switch('Always use secure connections', value: true),
-                        _chromeNav('Manage certificates'),
-                      ],
-                    ),
-                  ]),
+                  builder: demoLive(
+                    (_) => _page([
+                      SettingsSection(
+                        title: const Text('Safe Browsing'),
+                        tiles: [
+                          _chromeNav(
+                            'Enhanced protection',
+                            description:
+                                'Faster, proactive protection against '
+                                'dangerous websites, downloads, and extensions',
+                          ),
+                          _chromeNav(
+                            'Standard protection',
+                            description:
+                                'Protects against sites, downloads, and '
+                                'extensions that are known to be dangerous',
+                          ),
+                        ],
+                      ),
+                      SettingsSection(
+                        title: const Text('Advanced'),
+                        tiles: [
+                          _switch('Always use secure connections', value: true),
+                          _chromeNav('Manage certificates'),
+                        ],
+                      ),
+                    ]),
+                  ),
                 ),
               ),
               _chromeNav(

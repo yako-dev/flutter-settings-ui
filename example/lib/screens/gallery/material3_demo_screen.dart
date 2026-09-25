@@ -15,7 +15,9 @@ class Material3DemoScreen extends StatefulWidget {
 class _Material3DemoScreenState extends State<Material3DemoScreen> {
   bool _notifications = true;
   bool _locationAccess = false;
-  bool _darkMode = false;
+
+  /// Null follows the app's light or dark mode until the switch is used.
+  bool? _darkMode;
   final String _selectedLanguage = 'English';
 
   static const _seedColors = <String, Color>{
@@ -31,16 +33,18 @@ class _Material3DemoScreenState extends State<Material3DemoScreen> {
   @override
   Widget build(BuildContext context) {
     final seedColor = _seedColors[_selectedSeed]!;
+    final darkMode =
+        _darkMode ?? Theme.of(context).brightness == Brightness.dark;
     final colorScheme = ColorScheme.fromSeed(
       seedColor: seedColor,
-      brightness: _darkMode ? Brightness.dark : Brightness.light,
+      brightness: darkMode ? Brightness.dark : Brightness.light,
     );
 
     return Theme(
       data: ThemeData(
         useMaterial3: true,
         colorScheme: colorScheme,
-        brightness: _darkMode ? Brightness.dark : Brightness.light,
+        brightness: darkMode ? Brightness.dark : Brightness.light,
       ),
       child: Builder(
         builder: (context) => Scaffold(
@@ -49,7 +53,7 @@ class _Material3DemoScreenState extends State<Material3DemoScreen> {
             backgroundColor: colorScheme.surface,
           ),
           body: SettingsList(
-            brightness: _darkMode ? Brightness.dark : Brightness.light,
+            brightness: darkMode ? Brightness.dark : Brightness.light,
             sections: [
               SettingsSection(
                 title: const Text('Seed color'),
@@ -73,7 +77,7 @@ class _Material3DemoScreenState extends State<Material3DemoScreen> {
                 title: const Text('Appearance'),
                 tiles: [
                   SettingsTile.switchTile(
-                    initialValue: _darkMode,
+                    initialValue: darkMode,
                     onToggle: (v) => setState(() => _darkMode = v),
                     leading: const Icon(Icons.dark_mode),
                     title: const Text('Dark mode'),

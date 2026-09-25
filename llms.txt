@@ -2,7 +2,14 @@
 
 > Flutter package for settings screens that look native on each platform from one API: iOS 26-style grouped cards on iOS, macOS 26-style System Settings forms on macOS, Windows 11-style cards on Windows, Android 16-style cards on Android and Fuchsia, GNOME (libadwaita) boxed lists on Linux, and Chrome-style cards on the web. The style is picked at runtime. Import `package:settings_ui/settings_ui.dart`.
 
-The public API is the same in 3.x and 4.x, apart from what 4.0.0 adds: the switches `CupertinoSettingsSwitch`, `MacosSettingsSwitch`, `FluentSettingsSwitch` and `AdwaitaSettingsSwitch`, `SettingsDestination` (tiles that open pages) and `SettingsSplitView` (list and page side by side on tablets, foldables, desktop and the web). What differs is the Flutter UI library the app must use, and the look.
+The 3.x API is unchanged in 4.x: 4.0.0 removes and renames nothing. What differs is the Flutter UI library the app must use (see below) and the look. 4.0.0 adds:
+
+- macOS (System Settings), Windows 11 and GNOME (libadwaita) styles. In 3.x, macOS and Windows used the iOS style and Linux the Android one.
+- The switches of the iOS, macOS, Windows and GNOME styles, public so you can use them on their own: `CupertinoSettingsSwitch` (the iOS 26 switch, replacing `CupertinoSwitch`), `MacosSettingsSwitch` (+ `MacosSettingsSwitchSize`), `FluentSettingsSwitch` and `AdwaitaSettingsSwitch`. Also `AdwaitaPanDownIcon`, the arrow of GNOME combo rows.
+- `SettingsDestination` and `SettingsTile.navigation(destination:)`: tiles that open pages with the platform's page header.
+- `SettingsSplitView`, with `SettingsSplitController` and `SettingsSplitLayout`: list and page side by side on tablets, foldables, desktop and the web.
+- The `SettingsThemeData` fields `selectedTileColor`, `selectedTileTextColor`, `selectedTileIconColor` and `listPaneBackground`, for the split view.
+- Bug fixes, among them: `SettingsList.brightness` is no longer ignored, iOS simple tiles show `value`, `crossAxisAlignment: CrossAxisAlignment.start` works on wide screens, the side padding follows the list's own width, and an empty section renders nothing. The CHANGELOG lists them all.
 
 ## Install and requirements
 
@@ -13,7 +20,7 @@ The public API is the same in 3.x and 4.x, apart from what 4.0.0 adds: the switc
 
 - 4.x reads colors, brightness and platform from the `Theme` and `CupertinoTheme` of material_ui and cupertino_ui. In an app still on `package:flutter/material.dart` it compiles, but uses default colors, stays light in dark mode, and debug builds print once: `settings_ui: SettingsList found no Theme from package:material_ui ...`.
 - settings_ui depends on material_ui and cupertino_ui, but an app that imports them must list them in its own `pubspec.yaml` too (`flutter pub add material_ui cupertino_ui`). Otherwise the `depend_on_referenced_packages` lint fails.
-- Moving an app to material_ui: `dart fix --apply --code=migrate_design_widgets`, see https://pub.dev/packages/material_ui.
+- Moving an app to material_ui: `dart fix --apply --code=migrate_design_widgets`, see <https://pub.dev/packages/material_ui>.
 
 ## Minimal example (4.x)
 
@@ -85,14 +92,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
 - `applicationType`: `ApplicationType`, default `.material`. Where light or dark comes from: `.material` reads `Theme`, `.cupertino` reads `CupertinoTheme` (then the platform brightness), for a `CupertinoApp`. `.both` reads `CupertinoTheme` when the app runs on iOS or macOS and `Theme` elsewhere; it goes by the detected platform, not by `platform:`.
 - `brightness`: `Brightness?`. Forces light or dark, overriding the detected brightness. Leave it null to follow the app theme.
 - `lightTheme`, `darkTheme`: `SettingsThemeData?`, merged over the platform defaults.
-- `contentPadding`: `EdgeInsetsGeometry?`, padding of the inner `ListView`. Default: none; 20 vertical / 16 horizontal on web; 12 on top (0 when the first section has a title) and 10 at the bottom on macOS; 24 horizontal (16 below 641 wide) and 36 at the bottom on Windows; 24 on top in the GNOME style. When the list is wider than 810 (680 on web, 640 on macOS, 1000 on Windows), side padding keeps the tiles in a column of that width. The GNOME style narrows it like `AdwClamp`: the full width up to 400, then easing to at most 600 (scaled with the text). The width is the list's own, so it works in split views and side panels.
+- `contentPadding`: `EdgeInsetsGeometry?`, padding of the inner `ListView`. Default: none; 20 vertical / 16 horizontal on web; 12 on top (0 when the first section has a title) and 10 at the bottom on macOS; 24 horizontal (16 below 641 wide) and 33 at the bottom on Windows (36 with the last card's gap); 24 on top in the GNOME style. When the list is wider than 810 (680 on web, 640 on macOS, 1000 on Windows), side padding keeps the tiles in a column of that width. The GNOME style narrows it like `AdwClamp`: the full width up to 400, then easing to at most 600 (scaled with the text). The width is the list's own, so it works in split views and side panels.
 - `crossAxisAlignment`: `CrossAxisAlignment`, default `center`. `start` puts that column at the start edge (left in LTR, right in RTL) on wide lists instead of centering it. No effect when `contentPadding` is set.
 - `scrollController`, `physics`, `shrinkWrap` (default `false`): passed to the inner `ListView`.
 
 ### SettingsSection
 
 - `tiles` (required): `List<AbstractSettingsTile>`. With an empty list the section renders nothing, title included.
-- `title`: `Widget?`. Use sentence case ("Notifications"); the iOS style no longer upper-cases headers.
+- `title`: `Widget?`. Use sentence case ("Notifications"), like iOS 26. Apps written for 3.x often pass ALL-CAPS titles for the old iOS look; change them.
 - `margin`: `EdgeInsetsDirectional?` (not `EdgeInsets`).
 - `titlePadding`: `EdgeInsetsGeometry?`, padding around the title.
 
@@ -257,8 +264,8 @@ Override per brightness with `SettingsList(lightTheme: SettingsThemeData(...), d
 - `tileHighlightColor` (`Color?`): pressed row. The GNOME style hovers with 3/8 of its opacity.
 - `titleTextColor` (`Color?`), `titleTextStyle` (`TextStyle?`): section titles. In the iOS style the color also applies to `titleDescription` and `description`.
 - `settingsTileTextColor` (`Color?`), `tileTextStyle` (`TextStyle?`): tile titles.
-- `tileDescriptionTextColor` (`Color?`): `description` and `value` on Android and web, `description` in the Windows and GNOME styles, `description` and `titleDescription` in the macOS style.
-- `tileDescriptionTextStyle` (`TextStyle?`): `description` everywhere, `value` on Android, GNOME and web, and `titleDescription` in the macOS style.
+- `tileDescriptionTextColor` (`Color?`): `description` and `value` on Android and web; `description` and `titleDescription` in the macOS, Windows and GNOME styles.
+- `tileDescriptionTextStyle` (`TextStyle?`): `description` everywhere, `value` on Android, GNOME and web, and `titleDescription` in the macOS, Windows and GNOME styles.
 - `trailingTextColor` (`Color?`): `value` in the iOS, macOS, Windows and GNOME styles.
 - `leadingIconsColor` (`Color?`): leading and trailing icons, and the chevron (lighter in the macOS style).
 - `inactiveTitleColor` (`Color?`): title and icons of a disabled tile.
@@ -303,14 +310,18 @@ Don't:
 - Don't pass `EdgeInsets` to `SettingsSection.margin`. It takes `EdgeInsetsDirectional`.
 - Don't expect `ColorScheme` or `CupertinoThemeData.primaryColor` to recolor the iOS, macOS, Windows or GNOME styles. Use `SettingsThemeData` (and `activeSwitchColor`).
 - Don't hardcode colors on tiles; they break dark mode.
-- Don't look for `CupertinoSwitch` in 4.x tests. The iOS style uses `CupertinoSettingsSwitch`, the macOS style `MacosSettingsSwitch` and the Windows style `FluentSettingsSwitch`.
+- Don't look for `CupertinoSwitch` in 4.x tests. The iOS style uses `CupertinoSettingsSwitch`, the macOS style `MacosSettingsSwitch`, the Windows style `FluentSettingsSwitch` and the GNOME (Linux) style `AdwaitaSettingsSwitch`, not a Material `Switch`.
 - Don't wrap `SettingsSplitView` in a `Scaffold` with an `AppBar`, and don't give a destination's body its own app bar: the package draws the headers.
 - Don't call `SettingsSplitController.select` with the id of a page that only exists inside another page. It takes top-level destination ids.
 - 3.x only: the iOS style of a plain `SettingsTile` doesn't show `value`. Use `SettingsTile.navigation` or `trailing` there. Fixed in 4.0.0.
+
+## Known issues
+
+- iOS with VoiceOver: after a `SettingsSplitView` changes layout (for example on rotation, or when an iPad window is resized), VoiceOver can place the frames of the rows in a pane wrongly until the app restarts. This is a Flutter engine bug: it also happens without settings_ui when a subtree with its own semantics node moves to a new parent. Touch input without VoiceOver is not affected. Don't try to work around it in app code.
 
 ## Optional
 
 - [README](https://github.com/yako-dev/flutter-settings-ui/blob/master/README.md): screenshots, theming examples, API tables, prompts for coding agents
 - [CHANGELOG](https://github.com/yako-dev/flutter-settings-ui/blob/master/CHANGELOG.md): breaking changes in 4.0.0
-- [Example app](https://github.com/yako-dev/flutter-settings-ui/tree/master/example/lib): iOS, Android, macOS, Windows, GNOME, web and Material 3 screens, and a split view demo (`flutter run --route '/split-view?platform=android'`)
+- [Example app](https://github.com/yako-dev/flutter-settings-ui/tree/master/example/lib): iOS, Android, macOS, Windows, GNOME, web and Material 3 screens, a split view demo (`cd example && flutter run --route '/split-view?platform=android'`) and a showcase, a fictional app's settings in every style (`--route '/showcase?platform=macOS'`)
 - [material_ui](https://pub.dev/packages/material_ui): moving an app off `package:flutter/material.dart`
