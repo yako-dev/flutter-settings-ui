@@ -29,7 +29,9 @@ class FluentSettingsSection extends StatelessWidget {
 
     // As in Windows Settings, a header's text box is 30 + 3 below the
     // previous card and 6 above its first card (its capitals about 37 and
-    // 22). An untitled section starts 24 below the previous one.
+    // 22), and 19 below a page title right above the list. An untitled
+    // section starts 24 below the previous one.
+    final afterPageTitle = FluentSectionContext.afterPageTitleOf(context);
     return Padding(
       padding:
           margin ??
@@ -44,9 +46,9 @@ class FluentSettingsSection extends StatelessWidget {
             Padding(
               padding:
                   titlePadding ??
-                  const EdgeInsetsDirectional.only(
+                  EdgeInsetsDirectional.only(
                     start: 1,
-                    top: 30,
+                    top: afterPageTitle ? 19 : 30,
                     bottom: 6,
                   ),
               child: Semantics(
@@ -69,6 +71,53 @@ class FluentSettingsSection extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Tells the first [FluentSettingsSection] of a list whether a Windows
+/// page title sits right above the list (the page header of a
+/// `SettingsDestinationPage`), which Windows Settings keeps closer to its
+/// first group header.
+class FluentSectionContext extends InheritedWidget {
+  const FluentSectionContext({
+    super.key,
+    required this.afterPageTitle,
+    required super.child,
+  });
+
+  final bool afterPageTitle;
+
+  static bool afterPageTitleOf(BuildContext context) =>
+      context
+          .dependOnInheritedWidgetOfExactType<FluentSectionContext>()
+          ?.afterPageTitle ??
+      false;
+
+  @override
+  bool updateShouldNotify(FluentSectionContext oldWidget) =>
+      afterPageTitle != oldWidget.afterPageTitle;
+}
+
+/// Put by a Windows style page header above the page body: a Fluent
+/// [SettingsList] right below it starts closer to the title. The list
+/// resets it for anything nested in it.
+class FluentPageTitleAbove extends InheritedWidget {
+  const FluentPageTitleAbove({
+    super.key,
+    this.above = true,
+    required super.child,
+  });
+
+  final bool above;
+
+  static bool of(BuildContext context) =>
+      context
+          .dependOnInheritedWidgetOfExactType<FluentPageTitleAbove>()
+          ?.above ??
+      false;
+
+  @override
+  bool updateShouldNotify(FluentPageTitleAbove oldWidget) =>
+      above != oldWidget.above;
 }
 
 /// The card around a [CustomSettingsTile] or another custom tile: the

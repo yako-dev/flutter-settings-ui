@@ -4,6 +4,7 @@ import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/src/sections/abstract_settings_section.dart';
 import 'package:settings_ui/src/sections/platforms/adwaita_settings_section.dart';
+import 'package:settings_ui/src/sections/platforms/fluent_settings_section.dart';
 import 'package:settings_ui/src/sections/platforms/macos_settings_section.dart';
 import 'package:settings_ui/src/sections/settings_section.dart';
 import 'package:settings_ui/src/utils/content_column.dart';
@@ -108,6 +109,9 @@ class SettingsList extends StatelessWidget {
     final style = config.resolve(context);
     final platform = style.platform;
     final themeData = style.themeData;
+    // A Windows list right under a page title starts closer to it.
+    final underPageTitle =
+        platform == DevicePlatform.windows && FluentPageTitleAbove.of(context);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -129,20 +133,33 @@ class SettingsList extends StatelessWidget {
             child: SettingsTheme(
               themeData: themeData,
               platform: platform,
-              child: ListView.builder(
-                controller: scrollController,
-                physics: physics,
-                shrinkWrap: shrinkWrap,
-                itemCount: sections.length,
-                padding:
-                    contentPadding ?? _defaultPadding(context, platform, width),
-                itemBuilder: (BuildContext context, int index) {
-                  if (platform != DevicePlatform.macOS) return sections[index];
-                  return MacosSectionContext(
-                    followsFooter: _previousEndsWithFooter(index),
-                    child: sections[index],
-                  );
-                },
+              child: FluentPageTitleAbove(
+                // Not for lists nested in this one.
+                above: false,
+                child: ListView.builder(
+                  controller: scrollController,
+                  physics: physics,
+                  shrinkWrap: shrinkWrap,
+                  itemCount: sections.length,
+                  padding:
+                      contentPadding ??
+                      _defaultPadding(context, platform, width),
+                  itemBuilder: (BuildContext context, int index) {
+                    if (underPageTitle && index == _firstShownIndex) {
+                      return FluentSectionContext(
+                        afterPageTitle: true,
+                        child: sections[index],
+                      );
+                    }
+                    if (platform != DevicePlatform.macOS) {
+                      return sections[index];
+                    }
+                    return MacosSectionContext(
+                      followsFooter: _previousEndsWithFooter(index),
+                      child: sections[index],
+                    );
+                  },
+                ),
               ),
             ),
           ),
@@ -302,6 +319,16 @@ class SettingsList extends StatelessWidget {
       return macosSectionEndsWithFooter(section);
     }
     return false;
+  }
+
+  /// The index of the first section that shows anything.
+  int get _firstShownIndex {
+    for (var i = 0; i < sections.length; i++) {
+      final section = sections[i];
+      if (section is SettingsSection && section.tiles.isEmpty) continue;
+      return i;
+    }
+    return 0;
   }
 
   /// Whether the first section that shows anything is a [SettingsSection]

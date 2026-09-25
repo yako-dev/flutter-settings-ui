@@ -19,6 +19,45 @@ const double kWebListPaneWidth = 266;
 /// divided by the 96% card width.
 const double kWebMainBasis = 680 / 0.96;
 
+/// The macOS 27 System Settings sidebar, measured in a 740pt window.
+/// (SwiftUI's own default is 215, resizable from 200 to 300.)
+const double kMacosListPaneWidth = 232;
+
+/// SwiftUI's `NavigationSplitView` never collapses on the Mac, but a macOS
+/// style split view also runs in narrow windows, on phones and on the web.
+/// Two panes need room for the 232pt sidebar and a detail pane of at least
+/// 328pt: about two thirds of System Settings' ~507pt pane, the narrowest
+/// width at which its grouped rows (20pt margins, 10pt insets) still fit a
+/// label, a value and a control on one line. Narrower windows, phone-sized
+/// ones included, show one pane, like SwiftUI in a compact width.
+const double kMacosTwoPaneMinWidth = 560;
+
+/// WinUI `NavigationView` (PaneDisplayMode Auto): the pane is open from
+/// this window width (ExpandedModeThresholdWidth)...
+const double kFluentExpandedMinWidth = 1008;
+
+/// ...a compact icon rail from this one (CompactModeThresholdWidth), and
+/// hidden below it.
+const double kFluentCompactMinWidth = 641;
+
+/// The open pane of Windows 11 Settings, measured on a real capture: its
+/// items are 280 wide and start 16 from the window edge, and the 1000px
+/// content column is centered in the rest of the window. (WinUI's default
+/// OpenPaneLength is 320.)
+const double kFluentExpandedPaneWidth = 300;
+
+/// WinUI's CompactPaneLength: the icon rail.
+const double kFluentCompactPaneWidth = 48;
+
+/// GNOME Settings' `AdwNavigationSplitView`: the sidebar takes a quarter
+/// of the window, between 180sp and 280sp...
+const double kAdwaitaSidebarFraction = 0.25;
+const double kAdwaitaSidebarMinWidth = 180;
+const double kAdwaitaSidebarMaxWidth = 280;
+
+/// ...and the view collapses to one pane at `max-width: 550sp`.
+const double kAdwaitaCollapseWidth = 550;
+
 /// Where the panes go, for one layout pass. Internal.
 @immutable
 class SplitGeometry {
@@ -26,15 +65,21 @@ class SplitGeometry {
     : isSplit = false,
       listWidth = 0,
       gap = 0,
-      detailWidth = 0;
+      detailWidth = 0,
+      compactPane = false;
 
   const SplitGeometry.split({
     required this.listWidth,
     required this.gap,
     required this.detailWidth,
+    this.compactPane = false,
   }) : isSplit = true;
 
   final bool isSplit;
+
+  /// The list pane is the Windows style's compact icon rail
+  /// ([kFluentCompactPaneWidth] wide), which opens over the detail pane.
+  final bool compactPane;
 
   /// Width of the list pane (the start pane).
   final double listWidth;
@@ -45,7 +90,8 @@ class SplitGeometry {
 
   @override
   String toString() => isSplit
-      ? 'SplitGeometry.split($listWidth | $gap | $detailWidth)'
+      ? 'SplitGeometry.split($listWidth | $gap | $detailWidth'
+            '${compactPane ? ', compact' : ''})'
       : 'SplitGeometry.single()';
 }
 
@@ -74,13 +120,19 @@ bool isDesktopPlatform(TargetPlatform platform) {
 /// - Material: AOSP Settings' rule, width >= 720dp and smallest width
 ///   >= 600dp.
 /// - Web: Chrome's, width > 980px.
+/// - macOS: width >= [kMacosTwoPaneMinWidth].
+/// - Windows: width >= [kFluentCompactMinWidth] (the compact rail up to
+///   [kFluentExpandedMinWidth]).
+/// - GNOME: width > [kAdwaitaCollapseWidth], scaled by the text size.
 ///
-/// On desktops only the width counts.
+/// On desktops only the width counts. The desktop styles only look at the
+/// width anywhere, like their toolkits.
 bool defaultShowsTwoPanes({
   required SettingsStyleFamily family,
   required double width,
   required double shortestSide,
   required bool desktop,
+  TextScaler textScaler = TextScaler.noScaling,
 }) {
   switch (family) {
     case SettingsStyleFamily.cupertino:
@@ -89,11 +141,21 @@ bool defaultShowsTwoPanes({
       return width >= 720 && (desktop || shortestSide >= 600);
     case SettingsStyleFamily.web:
       return width > 980;
+    case SettingsStyleFamily.macos:
+      return width >= kMacosTwoPaneMinWidth;
+    case SettingsStyleFamily.fluent:
+      return width >= kFluentCompactMinWidth;
+    case SettingsStyleFamily.adwaita:
+      return width > textScaler.scale(kAdwaitaCollapseWidth);
   }
 }
 
 /// The default list pane width of a style for a window [width] wide.
-double defaultListPaneWidth(SettingsStyleFamily family, double width) {
+double defaultListPaneWidth(
+  SettingsStyleFamily family,
+  double width, {
+  TextScaler textScaler = TextScaler.noScaling,
+}) {
   switch (family) {
     case SettingsStyleFamily.cupertino:
       return kCupertinoListPaneWidth;
@@ -101,7 +163,23 @@ double defaultListPaneWidth(SettingsStyleFamily family, double width) {
       return width * kMaterialListPaneFraction;
     case SettingsStyleFamily.web:
       return kWebListPaneWidth;
+    case SettingsStyleFamily.macos:
+      return kMacosListPaneWidth;
+    case SettingsStyleFamily.fluent:
+      return width >= kFluentExpandedMinWidth
+          ? kFluentExpandedPaneWidth
+          : kFluentCompactPaneWidth;
+    case SettingsStyleFamily.adwaita:
+      return adwaitaSidebarWidth(width, textScaler);
   }
+}
+
+/// GNOME's sidebar width in a window [width] wide: a quarter of it,
+/// clamped to 180–280sp.
+double adwaitaSidebarWidth(double width, TextScaler textScaler) {
+  final min = textScaler.scale(kAdwaitaSidebarMinWidth);
+  final max = math.max(min, textScaler.scale(kAdwaitaSidebarMaxWidth));
+  return (width * kAdwaitaSidebarFraction).clamp(min, max);
 }
 
 /// A fold or hinge that cuts the split view into a start and an end part,
@@ -154,6 +232,10 @@ SeparatingHinge? findSeparatingHinge({
 }
 
 /// Decides one or two panes and their widths.
+///
+/// The Windows style's list pane is the compact rail below
+/// [kFluentExpandedMinWidth], whatever [listPaneWidth] says: that only sets
+/// the open pane.
 SplitGeometry computeSplitGeometry({
   required SettingsStyleFamily family,
   required bool forceSingle,
@@ -162,6 +244,7 @@ SplitGeometry computeSplitGeometry({
   required double shortestSide,
   required bool desktop,
   required TextDirection textDirection,
+  TextScaler textScaler = TextScaler.noScaling,
   double? breakpoint,
   double? listPaneWidth,
   SeparatingHinge? hinge,
@@ -190,10 +273,23 @@ SplitGeometry computeSplitGeometry({
               width: width,
               shortestSide: shortestSide,
               desktop: desktop,
+              textScaler: textScaler,
             ));
   if (!split) return const SplitGeometry.single();
 
-  var listWidth = listPaneWidth ?? defaultListPaneWidth(family, width);
+  if (family == SettingsStyleFamily.fluent && width < kFluentExpandedMinWidth) {
+    final rail = math.min(kFluentCompactPaneWidth, width / 2);
+    return SplitGeometry.split(
+      listWidth: rail,
+      gap: 0,
+      detailWidth: width - rail,
+      compactPane: true,
+    );
+  }
+
+  var listWidth =
+      listPaneWidth ??
+      defaultListPaneWidth(family, width, textScaler: textScaler);
   // Leave the detail at least half the window when a narrow window is forced
   // into two panes.
   listWidth = math.min(listWidth, width / 2);

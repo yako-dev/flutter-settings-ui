@@ -6,6 +6,9 @@ import 'package:settings_ui/src/sections/platforms/fluent_settings_section.dart'
 import 'package:settings_ui/src/sections/platforms/ios_settings_section.dart';
 import 'package:settings_ui/src/sections/platforms/macos_settings_section.dart';
 import 'package:settings_ui/src/sections/platforms/web_settings_section.dart';
+import 'package:settings_ui/src/split/adwaita_split.dart';
+import 'package:settings_ui/src/split/fluent_split.dart';
+import 'package:settings_ui/src/split/macos_split.dart';
 import 'package:settings_ui/src/split/split_scopes.dart';
 import 'package:settings_ui/src/tiles/abstract_settings_tile.dart';
 import 'package:settings_ui/src/utils/platform_utils.dart';
@@ -33,7 +36,44 @@ class SettingsSection extends AbstractSettingsSection {
 
     final theme = SettingsTheme.of(context);
 
-    switch (SettingsSplitListScope.tilePlatformOf(context, theme.platform)) {
+    if (SettingsSplitListScope.drawsSidebarOf(context)) {
+      // The sidebar of a macOS, Windows or GNOME style split view.
+      final Widget? sidebarSection;
+      switch (theme.platform) {
+        case DevicePlatform.macOS:
+          sidebarSection = MacosSidebarSection(
+            title: title,
+            titlePadding: titlePadding,
+            tiles: tiles,
+          );
+        case DevicePlatform.windows:
+          sidebarSection = FluentNavigationSection(
+            title: title,
+            titlePadding: titlePadding,
+            tiles: tiles,
+          );
+        case DevicePlatform.linux:
+          sidebarSection = AdwaitaSidebarSection(
+            title: title,
+            titlePadding: titlePadding,
+            tiles: tiles,
+          );
+        case DevicePlatform.iOS:
+        case DevicePlatform.android:
+        case DevicePlatform.fuchsia:
+        case DevicePlatform.web:
+        case DevicePlatform.device:
+          sidebarSection = null;
+      }
+      if (sidebarSection != null) {
+        final margin = this.margin;
+        return margin == null
+            ? sidebarSection
+            : Padding(padding: margin, child: sidebarSection);
+      }
+    }
+
+    switch (theme.platform) {
       case DevicePlatform.android:
       case DevicePlatform.fuchsia:
         return AndroidSettingsSection(

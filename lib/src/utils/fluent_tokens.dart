@@ -25,6 +25,10 @@ class FluentTokens {
     required this.textSecondary,
     required this.textDisabled,
     required this.navItemSelected,
+    required this.navItemPressed,
+    required this.divider,
+    required this.overlayPane,
+    required this.overlayStroke,
     required this.focusOuter,
     required this.focusInner,
     required this.accent,
@@ -80,6 +84,20 @@ class FluentTokens {
   /// of a NavigationView pane.
   final Color navItemSelected;
 
+  /// `SubtleFillColorTertiary` on [page]: a pressed NavigationView item, and
+  /// a hovered selected one.
+  final Color navItemPressed;
+
+  /// `DividerStrokeColorDefault` (alpha): NavigationView separators.
+  final Color divider;
+
+  /// The NavigationView pane opened over the content from the compact rail
+  /// (`NavigationViewDefaultPaneBackground`, acrylic; its flat fallback).
+  final Color overlayPane;
+
+  /// `SurfaceStrokeColorFlyout` (alpha): the edge of that pane.
+  final Color overlayStroke;
+
   /// `FocusStrokeColorOuter` (alpha), the 2px outer focus ring.
   final Color focusOuter;
 
@@ -127,6 +145,10 @@ class FluentTokens {
     textSecondary: Color(0xFF5F5F5F),
     textDisabled: Color(0xFFA0A0A0),
     navItemSelected: Color(0xFFEAEAEA),
+    navItemPressed: Color(0xFFEDEDED),
+    divider: Color(0x0F000000),
+    overlayPane: Color(0xFFF9F9F9),
+    overlayStroke: Color(0x0F000000),
     focusOuter: Color(0xE4000000),
     focusInner: Color(0xB3FFFFFF),
     accent: Color(0xFF0067C0),
@@ -154,6 +176,10 @@ class FluentTokens {
     textSecondary: Color(0xFFCFCFCF),
     textDisabled: Color(0xFF787878),
     navItemSelected: Color(0xFF2D2D2D),
+    navItemPressed: Color(0xFF292929),
+    divider: Color(0x15FFFFFF),
+    overlayPane: Color(0xFF2C2C2C),
+    overlayStroke: Color(0x33000000),
     focusOuter: Color(0xFFFFFFFF),
     focusInner: Color(0xB3000000),
     accent: Color(0xFF4CC2FF),

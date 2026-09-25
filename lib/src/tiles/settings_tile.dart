@@ -1,5 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:settings_ui/src/split/settings_destination.dart';
+import 'package:settings_ui/src/split/adwaita_split.dart';
+import 'package:settings_ui/src/split/fluent_split.dart';
+import 'package:settings_ui/src/split/macos_split.dart';
 import 'package:settings_ui/src/split/settings_destination_page.dart';
 import 'package:settings_ui/src/split/split_scopes.dart';
 import 'package:settings_ui/src/tiles/abstract_settings_tile.dart';
@@ -162,7 +165,16 @@ class SettingsTile extends AbstractSettingsTile {
     final selected = listPane?.isSelected(destination) ?? false;
     final onPressed = _effectiveOnPressed;
 
-    switch (SettingsSplitListScope.tilePlatformOf(context, theme.platform)) {
+    if (listPane != null && listPane.sidebar) {
+      final sidebarItem = _buildSidebarItem(
+        theme.platform,
+        onPressed: onPressed,
+        selected: selected,
+      );
+      if (sidebarItem != null) return sidebarItem;
+    }
+
+    switch (theme.platform) {
       case DevicePlatform.android:
       case DevicePlatform.fuchsia:
         return AndroidSettingsTile(
@@ -308,6 +320,64 @@ class SettingsTile extends AbstractSettingsTile {
           'You can\'t use the DevicePlatform.device in this context. '
           'Incorrect platform: SettingsTile.build',
         );
+    }
+  }
+
+  /// The row of a macOS, Windows or GNOME sidebar, or null for the other
+  /// styles.
+  Widget? _buildSidebarItem(
+    DevicePlatform platform, {
+    required Function(BuildContext context)? onPressed,
+    required bool selected,
+  }) {
+    switch (platform) {
+      case DevicePlatform.macOS:
+        return MacosSidebarItem(
+          tileType: tileType,
+          leading: leading,
+          title: title,
+          trailing: trailing,
+          onPressed: onPressed,
+          onToggle: onToggle,
+          initialValue: initialValue ?? false,
+          activeSwitchColor: activeSwitchColor,
+          enabled: enabled,
+          selected: selected,
+          opensPage: destination != null,
+        );
+      case DevicePlatform.windows:
+        return FluentNavigationItem(
+          id: destination?.id,
+          tileType: tileType,
+          leading: leading,
+          title: title,
+          trailing: trailing,
+          onPressed: onPressed,
+          onToggle: onToggle,
+          initialValue: initialValue ?? false,
+          activeSwitchColor: activeSwitchColor,
+          enabled: enabled,
+          selected: selected,
+        );
+      case DevicePlatform.linux:
+        return AdwaitaSidebarRow(
+          tileType: tileType,
+          leading: leading,
+          title: title,
+          trailing: trailing,
+          onPressed: onPressed,
+          onToggle: onToggle,
+          initialValue: initialValue ?? false,
+          activeSwitchColor: activeSwitchColor,
+          enabled: enabled,
+          selected: selected,
+        );
+      case DevicePlatform.iOS:
+      case DevicePlatform.android:
+      case DevicePlatform.fuchsia:
+      case DevicePlatform.web:
+      case DevicePlatform.device:
+        return null;
     }
   }
 }
