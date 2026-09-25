@@ -77,9 +77,9 @@ class FluentSettingsSwitch extends StatefulWidget {
 
   /// The fill of the track when the switch is on.
   ///
-  /// Defaults to the Windows default accent: `#005FB8` in light mode and
-  /// `#60CDFF` in dark mode. The knob turns white or black, whichever
-  /// contrasts with it.
+  /// Defaults to the default Windows 11 accent as Settings shows it:
+  /// `#0067C0` in light mode and `#4CC2FF` in dark mode. The knob turns
+  /// white or black, whichever contrasts with it.
   final Color? activeTrackColor;
 
   /// The outline of the track and the color of the knob when the switch is

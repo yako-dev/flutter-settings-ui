@@ -378,6 +378,19 @@ The tile is controlled: `initialValue` is the current value, and `onToggle` gets
 
 Tapping the row works like each platform's settings app. In the Android, GNOME and web styles, tapping anywhere on the row toggles the switch, and `onPressed` isn't called. In the iOS, macOS and Windows styles only the switch itself toggles; tapping the rest of the row calls `onPressed`, if you set one.
 
+Windows Settings writes "On" or "Off" before every switch. The package doesn't add that text, because it would be English only. For the Windows look, pass your own localized label as `trailing`; the Windows style puts it just before the switch. `trailing` shows in every style, so add it only on Windows:
+
+```dart
+SettingsTile.switchTile(
+  title: const Text('Night light'),
+  trailing: Theme.of(context).platform == TargetPlatform.windows
+      ? Text(_nightLight ? 'On' : 'Off') // use your app's localized strings
+      : null,
+  initialValue: _nightLight,
+  onToggle: (value) => setState(() => _nightLight = value),
+)
+```
+
 ### `value`, `description` and `titleDescription`
 
 The same tile shows its secondary text in different places, following each platform:
@@ -452,7 +465,7 @@ SettingsList(
 - **iOS** matches iOS 26 Settings: cards with 26pt continuous corners and 20pt side margins, 52pt rows with 17pt text, 17pt semibold section headers, grey footers, the `CupertinoSettingsSwitch`, and a chevron on navigation tiles.
 - **macOS** matches macOS 26/27 System Settings: `#F7F7F7` cards (`#252525` in dark mode) with 12pt continuous corners on a white page, 36pt rows with 13pt text and 1pt separators inset 10pt, 13pt semibold headers above the cards, 11pt grey footers, value text before a light chevron, `MacosSettingsSwitch`, and a 640pt column. Like System Settings, rows don't highlight on hover; rows with `onPressed` tint while pressed and take keyboard focus. For the colored icon squares of System Settings, pass your own widget as `leading` (the example app has `MacosIconBadge`); rows with a `leading` widget are 48pt.
 - **Android** matches Android 16 Settings: every tile sits on its own card, 2dp apart, with 20dp corners at the ends of a group, on a tinted page. 16sp titles and switches with a check or a cross.
-- **Windows** matches Windows 11 Settings (WinUI 3): every tile is its own card with 4px corners and a hairline border, 4px apart, at least 68px tall, with 14px titles, 12px descriptions, 20px icons, 14px semibold section headers, a thin chevron on navigation tiles, and the `FluentSettingsSwitch`. Clickable cards show the Windows hover, pressed and keyboard focus states. The content is a 1000px column with 36px margins (16px in narrow windows).
+- **Windows** matches Windows 11 Settings (WinUI 3): every tile is its own card with 4px corners and a hairline border, 3px apart, at least 70px tall, with 14px titles, 12px descriptions, 20px icons, 14px semibold section headers, a thin chevron on navigation tiles, and the `FluentSettingsSwitch`. Clickable cards show the Windows hover, pressed and keyboard focus states. The content is a 1000px column with 24px margins (16px in narrow windows).
 - **GNOME** matches GNOME Settings 51 (libadwaita 1.10): each section is a boxed list, a card with 12px corners and a soft shadow, with 54px rows and full-width separators; bold 14.67px group titles, 14.67px titles and dimmed 12.22px subtitles, 16px leading icons, the `AdwaitaSettingsSwitch` in the GNOME accent blue, a `go-next` arrow on navigation tiles, hover and focus highlights, and a content column that eases from 400 to at most 600px wide like `AdwClamp`. It uses fixed GNOME colors, not the `ColorScheme`. No font is bundled: GNOME uses Adwaita Sans, so set it with `tileTextStyle` and `titleTextStyle` if your app ships it.
 - **Web** matches Chrome's settings page: cards with 8px corners and a light shadow, 14px titles, 13px descriptions, a chevron on navigation tiles, and a 680px column on wide windows.
 
@@ -572,7 +585,7 @@ MaterialApp(
 )
 ```
 
-The iOS style uses fixed iOS system colors, like the Settings app: a grey grouped background, white cards (`#1C1C1E` in dark mode) and grey headers and values. The macOS style uses fixed macOS system colors the same way: `#F7F7F7` cards on a white page (`#252525` on `#1E1E1E` in dark mode). The Windows style uses the Windows 11 colors: a `#F3F3F3` page with `#FBFBFB` cards (`#202020` and `#2B2B2B` in dark mode) and the Windows accent `#005FB8` (`#60CDFF` in dark mode) for switches. The GNOME style uses the libadwaita colors: a `#FAFAFB` page with white cards (`#222226` with translucent white cards in dark mode) and the GNOME blue `#3584E4` for switches. None of them reads your `ColorScheme`. Light or dark mode follows your app theme in every style.
+The iOS style uses fixed iOS system colors, like the Settings app: a grey grouped background, white cards (`#1C1C1E` in dark mode) and grey headers and values. The macOS style uses fixed macOS system colors the same way: `#F7F7F7` cards on a white page (`#252525` on `#1E1E1E` in dark mode). The Windows style uses the Windows 11 colors: a `#F3F3F3` page with `#FBFBFB` cards (`#202020` and `#2B2B2B` in dark mode) and the default Windows accent `#0067C0` (`#4CC2FF` in dark mode) for switches. The GNOME style uses the libadwaita colors: a `#FAFAFB` page with white cards (`#222226` with translucent white cards in dark mode) and the GNOME blue `#3584E4` for switches. None of them reads your `ColorScheme`. Light or dark mode follows your app theme in every style.
 
 ### Custom theme overrides
 
@@ -866,7 +879,7 @@ Takes `sections`, `platform`, `applicationType`, `brightness`, `lightTheme` and 
 |---|---|---|
 | `value` | `bool` | Whether the switch is on (required) |
 | `onChanged` | `ValueChanged<bool>?` | Called with the new value (required); `null` disables the switch |
-| `activeTrackColor` | `Color?` | Track color when on. Default: the Windows accent, `#005FB8` light, `#60CDFF` dark. The knob turns white or black to contrast |
+| `activeTrackColor` | `Color?` | Track color when on. Default: the Windows accent, `#0067C0` light, `#4CC2FF` dark. The knob turns white or black to contrast |
 | `inactiveTrackColor` | `Color?` | Outline and knob color when off. Default: the Windows control stroke and secondary text colors |
 
 ### `AdwaitaSettingsSwitch`

@@ -244,14 +244,14 @@ class SettingsList extends StatelessWidget {
         topPadding = kAdwaitaPageTopMargin;
         bottomPadding = 0;
       case DevicePlatform.windows:
-        // Windows 11 Settings pages: 36 margins, down to 16 below the
+        // Windows 11 Settings pages: 24 margins, down to 16 below the
         // NavigationView's minimal-mode width (641), a column of at most
-        // 1000, and 36 at the bottom (the last section adds 4). Section
+        // 1000, and 36 at the bottom (the last section adds 3). Section
         // headers bring their own 30 at the top.
         contentWidth = math.min(availableWidth, 1000);
-        minSidePadding = availableWidth < 641 ? 16 : 36;
+        minSidePadding = availableWidth < 641 ? 16 : 24;
         topPadding = 0;
-        bottomPadding = 32;
+        bottomPadding = 33;
       case DevicePlatform.web:
         // Chrome's settings page uses a 680px column and keeps the cards off
         // the edges of narrow browser windows.

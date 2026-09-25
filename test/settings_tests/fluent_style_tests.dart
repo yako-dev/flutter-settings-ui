@@ -127,20 +127,20 @@ void fluentStyleTests() {
       expect(data.inactiveTitleColor, const Color(0xFF787878));
     });
 
-    testWidgets('36 margins and a 1000 column on wide windows', (tester) async {
+    testWidgets('24 margins and a 1000 column on wide windows', (tester) async {
       await _pump(tester, [
         _section([SettingsTile(title: const Text('Tile'))]),
       ], size: const Size(1100, 900));
       expect(
         tester.getRect(_tile('Tile')),
-        const Rect.fromLTWH(50, 20, 1000, 68),
+        const Rect.fromLTWH(50, 21, 1000, 70),
       );
 
       await _pump(tester, [
         _section([SettingsTile(title: const Text('Tile'))]),
       ], size: const Size(800, 900));
-      expect(tester.getRect(_tile('Tile')).left, 36);
-      expect(tester.getRect(_tile('Tile')).right, 800 - 36);
+      expect(tester.getRect(_tile('Tile')).left, 24);
+      expect(tester.getRect(_tile('Tile')).right, 800 - 24);
 
       await _pump(
         tester,
@@ -150,7 +150,7 @@ void fluentStyleTests() {
         size: const Size(1400, 900),
         crossAxisAlignment: CrossAxisAlignment.start,
       );
-      expect(tester.getRect(_tile('Tile')).left, 36);
+      expect(tester.getRect(_tile('Tile')).left, 24);
       expect(tester.getRect(_tile('Tile')).width, 1000);
     });
 
@@ -190,7 +190,7 @@ void fluentStyleTests() {
   });
 
   group('Sections', () {
-    testWidgets('BodyStrong headers, margin 1,30,0,6, cards 4 apart', (
+    testWidgets('BodyStrong headers, margin 1,30,0,6, cards 3 apart', (
       tester,
     ) async {
       await _pump(tester, [
@@ -215,10 +215,10 @@ void fluentStyleTests() {
       expect(first.top, 30);
       expect(first.left, 51);
       expect(first.height, 20);
-      expect(a1.top - first.bottom, 10);
-      expect(a2.top - a1.bottom, 4);
-      expect(second.top - a2.bottom, 34);
-      expect(b1.top - second.bottom, 10);
+      expect(a1.top - first.bottom, 6);
+      expect(a2.top - a1.bottom, 3);
+      expect(second.top - a2.bottom, 33);
+      expect(b1.top - second.bottom, 6);
     });
 
     testWidgets('an untitled section starts 24 below the previous one', (
@@ -228,7 +228,7 @@ void fluentStyleTests() {
         _section([SettingsTile(title: const Text('A'))]),
         _section([SettingsTile(title: const Text('B'))]),
       ]);
-      expect(tester.getRect(_tile('A')).top, 20);
+      expect(tester.getRect(_tile('A')).top, 21);
       expect(
         tester.getRect(_tile('B')).top - tester.getRect(_tile('A')).bottom,
         24,
@@ -309,12 +309,12 @@ void fluentStyleTests() {
   });
 
   group('Cards', () {
-    testWidgets('68 tall, radius 4, 1px border, card colors', (tester) async {
+    testWidgets('70 tall, radius 4, 1px border, card colors', (tester) async {
       await _pump(tester, [
         _section([SettingsTile(title: const Text('Tile'))]),
       ]);
       final rect = tester.getRect(_tile('Tile'));
-      expect(rect.height, 68);
+      expect(rect.height, 70);
       final outer = RRect.fromRectAndRadius(
         Offset.zero & rect.size,
         const Radius.circular(4),
@@ -440,7 +440,7 @@ void fluentStyleTests() {
       final card = tester.getRect(_tile('Title'));
       final value = tester.getRect(find.textContaining('Value'));
       expect(value.width, lessThanOrEqualTo((card.width - 34) / 2));
-      expect(card.height, 68);
+      expect(card.height, 70);
     });
 
     testWidgets('switch tiles: FluentSettingsSwitch at the end', (
@@ -823,7 +823,7 @@ void fluentStyleTests() {
           textScale: 2,
         );
         expect(tester.takeException(), isNull);
-        expect(tester.getRect(_tile('Version')).height, greaterThan(68));
+        expect(tester.getRect(_tile('Version')).height, greaterThan(70));
       });
     }
   });

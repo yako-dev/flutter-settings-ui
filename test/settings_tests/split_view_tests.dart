@@ -1725,7 +1725,7 @@ void splitViewTests() {
       expect(padding.left, (macWidth - 640) / 2);
       expect(padding.right, (macWidth - 640) / 2);
 
-      // Windows: 36 margins (the pane is wider than 641), not iPad's none.
+      // Windows: 24 margins (the pane is wider than 641), not iPad's none.
       await tester.pumpWidget(
         _app(
           _view(platform: DevicePlatform.windows),
@@ -1734,8 +1734,8 @@ void splitViewTests() {
       );
       await tester.pumpAndSettle();
       padding = detailList(tester).padding! as EdgeInsets;
-      expect(padding.left, 36);
-      expect(padding.right, 36);
+      expect(padding.left, 24);
+      expect(padding.right, 24);
 
       // iOS pages fill the pane.
       await tester.pumpWidget(
