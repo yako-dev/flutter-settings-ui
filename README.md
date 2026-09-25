@@ -380,7 +380,7 @@ The tile is controlled: `initialValue` is the current value, and `onToggle` gets
 
 Tapping the row works like each platform's settings app. In the Android, GNOME and web styles, tapping anywhere on the row toggles the switch, and `onPressed` isn't called. In the iOS, macOS and Windows styles only the switch itself toggles; tapping the rest of the row calls `onPressed`, if you set one.
 
-Screen readers read a switch tile as one item, "Title, switch, on". Where the row also has `onPressed` (iOS, macOS and Windows styles), the row and its switch are two items, both named by the title.
+Screen readers read each tile as its own item, a tile with `onPressed` as a button, and section titles as headings. A switch tile is one item, "Title, switch, on". Where the row also has `onPressed` (iOS, macOS and Windows styles), the row and its switch are two items, both named by the title.
 
 Windows Settings writes "On" or "Off" before every switch. The package doesn't add that text, because it would be English only. For the Windows look, pass your own localized label as `trailing`; the Windows style puts it just before the switch. `trailing` shows in every style, so add it only on Windows:
 
