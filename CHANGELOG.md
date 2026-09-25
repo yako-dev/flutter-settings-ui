@@ -1,4 +1,4 @@
-## [4.0.0] - [Unreleased]
+## [4.0.0] - [September 25, 2026]
 
 ### Breaking changes
 * Migrated from `package:flutter/material.dart` and `package:flutter/cupertino.dart` to the decoupled [`material_ui`](https://pub.dev/packages/material_ui) and [`cupertino_ui`](https://pub.dev/packages/cupertino_ui) packages (#207, thanks @SlayerOrnstein)
