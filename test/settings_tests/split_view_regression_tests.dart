@@ -134,8 +134,9 @@ Widget _app(
     theme: ThemeData(platform: platform),
     routes: routes,
     builder: (context, child) => MediaQuery(
-      data: MediaQuery.of(context)
-          .copyWith(textScaler: textScaler ?? TextScaler.linear(textScale)),
+      data: MediaQuery.of(
+        context,
+      ).copyWith(textScaler: textScaler ?? TextScaler.linear(textScale)),
       child: child!,
     ),
     home: home,
@@ -151,9 +152,9 @@ Widget _pushedFromHome(
   Builder(
     builder: (context) => Center(
       child: GestureDetector(
-        onTap: () =>
-            Navigator.of(context)
-                .push(MaterialPageRoute<void>(builder: (_) => view)),
+        onTap: () => Navigator.of(
+          context,
+        ).push(MaterialPageRoute<void>(builder: (_) => view)),
         child: const Text('Open settings'),
       ),
     ),
@@ -297,9 +298,9 @@ void splitViewRegressionTests() {
             // "About", licenses and so on.
             SettingsTile.navigation(
               title: const Text('About'),
-              onPressed: (context) =>
-                  Navigator.of(context)
-                      .push(MaterialPageRoute<void>(builder: (_) => page)),
+              onPressed: (context) => Navigator.of(
+                context,
+              ).push(MaterialPageRoute<void>(builder: (_) => page)),
             ),
             SettingsTile.navigation(
               title: const Text('Licenses'),
