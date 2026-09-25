@@ -1,6 +1,7 @@
 import 'dart:ui' show Tristate;
 
 import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -712,5 +713,109 @@ void tileRegressionTests() {
         });
       }
     }
+  });
+
+  group('GNOME rows', () {
+    Future<void> pumpRows(WidgetTester tester, List<String> log) {
+      return tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SettingsList(
+              platform: DevicePlatform.linux,
+              sections: [
+                SettingsSection(
+                  tiles: [
+                    for (var i = 0; i < 30; i++)
+                      SettingsTile.navigation(
+                        title: Text('Row $i'),
+                        onPressed: (_) => log.add('Row $i'),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    double pressedAlpha(WidgetTester tester, String row) {
+      final decoration =
+          tester
+                  .widget<AnimatedContainer>(
+                    find.ancestor(
+                      of: find.text(row),
+                      matching: find.byType(AnimatedContainer),
+                    ),
+                  )
+                  .decoration!
+              as BoxDecoration;
+      return decoration.color!.a;
+    }
+
+    testWidgets('a row lets go of its pressed fill when a scroll starts on '
+        'it', (tester) async {
+      final log = <String>[];
+      await pumpRows(tester, log);
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.text('Row 3')),
+      );
+      await tester.pump(const Duration(milliseconds: 20));
+      expect(pressedAlpha(tester, 'Row 3'), greaterThan(0));
+
+      for (var i = 0; i < 10; i++) {
+        await gesture.moveBy(const Offset(0, -15));
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      expect(tester.getCenter(find.text('Row 3')).dy, lessThan(200));
+      await tester.pumpAndSettle();
+      expect(pressedAlpha(tester, 'Row 3'), 0);
+
+      await gesture.up();
+      await tester.pumpAndSettle();
+      expect(log, isEmpty);
+    });
+
+    testWidgets('a mouse press stays pressed inside the row and lets go '
+        'outside it', (tester) async {
+      final log = <String>[];
+      await pumpRows(tester, log);
+      final row = tester.getRect(
+        find
+            .ancestor(
+              of: find.text('Row 1'),
+              matching: find.byType(AnimatedContainer),
+            )
+            .first,
+      );
+      final gesture = await tester.startGesture(
+        row.center,
+        kind: PointerDeviceKind.mouse,
+      );
+      await gesture.moveBy(const Offset(10, 5));
+      await tester.pumpAndSettle();
+      expect(pressedAlpha(tester, 'Row 1'), greaterThan(0));
+
+      await gesture.moveTo(row.bottomCenter + const Offset(0, 20));
+      await tester.pumpAndSettle();
+      expect(pressedAlpha(tester, 'Row 1'), 0);
+      await gesture.up();
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('a tap still presses and activates the row', (tester) async {
+      final log = <String>[];
+      await pumpRows(tester, log);
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.text('Row 2')),
+      );
+      await gesture.moveBy(const Offset(0, 4));
+      await tester.pumpAndSettle();
+      expect(pressedAlpha(tester, 'Row 2'), greaterThan(0));
+      await gesture.up();
+      await tester.pumpAndSettle();
+      expect(pressedAlpha(tester, 'Row 2'), 0);
+      expect(log, ['Row 2']);
+    });
   });
 }
