@@ -654,6 +654,40 @@ void macosStyleTests() {
       expect(presses, 1);
     });
 
+    testWidgets('holding the switch does not tint its row', (tester) async {
+      await _pump(tester, [
+        SettingsSection(
+          tiles: [
+            SettingsTile.switchTile(
+              title: const Text('Tile'),
+              initialValue: false,
+              onToggle: (_) {},
+              onPressed: (_) {},
+              trailing: const Icon(Icons.star),
+            ),
+          ],
+        ),
+      ]);
+      const highlight = Color(0x0F000000);
+
+      for (final control in [_switch, find.byIcon(Icons.star)]) {
+        final gesture = await tester.startGesture(tester.getCenter(control));
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(_coloredBox(highlight), findsNothing);
+        await gesture.up();
+        await tester.pumpAndSettle();
+      }
+
+      // The rest of the row still tints.
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.text('Tile')),
+      );
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(_coloredBox(highlight), findsOneWidget);
+      await gesture.up();
+      await tester.pumpAndSettle();
+    });
+
     testWidgets('rows without onPressed do not highlight', (tester) async {
       await _pump(tester, [SettingsSection(tiles: _tiles(1))]);
 

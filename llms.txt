@@ -191,7 +191,7 @@ Override per brightness with `SettingsList(lightTheme: SettingsThemeData(...), d
 - `leadingIconsColor` (`Color?`): leading and trailing icons, and the chevron (lighter in the macOS style).
 - `inactiveTitleColor` (`Color?`): title and icons of a disabled tile.
 - `inactiveSubtitleColor` (`Color?`): `description` and `value` of a disabled tile on Android and web, `titleDescription` in the macOS style.
-- `inactiveSwitchColor` (`Color?`): switch of a disabled tile.
+- `inactiveSwitchColor` (`Color?`): switch of a disabled tile. Without it, the macOS style draws a paler accent (System Settings) instead of `inactiveTitleColor`.
 
 ## Testing
 

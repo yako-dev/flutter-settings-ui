@@ -189,6 +189,10 @@ class _MacosSettingsTileState extends State<MacosSettingsTile> {
   bool _pressed = false;
   bool _showFocusHighlight = false;
 
+  /// Pointers that went down on the switch or the trailing widget. They
+  /// belong to that control, so the row does not show its pressed tint.
+  final Set<int> _controlPointers = <int>{};
+
   late final Map<Type, Action<Intent>> _actions = <Type, Action<Intent>>{
     ActivateIntent: CallbackAction<ActivateIntent>(
       onInvoke: (_) => _activate(),
@@ -340,6 +344,9 @@ class _MacosSettingsTileState extends State<MacosSettingsTile> {
               data: CupertinoTheme.of(context).copyWith(
                 brightness: isDark ? Brightness.dark : Brightness.light,
               ),
+              // A disabled switch draws its own paler track, as in System
+              // Settings, instead of the grey inactiveTitleColor the other
+              // styles fall back to. inactiveSwitchColor still replaces it.
               child: MacosSettingsSwitch(
                 value: widget.initialValue,
                 onChanged: enabled ? widget.onToggle : null,
@@ -390,7 +397,22 @@ class _MacosSettingsTileState extends State<MacosSettingsTile> {
                       ),
                     ),
                   ),
-                ...trailingParts,
+                if (trailingParts.isNotEmpty)
+                  Listener(
+                    onPointerDown: (event) =>
+                        _controlPointers.add(event.pointer),
+                    onPointerUp: (event) =>
+                        _controlPointers.remove(event.pointer),
+                    onPointerCancel: (event) =>
+                        _controlPointers.remove(event.pointer),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: hasSubtitle
+                          ? CrossAxisAlignment.start
+                          : CrossAxisAlignment.center,
+                      children: trailingParts,
+                    ),
+                  ),
               ],
             ),
           ),
@@ -477,7 +499,11 @@ class _MacosSettingsTileState extends State<MacosSettingsTile> {
           },
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTapDown: _canPress ? (_) => _setPressed(true) : null,
+            onTapDown: _canPress
+                ? (_) {
+                    if (_controlPointers.isEmpty) _setPressed(true);
+                  }
+                : null,
             onTapUp: _canPress ? (_) => _setPressed(false) : null,
             onTapCancel: _canPress ? () => _setPressed(false) : null,
             onTap: _canPress ? _activate : null,

@@ -706,7 +706,7 @@ None of the constructors is `const`.
 | `leadingIconsColor` | `Color?` | Leading and trailing icons, and the chevron |
 | `inactiveTitleColor` | `Color?` | Title and icon color of a disabled tile |
 | `inactiveSubtitleColor` | `Color?` | `description` and `value` color of a disabled tile (Android and web styles) |
-| `inactiveSwitchColor` | `Color?` | Switch color of a disabled tile |
+| `inactiveSwitchColor` | `Color?` | Switch color of a disabled tile. Without it, the macOS style draws a paler accent, like System Settings |
 
 ---
 
