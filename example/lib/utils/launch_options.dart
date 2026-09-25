@@ -17,6 +17,9 @@ class LaunchOptions {
   /// `?screen=gnome-power` or `?screen=cross-platform`: the first screen.
   static String? get screen => _query['screen'];
 
+  /// `?tab=power-saving`: the page the GNOME Power replica opens on.
+  static String? get tab => _query['tab'];
+
   /// `?theme=light` or `?theme=dark`. Follows the system otherwise.
   static ThemeMode get themeMode => switch (_query['theme']) {
     'light' => ThemeMode.light,
