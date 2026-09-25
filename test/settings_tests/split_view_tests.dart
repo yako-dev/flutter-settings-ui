@@ -1747,6 +1747,60 @@ void splitViewTests() {
       expect(padding.right, 0);
     });
 
+    testWidgets('macOS: a page in the detail pane keeps 30pt after a footer', (
+      tester,
+    ) async {
+      await _setSize(tester, const Size(1280, 800));
+      await tester.pumpWidget(
+        _app(
+          SettingsSplitView(
+            platform: DevicePlatform.macOS,
+            title: const Text('Settings'),
+            sections: [
+              SettingsSection(
+                tiles: [
+                  SettingsTile.navigation(
+                    title: const Text('Page'),
+                    destination: SettingsDestination(
+                      id: 'page',
+                      builder: (context) => SettingsList(
+                        sections: [
+                          SettingsSection(
+                            tiles: [
+                              SettingsTile(
+                                title: const Text('A'),
+                                description: const Text('F1'),
+                              ),
+                            ],
+                          ),
+                          SettingsSection(
+                            tiles: [SettingsTile(title: const Text('B'))],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          platform: TargetPlatform.macOS,
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(_isSplit(tester), isTrue);
+      final footer = tester.getRect(find.text('F1'));
+      final next = tester.getRect(
+        find
+            .ancestor(
+              of: find.text('B'),
+              matching: find.byType(MacosSettingsTile),
+            )
+            .first,
+      );
+      expect(next.top - footer.bottom, 30);
+    });
+
     testWidgets('the styles define the split view tokens', (tester) async {
       await tester.pumpWidget(_app(const SizedBox()));
       final context = tester.element(find.byType(SizedBox));
