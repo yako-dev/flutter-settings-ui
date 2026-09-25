@@ -1,3 +1,5 @@
+import 'dart:ui' show Tristate;
+
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -734,6 +736,116 @@ void splitViewRegressionTests() {
       await tester.pumpAndSettle();
       expect(find.text('Account v1'), findsOneWidget);
       expect(_controllerOf(tester).selectedId, 'account');
+    });
+  });
+  group('sidebar semantics', () {
+    Tristate selectedOf(WidgetTester tester, Finder finder) => tester
+        .getSemantics(finder)
+        .getSemanticsData()
+        .flagsCollection
+        .isSelected;
+
+    for (final platform in [
+      DevicePlatform.macOS,
+      DevicePlatform.windows,
+      DevicePlatform.linux,
+    ]) {
+      testWidgets('$platform: the selected row says so, not its section', (
+        tester,
+      ) async {
+        final handle = tester.ensureSemantics();
+        await _setSize(tester, const Size(1280, 900));
+        await tester.pumpWidget(
+          _app(
+            SettingsSplitView(
+              platform: platform,
+              title: const Text('Settings'),
+              sections: _sections(),
+            ),
+            platform: _targetOf(platform),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final network = _inList(find.text('Network'));
+        expect(selectedOf(tester, network), Tristate.isTrue);
+        expect(
+          tester
+              .getSemantics(network)
+              .parent!
+              .getSemanticsData()
+              .flagsCollection
+              .isSelected,
+          isNot(Tristate.isTrue),
+        );
+        expect(
+          selectedOf(tester, _inList(find.text('Sound'))),
+          Tristate.isFalse,
+        );
+        // A row without a page has no selected state.
+        expect(
+          selectedOf(tester, _inList(find.text('Airplane mode'))),
+          Tristate.none,
+        );
+
+        await tester.tap(_inList(find.text('Sound')));
+        await tester.pumpAndSettle();
+        expect(
+          selectedOf(tester, _inList(find.text('Sound'))),
+          Tristate.isTrue,
+        );
+        expect(selectedOf(tester, network), Tristate.isFalse);
+        handle.dispose();
+      });
+    }
+
+    testWidgets('Windows compact rail: the selected item says so', (
+      tester,
+    ) async {
+      final handle = tester.ensureSemantics();
+      await _setSize(tester, const Size(800, 700));
+      await tester.pumpWidget(
+        _app(
+          SettingsSplitView(
+            platform: DevicePlatform.windows,
+            sections: _sections(),
+          ),
+          platform: TargetPlatform.windows,
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        selectedOf(tester, _inList(find.bySemanticsLabel('Network'))),
+        Tristate.isTrue,
+      );
+      expect(
+        selectedOf(tester, _inList(find.bySemanticsLabel('Sound'))),
+        Tristate.isFalse,
+      );
+      handle.dispose();
+    });
+
+    testWidgets('GNOME one pane: no row is selected', (tester) async {
+      final handle = tester.ensureSemantics();
+      await _setSize(tester, const Size(400, 800));
+      await tester.pumpWidget(
+        _app(
+          SettingsSplitView(
+            platform: DevicePlatform.linux,
+            sections: _sections(),
+          ),
+          platform: TargetPlatform.linux,
+        ),
+      );
+      await tester.pumpAndSettle();
+      for (final title in ['Network', 'Display', 'Sound']) {
+        expect(
+          selectedOf(tester, _inList(find.text(title))),
+          Tristate.none,
+          reason: title,
+        );
+      }
+      handle.dispose();
     });
   });
 }

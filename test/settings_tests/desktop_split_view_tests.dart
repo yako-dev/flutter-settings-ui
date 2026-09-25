@@ -229,6 +229,12 @@ bool _isSelectedTile(Element element) {
     if (widget is Semantics && widget.properties.selected == true) {
       selected = true;
     }
+    // The sidebar rows set it on their own semantics node.
+    if ((widget is MacosSidebarItem && widget.semanticsSelected == true) ||
+        (widget is FluentNavigationItem && widget.semanticsSelected == true) ||
+        (widget is AdwaitaSidebarRow && widget.semanticsSelected == true)) {
+      selected = true;
+    }
   });
   return selected;
 }

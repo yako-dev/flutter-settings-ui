@@ -197,6 +197,7 @@ class FluentNavigationItem extends StatefulWidget {
     required this.activeSwitchColor,
     required this.enabled,
     required this.selected,
+    this.semanticsSelected,
   });
 
   /// The id of the page the item opens, if any: the selection indicator
@@ -212,6 +213,10 @@ class FluentNavigationItem extends StatefulWidget {
   final Color? activeSwitchColor;
   final bool enabled;
   final bool selected;
+
+  /// Whether assistive technologies hear the row as selected: null for rows
+  /// that don't open a page, and in GNOME's one-pane sidebar.
+  final bool? semanticsSelected;
 
   @override
   State<FluentNavigationItem> createState() => _FluentNavigationItemState();
@@ -601,6 +606,7 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
         container: true,
         button: clickable,
         enabled: enabled,
+        selected: widget.semanticsSelected,
         onTap: clickable ? _activate : null,
         label: compact ? tooltip : null,
         child: item,

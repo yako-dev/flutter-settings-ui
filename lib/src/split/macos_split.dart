@@ -177,6 +177,7 @@ class MacosSidebarItem extends StatefulWidget {
     required this.activeSwitchColor,
     required this.enabled,
     required this.selected,
+    this.semanticsSelected,
     required this.opensPage,
   });
 
@@ -190,6 +191,10 @@ class MacosSidebarItem extends StatefulWidget {
   final Color? activeSwitchColor;
   final bool enabled;
   final bool selected;
+
+  /// Whether assistive technologies hear the row as selected: null for rows
+  /// that don't open a page, and in GNOME's one-pane sidebar.
+  final bool? semanticsSelected;
 
   /// The tile opens a page, so the arrow keys select it.
   final bool opensPage;
@@ -350,6 +355,7 @@ class _MacosSidebarItemState extends State<MacosSidebarItem> {
         container: true,
         button: _canPress,
         enabled: enabled,
+        selected: widget.semanticsSelected,
         child: FocusableActionDetector(
           enabled: _canPress,
           actions: _actions,

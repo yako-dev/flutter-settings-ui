@@ -100,6 +100,7 @@ class AdwaitaSidebarRow extends StatefulWidget {
     required this.activeSwitchColor,
     required this.enabled,
     required this.selected,
+    this.semanticsSelected,
   });
 
   final SettingsTileType tileType;
@@ -112,6 +113,10 @@ class AdwaitaSidebarRow extends StatefulWidget {
   final Color? activeSwitchColor;
   final bool enabled;
   final bool selected;
+
+  /// Whether assistive technologies hear the row as selected: null for rows
+  /// that don't open a page, and in GNOME's one-pane sidebar.
+  final bool? semanticsSelected;
 
   @override
   State<AdwaitaSidebarRow> createState() => _AdwaitaSidebarRowState();
@@ -282,6 +287,7 @@ class _AdwaitaSidebarRowState extends State<AdwaitaSidebarRow> {
         child: Semantics(
           button: !_isSwitch && widget.onPressed != null,
           enabled: enabled,
+          selected: widget.semanticsSelected,
           onTap: _activatable ? _activate : null,
           child: IgnorePointer(
             ignoring: !enabled,

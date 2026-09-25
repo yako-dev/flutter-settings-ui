@@ -156,6 +156,20 @@ class SettingsTile extends AbstractSettingsTile {
     if (listPane != null && destination != null) {
       listPane.onTileBuilt?.call(destination, title);
     }
+    if (listPane != null && listPane.sidebar) {
+      // The macOS, Windows and GNOME sidebar rows are semantics containers
+      // that say themselves whether they are selected: an annotation
+      // around them would land on their section's node.
+      final sidebarItem = _buildSidebarItem(
+        SettingsTheme.of(context).platform,
+        onPressed: _effectiveOnPressed,
+        selected: listPane.isSelected(destination),
+        semanticsSelected: listPane.isSplit && destination != null
+            ? listPane.isSelected(destination)
+            : null,
+      );
+      if (sidebarItem != null) return sidebarItem;
+    }
     final tile = _buildTile(context, listPane);
     if (listPane != null && listPane.isSplit && destination != null) {
       return Semantics(selected: listPane.isSelected(destination), child: tile);
@@ -168,15 +182,6 @@ class SettingsTile extends AbstractSettingsTile {
     final inSplitListPane = listPane != null && listPane.isSplit;
     final selected = listPane?.isSelected(destination) ?? false;
     final onPressed = _effectiveOnPressed;
-
-    if (listPane != null && listPane.sidebar) {
-      final sidebarItem = _buildSidebarItem(
-        theme.platform,
-        onPressed: onPressed,
-        selected: selected,
-      );
-      if (sidebarItem != null) return sidebarItem;
-    }
 
     switch (theme.platform) {
       case DevicePlatform.android:
@@ -333,6 +338,7 @@ class SettingsTile extends AbstractSettingsTile {
     DevicePlatform platform, {
     required Function(BuildContext context)? onPressed,
     required bool selected,
+    required bool? semanticsSelected,
   }) {
     switch (platform) {
       case DevicePlatform.macOS:
@@ -347,6 +353,7 @@ class SettingsTile extends AbstractSettingsTile {
           activeSwitchColor: activeSwitchColor,
           enabled: enabled,
           selected: selected,
+          semanticsSelected: semanticsSelected,
           opensPage: destination != null,
         );
       case DevicePlatform.windows:
@@ -362,6 +369,7 @@ class SettingsTile extends AbstractSettingsTile {
           activeSwitchColor: activeSwitchColor,
           enabled: enabled,
           selected: selected,
+          semanticsSelected: semanticsSelected,
         );
       case DevicePlatform.linux:
         return AdwaitaSidebarRow(
@@ -375,6 +383,7 @@ class SettingsTile extends AbstractSettingsTile {
           activeSwitchColor: activeSwitchColor,
           enabled: enabled,
           selected: selected,
+          semanticsSelected: semanticsSelected,
         );
       case DevicePlatform.iOS:
       case DevicePlatform.android:
