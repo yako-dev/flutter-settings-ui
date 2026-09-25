@@ -4,7 +4,7 @@
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-android%20%7C%20ios%20%7C%20macos%20%7C%20windows%20%7C%20linux%20%7C%20web-lightgrey)](https://pub.dev/packages/settings_ui)
 
-A Flutter package for building settings screens that look native on **iOS**, **Android**, **Windows**, **Linux (GNOME)** and the **web**, from a single API. The style is picked at runtime: iOS 26-style grouped cards on iOS and macOS, Windows 11-style cards on Windows, Android 16-style cards on Android and Fuchsia, GNOME-style boxed lists on Linux, and Chrome-style cards on the web.
+A Flutter package for building settings screens that look native on **iOS**, **macOS**, **Android**, **Windows**, **Linux (GNOME)** and the **web**, from a single API. The style is picked at runtime: iOS 26-style grouped cards on iOS, macOS 26 System Settings-style forms on macOS, Windows 11-style cards on Windows, Android 16-style cards on Android and Fuchsia, GNOME-style boxed lists on Linux, and Chrome-style cards on the web.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master/assets/v2/settings_ui_cover.png" height="560px">
@@ -79,8 +79,9 @@ https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master/llms.txt
      MaterialUiCompatibilityBridge or CupertinoUiCompatibilityBridge, and tell me which ones.
 3. Set `settings_ui: ^4.0.0` and run `flutter pub get`. The settings_ui API didn't change, so don't
    rewrite settings screens. Only:
-   - In tests, look for CupertinoSettingsSwitch instead of CupertinoSwitch on iOS and macOS switch
-     tiles, FluentSettingsSwitch on Windows and AdwaitaSettingsSwitch (not Switch) on Linux.
+   - In tests, look for CupertinoSettingsSwitch instead of CupertinoSwitch on iOS switch tiles,
+     MacosSettingsSwitch on macOS, FluentSettingsSwitch on Windows and AdwaitaSettingsSwitch (not
+     Switch) on Linux.
    - Change ALL-CAPS section titles to sentence case; the iOS style now uses iOS 26 headers.
    - Remove 3.x workarounds that 4.0 makes unnecessary, such as a `trailing: Text(...)` added
      because iOS simple tiles didn't show `value`.
@@ -318,7 +319,7 @@ SettingsTile(
 
 ### `SettingsTile.navigation`: navigation tile
 
-For rows that open another screen or a picker. In the iOS, Windows and web styles it adds a chevron after the value, and in the GNOME style GNOME's `go-next` arrow (they point left in right-to-left layouts). The Android style shows no chevron, like Android's own settings.
+For rows that open another screen or a picker. In the iOS, macOS, Windows and web styles it adds a chevron after the value, and in the GNOME style GNOME's `go-next` arrow (they point left in right-to-left layouts). The Android style shows no chevron, like Android's own settings.
 
 ```dart
 SettingsTile.navigation(
@@ -333,7 +334,7 @@ SettingsTile.navigation(
 
 ### `SettingsTile.switchTile`: switch tile
 
-In the iOS style it shows `CupertinoSettingsSwitch`, the iOS 26 switch, in the Windows style `FluentSettingsSwitch`, the Windows 11 toggle, and in the GNOME style `AdwaitaSettingsSwitch`, the GNOME switch. In the Android style it shows a Material `Switch` with a check or a cross on the thumb, and on the web a Material `Switch`.
+In the iOS style it shows `CupertinoSettingsSwitch`, the iOS 26 switch, in the macOS style `MacosSettingsSwitch`, the System Settings switch, in the Windows style `FluentSettingsSwitch`, the Windows 11 toggle, and in the GNOME style `AdwaitaSettingsSwitch`, the GNOME switch. In the Android style it shows a Material `Switch` with a check or a cross on the thumb, and on the web a Material `Switch`.
 
 ```dart
 SettingsTile.switchTile(
@@ -347,13 +348,13 @@ SettingsTile.switchTile(
 
 The tile is controlled: `initialValue` is the current value, and `onToggle` gets the new one. Passing `onToggle: null` disables the switch.
 
-Tapping the row works like each platform's settings app. In the Android, GNOME and web styles, tapping anywhere on the row toggles the switch, and `onPressed` isn't called. In the iOS and Windows styles only the switch itself toggles; tapping the rest of the row calls `onPressed`, if you set one.
+Tapping the row works like each platform's settings app. In the Android, GNOME and web styles, tapping anywhere on the row toggles the switch, and `onPressed` isn't called. In the iOS, macOS and Windows styles only the switch itself toggles; tapping the rest of the row calls `onPressed`, if you set one.
 
 ### `value`, `description` and `titleDescription`
 
 The same tile shows its secondary text in different places, following each platform:
 
-| Parameter | iOS style | Windows style | Android and web styles | GNOME style |
+| Parameter | iOS and macOS styles | Windows style | Android and web styles | GNOME style |
 |---|---|---|---|---|
 | `value` | Grey text at the end of the row, one line, at most half the row | Grey text at the end of the row, one line, at most half the row | Second line under the title | Dimmed text at the end of the row, one line, at most half the row |
 | `description` | Footer text under the card; the tiles after it start a new card | Grey second line inside the card | Second line under the title, only when `value` is not set | Second line under the title |
@@ -414,13 +415,14 @@ SettingsList(
 |---|---|
 | `device` *(default)* | Auto-detected at runtime |
 | `iOS` | iOS |
-| `macOS` | iOS |
+| `macOS` | macOS System Settings |
 | `windows` | Windows 11 |
 | `linux` | GNOME |
 | `android`, `fuchsia` | Android |
 | `web` | Web (Chrome) |
 
 - **iOS** matches iOS 26 Settings: cards with 26pt continuous corners and 20pt side margins, 52pt rows with 17pt text, 17pt semibold section headers, grey footers, the `CupertinoSettingsSwitch`, and a chevron on navigation tiles.
+- **macOS** matches macOS 26/27 System Settings: `#F7F7F7` cards (`#252525` in dark mode) with 12pt continuous corners on a white page, 36pt rows with 13pt text and 1pt separators inset 10pt, 13pt semibold headers above the cards, 11pt grey footers, value text before a light chevron, `MacosSettingsSwitch`, and a 640pt column. Like System Settings, rows don't highlight on hover; rows with `onPressed` tint while pressed and take keyboard focus. For the colored icon squares of System Settings, pass your own widget as `leading` (the example app has `MacosIconBadge`); rows with a `leading` widget are 48pt.
 - **Android** matches Android 16 Settings: every tile sits on its own card, 2dp apart, with 20dp corners at the ends of a group, on a tinted page. 16sp titles and switches with a check or a cross.
 - **Windows** matches Windows 11 Settings (WinUI 3): every tile is its own card with 4px corners and a hairline border, 4px apart, at least 68px tall, with 14px titles, 12px descriptions, 20px icons, 14px semibold section headers, a thin chevron on navigation tiles, and the `FluentSettingsSwitch`. Clickable cards show the Windows hover, pressed and keyboard focus states. The content is a 1000px column with 36px margins (16px in narrow windows).
 - **GNOME** matches GNOME Settings 51 (libadwaita 1.10): each section is a boxed list, a card with 12px corners and a soft shadow, with 54px rows and full-width separators; bold 14.67px group titles, 14.67px titles and dimmed 12.22px subtitles, 16px leading icons, the `AdwaitaSettingsSwitch` in the GNOME accent blue, a `go-next` arrow on navigation tiles, hover and focus highlights, and a content column that eases from 400 to at most 600px wide like `AdwClamp`. It uses fixed GNOME colors, not the `ColorScheme`. No font is bundled: GNOME uses Adwaita Sans, so set it with `tileTextStyle` and `titleTextStyle` if your app ships it.
@@ -447,7 +449,7 @@ MaterialApp(
 )
 ```
 
-The iOS style uses fixed iOS system colors, like the Settings app: a grey grouped background, white cards (`#1C1C1E` in dark mode) and grey headers and values. The Windows style uses the Windows 11 colors: a `#F3F3F3` page with `#FBFBFB` cards (`#202020` and `#2B2B2B` in dark mode) and the Windows accent `#005FB8` (`#60CDFF` in dark mode) for switches. The GNOME style uses the libadwaita colors: a `#FAFAFB` page with white cards (`#222226` with translucent white cards in dark mode) and the GNOME blue `#3584E4` for switches. None of them reads your `ColorScheme`. Light or dark mode follows your app theme in every style.
+The iOS style uses fixed iOS system colors, like the Settings app: a grey grouped background, white cards (`#1C1C1E` in dark mode) and grey headers and values. The macOS style uses fixed macOS system colors the same way: `#F7F7F7` cards on a white page (`#252525` on `#1E1E1E` in dark mode). The Windows style uses the Windows 11 colors: a `#F3F3F3` page with `#FBFBFB` cards (`#202020` and `#2B2B2B` in dark mode) and the Windows accent `#005FB8` (`#60CDFF` in dark mode) for switches. The GNOME style uses the libadwaita colors: a `#FAFAFB` page with white cards (`#222226` with translucent white cards in dark mode) and the GNOME blue `#3584E4` for switches. None of them reads your `ColorScheme`. Light or dark mode follows your app theme in every style.
 
 ### Custom theme overrides
 
@@ -541,7 +543,7 @@ SettingsList(
 
 ### Wide screens and split views
 
-When the list is wider than 810 (680 on the web, 1000 on Windows, at most 600 on Linux), the tiles sit in a centered column of that width. The width is the list's own, not the screen's, so a list in a split view or side panel is laid out for that pane. To put the column at the start edge (left, or right in right-to-left layouts) instead of centering it:
+When the list is wider than 810 (680 on the web, 640 on macOS, 1000 on Windows, at most 600 on Linux), the tiles sit in a centered column of that width. The width is the list's own, not the screen's, so a list in a split view or side panel is laid out for that pane. To put the column at the start edge (left, or right in right-to-left layouts) instead of centering it:
 
 ```dart
 SettingsList(
@@ -608,6 +610,18 @@ CupertinoSettingsSwitch(
 
 The lens paints a little outside the switch (about 12.5pt past each end and 6pt above and below), so don't clip it tightly.
 
+### The macOS switch on its own
+
+`MacosSettingsSwitch` is the switch the macOS style uses, also drawn in Flutter: a 36x16 track with a capsule knob, or the 44x20 one System Settings uses for the main switch of a pane:
+
+```dart
+MacosSettingsSwitch(
+  value: _wifi,
+  size: MacosSettingsSwitchSize.large,
+  onChanged: (value) => setState(() => _wifi = value),
+)
+```
+
 ### The Windows 11 switch on its own
 
 `FluentSettingsSwitch` is the switch the Windows style uses: the WinUI 3 `ToggleSwitch`, a 40x20 outlined track whose knob grows on hover and stretches while pressed, filled with the accent when on. It supports dragging, keyboard focus (Space or Enter toggles) and right-to-left layouts:
@@ -661,7 +675,7 @@ None of the constructors is `const`.
 | `trailing` | `Widget?` | all | Widget at the end |
 | `value` | `Widget?` | default, navigation | Current value; see [where it shows](#value-description-and-titledescription) |
 | `description` | `Widget?` | all | Secondary text; see [where it shows](#value-description-and-titledescription) |
-| `titleDescription` | `Widget?` | all | Line under the title, iOS, Windows and GNOME styles only |
+| `titleDescription` | `Widget?` | all | Line under the title, iOS, macOS, Windows and GNOME styles only |
 | `onPressed` | `Function(BuildContext)?` | all | Tap callback |
 | `enabled` | `bool` | all | `false` greys out the tile and ignores taps. Default `true` |
 | `compact` | `bool` | all | Halves the vertical padding. Default `false` |
@@ -670,7 +684,7 @@ None of the constructors is `const`.
 | `activeSwitchColor` | `Color?` | switchTile | Switch color when on |
 | `leadingPadding` | `EdgeInsetsGeometry?` | all | Padding around `leading` |
 | `titlePadding` | `EdgeInsetsGeometry?` | all | Padding around `title` |
-| `titleDescriptionPadding` | `EdgeInsetsGeometry?` | all | Padding around `titleDescription` (iOS, Windows and GNOME styles) |
+| `titleDescriptionPadding` | `EdgeInsetsGeometry?` | all | Padding around `titleDescription` (iOS, macOS, Windows and GNOME styles) |
 | `trailingPadding` | `EdgeInsetsGeometry?` | all | Padding around `trailing` (Android and web styles: not on switch tiles) |
 | `descriptionPadding` | `EdgeInsetsGeometry?` | all | Padding around `description` |
 
@@ -682,6 +696,16 @@ None of the constructors is `const`.
 | `onChanged` | `ValueChanged<bool>?` | Called with the new value (required); `null` disables the switch |
 | `activeTrackColor` | `Color?` | Track color when on. Default: iOS system green |
 | `inactiveTrackColor` | `Color?` | Track color when off. Default: `#C5C5C7` light, `#5A5A5E` dark |
+
+### `MacosSettingsSwitch`
+
+| Parameter | Type | Description |
+|---|---|---|
+| `value` | `bool` | Whether the switch is on (required) |
+| `onChanged` | `ValueChanged<bool>?` | Called with the new value (required); `null` disables the switch |
+| `activeTrackColor` | `Color?` | Track color when on. Default: the macOS accent blue |
+| `inactiveTrackColor` | `Color?` | Track color when off. Default: black 10% light, white 10% dark |
+| `size` | `MacosSettingsSwitchSize` | `regular` (36x16, default) or `large` (44x20) |
 
 ### `FluentSettingsSwitch`
 
@@ -711,19 +735,19 @@ The switch of the GNOME style, drawn in Flutter: a 46x26 track with a round 20px
 |---|---|---|
 | `settingsListBackground` | `Color?` | Background of the whole list |
 | `settingsSectionBackground` | `Color?` | Background of the cards |
-| `dividerColor` | `Color?` | Line between tiles (iOS, GNOME and web styles), card border (Windows style) |
+| `dividerColor` | `Color?` | Line between tiles (iOS, macOS, GNOME and web styles), card border (Windows style) |
 | `tileHighlightColor` | `Color?` | Tile press highlight color. The GNOME style also hovers with 3/8 of its opacity |
 | `titleTextColor` | `Color?` | Section header text color. In the iOS style also `titleDescription` and `description` |
 | `titleTextStyle` | `TextStyle?` | Section header text style |
 | `settingsTileTextColor` | `Color?` | Tile title text color |
 | `tileTextStyle` | `TextStyle?` | Tile title text style |
-| `tileDescriptionTextColor` | `Color?` | `description` and `value` text color (Android and web styles), `description` (Windows and GNOME styles) |
+| `tileDescriptionTextColor` | `Color?` | `description` and `value` text color (Android and web styles), `description` (Windows and GNOME styles), `description` and `titleDescription` (macOS style) |
 | `tileDescriptionTextStyle` | `TextStyle?` | `description` text style, and `value` in the Android, GNOME and web styles |
-| `trailingTextColor` | `Color?` | `value` text color (iOS, Windows and GNOME styles) |
+| `trailingTextColor` | `Color?` | `value` text color (iOS, macOS, Windows and GNOME styles) |
 | `leadingIconsColor` | `Color?` | Leading and trailing icons, and the chevron |
 | `inactiveTitleColor` | `Color?` | Title and icon color of a disabled tile |
 | `inactiveSubtitleColor` | `Color?` | `description` and `value` color of a disabled tile (Android, Windows, GNOME and web styles) |
-| `inactiveSwitchColor` | `Color?` | Switch color of a disabled tile |
+| `inactiveSwitchColor` | `Color?` | Switch color of a disabled tile. Without it, the macOS style draws a paler accent, like System Settings |
 
 ---
 

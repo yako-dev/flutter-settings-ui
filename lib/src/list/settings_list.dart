@@ -4,6 +4,7 @@ import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/src/sections/abstract_settings_section.dart';
 import 'package:settings_ui/src/sections/platforms/adwaita_settings_section.dart';
+import 'package:settings_ui/src/sections/settings_section.dart';
 import 'package:settings_ui/src/utils/platform_utils.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 import 'package:settings_ui/src/utils/theme_provider.dart';
@@ -163,11 +164,22 @@ class SettingsList extends StatelessWidget {
       case DevicePlatform.android:
       case DevicePlatform.fuchsia:
       case DevicePlatform.iOS:
-      case DevicePlatform.macOS:
         contentWidth = math.min(availableWidth, 810);
         minSidePadding = 0;
         topPadding = 0;
         bottomPadding = 0;
+      case DevicePlatform.macOS:
+        // System Settings has a fixed-width window, so its cards are never
+        // wider than about 470pt. A 640pt column (600pt cards) keeps each
+        // label close to its control in wide windows.
+        contentWidth = math.min(availableWidth, 640);
+        minSidePadding = 0;
+        // The first card starts 12pt down, and a first header 20pt down
+        // (its section's own top margin), like in System Settings.
+        topPadding = _startsWithHeader ? 0 : 12;
+        // With the last section's 10pt bottom margin: 20pt below the last
+        // card, like System Settings.
+        bottomPadding = 10;
       case DevicePlatform.linux:
         // A GNOME preferences page clamps its content like AdwClamp: at most
         // 600sp wide, easing in from 400sp. The groups keep their own 12px
@@ -224,6 +236,19 @@ class SettingsList extends StatelessWidget {
       top: topPadding,
       bottom: bottomPadding,
     );
+  }
+
+  /// Whether the first section that shows anything is a [SettingsSection]
+  /// with a title.
+  bool get _startsWithHeader {
+    for (final section in sections) {
+      if (section is SettingsSection) {
+        if (section.tiles.isEmpty) continue;
+        return section.title != null;
+      }
+      return false;
+    }
+    return false;
   }
 
   Brightness calculateBrightness(BuildContext context) {

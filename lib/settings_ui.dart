@@ -10,3 +10,4 @@ export 'package:settings_ui/src/utils/settings_theme.dart';
 export 'package:settings_ui/src/tiles/platforms/adwaita_settings_switch.dart';
 export 'package:settings_ui/src/tiles/platforms/cupertino_settings_switch.dart';
 export 'package:settings_ui/src/tiles/platforms/fluent_settings_switch.dart';
+export 'package:settings_ui/src/tiles/platforms/macos_settings_switch.dart';

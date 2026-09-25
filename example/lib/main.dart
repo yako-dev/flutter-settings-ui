@@ -5,6 +5,7 @@ import 'package:example/screens/gallery/cross_platform_settings_screen.dart';
 import 'package:example/screens/gallery/gnome_power_settings_screen.dart';
 import 'package:example/screens/gallery/ios_developer_screen.dart';
 import 'package:example/screens/gallery/ios_native_settings_screen.dart';
+import 'package:example/screens/gallery/macos_notifications_screen.dart';
 import 'package:example/screens/gallery/material3_demo_screen.dart';
 import 'package:example/screens/gallery/web_chrome_addresses_settings.dart';
 import 'package:example/screens/gallery/web_chrome_settings.dart';
@@ -18,13 +19,14 @@ void main() {
   runApp(const MyApp());
 }
 
-/// The screens that `?screen=<name>` opens instead of the gallery in the web
-/// build (see [LaunchOptions]).
+/// The screens that the `screen` launch option opens instead of the gallery
+/// (see [LaunchOptions]).
 const launchScreens = <String, Widget>{
   'cross-platform': CrossPlatformSettingsScreen(),
   'material3': Material3DemoScreen(),
   'ios-developer': IosDeveloperScreen(),
   'ios-native': IosNativeSettingsScreen(),
+  'macos': MacosNotificationsScreen(),
   'android-settings': AndroidSettingsScreen(),
   'android-native': AndroidNativeSettingsScreen(),
   'android-notifications': AndroidNotificationsScreen(),

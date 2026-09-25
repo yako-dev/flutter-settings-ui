@@ -6,6 +6,7 @@ import 'package:settings_ui/src/tiles/platforms/adwaita_settings_tile.dart';
 import 'package:settings_ui/src/tiles/platforms/android_settings_tile.dart';
 import 'package:settings_ui/src/tiles/platforms/fluent_settings_tile.dart';
 import 'package:settings_ui/src/tiles/platforms/ios_settings_tile.dart';
+import 'package:settings_ui/src/tiles/platforms/macos_settings_tile.dart';
 import 'package:settings_ui/src/tiles/platforms/web_settings_tile.dart';
 
 import '../test_widget_screen.dart';
@@ -44,17 +45,28 @@ void settingsTileTests(DevicePlatform platform) {
       expect(find.byType(AndroidSettingsTile), findsNothing);
       expect(find.byType(IOSSettingsTile), findsNothing);
       expect(find.byType(FluentSettingsTile), findsNothing);
+      expect(find.byType(MacosSettingsTile), findsNothing);
       expect(find.byType(WebSettingsTile), findsNothing);
       expect(find.text('Tile Value'), findsOneWidget);
     }
-    if (platform == DevicePlatform.iOS || platform == DevicePlatform.macOS) {
+    if (platform == DevicePlatform.iOS) {
       expect(find.byType(IOSSettingsTile), findsWidgets);
       expect(find.byType(AndroidSettingsTile), findsNothing);
       expect(find.byType(WebSettingsTile), findsNothing);
+      expect(find.byType(MacosSettingsTile), findsNothing);
+    }
+    if (platform == DevicePlatform.macOS) {
+      expect(find.byType(MacosSettingsTile), findsWidgets);
+      expect(find.byType(IOSSettingsTile), findsNothing);
+      expect(find.byType(AndroidSettingsTile), findsNothing);
+      expect(find.byType(FluentSettingsTile), findsNothing);
+      expect(find.byType(WebSettingsTile), findsNothing);
+      expect(find.text('Tile Value'), findsOneWidget);
     }
     if (platform == DevicePlatform.windows) {
       expect(find.byType(FluentSettingsTile), findsWidgets);
       expect(find.byType(AdwaitaSettingsTile), findsNothing);
+      expect(find.byType(MacosSettingsTile), findsNothing);
       expect(find.byType(IOSSettingsTile), findsNothing);
       expect(find.byType(AndroidSettingsTile), findsNothing);
       expect(find.byType(WebSettingsTile), findsNothing);
@@ -105,15 +117,23 @@ void settingsTileTests(DevicePlatform platform) {
       expect(find.byType(Switch), findsNothing);
       expect(find.byType(CupertinoSettingsSwitch), findsNothing);
       expect(find.byType(FluentSettingsSwitch), findsNothing);
+      expect(find.byType(MacosSettingsSwitch), findsNothing);
     }
-    if (platform == DevicePlatform.iOS || platform == DevicePlatform.macOS) {
+    if (platform == DevicePlatform.iOS) {
       expect(find.byType(Switch), findsNothing);
       expect(find.byType(CupertinoSettingsSwitch), findsWidgets);
+    }
+    if (platform == DevicePlatform.macOS) {
+      expect(find.byType(Switch), findsNothing);
+      expect(find.byType(CupertinoSettingsSwitch), findsNothing);
+      expect(find.byType(FluentSettingsSwitch), findsNothing);
+      expect(find.byType(MacosSettingsSwitch), findsNWidgets(2));
     }
     if (platform == DevicePlatform.windows) {
       expect(find.byType(Switch), findsNothing);
       expect(find.byType(CupertinoSettingsSwitch), findsNothing);
       expect(find.byType(AdwaitaSettingsSwitch), findsNothing);
+      expect(find.byType(MacosSettingsSwitch), findsNothing);
       expect(find.byType(FluentSettingsSwitch), findsNWidgets(2));
     }
   });
@@ -121,7 +141,7 @@ void settingsTileTests(DevicePlatform platform) {
   testWidgets('Settings IOS Navigation Tile should render correctly', (
     tester,
   ) async {
-    if (platform == DevicePlatform.iOS || platform == DevicePlatform.macOS) {
+    if (platform == DevicePlatform.iOS) {
       await tester.pumpWidget(
         MaterialApp(
           home: TestWidgetScreen(
@@ -184,5 +204,38 @@ void settingsTileTests(DevicePlatform platform) {
     expect(find.byType(FluentSettingsTile), findsNWidgets(2));
     // The Fluent chevron is painted, not an icon.
     expect(find.byIcon(CupertinoIcons.chevron_forward), findsNothing);
+  });
+
+  testWidgets('Settings macOS Navigation Tile should render correctly', (
+    tester,
+  ) async {
+    if (platform != DevicePlatform.macOS) return;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TestWidgetScreen(
+          platform: platform,
+          settingsTiles: [
+            SettingsTile.navigation(
+              title: const Text('Navigation tile with value'),
+              onPressed: (context) {},
+              value: const Text('Settings Tile Value'),
+            ),
+            SettingsTile.navigation(
+              title: const Text('Navigation tile without value'),
+              onPressed: (context) {},
+              titleDescription: const Text('Title description value'),
+              trailing: const Icon(Icons.ac_unit, size: 24),
+            ),
+          ],
+        ),
+      ),
+    );
+    expect(find.text('Navigation tile with value'), findsOneWidget);
+    expect(find.text('Navigation tile without value'), findsOneWidget);
+    expect(find.text('Settings Tile Value'), findsOneWidget);
+    expect(find.text('Title description value'), findsOneWidget);
+    expect(find.byType(MacosChevron), findsNWidgets(2));
+    expect(find.byIcon(Icons.ac_unit), findsOneWidget);
+    expect(find.byType(MacosSettingsTile), findsNWidgets(2));
   });
 }
