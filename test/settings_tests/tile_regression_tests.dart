@@ -818,4 +818,80 @@ void tileRegressionTests() {
       expect(log, ['Row 2']);
     });
   });
+
+  group('AdwaitaSettingsSwitch follows a finger from where it touched', () {
+    // The OFF knob's center is 13 px in; the middle of the 46 px track is at
+    // 23; the knob travels 20.
+    Future<List<bool>> drag(
+      WidgetTester tester, {
+      required TextDirection direction,
+      required double distance,
+    }) async {
+      final changes = <bool>[];
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: direction,
+          child: Center(
+            child: AdwaitaSettingsSwitch(value: false, onChanged: changes.add),
+          ),
+        ),
+      );
+      final track = tester.getRect(find.byType(AdwaitaSettingsSwitch));
+      final rtl = direction == TextDirection.rtl;
+      final start = Offset(
+        rtl ? track.right - 13 : track.left + 13,
+        track.center.dy,
+      );
+      final gesture = await tester.startGesture(start);
+      const steps = 9;
+      for (var i = 1; i <= steps; i++) {
+        await gesture.moveTo(
+          start + Offset((rtl ? -distance : distance) * i / steps, 0),
+        );
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      await gesture.up();
+      await tester.pumpAndSettle();
+      return changes;
+    }
+
+    for (final direction in TextDirection.values) {
+      testWidgets('$direction: 27 px, past the middle, turns it on', (
+        tester,
+      ) async {
+        expect(await drag(tester, direction: direction, distance: 27), [true]);
+      });
+
+      testWidgets('$direction: 24 px, then back 20, leaves it off', (
+        tester,
+      ) async {
+        final changes = <bool>[];
+        await tester.pumpWidget(
+          Directionality(
+            textDirection: direction,
+            child: Center(
+              child: AdwaitaSettingsSwitch(
+                value: false,
+                onChanged: changes.add,
+              ),
+            ),
+          ),
+        );
+        final track = tester.getRect(find.byType(AdwaitaSettingsSwitch));
+        final sign = direction == TextDirection.rtl ? -1.0 : 1.0;
+        final start = Offset(
+          direction == TextDirection.rtl ? track.right - 13 : track.left + 13,
+          track.center.dy,
+        );
+        final gesture = await tester.startGesture(start);
+        for (final x in [6.0, 12, 18, 24, 16, 8, 4]) {
+          await gesture.moveTo(start + Offset(sign * x, 0));
+          await tester.pump(const Duration(milliseconds: 16));
+        }
+        await gesture.up();
+        await tester.pumpAndSettle();
+        expect(changes, isEmpty);
+      });
+    }
+  });
 }
