@@ -260,7 +260,9 @@ class _ShowcaseScreenState extends State<ShowcaseScreen> {
   double _avatarSize(_Look look) => switch (look) {
     _Look.ios => 40,
     _Look.macos => 28,
-    _Look.windows => 32,
+    // Fits the 40px icon column of a NavigationView item (the rail too),
+    // clear of the selection pill.
+    _Look.windows => 24,
     _Look.android => 40,
     _Look.gnome => 32,
     _Look.web => 24,
