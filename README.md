@@ -380,6 +380,8 @@ The tile is controlled: `initialValue` is the current value, and `onToggle` gets
 
 Tapping the row works like each platform's settings app. In the Android, GNOME and web styles, tapping anywhere on the row toggles the switch, and `onPressed` isn't called. In the iOS, macOS and Windows styles only the switch itself toggles; tapping the rest of the row calls `onPressed`, if you set one.
 
+Screen readers read a switch tile as one item, "Title, switch, on". Where the row also has `onPressed` (iOS, macOS and Windows styles), the row and its switch are two items, both named by the title.
+
 Windows Settings writes "On" or "Off" before every switch. The package doesn't add that text, because it would be English only. For the Windows look, pass your own localized label as `trailing`; the Windows style puts it just before the switch. `trailing` shows in every style, so add it only on Windows:
 
 ```dart
@@ -468,7 +470,7 @@ SettingsList(
 - **macOS** matches macOS 26/27 System Settings: `#F7F7F7` cards (`#252525` in dark mode) with 12pt continuous corners on a white page, 36pt rows with 13pt text and 1pt separators inset 10pt, 13pt semibold headers above the cards, 11pt grey footers, value text before a light chevron, `MacosSettingsSwitch`, and a 640pt column. Like System Settings, rows don't highlight on hover; rows with `onPressed` tint while pressed and take keyboard focus. For the colored icon squares of System Settings, pass your own widget as `leading` (the example app has `MacosIconBadge`); rows with a `leading` widget are 48pt.
 - **Android** matches Android 16 Settings: every tile sits on its own card, 2dp apart, with 20dp corners at the ends of a group, on a tinted page. 16sp titles and switches with a check or a cross.
 - **Windows** matches Windows 11 Settings (WinUI 3): every tile is its own card with 4px corners and a hairline border, 3px apart, at least 70px tall, with 14px titles, 12px descriptions, 20px icons, 14px semibold section headers, a thin chevron on navigation tiles, and the `FluentSettingsSwitch`. Clickable cards show the Windows hover, pressed and keyboard focus states. The content is a 1000px column with 24px margins (16px in narrow windows).
-- **GNOME** matches GNOME Settings 51 (libadwaita 1.10): each section is a boxed list, a card with 12px corners and a soft shadow, with 54px rows and full-width separators; bold 14.67px group titles, 14.67px titles and dimmed 12.22px subtitles, 16px leading icons, the `AdwaitaSettingsSwitch` in the GNOME accent blue, a `go-next` arrow on navigation tiles, hover and focus highlights, and a content column that eases from 400 to at most 600px wide like `AdwClamp`. It uses fixed GNOME colors, not the `ColorScheme`. No font is bundled: GNOME uses Adwaita Sans, so set it with `tileTextStyle` and `titleTextStyle` if your app ships it.
+- **GNOME** matches GNOME Settings 51 (libadwaita 1.10): each section is a boxed list, a card with 12px corners and a soft shadow, with 54px rows and full-width separators; bold 14.67px group titles, 14.67px titles and dimmed 12.22px subtitles, 16px leading icons, the `AdwaitaSettingsSwitch` in the GNOME accent blue, a `go-next` arrow on navigation tiles, hover and focus highlights, and a content column that eases from 400 to at most 600sp wide like `AdwClamp` (GNOME's sizes in sp grow as much as body text does, also with the non-linear font scaling of Android 14 and later). It uses fixed GNOME colors, not the `ColorScheme`. No font is bundled: GNOME uses Adwaita Sans, so set it with `tileTextStyle` and `titleTextStyle` if your app ships it.
 - **Web** matches Chrome's settings page: cards with 8px corners and a light shadow, 14px titles, 13px descriptions, a chevron on navigation tiles, and a 680px column on wide windows.
 
 In a browser, the web style is used on every device, phones included. Elsewhere the style follows `Theme.of(context).platform`, so `ThemeData(platform: ...)` changes it too. Platforms that only exist in forks of Flutter, such as OpenHarmony, get the iOS style.
@@ -537,9 +539,9 @@ Each style follows its platform's Settings app:
 | Web | width > 980px (Chrome's rule) | Chrome's 266px menu | tinted pill rounded on the end side |
 | macOS | width >= 560. Narrower windows show one pane, like SwiftUI in a compact width | 232pt System Settings sidebar, full height | accent fill, white semibold text; grey while the window is inactive |
 | Windows | width >= 641. From 641 to 1007 the pane is a 48px icon rail | 300px `NavigationView` pane from 1008px | neutral grey with an accent pill at the start edge |
-| Linux (GNOME) | width > 550 (scaled by the text size) | a quarter of the width, 180 to 280 | neutral grey (#D8D8DB, or white 10% in dark mode) |
+| Linux (GNOME) | width > 550sp | a quarter of the width, 180 to 280sp | neutral grey (#D8D8DB, or white 10% in dark mode) |
 
-The macOS, Windows and GNOME pages keep their own look in the detail pane, with their own column and margins; iOS and Android pages fill the pane.
+The macOS, Windows and GNOME pages keep their own look in the detail pane, with their own column and margins; iOS and Android pages fill the pane. GNOME's sp sizes grow as much as body text does, also with the non-linear font scaling of Android 14 and later.
 
 #### Desktop sidebars
 
@@ -554,17 +556,18 @@ The macOS, Windows and GNOME styles draw the list pane as their settings apps' s
 | Selection | accent fill, white semibold text; grey while the app is inactive | #EAEAEA / #2D2D2D and a 3x16 accent pill that slides to the new item | 10% of the text color, 13% hovered, 16% pressed |
 | Hover | none, like macOS | #EAEAEA / #2D2D2D, pressed #EDEDED / #292929 | 7% of the text color |
 | List pane header | a 52pt strip (the back and forward buttons when the screen was pushed) | the `title` and, in the rail, a menu button that opens the pane over the page | a 46px header bar with the centered bold title |
-| Detail header | a 52pt toolbar: back and forward buttons when there's a page to go back to, then the 15pt semibold title | the 28px semibold page title; pages opened from a page show a breadcrumb such as "System › Display", whose parent goes back | a flat 46px header bar with the centered bold title, and a back button when collapsed or on a page opened from a page |
+| Detail header | a 52pt toolbar: back and forward buttons when there's a page to go back to, then the 15pt semibold title | the 28px semibold page title; pages opened from a page show a breadcrumb such as "System › Display", whose parent goes back. It stays on one line: the leading crumbs collapse into "…" and a long title ends in an ellipsis | a flat 46px header bar with the centered bold title, and a back button when collapsed or on a page opened from a page |
 | One pane | the list without the sidebar look, pages pushed over it | the Windows cards with the page title, pages pushed over them | the sidebar fills the window and no row stays selected |
 
-The arrow keys move between sidebar rows, Enter or Space opens one, and Tab moves between the panes. The macOS sidebar opens a row as the focus moves to it, like macOS sidebars. Each style draws its own focus ring. The panes, the Windows pill and its overlay pane mirror in right-to-left layouts, and the rows grow with the text size.
+Up and Down move between sidebar rows and stop at the first and last ones, Enter or Space opens a row, and Tab moves between the panes. A click focuses the row, so the keys go on from there; its focus ring shows only after a key is pressed. In the macOS sidebar and the expanded Windows pane, Tab also reaches a switch row without `onPressed`, and Space toggles it. The macOS sidebar opens a row as the focus moves to it, like macOS sidebars. Each style draws its own focus ring, and screen readers hear which row is selected. The panes, the Windows pill and its overlay pane mirror in right-to-left layouts, and the rows grow with the text size.
 
 System Settings shows a colored squircle behind each icon. The package doesn't draw them, so a plain `Icon` gets the accent tint. For squircles, pass your own 20pt widget, for example a `ClipRSuperellipse` with a gradient and a white icon (the example app's `MacSidebarIcon` does this).
 
 - **Selection.** Two panes open on the first destination (like iPad, Android and Chrome), or on `initialDestinationId`. Set `emptyDetailBuilder` to open on an empty page instead. A tile is highlighted while its page shows.
 - **Pages inside pages.** A tile with a `destination` in a page pushes inside the detail pane, and the list keeps its highlight. Tapping the highlighted tile goes back to its first screen.
 - **Folding and rotating.** Going to one pane keeps a page the user opened on top of the list (and the pages pushed inside it), but drops the page two panes opened by default. Going to two panes shows the page next to the list, or the default page. Pages keep their state through all of this.
-- **Back.** The system back button (and Android predictive back) pops the pages pushed inside the detail pane, then the page over the list in one pane, then leaves the screen. A `PopScope` in a page can veto it.
+- **Back.** The system back button, Android predictive back and the iOS back swipe close, in order: in one pane, a route a list tile pushed itself (`Navigator.push`, a menu, a sheet); the pages pushed inside the detail pane; the page over the list in one pane; then the screen. A `PopScope` in a page can veto it, the back swipe included. While a route a list tile pushed is open in one pane, the view stays in one pane until that route has closed, even if the window widens.
+- **Removed tiles.** When the tile of the shown page goes away (a page that only exists under a condition), the page closes: two panes show the default page, one pane shows the list. It doesn't come back with its tile. The view can't track tiles in a `CustomSettingsSection` this way: call `controller.clearSelection()` when you remove one.
 - **Hinges.** A hinge, or a fold in the half-opened (book) posture, gets one pane on each side of it. Flat folds are ignored.
 - **Right-to-left.** The list pane goes on the right.
 - **Restoration.** With a `restorationId` (and `restorationScopeId` on the app), the shown page comes back after the app is killed.
@@ -656,7 +659,7 @@ SettingsTile.switchTile(
   title: const Text('Feature'),
   initialValue: false,
   onToggle: null,   // null disables the switch
-  enabled: false,   // greys out the row and ignores taps
+  enabled: false,   // greys out the row, ignores taps and the keyboard
 )
 
 // Control the disabled switch color:
@@ -691,7 +694,7 @@ SettingsList(
 )
 ```
 
-To force one mode whatever the app theme says, set `brightness`:
+To force one mode whatever the app theme says, set `brightness`. It works in every style: the Android and web styles, whose colors come from your `ColorScheme`, then use a color scheme of that brightness made from its primary color:
 
 ```dart
 SettingsList(
@@ -702,7 +705,7 @@ SettingsList(
 
 ### Wide screens and split views
 
-When the list is wider than 810 (680 on the web, 640 on macOS, 1000 on Windows, at most 600 on Linux), the tiles sit in a centered column of that width. The width is the list's own, not the screen's, so a list in a split view or side panel is laid out for that pane. To put the column at the start edge (left, or right in right-to-left layouts) instead of centering it:
+When the list is wider than 810 (680 on the web, 640 on macOS, 1000 on Windows, at most 600sp on Linux), the tiles sit in a centered column of that width. The width is the list's own, not the screen's, so a list in a split view or side panel is laid out for that pane. To put the column at the start edge (left, or right in right-to-left layouts) instead of centering it:
 
 ```dart
 SettingsList(
@@ -839,7 +842,7 @@ None of the constructors is `const`.
 | `titleDescription` | `Widget?` | all | Line under the title, iOS, macOS, Windows and GNOME styles only |
 | `onPressed` | `Function(BuildContext)?` | all | Tap callback |
 | `destination` | `SettingsDestination?` | navigation | Page the tile opens, after `onPressed`. See [Pages and split view](#pages-and-split-view) |
-| `enabled` | `bool` | all | `false` greys out the tile and ignores taps. Default `true` |
+| `enabled` | `bool` | all | `false` greys out the tile and ignores taps and the keyboard. Default `true` |
 | `compact` | `bool` | all | Halves the vertical padding. Default `false` |
 | `initialValue` | `bool?` | switchTile | Current switch state (required) |
 | `onToggle` | `Function(bool)?` | switchTile | Toggle callback (required); `null` disables the switch |
