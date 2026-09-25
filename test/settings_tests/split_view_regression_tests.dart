@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/settings_ui.dart';
+import 'package:settings_ui/src/sections/platforms/adwaita_settings_section.dart';
 import 'package:settings_ui/src/split/adwaita_split.dart';
 import 'package:settings_ui/src/split/fluent_split.dart';
 import 'package:settings_ui/src/split/macos_split.dart';
@@ -1921,5 +1922,33 @@ void splitViewRegressionTests() {
       expect(_controllerOf(tester).isSplit, isTrue);
       expect(tester.getSize(_listPane).width, closeTo(234, 0.01));
     });
+
+    // AdwClamp's 600sp maximum and 400sp threshold, at 1.3: 780 and 520.
+    for (final (width, card) in [(500.0, 500.0 - 24), (1600.0, 780.0 - 24)]) {
+      testWidgets('a page column at font scale 1.3, $width wide', (
+        tester,
+      ) async {
+        await _setSize(tester, Size(width, 800));
+        await tester.pumpWidget(
+          _app(
+            Scaffold(
+              body: SettingsList(
+                platform: DevicePlatform.linux,
+                sections: [
+                  SettingsSection(
+                    tiles: [SettingsTile(title: const Text('Row'))],
+                  ),
+                ],
+              ),
+            ),
+            platform: TargetPlatform.android,
+            textScaler: scaler,
+          ),
+        );
+        final boxedList = tester.getRect(find.byType(AdwaitaBoxedList));
+        expect(boxedList.width, closeTo(card, 0.01));
+        expect(boxedList.center.dx, width / 2);
+      });
+    }
   });
 }

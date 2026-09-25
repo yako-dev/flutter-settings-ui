@@ -7,6 +7,7 @@ import 'package:settings_ui/src/sections/platforms/adwaita_settings_section.dart
 import 'package:settings_ui/src/sections/platforms/fluent_settings_section.dart';
 import 'package:settings_ui/src/sections/platforms/macos_settings_section.dart';
 import 'package:settings_ui/src/sections/settings_section.dart';
+import 'package:settings_ui/src/split/split_geometry.dart';
 import 'package:settings_ui/src/utils/content_column.dart';
 import 'package:settings_ui/src/utils/platform_utils.dart';
 import 'package:settings_ui/src/utils/settings_style.dart';
@@ -294,13 +295,14 @@ class SettingsList extends StatelessWidget {
         bottomPadding = 10;
       case DevicePlatform.linux:
         // A GNOME preferences page clamps its content like AdwClamp: at most
-        // 600sp wide, easing in from 400sp. The groups keep their own 12px
-        // side margins and 24px gap below; the page adds 24px on top.
-        final textScaler = MediaQuery.textScalerOf(context);
+        // 600sp wide, easing in from 400sp. sp grow as much as body text
+        // does (see adwaitaSpScale). The groups keep their own 12px side
+        // margins and 24px gap below; the page adds 24px on top.
+        final sp = adwaitaSpScale(MediaQuery.textScalerOf(context));
         contentWidth = adwaitaClampWidth(
           availableWidth,
-          maximumSize: textScaler.scale(600),
-          tighteningThreshold: textScaler.scale(400),
+          maximumSize: 600 * sp,
+          tighteningThreshold: 400 * sp,
         );
         minSidePadding = 0;
         topPadding = kAdwaitaPageTopMargin;
