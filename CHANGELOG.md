@@ -40,6 +40,7 @@
 ### Maintenance
 * CI now checks formatting with `dart format` (`flutter format` was removed from Flutter)
 * Example app: updated Android Gradle setup, and moved the iOS runner to the UIScene lifecycle required on iOS 27
+* Example app: a "Split view" demo with iPad, Android and Chrome settings trees. Open it directly with `flutter run --route '/split-view?style=android&theme=dark'` (or `#/split-view?...` on the web)
 
 ## [3.0.1] - [April 10, 2026]
 * README rewritten with a full API reference, examples and screenshots. No code changes
