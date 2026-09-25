@@ -85,7 +85,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 - `applicationType`: `ApplicationType`, default `.material`. Where light or dark comes from: `.material` reads `Theme`, `.cupertino` reads `CupertinoTheme` (then the platform brightness), for a `CupertinoApp`. `.both` reads `CupertinoTheme` when the app runs on iOS or macOS and `Theme` elsewhere; it goes by the detected platform, not by `platform:`.
 - `brightness`: `Brightness?`. Forces light or dark, overriding the detected brightness. Leave it null to follow the app theme.
 - `lightTheme`, `darkTheme`: `SettingsThemeData?`, merged over the platform defaults.
-- `contentPadding`: `EdgeInsetsGeometry?`, padding of the inner `ListView`. Default: none; 20 vertical / 16 horizontal on web; 36 horizontal (16 below 641 wide) and 36 at the bottom on Windows. When the list is wider than 810 (680 on web, 1000 on Windows), side padding keeps the tiles in a column of that width. The width is the list's own, so it works in split views and side panels.
+- `contentPadding`: `EdgeInsetsGeometry?`, padding of the inner `ListView`. Default: none; 20 vertical / 16 horizontal on web; 24 horizontal (16 below 641 wide) and 36 at the bottom on Windows. When the list is wider than 810 (680 on web, 1000 on Windows), side padding keeps the tiles in a column of that width. The width is the list's own, so it works in split views and side panels.
 - `crossAxisAlignment`: `CrossAxisAlignment`, default `center`. `start` puts that column at the start edge (left in LTR, right in RTL) on wide lists instead of centering it. No effect when `contentPadding` is set.
 - `scrollController`, `physics`, `shrinkWrap` (default `false`): passed to the inner `ListView`.
 
@@ -134,6 +134,8 @@ All constructors:
 
 Taps on switch tiles: in the Android and web styles, tapping anywhere on the row toggles the switch and `onPressed` is never called. In the iOS and Windows styles, as in their Settings apps, only the switch itself toggles; tapping the rest of the row calls `onPressed` (if set).
 
+Windows Settings writes "On"/"Off" before each switch. The package does not add it (it would be English only). For that look, pass a localized label as `trailing` on switch tiles, only on Windows since `trailing` shows in every style: `trailing: Theme.of(context).platform == TargetPlatform.windows ? Text(isOn ? l10n.on : l10n.off) : null`.
+
 ### CupertinoSettingsSwitch
 
 The iOS 26 switch, drawn in Flutter: a 63x28 track with a pill thumb that turns into a Liquid Glass-style lens while pressed or dragged. Switch tiles in the iOS style use it, and you can use it on its own anywhere.
@@ -151,7 +153,7 @@ The Windows 11 (WinUI 3) toggle, drawn in Flutter: a 40x20 outlined track with a
 
 - `value` (required): `bool`.
 - `onChanged` (required, nullable): `ValueChanged<bool>?`. `null` disables it (Windows disabled colors).
-- `activeTrackColor`: `Color?`, default the Windows accent `#005FB8` light, `#60CDFF` dark; the knob turns white or black to contrast.
+- `activeTrackColor`: `Color?`, default the Windows accent `#0067C0` light, `#4CC2FF` dark; the knob turns white or black to contrast.
 - `inactiveTrackColor`: `Color?`, the outline and knob color when off.
 
 It is controlled, can be dragged, toggles with Space or Enter when focused, and draws the Windows focus rectangle up to 8px outside itself.
@@ -165,7 +167,7 @@ It is controlled, can be dragged, toggles with Space or Enter when focused, and 
 | `DevicePlatform` | Style | Look |
 |---|---|---|
 | `iOS`, `macOS` | iOS 26+ | 26pt rounded cards with 20pt side margins, 52pt rows, 17pt text, 17pt semibold section headers, `description` as grey footers, `CupertinoSettingsSwitch`, chevron on navigation tiles. Fixed iOS system colors. |
-| `windows` | Windows 11 | one card per tile (4px corners, hairline border, 4px apart, 68px min height), 14px titles, 12px grey descriptions and values at the end of the row, 14px semibold section headers, `FluentSettingsSwitch`, chevron on navigation tiles, hover/pressed/focus states on clickable cards, 1000px column with 36px margins. Fixed Windows 11 colors. |
+| `windows` | Windows 11 | one card per tile (4px corners, hairline border, 3px apart, 70px min height), 14px titles, 12px grey descriptions and values at the end of the row, 14px semibold section headers, `FluentSettingsSwitch`, chevron on navigation tiles, hover/pressed/focus states on clickable cards, 1000px column with 24px margins. Fixed Windows 11 colors. |
 | `android`, `linux`, `fuchsia` | Android 16+ | each tile on its own card, 2dp apart, 20dp corners at the ends of a group; 16sp titles; Material `Switch` with a check or cross on the thumb; no chevron. Colors from `ColorScheme`. |
 | `web` | Chrome settings | cards with 8px corners and a light shadow, 14px titles, 13px descriptions, chevron on navigation tiles, 680px column. Colors from `ColorScheme`. |
 | platforms added by Flutter forks (e.g. OpenHarmony) | iOS 26+ | |

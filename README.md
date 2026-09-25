@@ -348,6 +348,19 @@ The tile is controlled: `initialValue` is the current value, and `onToggle` gets
 
 Tapping the row works like each platform's settings app. In the Android and web styles, tapping anywhere on the row toggles the switch, and `onPressed` isn't called. In the iOS and Windows styles only the switch itself toggles; tapping the rest of the row calls `onPressed`, if you set one.
 
+Windows Settings writes "On" or "Off" before every switch. The package doesn't add that text, because it would be English only. For the Windows look, pass your own localized label as `trailing`; the Windows style puts it just before the switch. `trailing` shows in every style, so add it only on Windows:
+
+```dart
+SettingsTile.switchTile(
+  title: const Text('Night light'),
+  trailing: Theme.of(context).platform == TargetPlatform.windows
+      ? Text(_nightLight ? 'On' : 'Off') // use your app's localized strings
+      : null,
+  initialValue: _nightLight,
+  onToggle: (value) => setState(() => _nightLight = value),
+)
+```
+
 ### `value`, `description` and `titleDescription`
 
 The same tile shows its secondary text in different places, following each platform:
@@ -419,7 +432,7 @@ SettingsList(
 
 - **iOS** matches iOS 26 Settings: cards with 26pt continuous corners and 20pt side margins, 52pt rows with 17pt text, 17pt semibold section headers, grey footers, the `CupertinoSettingsSwitch`, and a chevron on navigation tiles.
 - **Android** matches Android 16 Settings: every tile sits on its own card, 2dp apart, with 20dp corners at the ends of a group, on a tinted page. 16sp titles and switches with a check or a cross.
-- **Windows** matches Windows 11 Settings (WinUI 3): every tile is its own card with 4px corners and a hairline border, 4px apart, at least 68px tall, with 14px titles, 12px descriptions, 20px icons, 14px semibold section headers, a thin chevron on navigation tiles, and the `FluentSettingsSwitch`. Clickable cards show the Windows hover, pressed and keyboard focus states. The content is a 1000px column with 36px margins (16px in narrow windows).
+- **Windows** matches Windows 11 Settings (WinUI 3): every tile is its own card with 4px corners and a hairline border, 3px apart, at least 70px tall, with 14px titles, 12px descriptions, 20px icons, 14px semibold section headers, a thin chevron on navigation tiles, and the `FluentSettingsSwitch`. Clickable cards show the Windows hover, pressed and keyboard focus states. The content is a 1000px column with 24px margins (16px in narrow windows).
 - **Web** matches Chrome's settings page: cards with 8px corners and a light shadow, 14px titles, 13px descriptions, a chevron on navigation tiles, and a 680px column on wide windows.
 
 In a browser, the web style is used on every device, phones included. Elsewhere the style follows `Theme.of(context).platform`, so `ThemeData(platform: ...)` changes it too. Platforms that only exist in forks of Flutter, such as OpenHarmony, get the iOS style.
@@ -443,7 +456,7 @@ MaterialApp(
 )
 ```
 
-The iOS style uses fixed iOS system colors, like the Settings app: a grey grouped background, white cards (`#1C1C1E` in dark mode) and grey headers and values. The Windows style uses the Windows 11 colors: a `#F3F3F3` page with `#FBFBFB` cards (`#202020` and `#2B2B2B` in dark mode) and the Windows accent `#005FB8` (`#60CDFF` in dark mode) for switches. Neither reads your `ColorScheme`. Light or dark mode follows your app theme in every style.
+The iOS style uses fixed iOS system colors, like the Settings app: a grey grouped background, white cards (`#1C1C1E` in dark mode) and grey headers and values. The Windows style uses the Windows 11 colors: a `#F3F3F3` page with `#FBFBFB` cards (`#202020` and `#2B2B2B` in dark mode) and the default Windows accent `#0067C0` (`#4CC2FF` in dark mode) for switches. Neither reads your `ColorScheme`. Light or dark mode follows your app theme in every style.
 
 ### Custom theme overrides
 
@@ -685,7 +698,7 @@ None of the constructors is `const`.
 |---|---|---|
 | `value` | `bool` | Whether the switch is on (required) |
 | `onChanged` | `ValueChanged<bool>?` | Called with the new value (required); `null` disables the switch |
-| `activeTrackColor` | `Color?` | Track color when on. Default: the Windows accent, `#005FB8` light, `#60CDFF` dark. The knob turns white or black to contrast |
+| `activeTrackColor` | `Color?` | Track color when on. Default: the Windows accent, `#0067C0` light, `#4CC2FF` dark. The knob turns white or black to contrast |
 | `inactiveTrackColor` | `Color?` | Outline and knob color when off. Default: the Windows control stroke and secondary text colors |
 
 ### `SettingsThemeData`

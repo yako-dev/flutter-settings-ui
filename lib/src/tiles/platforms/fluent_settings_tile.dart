@@ -8,9 +8,15 @@ import 'package:settings_ui/src/tiles/settings_tile.dart';
 import 'package:settings_ui/src/utils/fluent_tokens.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 
-// CommunityToolkit SettingsCard (SettingsCard.xaml). All sizes are in
-// effective pixels.
-const double _kMinHeight = 68;
+// CommunityToolkit SettingsCard (SettingsCard.xaml), adjusted to what the
+// Windows Settings app draws. All sizes are in effective pixels.
+
+/// Windows Settings cards are at least 68 inside their 1px borders, so 70
+/// outside (the Toolkit's SettingsCard is 68 outside).
+const double _kMinHeight = 70;
+
+/// A compact card is as tall as a SettingsExpander item.
+const double _kCompactMinHeight = 52;
 const double _kPadding = 16;
 const double _kBorderWidth = 1;
 const double _kRadius = 4;
@@ -322,7 +328,7 @@ class _FluentSettingsTileState extends State<FluentSettingsTile> {
       ),
       child: ConstrainedBox(
         constraints: BoxConstraints(
-          minHeight: _kMinHeight - (_kPadding - verticalPadding) * 2,
+          minHeight: widget.compact ? _kCompactMinHeight : _kMinHeight,
         ),
         child: Padding(
           padding: EdgeInsets.symmetric(

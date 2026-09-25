@@ -81,8 +81,10 @@ class FluentTokens {
   /// `FocusStrokeColorInner` (alpha), the 1px inner focus ring.
   final Color focusInner;
 
-  /// `AccentFillColorDefault` for the default Windows accent (#0078D4):
-  /// SystemAccentColorDark1 in light mode, Light2 in dark mode.
+  /// `AccentFillColorDefault` for the default Windows 11 accent, as the
+  /// Settings app shows it: #0067C0 in light mode, #4CC2FF in dark mode.
+  /// (WinUI's built-in fallback, used when there is no system accent, is
+  /// #005FB8 / #60CDFF.)
   final Color accent;
 
   /// `ControlAltFillColorSecondary` / `Tertiary` / `Quarternary` (alpha):
@@ -121,7 +123,7 @@ class FluentTokens {
     textDisabled: Color(0xFFA0A0A0),
     focusOuter: Color(0xE4000000),
     focusInner: Color(0xB3FFFFFF),
-    accent: Color(0xFF005FB8),
+    accent: Color(0xFF0067C0),
     switchOffFill: Color(0x06000000),
     switchOffFillHover: Color(0x0F000000),
     switchOffFillPressed: Color(0x18000000),
@@ -147,7 +149,7 @@ class FluentTokens {
     textDisabled: Color(0xFF787878),
     focusOuter: Color(0xFFFFFFFF),
     focusInner: Color(0xB3000000),
-    accent: Color(0xFF60CDFF),
+    accent: Color(0xFF4CC2FF),
     switchOffFill: Color(0x19000000),
     switchOffFillHover: Color(0x0BFFFFFF),
     switchOffFillPressed: Color(0x12FFFFFF),

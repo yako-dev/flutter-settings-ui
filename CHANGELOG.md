@@ -11,7 +11,7 @@
 * iOS, macOS: 26pt cards with continuous corners and 20pt side margins, 52pt rows with 17pt text, 17pt semibold section headers, and the iOS secondary grey for headers and footers. iOS no longer uses all-caps headers, so pass headers in sentence case.
 * iOS, macOS: a new switch that matches the iOS 26/27 one, drawn entirely in Flutter. It has a 63x28 track and a pill-shaped thumb, and while it is pressed or dragged the thumb becomes a Liquid Glass-style lens. It is public as `CupertinoSettingsSwitch`, so you can use it outside settings lists too.
 * Android, Linux, Fuchsia: every tile sits on its own card, 2dp apart, with 20dp corners at the ends of a group and 4dp in between, on a `surfaceContainer` page. 16sp titles, tighter rows, and switches that show a check or a cross.
-* Windows: a new Windows 11 Settings style instead of the iOS one: one card per tile with 4px corners and a hairline border, 68px rows, 14px titles and 12px descriptions, the Windows hover, pressed and keyboard focus states, and `FluentSettingsSwitch`, a public WinUI-style toggle drawn in Flutter.
+* Windows: a new Windows 11 Settings style instead of the iOS one: one card per tile with 4px corners and a hairline border, 70px rows, 14px titles and 12px descriptions, the Windows hover, pressed and keyboard focus states, and `FluentSettingsSwitch`, a public WinUI-style toggle drawn in Flutter.
 * Web: Chrome-style white cards with 8px corners and a light shadow, 14px titles and 13px descriptions, 20px leading icons, a chevron on navigation tiles, near-black section titles, and a 680px column on wide screens (16px side margins in narrow windows).
 
 ### Bug fixes
