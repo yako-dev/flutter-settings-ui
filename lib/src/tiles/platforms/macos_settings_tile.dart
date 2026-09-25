@@ -96,6 +96,10 @@ class MacosSettingsTileScope extends InheritedWidget {
       isFirst != oldWidget.isFirst || isLast != oldWidget.isLast;
 }
 
+/// Space between a footer and a card after it in the same section, as
+/// between a SwiftUI section with a footer and the next section.
+const double kMacosFooterBottomGap = 30;
+
 /// The grey text under a card: a tile's `description`.
 Widget buildMacosFooter({
   required BuildContext context,
@@ -114,7 +118,7 @@ Widget buildMacosFooter({
           start: kMacosRowInset,
           end: kMacosRowInset,
           top: textScaler.scale(10),
-          bottom: isLast ? 0 : textScaler.scale(10),
+          bottom: isLast ? 0 : textScaler.scale(kMacosFooterBottomGap),
         ),
     child: DefaultTextStyle(
       style: style.copyWith(

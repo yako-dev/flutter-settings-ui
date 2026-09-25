@@ -1,4 +1,6 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:settings_ui/src/sections/abstract_settings_section.dart';
+import 'package:settings_ui/src/sections/settings_section.dart';
 import 'package:settings_ui/src/tiles/abstract_settings_tile.dart';
 import 'package:settings_ui/src/tiles/platforms/macos_settings_tile.dart';
 import 'package:settings_ui/src/tiles/settings_tile.dart';
@@ -15,7 +17,9 @@ import 'package:settings_ui/src/utils/settings_theme.dart';
 ///
 /// Spacing, as measured in System Settings: cards sit 20pt from the sides of
 /// the list, 10pt apart, and a header's line starts 30pt below the card
-/// above it.
+/// above it. After a footer, the next card or header starts 30pt below it.
+/// [SettingsList] tells a section whether the section before it ended with
+/// a footer through [MacosSectionContext].
 class MacosSettingsSection extends StatelessWidget {
   const MacosSettingsSection({
     required this.tiles,
@@ -32,7 +36,8 @@ class MacosSettingsSection extends StatelessWidget {
 
   /// Space above a header: with the previous section's 10pt bottom margin,
   /// the header line starts 30pt below the card or footer above it. At the
-  /// top of the list it starts 20pt down.
+  /// top of the list it starts 20pt down. An untitled section after a footer
+  /// gets the same space.
   static const double headerTopGap = 20;
 
   /// Space between a header's 16pt line and the card.
@@ -104,7 +109,9 @@ class MacosSettingsSection extends StatelessWidget {
           EdgeInsetsDirectional.only(
             start: sideMargin,
             end: sideMargin,
-            top: title == null ? 0 : textScaler.scale(headerTopGap),
+            top: title != null || MacosSectionContext.followsFooterOf(context)
+                ? textScaler.scale(headerTopGap)
+                : 0,
             bottom: textScaler.scale(cardGap),
           ),
       child: Column(
@@ -114,6 +121,36 @@ class MacosSettingsSection extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Whether [section] ends with a footer: its last tile has a `description`.
+bool macosSectionEndsWithFooter(AbstractSettingsSection section) {
+  if (section is! SettingsSection || section.tiles.isEmpty) return false;
+  final last = section.tiles.last;
+  return last is SettingsTile && last.description != null;
+}
+
+/// Tells a [MacosSettingsSection] whether the section shown before it ended
+/// with a footer, so it can keep the 30pt System Settings leaves after one.
+class MacosSectionContext extends InheritedWidget {
+  const MacosSectionContext({
+    super.key,
+    required this.followsFooter,
+    required super.child,
+  });
+
+  /// The section before this one ends with a footer.
+  final bool followsFooter;
+
+  static bool followsFooterOf(BuildContext context) =>
+      context
+          .dependOnInheritedWidgetOfExactType<MacosSectionContext>()
+          ?.followsFooter ??
+      false;
+
+  @override
+  bool updateShouldNotify(MacosSectionContext oldWidget) =>
+      followsFooter != oldWidget.followsFooter;
 }
 
 /// One card: the tiles on the card color, with separators between them.

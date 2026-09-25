@@ -1,6 +1,7 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/src/sections/abstract_settings_section.dart';
+import 'package:settings_ui/src/sections/platforms/macos_settings_section.dart';
 import 'package:settings_ui/src/sections/settings_section.dart';
 import 'package:settings_ui/src/utils/platform_utils.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
@@ -133,7 +134,11 @@ class SettingsList extends StatelessWidget {
                   contentPadding ??
                   calculateDefaultPadding(platform, context, width: width),
               itemBuilder: (BuildContext context, int index) {
-                return sections[index];
+                if (platform != DevicePlatform.macOS) return sections[index];
+                return MacosSectionContext(
+                  followsFooter: _previousEndsWithFooter(index),
+                  child: sections[index],
+                );
               },
             ),
           ),
@@ -214,6 +219,17 @@ class SettingsList extends StatelessWidget {
       top: topPadding,
       bottom: bottomPadding,
     );
+  }
+
+  /// Whether the last section shown before [index] ends with a footer.
+  /// Sections without tiles show nothing, so they are skipped.
+  bool _previousEndsWithFooter(int index) {
+    for (var i = index - 1; i >= 0; i--) {
+      final section = sections[i];
+      if (section is SettingsSection && section.tiles.isEmpty) continue;
+      return macosSectionEndsWithFooter(section);
+    }
+    return false;
   }
 
   /// Whether the first section that shows anything is a [SettingsSection]
