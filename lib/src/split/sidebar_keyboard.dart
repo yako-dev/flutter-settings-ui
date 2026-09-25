@@ -161,15 +161,15 @@ class _MoveFocusAction extends Action<SidebarMoveFocusIntent> {
 ///
 /// A click gives the row the focus, as `NSTableView`, `NavigationView` and
 /// `GtkListBox` do, so the arrow keys and Tab go on from the clicked row.
-/// Its focus ring stays hidden until a key is pressed: the rings are for
-/// keyboard users.
+/// Its focus ring stays hidden until a key is pressed (the rings are for
+/// keyboard users), also when the focus comes back to the row, for
+/// example after going back from the page it opened in one pane.
 class SidebarRowFocus {
-  SidebarRowFocus({required String debugLabel, required this.onChanged}) {
-    node = FocusNode(debugLabel: debugLabel, onKeyEvent: _handleKeyEvent);
-  }
+  SidebarRowFocus({required String debugLabel, required this.onChanged})
+    : node = FocusNode(debugLabel: debugLabel);
 
   /// Give it to the row's `FocusableActionDetector`.
-  late final FocusNode node;
+  final FocusNode node;
 
   /// Rebuilds the row.
   final VoidCallback onChanged;
@@ -184,27 +184,26 @@ class SidebarRowFocus {
   void focusFromPointer() {
     if (!node.canRequestFocus) return;
     if (!node.hasPrimaryFocus) node.requestFocus();
-    if (!_fromPointer) {
-      _fromPointer = true;
-      onChanged();
-    }
+    if (_fromPointer) return;
+    _fromPointer = true;
+    HardwareKeyboard.instance.addHandler(_handleKeyEvent);
+    onChanged();
   }
 
-  /// Give it to the row's `FocusableActionDetector.onFocusChange`.
-  void handleFocusChange(bool focused) {
-    if (!focused && _fromPointer) {
-      _fromPointer = false;
-      onChanged();
-    }
+  bool _handleKeyEvent(KeyEvent event) {
+    _stopWaiting();
+    onChanged();
+    return false;
   }
 
-  KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
-    if (_fromPointer) {
-      _fromPointer = false;
-      onChanged();
-    }
-    return KeyEventResult.ignored;
+  void _stopWaiting() {
+    if (!_fromPointer) return;
+    _fromPointer = false;
+    HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
   }
 
-  void dispose() => node.dispose();
+  void dispose() {
+    _stopWaiting();
+    node.dispose();
+  }
 }

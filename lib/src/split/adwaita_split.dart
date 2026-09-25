@@ -352,7 +352,6 @@ class _AdwaitaSidebarRowState extends State<AdwaitaSidebarRow> {
             child: FocusableActionDetector(
               enabled: _activatable,
               focusNode: _focus.node,
-              onFocusChange: _focus.handleFocusChange,
               actions: _actions,
               onShowFocusHighlight: (value) {
                 if (value != _focusHighlight) {

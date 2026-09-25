@@ -583,7 +583,6 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
     item = FocusableActionDetector(
       enabled: clickable,
       focusNode: _focus.node,
-      onFocusChange: _focus.handleFocusChange,
       actions: _actions,
       onShowFocusHighlight: (value) {
         if (value != _focusHighlight) setState(() => _focusHighlight = value);

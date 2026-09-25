@@ -384,7 +384,6 @@ class _MacosSidebarItemState extends State<MacosSidebarItem> {
         child: FocusableActionDetector(
           enabled: _canPress,
           focusNode: _focus.node,
-          onFocusChange: _focus.handleFocusChange,
           actions: _actions,
           onShowFocusHighlight: (value) {
             if (value != _focusHighlight) {

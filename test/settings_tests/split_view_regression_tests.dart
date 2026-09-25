@@ -1083,6 +1083,39 @@ void splitViewRegressionTests() {
       });
     }
 
+    testWidgets('GNOME one pane: back to a clicked row, still without a '
+        'ring', (tester) async {
+      await _setSize(tester, const Size(400, 800));
+      await tester.pumpWidget(
+        _app(
+          SettingsSplitView(
+            platform: DevicePlatform.linux,
+            sections: _sections(),
+          ),
+          platform: TargetPlatform.linux,
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.sendKeyEvent(LogicalKeyboardKey.shift);
+      await tester.tap(
+        _inList(find.text('Display')),
+        kind: PointerDeviceKind.mouse,
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Text size'), findsOneWidget);
+      await tester.tap(
+        find.bySemanticsLabel('Back'),
+        kind: PointerDeviceKind.mouse,
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Text size'), findsNothing);
+      expect(_focusIn(_tile('Display')), isTrue);
+      expect(_ringShown(tester, DevicePlatform.linux, 'Display'), isFalse);
+      await tester.sendKeyEvent(LogicalKeyboardKey.shift);
+      await tester.pump();
+      expect(_ringShown(tester, DevicePlatform.linux, 'Display'), isTrue);
+    });
+
     for (final platform in [DevicePlatform.macOS, DevicePlatform.windows]) {
       testWidgets('$platform: Tab and Space reach a switch without '
           'onPressed', (tester) async {
