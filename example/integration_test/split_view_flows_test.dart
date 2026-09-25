@@ -1,7 +1,8 @@
 // The split view demo and the showcase in every style, at the size of the
 // device or window they run on: select pages, open a nested page, go back,
-// toggle switches, and resize across the breakpoints with a nested page open.
-// Any FlutterError (an overflow, an exception) fails the test.
+// toggle switches, resize across the breakpoints with a nested page open, and
+// pick another style with the demo's Style tile (a route the tile pushes
+// itself). Any FlutterError (an overflow, an exception) fails the test.
 //
 //   cd example && flutter test integration_test/split_view_flows_test.dart -d <device>
 import 'package:example/screens/gallery/showcase_screen.dart';
@@ -75,6 +76,28 @@ Future<Finder> _scrollTo(WidgetTester tester, String text) async {
   await Scrollable.ensureVisible(tester.element(finder.last), alignment: 0.5);
   await _settle(tester);
   return finder.last;
+}
+
+final Finder _listPane = find.byKey(const ValueKey('settings_split_list_pane'));
+
+/// Taps the demo's Style tile, at the end of the list pane, and waits for
+/// the style picker.
+Future<void> _openStylePicker(WidgetTester tester) async {
+  final style = find.descendant(of: _listPane, matching: find.text('Style'));
+  if (style.evaluate().isEmpty) {
+    await tester.scrollUntilVisible(
+      style,
+      200,
+      scrollable: find
+          .descendant(of: _listPane, matching: find.byType(Scrollable))
+          .first,
+    );
+  }
+  await Scrollable.ensureVisible(tester.element(style), alignment: 0.5);
+  await _settle(tester);
+  await tester.tap(style);
+  await _settle(tester);
+  expect(find.text('Platforms'), findsOneWidget);
 }
 
 bool _isSettingsSwitch(Widget widget) =>
@@ -202,5 +225,48 @@ void main() {
         expect(controller.selectedId, isNull);
       },
     );
+
+    testWidgets('split view, ${platform.name}: the style picker', (
+      tester,
+    ) async {
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final other = platform == DevicePlatform.android
+          ? DevicePlatform.linux
+          : DevicePlatform.android;
+      for (final size in const [Size(420, 800), Size(1280, 800)]) {
+        await tester.binding.setSurfaceSize(size);
+        await tester.pumpWidget(
+          _app(SplitViewScreen(key: ValueKey(size), platform: platform)),
+        );
+        await _settle(tester);
+
+        // Back closes only the picker (in one pane it is a route pushed
+        // from the list pane).
+        await _openStylePicker(tester);
+        await tester.binding.handlePopRoute();
+        await _settle(tester);
+        expect(find.text('Platforms'), findsNothing, reason: '$size');
+        expect(find.byType(SplitViewScreen), findsOneWidget);
+
+        // A new style re-creates the view with the same controller.
+        await _openStylePicker(tester);
+        await tester.tap(find.text(_styleNames[other]!).hitTestable().last);
+        await _settle(tester);
+        expect(find.text('Platforms'), findsNothing, reason: '$size');
+        expect(
+          tester
+              .widget<SettingsSplitView>(find.byType(SettingsSplitView))
+              .platform,
+          other,
+          reason: '$size',
+        );
+      }
+    });
   }
 }
+
+/// The style picker's names.
+const _styleNames = {
+  DevicePlatform.android: 'Android',
+  DevicePlatform.linux: 'Linux',
+};
