@@ -38,6 +38,7 @@ cd example && flutter run -d chrome   # then /?screen=split-view&platform=macOS&
 cd example && flutter run -d macos --route '/split-view?platform=windows&page=system'
 cd example && flutter run -d macos --dart-define=SCREEN=macos --dart-define=THEME=dark
 cd example && flutter test integration_test/integration_test.dart -d <device-id>
+cd example && flutter test integration_test/split_view_flows_test.dart -d <device-id>
 ```
 
 ## Architecture
@@ -142,7 +143,7 @@ Everything else in `platforms/` is internal. Don't export it.
 - `test/widget_test.dart` is the only entry point with a `main()`. Each file in `test/settings_tests/*_tests.dart` (and `test/utils_tests/`) defines a function such as `settingsTileTests(DevicePlatform platform)` or `nativeLookTests()`, and `widget_test.dart` calls it inside a `group`. A new test file does nothing until you call its function from `widget_test.dart`.
 - Platform-parameterized helpers are called once per `DevicePlatform`. Tests pass the platform explicitly to `SettingsList` (via `TestWidgetScreen` in `test/test_widget_screen.dart` or `_wrapWithMaterialApp`) so they don't depend on the host.
 - Wrap widgets in `MaterialApp`/`CupertinoApp` from material_ui/cupertino_ui. Find iOS-style switches with `find.byType(CupertinoSettingsSwitch)`, macOS ones with `find.byType(MacosSettingsSwitch)`, Windows ones with `find.byType(FluentSettingsSwitch)`, GNOME-style (Linux) ones with `find.byType(AdwaitaSettingsSwitch)`, others with `find.byType(Switch)`.
-- `example/integration_test/integration_test.dart` drives the example app's gallery screens. It runs on a device, simulator or emulator (`-d`), not in CI.
+- `example/integration_test/` runs on a device, simulator, emulator or desktop (`-d macos`), not in CI. `integration_test.dart` drives the example app's gallery screens; `split_view_flows_test.dart` runs the split view demo and the showcase in every style (pages, nested pages, back, switches, 2x text, resizing across the breakpoints). The gallery tests share the running app (each calls `app.main()`), so a test that scrolls or navigates puts things back. On macOS, run one file per `flutter test` call: with several files the second app often fails to start ("Error waiting for a debug connection"). Web devices can't run them (`flutter test` says they aren't supported).
 
 ## CI and release
 

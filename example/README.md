@@ -16,8 +16,10 @@ flutter run                  # iOS, Android, macOS, Windows, Linux or web
 flutter run -d chrome        # then open /?screen=showcase&platform=macOS&theme=dark
 ```
 
-`flutter test integration_test -d <device>` drives the gallery on a device,
-simulator, emulator or desktop.
+The integration tests run on a device, simulator, emulator or desktop, one
+file at a time: `flutter test integration_test/integration_test.dart -d <device>`
+drives the gallery, and `integration_test/split_view_flows_test.dart` the split
+view demo and the showcase in every style.
 
 ## Opening a screen directly
 
