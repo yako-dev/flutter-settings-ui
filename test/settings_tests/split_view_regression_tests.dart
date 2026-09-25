@@ -1305,4 +1305,80 @@ void splitViewRegressionTests() {
       expect(_focusIn(control), isTrue);
     });
   });
+  group('sidebar rows while scrolling', () {
+    for (final (platform, type) in [
+      (DevicePlatform.linux, AdwaitaSidebarRow),
+      (DevicePlatform.windows, FluentNavigationItem),
+    ]) {
+      testWidgets('$platform: a scroll that starts on a row lets go of its '
+          'pressed fill', (tester) async {
+        await _setSize(tester, const Size(1280, 600));
+        await tester.pumpWidget(
+          _app(
+            SettingsSplitView(
+              platform: platform,
+              sections: [
+                SettingsSection(
+                  tiles: [
+                    for (var i = 0; i < 30; i++)
+                      SettingsTile.navigation(
+                        leading: const Icon(Icons.list),
+                        title: Text('Row $i'),
+                        destination: SettingsDestination(
+                          id: 'row$i',
+                          builder: (_) => Text('Body $i'),
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+            platform: _targetOf(platform),
+          ),
+        );
+        await tester.pumpAndSettle();
+        final row = find.ancestor(
+          of: _inList(find.text('Row 5')),
+          matching: find.byType(type),
+        );
+        // The row's background: GNOME animates it in an AnimatedContainer,
+        // Windows in a DecoratedBox.
+        Color? current() {
+          if (platform == DevicePlatform.linux) {
+            final container = tester.widget<AnimatedContainer>(
+              find.descendant(
+                of: row,
+                matching: find.byType(AnimatedContainer),
+              ),
+            );
+            return (container.decoration! as BoxDecoration).color;
+          }
+          final box = find
+              .descendant(of: row, matching: find.byType(DecoratedBox))
+              .first;
+          return (tester.widget<DecoratedBox>(box).decoration as BoxDecoration)
+              .color;
+        }
+
+        final rest = current();
+        final gesture = await tester.startGesture(
+          tester.getCenter(_inList(find.text('Row 5'))),
+        );
+        // Past the tap's deadline, and the Windows fill's fade.
+        await tester.pump(const Duration(milliseconds: 150));
+        await tester.pump(const Duration(milliseconds: 150));
+        expect(current(), isNot(rest), reason: 'pressed');
+
+        await gesture.moveBy(const Offset(0, -30));
+        await tester.pump();
+        await gesture.moveBy(const Offset(0, -30));
+        await tester.pump(const Duration(milliseconds: 150));
+        await tester.pump(const Duration(milliseconds: 150));
+        expect(current(), rest, reason: 'let go while the list scrolls');
+        await gesture.up();
+        await tester.pumpAndSettle();
+        expect(_controllerOf(tester).selectedId, 'row0');
+      });
+    }
+  });
 }

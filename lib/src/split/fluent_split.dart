@@ -228,6 +228,7 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
   bool _pressed = false;
   bool _focusHighlight = false;
   int? _pressPointer;
+  Offset _pressOrigin = Offset.zero;
 
   /// Slides the pill in when the item becomes selected.
   late final AnimationController _pill;
@@ -373,7 +374,21 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
       return;
     }
     _pressPointer = event.pointer;
+    _pressOrigin = event.position;
     setState(() => _pressed = true);
+  }
+
+  void _handlePointerMove(PointerMoveEvent event) {
+    if (event.pointer != _pressPointer) return;
+    final box = context.findRenderObject()! as RenderBox;
+    final inside = box.size.contains(box.globalToLocal(event.position));
+    // A finger that moves past the slop is scrolling the pane. A mouse
+    // stays pressed until it leaves the item.
+    final scrolling =
+        event.kind != PointerDeviceKind.mouse &&
+        (event.position - _pressOrigin).distance >
+            computeHitSlop(event.kind, null);
+    if (!inside || scrolling) _handlePointerEnd(event);
   }
 
   void _handlePointerEnd(PointerEvent event) {
@@ -582,6 +597,7 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
         },
         child: Listener(
           onPointerDown: clickable ? _handlePointerDown : null,
+          onPointerMove: _handlePointerMove,
           onPointerUp: _handlePointerEnd,
           onPointerCancel: _handlePointerEnd,
           child: GestureDetector(
