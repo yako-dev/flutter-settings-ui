@@ -7,6 +7,7 @@ import 'package:example/screens/gallery/ios_developer_screen.dart';
 import 'package:example/screens/gallery/ios_native_settings_screen.dart';
 import 'package:example/screens/gallery/macos_notifications_screen.dart';
 import 'package:example/screens/gallery/material3_demo_screen.dart';
+import 'package:example/screens/gallery/showcase_screen.dart';
 import 'package:example/screens/gallery/split_view_screen.dart';
 import 'package:example/screens/gallery/web_chrome_addresses_settings.dart';
 import 'package:example/screens/gallery/web_chrome_settings.dart';
@@ -27,6 +28,10 @@ final launchScreens = <String, Widget Function()>{
   'cross-platform': CrossPlatformSettingsScreen.new,
   'material3': Material3DemoScreen.new,
   'split-view': () => SplitViewScreen(
+    platform: LaunchOptions.platform ?? DevicePlatform.device,
+    initialPageId: LaunchOptions.page,
+  ),
+  'showcase': () => ShowcaseScreen(
     platform: LaunchOptions.platform ?? DevicePlatform.device,
     initialPageId: LaunchOptions.page,
   ),
