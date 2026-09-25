@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/settings_ui.dart';
+import 'package:settings_ui/src/utils/theme_provider.dart';
 
 /// A tile in the list pane of a web-style split view, drawn as an item of
 /// Chrome's settings menu: 40px tall, a 20px icon, 14px medium text, and a
@@ -35,7 +36,10 @@ class WebSettingsMenuItem extends StatelessWidget {
   final Widget? trailing;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) =>
+      ThemeProvider.withListColorScheme(context, Builder(builder: _buildTile));
+
+  Widget _buildTile(BuildContext context) {
     final theme = SettingsTheme.of(context).themeData;
     final textScaler = MediaQuery.textScalerOf(context);
     final textDirection = Directionality.of(context);
@@ -52,11 +56,16 @@ class WebSettingsMenuItem extends StatelessWidget {
         : theme.leadingIconsColor;
 
     final isSwitch = tileType == SettingsTileType.switchTile;
-    final VoidCallback? onTap = isSwitch
+    // A disabled item takes no focus, keys or taps (the IgnorePointer below
+    // only blocks new pointers).
+    final onChanged = enabled ? onToggle : null;
+    final VoidCallback? onTap = !enabled
+        ? null
+        : isSwitch
         ? (onToggle == null ? null : () => onToggle!(!initialValue))
         : (onPressed == null ? null : () => onPressed!(context));
 
-    return IgnorePointer(
+    final item = IgnorePointer(
       ignoring: !enabled,
       child: Padding(
         // cr-nav-menu-item: 1px start margin, 2px end margin.
@@ -136,7 +145,7 @@ class WebSettingsMenuItem extends StatelessWidget {
                           child: FittedBox(
                             child: Switch(
                               value: initialValue,
-                              onChanged: onToggle,
+                              onChanged: onChanged,
                               activeThumbColor: activeSwitchColor,
                             ),
                           ),
@@ -150,5 +159,7 @@ class WebSettingsMenuItem extends StatelessWidget {
         ),
       ),
     );
+    // The row and the switch both toggle: one node, "title, switch, on".
+    return isSwitch ? MergeSemantics(child: item) : item;
   }
 }

@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/settings_ui.dart';
+import 'package:settings_ui/src/utils/theme_provider.dart';
 
 class WebSettingsTile extends StatelessWidget {
   const WebSettingsTile({
@@ -40,15 +41,23 @@ class WebSettingsTile extends StatelessWidget {
   final EdgeInsetsGeometry? descriptionPadding;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) =>
+      ThemeProvider.withListColorScheme(context, Builder(builder: _buildTile));
+
+  Widget _buildTile(BuildContext context) {
     final theme = SettingsTheme.of(context);
     final textScaler = MediaQuery.textScalerOf(context);
 
-    final cantShowAnimation = tileType == SettingsTileType.switchTile
-        ? onToggle == null && onPressed == null
-        : onPressed == null;
+    // A disabled tile takes no focus, keys or taps (the IgnorePointer below
+    // only blocks new pointers).
+    final cantShowAnimation =
+        !enabled ||
+        (tileType == SettingsTileType.switchTile
+            ? onToggle == null && onPressed == null
+            : onPressed == null);
+    final onChanged = enabled ? onToggle : null;
 
-    return IgnorePointer(
+    final tile = IgnorePointer(
       ignoring: !enabled,
       child: Material(
         color: Colors.transparent,
@@ -175,7 +184,7 @@ class WebSettingsTile extends StatelessWidget {
                               : (theme.themeData.inactiveSwitchColor ??
                                     theme.themeData.inactiveTitleColor),
                           value: initialValue,
-                          onChanged: onToggle,
+                          onChanged: onChanged,
                         ),
                       ),
                     ],
@@ -192,7 +201,7 @@ class WebSettingsTile extends StatelessWidget {
                           ? (theme.themeData.inactiveSwitchColor ??
                                 theme.themeData.inactiveTitleColor)
                           : activeSwitchColor,
-                      onChanged: onToggle,
+                      onChanged: onChanged,
                     ),
                   )
                 else if (trailing != null)
@@ -234,5 +243,10 @@ class WebSettingsTile extends StatelessWidget {
         ),
       ),
     );
+    // The row and the switch both toggle, so a switch tile is one node:
+    // "title, switch, on".
+    return tileType == SettingsTileType.switchTile
+        ? MergeSemantics(child: tile)
+        : tile;
   }
 }

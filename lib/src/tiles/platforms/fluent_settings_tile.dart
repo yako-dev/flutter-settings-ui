@@ -5,6 +5,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 import 'package:settings_ui/src/tiles/platforms/fluent_settings_switch.dart';
 import 'package:settings_ui/src/tiles/settings_tile.dart';
+import 'package:settings_ui/src/tiles/tile_semantics.dart';
 import 'package:settings_ui/src/utils/fluent_tokens.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 
@@ -288,10 +289,12 @@ class _FluentSettingsTileState extends State<FluentSettingsTile> {
           ? null
           : Listener(
               onPointerDown: (event) => _controlPointers.add(event.pointer),
-              child: FluentSettingsSwitch(
-                value: widget.initialValue,
-                onChanged: enabled ? widget.onToggle : null,
-                activeTrackColor: widget.activeSwitchColor,
+              child: _labelSwitchIfSeparate(
+                FluentSettingsSwitch(
+                  value: widget.initialValue,
+                  onChanged: enabled ? widget.onToggle : null,
+                  activeTrackColor: widget.activeSwitchColor,
+                ),
               ),
             ),
       chevron: !_isNavigation
@@ -392,6 +395,12 @@ class _FluentSettingsTileState extends State<FluentSettingsTile> {
 
     return IgnorePointer(ignoring: !enabled, child: semantics);
   }
+
+  /// A switch tile that also opens a page keeps its switch as a node of its
+  /// own. The switch then gets the title as its label.
+  Widget _labelSwitchIfSeparate(Widget child) => widget.onPressed == null
+      ? child
+      : labelTileSwitch(title: widget.title, child: child);
 
   Widget _buildHeader({
     required SettingsThemeData theme,

@@ -201,6 +201,12 @@ class SettingsStyleScope extends InheritedWidget {
   static SettingsStyleScope? maybeOf(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<SettingsStyleScope>();
 
+  /// The brightness of the [SettingsList] (or split view) around [context]:
+  /// its forced `brightness`, or the app theme's as its `applicationType`
+  /// picks. Null outside of one.
+  static Brightness? brightnessOf(BuildContext context) =>
+      maybeOf(context)?.config.resolveBrightness(context);
+
   /// The config a [SettingsList] at [context] should inherit, if any.
   static SettingsStyleConfig? inheritedConfigOf(BuildContext context) {
     final scope = maybeOf(context);

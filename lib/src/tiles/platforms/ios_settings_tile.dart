@@ -1,6 +1,10 @@
+import 'dart:async';
+
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/settings_ui.dart';
+import 'package:settings_ui/src/tiles/tile_semantics.dart';
+import 'package:settings_ui/src/utils/settings_style.dart';
 
 class IOSSettingsTile extends StatefulWidget {
   const IOSSettingsTile({
@@ -60,6 +64,28 @@ class IOSSettingsTile extends StatefulWidget {
 class IOSSettingsTileState extends State<IOSSettingsTile> {
   bool isPressed = false;
 
+  /// Clears the pressed tint shortly after a tap.
+  Timer? _releaseTimer;
+
+  /// Only an enabled row with `onPressed` reacts to taps, and only then does
+  /// it expose a tap action to screen readers.
+  bool get _canPress => widget.enabled && widget.onPressed != null;
+
+  @override
+  void didUpdateWidget(IOSSettingsTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!_canPress) {
+      _releaseTimer?.cancel();
+      isPressed = false;
+    }
+  }
+
+  @override
+  void dispose() {
+    _releaseTimer?.cancel();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final additionalInfo = IOSSettingsTileAdditionalInfo.of(context);
@@ -91,6 +117,12 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
     required IOSSettingsTileAdditionalInfo additionalInfo,
   }) {
     Widget content = buildTileContent(context, theme, additionalInfo);
+    // A switch row without an action of its own reads as its switch:
+    // "title, switch, on". With onPressed, the switch is labelled instead.
+    if (widget.tileType == SettingsTileType.switchTile &&
+        widget.onPressed == null) {
+      content = MergeSemantics(child: content);
+    }
     // Use the platform from SettingsTheme (respects user's explicit choice)
     // rather than re-detecting from the system, which ignored platform overrides.
     if (theme.platform != DevicePlatform.iOS) {
@@ -189,13 +221,24 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
         // above and below it. The 16pt end padding and the 52pt row keep it
         // inside the card.
         if (widget.tileType == SettingsTileType.switchTile)
-          CupertinoSettingsSwitch(
-            value: widget.initialValue ?? true,
-            onChanged: widget.onToggle,
-            activeTrackColor: widget.enabled
-                ? widget.activeSwitchColor
-                : (theme.themeData.inactiveSwitchColor ??
-                      theme.themeData.inactiveTitleColor),
+          _labelSwitchIfSeparate(
+            CupertinoTheme(
+              // The switch picks its light or dark colors from this: the
+              // list's, which `SettingsList.brightness` can set apart from the
+              // app's.
+              data: CupertinoTheme.of(
+                context,
+              ).copyWith(brightness: SettingsStyleScope.brightnessOf(context)),
+              child: CupertinoSettingsSwitch(
+                value: widget.initialValue ?? true,
+                // A disabled tile's switch takes no focus, keys or taps.
+                onChanged: widget.enabled ? widget.onToggle : null,
+                activeTrackColor: widget.enabled
+                    ? widget.activeSwitchColor
+                    : (theme.themeData.inactiveSwitchColor ??
+                          theme.themeData.inactiveTitleColor),
+              ),
+            ),
           ),
         // iPad sidebar rows have no chevron.
         if (widget.tileType == SettingsTileType.navigationTile &&
@@ -216,8 +259,16 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
     );
   }
 
+  /// A row with onPressed and a switch has two actions, so the switch is a
+  /// semantics node of its own. It gets the title as its label.
+  Widget _labelSwitchIfSeparate(Widget child) => widget.onPressed == null
+      ? child
+      : labelTileSwitch(title: widget.title, child: child);
+
   void changePressState({bool isPressed = false}) {
-    if (mounted) {
+    // A tap recognizer that is dropped mid-press (the tile was disabled)
+    // cancels during the build. didUpdateWidget has cleared the tint by then.
+    if (mounted && this.isPressed != isPressed) {
       setState(() {
         this.isPressed = isPressed;
       });
@@ -264,26 +315,28 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
         ? (themeData.selectedTileIconColor ?? themeData.leadingIconsColor)
         : themeData.leadingIconsColor;
 
+    // Without callbacks the detector has no tap recognizer, so a row that
+    // does nothing exposes no tap action, and a press that started before
+    // the tile was disabled does not fire.
+    final canPress = _canPress;
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
-      onTap: widget.onPressed == null
-          ? null
-          : () {
+      onTap: canPress
+          ? () {
               changePressState(isPressed: true);
 
               widget.onPressed!.call(context);
 
-              Future.delayed(
+              _releaseTimer?.cancel();
+              _releaseTimer = Timer(
                 const Duration(milliseconds: 100),
                 () => changePressState(isPressed: false),
               );
-            },
-      onTapDown: (_) =>
-          widget.onPressed == null ? null : changePressState(isPressed: true),
-      onTapUp: (_) =>
-          widget.onPressed == null ? null : changePressState(isPressed: false),
-      onTapCancel: () =>
-          widget.onPressed == null ? null : changePressState(isPressed: false),
+            }
+          : null,
+      onTapDown: canPress ? (_) => changePressState(isPressed: true) : null,
+      onTapUp: canPress ? (_) => changePressState(isPressed: false) : null,
+      onTapCancel: canPress ? () => changePressState(isPressed: false) : null,
       child: Container(
         color: background,
         // iPad sidebar: icon 14pt into the row, label 8.5pt after a 28pt

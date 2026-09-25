@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/src/tiles/abstract_settings_tile.dart';
 import 'package:settings_ui/src/tiles/settings_tile.dart';
 import 'package:settings_ui/src/utils/fluent_tokens.dart';
@@ -39,35 +39,40 @@ class FluentSettingsSection extends StatelessWidget {
             top: title == null ? 24 - _kCardSpacing : 0,
             bottom: _kCardSpacing,
           ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (title != null)
-            Padding(
-              padding:
-                  titlePadding ??
-                  EdgeInsetsDirectional.only(
-                    start: 1,
-                    top: afterPageTitle ? 19 : 30,
-                    bottom: 6,
+      // Lets Material widgets (ListTile, Checkbox...) in custom tiles and in
+      // a tile's leading or trailing work without a Scaffold.
+      child: Material(
+        type: MaterialType.transparency,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (title != null)
+              Padding(
+                padding:
+                    titlePadding ??
+                    EdgeInsetsDirectional.only(
+                      start: 1,
+                      top: afterPageTitle ? 19 : 30,
+                      bottom: 6,
+                    ),
+                child: Semantics(
+                  header: true,
+                  child: DefaultTextStyle(
+                    style: (theme.titleTextStyle ?? FluentTypography.bodyStrong)
+                        .copyWith(color: theme.titleTextColor),
+                    child: title!,
                   ),
-              child: Semantics(
-                header: true,
-                child: DefaultTextStyle(
-                  style: (theme.titleTextStyle ?? FluentTypography.bodyStrong)
-                      .copyWith(color: theme.titleTextColor),
-                  child: title!,
                 ),
               ),
-            ),
-          for (var i = 0; i < tiles.length; i++)
-            Padding(
-              padding: EdgeInsets.only(top: i == 0 ? 0 : _kCardSpacing),
-              child: tiles[i] is SettingsTile
-                  ? tiles[i]
-                  : _FluentCard(child: tiles[i]),
-            ),
-        ],
+            for (var i = 0; i < tiles.length; i++)
+              Padding(
+                padding: EdgeInsets.only(top: i == 0 ? 0 : _kCardSpacing),
+                child: tiles[i] is SettingsTile
+                    ? tiles[i]
+                    : _FluentCard(child: tiles[i]),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -141,7 +146,20 @@ class _FluentCard extends StatelessWidget {
       ),
       child: Padding(
         padding: const EdgeInsets.all(1),
-        child: ClipRRect(borderRadius: BorderRadius.circular(3), child: child),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(3),
+          // A Material above the card color, so a ListTile's ink shows, and
+          // the card text style, like the tile titles.
+          child: Material(
+            type: MaterialType.transparency,
+            child: DefaultTextStyle(
+              style: FluentTypography.body.copyWith(
+                color: theme.settingsTileTextColor ?? tokens.textPrimary,
+              ),
+              child: child,
+            ),
+          ),
+        ),
       ),
     );
   }

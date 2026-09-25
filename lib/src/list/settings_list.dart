@@ -49,6 +49,12 @@ class SettingsList extends StatelessWidget {
 
   /// Forces light or dark colors. When null, the brightness comes from the
   /// app theme, as set by [applicationType].
+  ///
+  /// The Android and web styles take their colors from the app's
+  /// [ColorScheme]. When it has the other brightness, they use a scheme of
+  /// this brightness made from its primary color
+  /// (`ColorScheme.fromSeed`), for the list and for the Material widgets in
+  /// it.
   final Brightness? brightness;
   final EdgeInsetsGeometry? contentPadding;
   final List<AbstractSettingsSection> sections;

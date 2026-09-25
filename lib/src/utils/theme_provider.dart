@@ -2,6 +2,7 @@ import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/src/utils/fluent_tokens.dart';
 import 'package:settings_ui/src/utils/platform_utils.dart';
+import 'package:settings_ui/src/utils/settings_style.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 
 // iPadOS 27 Settings, measured in the simulator: the sidebar's tint and the
@@ -39,13 +40,65 @@ class ThemeProvider {
     }
   }
 
+  /// The app's [ColorScheme] when it has [brightness]. Otherwise, in a list
+  /// forced to the other brightness (`SettingsList.brightness`), a scheme of
+  /// [brightness] made from the app's primary color, so the Android and web
+  /// styles really turn light or dark.
+  static ColorScheme colorSchemeOf(
+    BuildContext context,
+    Brightness brightness,
+  ) {
+    final scheme = Theme.of(context).colorScheme;
+    if (scheme.brightness == brightness) return scheme;
+    // Building a scheme from a seed is not free, and every list and tile of
+    // a forced list asks for the same one.
+    final cached = _derivedScheme;
+    if (cached != null &&
+        cached.seed == scheme.primary &&
+        cached.scheme.brightness == brightness) {
+      return cached.scheme;
+    }
+    final derived = ColorScheme.fromSeed(
+      seedColor: scheme.primary,
+      brightness: brightness,
+    );
+    _derivedScheme = (seed: scheme.primary, scheme: derived);
+    return derived;
+  }
+
+  static ({Color seed, ColorScheme scheme})? _derivedScheme;
+
+  /// Puts [child] under the app's Material theme with the colors of
+  /// [colorSchemeOf] when the list around [context] is forced to the other
+  /// brightness than the app's. The Android and web styles draw Material
+  /// widgets (switches, ink, dividers, cards) that read the [Theme], so they
+  /// then match the list, and so do Material widgets in custom tiles.
+  /// Returns [child] as it is otherwise.
+  static Widget withListColorScheme(BuildContext context, Widget child) {
+    final brightness = SettingsStyleScope.brightnessOf(context);
+    if (brightness == null) return child;
+    final theme = Theme.of(context);
+    if (theme.colorScheme.brightness == brightness) return child;
+    final colorScheme = colorSchemeOf(context, brightness);
+    return Theme(
+      data: theme.copyWith(
+        colorScheme: colorScheme,
+        textTheme: theme.textTheme.apply(
+          bodyColor: colorScheme.onSurface,
+          displayColor: colorScheme.onSurface,
+        ),
+      ),
+      child: child,
+    );
+  }
+
   /// Derives Material 3 colors from the active [ColorScheme], like Android
   /// 16+ settings: a tinted page with lighter cards for the tiles.
   static SettingsThemeData _androidTheme({
     required BuildContext context,
     required Brightness brightness,
   }) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final colorScheme = colorSchemeOf(context, brightness);
     final isLight = brightness == Brightness.light;
 
     final listBackground = colorScheme.surfaceContainer;
@@ -290,7 +343,7 @@ class ThemeProvider {
     required BuildContext context,
     required Brightness brightness,
   }) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final colorScheme = colorSchemeOf(context, brightness);
     final isLight = brightness == Brightness.light;
 
     final listBackground = isLight

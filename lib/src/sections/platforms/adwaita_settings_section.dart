@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/src/tiles/abstract_settings_tile.dart';
 import 'package:settings_ui/src/tiles/platforms/adwaita_settings_tile.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
@@ -129,20 +129,30 @@ class AdwaitaBoxedList extends StatelessWidget {
         borderRadius: BorderRadius.circular(kAdwaitaCardRadius),
         child: ColoredBox(
           color: theme.settingsSectionBackground ?? const Color(0x00000000),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              for (var i = 0; i < tiles.length; i++) ...[
-                AdwaitaSettingsTileAdditionalInfo(
-                  isFirst: i == 0,
-                  isLast: i == tiles.length - 1,
-                  child: tiles[i],
-                ),
-                if (i != tiles.length - 1)
-                  SizedBox(height: 1, child: ColoredBox(color: divider)),
-              ],
-            ],
+          // Lets Material widgets (ListTile, Checkbox...) in custom rows work
+          // without a Scaffold, and gives custom rows the row text style.
+          child: Material(
+            type: MaterialType.transparency,
+            child: DefaultTextStyle(
+              style: kAdwaitaBodyStyle.copyWith(
+                color: theme.settingsTileTextColor,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  for (var i = 0; i < tiles.length; i++) ...[
+                    AdwaitaSettingsTileAdditionalInfo(
+                      isFirst: i == 0,
+                      isLast: i == tiles.length - 1,
+                      child: tiles[i],
+                    ),
+                    if (i != tiles.length - 1)
+                      SizedBox(height: 1, child: ColoredBox(color: divider)),
+                  ],
+                ],
+              ),
+            ),
           ),
         ),
       ),

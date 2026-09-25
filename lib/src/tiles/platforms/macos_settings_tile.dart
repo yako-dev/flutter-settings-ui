@@ -2,6 +2,7 @@ import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/src/tiles/platforms/macos_settings_switch.dart';
 import 'package:settings_ui/src/tiles/settings_tile.dart';
+import 'package:settings_ui/src/tiles/tile_semantics.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 
 // Metrics of a macOS 26/27 System Settings grouped form (SwiftUI
@@ -351,12 +352,14 @@ class _MacosSettingsTileState extends State<MacosSettingsTile> {
               // A disabled switch draws its own paler track, as in System
               // Settings, instead of the grey inactiveTitleColor the other
               // styles fall back to. inactiveSwitchColor still replaces it.
-              child: MacosSettingsSwitch(
-                value: widget.initialValue,
-                onChanged: enabled ? widget.onToggle : null,
-                activeTrackColor: enabled
-                    ? widget.activeSwitchColor
-                    : (theme.inactiveSwitchColor ?? widget.activeSwitchColor),
+              child: _labelSwitchIfSeparate(
+                MacosSettingsSwitch(
+                  value: widget.initialValue,
+                  onChanged: enabled ? widget.onToggle : null,
+                  activeTrackColor: enabled
+                      ? widget.activeSwitchColor
+                      : (theme.inactiveSwitchColor ?? widget.activeSwitchColor),
+                ),
               ),
             ),
           ),
@@ -491,7 +494,8 @@ class _MacosSettingsTileState extends State<MacosSettingsTile> {
       // into it, so the row reads as "title, switch, on".
       child: Semantics(
         container: true,
-        button: _canPress,
+        // A disabled row that would open something is a dimmed button.
+        button: widget.onPressed != null,
         enabled: enabled,
         child: FocusableActionDetector(
           enabled: _canPress,
@@ -517,6 +521,12 @@ class _MacosSettingsTileState extends State<MacosSettingsTile> {
       ),
     );
   }
+
+  /// A row with onPressed keeps its switch as a node of its own (both have a
+  /// tap action). The switch then gets the title as its label.
+  Widget _labelSwitchIfSeparate(Widget child) => widget.onPressed == null
+      ? child
+      : labelTileSwitch(title: widget.title, child: child);
 
   static Color? _chevronColor(Color? iconColor, bool isDark) {
     if (iconColor == null) return null;

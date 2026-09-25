@@ -98,33 +98,51 @@ class SettingsTile extends AbstractSettingsTile {
   /// The widget at the center of the tile
   final Widget title;
 
-  /// The widget at the under of the title
+  /// A second line under the title, inside the row. Shown in the iOS,
+  /// macOS, Windows and GNOME styles only.
   final Widget? titleDescription;
 
-  /// The widget at the bottom of the [title]
+  /// Secondary text: a footer under the card in the iOS and macOS styles,
+  /// text under the title inside the row elsewhere (in the Android and web
+  /// styles only when [value] is null).
   final Widget? description;
 
-  /// A function that is called by tap on a tile
+  /// Called with the tile's context when the row is tapped, unless [enabled]
+  /// is false. On switch tiles it runs for taps beside the switch in the
+  /// iOS, macOS and Windows styles, and never in the Android, GNOME and web
+  /// styles (a row tap toggles).
   final Function(BuildContext context)? onPressed;
 
   /// When true, reduces the tile's vertical padding by half for a more
   /// compact appearance in dense settings lists.
   final bool compact;
 
+  /// Replaces the default padding around [title].
   final EdgeInsetsGeometry? titlePadding;
+
+  /// Replaces the default padding around [leading].
   final EdgeInsetsGeometry? leadingPadding;
+
+  /// Replaces the default padding around [trailing]. Not used on switch
+  /// tiles in the Android and web styles.
   final EdgeInsetsGeometry? trailingPadding;
+
+  /// Replaces the default padding around [description].
   final EdgeInsetsGeometry? descriptionPadding;
+
+  /// Replaces the default padding around [titleDescription]. The Android and
+  /// web styles don't show [titleDescription].
   final EdgeInsetsGeometry? titleDescriptionPadding;
 
   /// The page this navigation tile opens (set with
   /// [SettingsTile.navigation]).
   ///
   /// A tap calls [onPressed] first, if set, then opens the page: in a
-  /// [SettingsList] it pushes a platform route (Cupertino on the iOS style,
-  /// Material otherwise) with the package's page header over the body; in
-  /// the list pane of a [SettingsSplitView] it shows the page in the detail
-  /// pane, and the tile is drawn selected while its page shows there.
+  /// [SettingsList] it pushes a platform route (Cupertino in the iOS, macOS
+  /// and GNOME styles, Material otherwise) with the package's page header
+  /// over the body; in the list pane of a [SettingsSplitView] it shows the
+  /// page in the detail pane, and the tile is drawn selected while its page
+  /// shows there.
   final SettingsDestination? destination;
 
   late final Color? activeSwitchColor;

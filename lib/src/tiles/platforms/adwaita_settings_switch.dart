@@ -165,6 +165,12 @@ class _AdwaitaSettingsSwitchState extends State<AdwaitaSettingsSwitch>
   bool _showFocusHighlight = false;
   bool _dragging = false;
 
+  /// Where the pointer went down, and the knob position when the drag
+  /// started. The knob follows the pointer from there, not from where the
+  /// drag was recognized (a touch slop of 18 px later, most of the travel).
+  double _dragDownX = 0;
+  double _dragStartPosition = 0;
+
   bool get _enabled => widget.onChanged != null;
 
   /// +1 in left-to-right layouts, -1 in right-to-left ones.
@@ -223,19 +229,26 @@ class _AdwaitaSettingsSwitchState extends State<AdwaitaSettingsSwitch>
     if (!_dragging) _animate(_active, 0);
   }
 
+  void _handleDragDown(DragDownDetails details) {
+    _dragDownX = details.localPosition.dx;
+  }
+
   void _handleDragStart(DragStartDetails details) {
     _dragging = true;
     _position.stop();
+    _dragStartPosition = _position.value;
     _animate(_active, 1);
+    _followPointer(details.localPosition.dx);
   }
 
   void _handleDragUpdate(DragUpdateDetails details) {
-    if (!_dragging) return;
-    _position.value =
-        (_position.value + _direction * details.primaryDelta! / _kTravel).clamp(
-          0.0,
-          1.0,
-        );
+    if (_dragging) _followPointer(details.localPosition.dx);
+  }
+
+  /// Moves the knob with the pointer, counted from where it went down.
+  void _followPointer(double x) {
+    final double delta = _direction * (x - _dragDownX) / _kTravel;
+    _position.value = (_dragStartPosition + delta).clamp(0.0, 1.0);
   }
 
   void _handleDragEnd([DragEndDetails? details]) {
@@ -301,6 +314,7 @@ class _AdwaitaSettingsSwitchState extends State<AdwaitaSettingsSwitch>
                 }
               : null,
           onTapCancel: _enabled ? _handleTapEnd : null,
+          onHorizontalDragDown: _enabled ? _handleDragDown : null,
           onHorizontalDragStart: _enabled ? _handleDragStart : null,
           onHorizontalDragUpdate: _enabled ? _handleDragUpdate : null,
           onHorizontalDragEnd: _enabled ? _handleDragEnd : null,

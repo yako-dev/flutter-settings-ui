@@ -1,4 +1,5 @@
-import 'package:flutter/gestures.dart' show kPrimaryButton;
+import 'package:flutter/gestures.dart'
+    show PointerDeviceKind, computeHitSlop, kPrimaryButton;
 import 'package:flutter/widgets.dart';
 import 'package:settings_ui/src/tiles/platforms/adwaita_settings_switch.dart';
 import 'package:settings_ui/src/tiles/platforms/adwaita_symbolic_icons.dart';
@@ -44,7 +45,8 @@ const double _kBodyFontSize = 44 / 3;
 /// Row subtitles use the `smaller` size (12.22 px) on a 15 px line.
 const double _kSubtitleFontSize = _kBodyFontSize / 1.2;
 
-const TextStyle _kTitleStyle = TextStyle(
+/// Row titles: body text. The boxed list also gives it to custom rows.
+const TextStyle kAdwaitaBodyStyle = TextStyle(
   fontSize: _kBodyFontSize,
   fontWeight: FontWeight.w400,
   height: 18 / _kBodyFontSize,
@@ -122,6 +124,10 @@ class _AdwaitaSettingsTileState extends State<AdwaitaSettingsTile> {
   bool _pressed = false;
   bool _showFocusHighlight = false;
 
+  /// The pointer that pressed the row, while it is down.
+  int? _pressPointer;
+  Offset _pressOrigin = Offset.zero;
+
   late final Map<Type, Action<Intent>> _actions = <Type, Action<Intent>>{
     ActivateIntent: CallbackAction<ActivateIntent>(
       onInvoke: (_) => _activate(),
@@ -154,11 +160,42 @@ class _AdwaitaSettingsTileState extends State<AdwaitaSettingsTile> {
     if (_pressed != value && mounted) setState(() => _pressed = value);
   }
 
+  void _handlePointerDown(PointerDownEvent event) {
+    if (event.buttons != kPrimaryButton) return;
+    _pressPointer = event.pointer;
+    _pressOrigin = event.position;
+    _setPressed(true);
+  }
+
+  void _handlePointerMove(PointerMoveEvent event) {
+    if (event.pointer != _pressPointer) return;
+    final box = context.findRenderObject()! as RenderBox;
+    final inside = box.size.contains(box.globalToLocal(event.position));
+    // A finger that moves past the slop is scrolling the list, which takes
+    // the gesture (GTK drops `:active` then too). A mouse stays pressed until
+    // it leaves the row.
+    final scrolling =
+        event.kind != PointerDeviceKind.mouse &&
+        (event.position - _pressOrigin).distance >
+            computeHitSlop(event.kind, null);
+    if (!inside || scrolling) _release();
+  }
+
+  void _handlePointerEnd(PointerEvent event) {
+    if (event.pointer == _pressPointer) _release();
+  }
+
+  void _release() {
+    _pressPointer = null;
+    _setPressed(false);
+  }
+
   @override
   void didUpdateWidget(AdwaitaSettingsTile oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (!_activatable) {
       _pressed = false;
+      _pressPointer = null;
       _hovered = false;
     }
   }
@@ -175,7 +212,7 @@ class _AdwaitaSettingsTileState extends State<AdwaitaSettingsTile> {
     final iconColor = enabled
         ? theme.leadingIconsColor
         : theme.inactiveTitleColor;
-    final titleStyle = (theme.tileTextStyle ?? _kTitleStyle).copyWith(
+    final titleStyle = (theme.tileTextStyle ?? kAdwaitaBodyStyle).copyWith(
       color: enabled ? theme.settingsTileTextColor : theme.inactiveTitleColor,
     );
     final subtitleStyle = (theme.tileDescriptionTextStyle ?? _kSubtitleStyle)
@@ -245,11 +282,12 @@ class _AdwaitaSettingsTileState extends State<AdwaitaSettingsTile> {
           ConstrainedBox(
             constraints: BoxConstraints(maxWidth: maxValueWidth),
             child: DefaultTextStyle(
-              style: (theme.tileDescriptionTextStyle ?? _kTitleStyle).copyWith(
-                color: enabled
-                    ? theme.trailingTextColor
-                    : theme.inactiveSubtitleColor,
-              ),
+              style: (theme.tileDescriptionTextStyle ?? kAdwaitaBodyStyle)
+                  .copyWith(
+                    color: enabled
+                        ? theme.trailingTextColor
+                        : theme.inactiveSubtitleColor,
+                  ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.end,
@@ -369,18 +407,15 @@ class _AdwaitaSettingsTileState extends State<AdwaitaSettingsTile> {
             },
             child: Listener(
               // GTK shows `:active` as soon as the button goes down.
-              onPointerDown: _activatable
-                  ? (event) {
-                      if (event.buttons == kPrimaryButton) _setPressed(true);
-                    }
-                  : null,
-              onPointerUp: (_) => _setPressed(false),
-              onPointerCancel: (_) => _setPressed(false),
+              onPointerDown: _activatable ? _handlePointerDown : null,
+              onPointerMove: _handlePointerMove,
+              onPointerUp: _handlePointerEnd,
+              onPointerCancel: _handlePointerEnd,
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 excludeFromSemantics: true,
                 onTap: _activatable ? _activate : null,
-                onTapCancel: () => _setPressed(false),
+                onTapCancel: _release,
                 child: highlighted,
               ),
             ),

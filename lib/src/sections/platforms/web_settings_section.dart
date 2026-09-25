@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:settings_ui/src/split/split_scopes.dart';
+import 'package:settings_ui/src/utils/theme_provider.dart';
 
 class WebSettingsSection extends StatelessWidget {
   const WebSettingsSection({
@@ -18,7 +19,10 @@ class WebSettingsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return buildSectionBody(context);
+    return ThemeProvider.withListColorScheme(
+      context,
+      buildSectionBody(context),
+    );
   }
 
   Widget buildSectionBody(BuildContext context) {
