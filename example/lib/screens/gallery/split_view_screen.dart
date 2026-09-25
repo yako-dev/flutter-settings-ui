@@ -1,11 +1,13 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:example/screens/gallery/cross_platform_settings_screen.dart';
+import 'package:example/screens/gallery/split_view_desktop_trees.dart';
 import 'package:example/utils/navigation.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/settings_ui.dart';
 
 /// SettingsSplitView with the settings tree of the platform app its style
-/// copies: iPad Settings, Android Settings, or Chrome's settings page.
+/// copies: iPad Settings, Android Settings, Chrome's settings page, macOS
+/// System Settings, Windows Settings or GNOME Settings.
 ///
 /// Open it from the gallery, or directly with the launch options (see
 /// `LaunchOptions`), e.g. `flutter run --route
@@ -71,12 +73,17 @@ class _SplitViewScreenState extends State<SplitViewScreen> {
       title: const Text('Demo'),
       tiles: [
         SettingsTile.navigation(
-          leading:
-              resolved == DevicePlatform.iOS ||
-                  resolved == DevicePlatform.macOS ||
-                  resolved == DevicePlatform.windows
-              ? const _AppIcon(CupertinoIcons.paintbrush, Color(0xFF8E8E93))
-              : const Icon(Icons.style_outlined),
+          leading: switch (resolved) {
+            DevicePlatform.iOS => const _AppIcon(
+              CupertinoIcons.paintbrush,
+              Color(0xFF8E8E93),
+            ),
+            DevicePlatform.macOS => const MacSidebarIcon(
+              CupertinoIcons.paintbrush_fill,
+              Color(0xFF8E8E93),
+            ),
+            _ => const Icon(Icons.style_outlined),
+          },
           title: const Text('Style'),
           value: Text(_styles[_platform]!),
           onPressed: _pickStyle,
@@ -87,12 +94,15 @@ class _SplitViewScreenState extends State<SplitViewScreen> {
     final List<AbstractSettingsSection> sections;
     switch (resolved) {
       case DevicePlatform.iOS:
-      case DevicePlatform.macOS:
-      case DevicePlatform.windows:
         sections = [..._iPadSections(), demo];
+      case DevicePlatform.macOS:
+        sections = [...macSplitSections(), demo];
+      case DevicePlatform.windows:
+        sections = [...windowsSplitSections(), demo];
+      case DevicePlatform.linux:
+        sections = [...gnomeSplitSections(), demo];
       case DevicePlatform.android:
       case DevicePlatform.fuchsia:
-      case DevicePlatform.linux:
         sections = [..._androidSections(), demo];
       case DevicePlatform.web:
       case DevicePlatform.device:
@@ -114,7 +124,6 @@ class _SplitViewScreenState extends State<SplitViewScreen> {
     switch (resolved) {
       case DevicePlatform.android:
       case DevicePlatform.fuchsia:
-      case DevicePlatform.linux:
         // Android's default Material You palette (no wallpaper colors).
         return _seeded(
           context,
