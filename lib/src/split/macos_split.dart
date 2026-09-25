@@ -5,6 +5,7 @@ import 'package:settings_ui/src/split/sidebar_keyboard.dart';
 import 'package:settings_ui/src/tiles/platforms/macos_settings_switch.dart';
 import 'package:settings_ui/src/tiles/platforms/macos_settings_tile.dart';
 import 'package:settings_ui/src/tiles/settings_tile.dart';
+import 'package:settings_ui/src/tiles/tile_semantics.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 
 // The macOS 26/27 System Settings split view (a SwiftUI
@@ -249,6 +250,13 @@ class _MacosSidebarItemState extends State<MacosSidebarItem> {
     _activate();
   }
 
+  /// A row with onPressed keeps its switch as a node of its own (both have a
+  /// tap action), which then gets the title as its label. Otherwise the
+  /// switch merges into the row: "Title, switch, on".
+  Widget _labelSwitchIfSeparate(Widget child) => widget.onPressed == null
+      ? child
+      : labelTileSwitch(title: widget.title, child: child);
+
   @override
   Widget build(BuildContext context) {
     final theme = SettingsTheme.of(context).themeData;
@@ -326,10 +334,12 @@ class _MacosSidebarItemState extends State<MacosSidebarItem> {
               // the switch does, so the keyboard can reach it.
               child: ExcludeFocus(
                 excluding: _canPress,
-                child: MacosSettingsSwitch(
-                  value: widget.initialValue,
-                  onChanged: enabled ? widget.onToggle : null,
-                  activeTrackColor: widget.activeSwitchColor,
+                child: _labelSwitchIfSeparate(
+                  MacosSettingsSwitch(
+                    value: widget.initialValue,
+                    onChanged: enabled ? widget.onToggle : null,
+                    activeTrackColor: widget.activeSwitchColor,
+                  ),
                 ),
               ),
             ),

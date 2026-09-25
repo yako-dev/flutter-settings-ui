@@ -10,6 +10,7 @@ import 'package:settings_ui/src/split/settings_page_trail.dart';
 import 'package:settings_ui/src/split/sidebar_keyboard.dart';
 import 'package:settings_ui/src/tiles/platforms/fluent_settings_switch.dart';
 import 'package:settings_ui/src/tiles/settings_tile.dart';
+import 'package:settings_ui/src/tiles/tile_semantics.dart';
 import 'package:settings_ui/src/utils/fluent_tokens.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 
@@ -283,6 +284,15 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
     _activate();
   }
 
+  /// A switch item without onPressed reads as one node: "Title, switch,
+  /// on" (in the rail too, where a tap toggles). One with onPressed keeps
+  /// its switch apart (both have a tap action), labelled with the title.
+  bool get _mergesSwitch => _isSwitch && widget.onPressed == null;
+
+  Widget _labelSwitchIfSeparate(Widget child) => _mergesSwitch
+      ? child
+      : labelTileSwitch(title: widget.title, child: child);
+
   @override
   void initState() {
     super.initState();
@@ -515,10 +525,12 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
               // otherwise the switch does, so the keyboard can reach it.
               child: ExcludeFocus(
                 excluding: clickable,
-                child: FluentSettingsSwitch(
-                  value: widget.initialValue,
-                  onChanged: enabled ? widget.onToggle : null,
-                  activeTrackColor: widget.activeSwitchColor,
+                child: _labelSwitchIfSeparate(
+                  FluentSettingsSwitch(
+                    value: widget.initialValue,
+                    onChanged: enabled ? widget.onToggle : null,
+                    activeTrackColor: widget.activeSwitchColor,
+                  ),
                 ),
               ),
             ),
@@ -638,18 +650,22 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
       );
     }
 
-    return IgnorePointer(
-      ignoring: !enabled,
-      child: Semantics(
-        container: true,
-        button: clickable,
-        enabled: enabled,
-        selected: widget.semanticsSelected,
-        onTap: clickable ? _activate : null,
-        label: compact ? tooltip : null,
-        child: item,
-      ),
+    // A rail item that toggles on a tap has no switch to show, so it says
+    // what the switch would.
+    final togglesOnTap = _togglesOnTap(compact);
+    Widget semantics = Semantics(
+      container: true,
+      button: clickable && !togglesOnTap,
+      enabled: enabled,
+      selected: widget.semanticsSelected,
+      toggled: togglesOnTap ? widget.initialValue : null,
+      onTap: clickable ? _activate : null,
+      label: compact ? tooltip : null,
+      child: item,
     );
+    if (_mergesSwitch) semantics = MergeSemantics(child: semantics);
+
+    return IgnorePointer(ignoring: !enabled, child: semantics);
   }
 }
 

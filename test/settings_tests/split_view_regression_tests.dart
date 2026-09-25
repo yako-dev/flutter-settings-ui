@@ -938,6 +938,154 @@ void splitViewRegressionTests() {
       handle.dispose();
     });
 
+    /// The semantics nodes a screen reader visits.
+    List<SemanticsData> visibleNodes(WidgetTester tester) {
+      final nodes = <SemanticsData>[];
+      void visit(SemanticsNode node) {
+        if (!node.isMergedIntoParent) nodes.add(node.getSemanticsData());
+        node.visitChildren((child) {
+          visit(child);
+          return true;
+        });
+      }
+
+      visit(
+        tester
+            .binding
+            .renderViews
+            .first
+            .owner!
+            .semanticsOwner!
+            .rootSemanticsNode!,
+      );
+      return nodes;
+    }
+
+    for (final platform in [
+      DevicePlatform.macOS,
+      DevicePlatform.windows,
+      DevicePlatform.linux,
+    ]) {
+      for (final withOnPressed in [false, true]) {
+        for (final enabled in [true, false]) {
+          final what = [
+            withOnPressed ? 'with onPressed' : 'without onPressed',
+            if (!enabled) 'disabled',
+          ].join(', ');
+          testWidgets('$platform: a switch row $what says what it switches', (
+            tester,
+          ) async {
+            final handle = tester.ensureSemantics();
+            final log = <String>[];
+            await _setSize(tester, const Size(1280, 900));
+            await tester.pumpWidget(
+              _app(
+                SettingsSplitView(
+                  platform: platform,
+                  sections: [
+                    SettingsSection(
+                      tiles: [
+                        (_sections().first as SettingsSection).tiles.first,
+                        SettingsTile.switchTile(
+                          leading: const Icon(Icons.airplanemode_active),
+                          title: const Text('Airplane mode'),
+                          enabled: enabled,
+                          initialValue: true,
+                          onToggle: (v) => log.add('toggled $v'),
+                          onPressed: withOnPressed
+                              ? (_) => log.add('pressed')
+                              : null,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                platform: _targetOf(platform),
+              ),
+            );
+            await tester.pumpAndSettle();
+
+            final nodes = visibleNodes(tester);
+            final toggles = nodes.where(
+              (node) => node.flagsCollection.isToggled != Tristate.none,
+            );
+            expect(toggles.map((node) => node.label), ['Airplane mode']);
+            expect(toggles.single.hasAction(SemanticsAction.tap), enabled);
+            expect(toggles.single.label, isNot(contains('Network')));
+            if (enabled) {
+              tester.semantics.tap(
+                find.semantics.byFlag(SemanticsFlag.hasToggledState),
+              );
+              await tester.pumpAndSettle();
+              expect(log, ['toggled false']);
+            }
+
+            // A macOS or Windows row with onPressed is a second node with
+            // the same label, that runs onPressed when enabled (GNOME rows
+            // toggle and never call onPressed).
+            final separateRow =
+                withOnPressed && platform != DevicePlatform.linux;
+            final rows = nodes.where(
+              (node) =>
+                  node.label.contains('Airplane mode') &&
+                  node.flagsCollection.isToggled == Tristate.none,
+            );
+            expect(rows.map((node) => node.label), [
+              if (separateRow) 'Airplane mode',
+            ]);
+            if (separateRow) {
+              expect(rows.single.hasAction(SemanticsAction.tap), enabled);
+            }
+            handle.dispose();
+          });
+        }
+      }
+    }
+
+    testWidgets('Windows compact rail: a switch item says what it switches', (
+      tester,
+    ) async {
+      final handle = tester.ensureSemantics();
+      var value = true;
+      await _setSize(tester, const Size(800, 700));
+      await tester.pumpWidget(
+        _app(
+          StatefulBuilder(
+            builder: (context, setState) => SettingsSplitView(
+              platform: DevicePlatform.windows,
+              sections: [
+                SettingsSection(
+                  tiles: [
+                    (_sections().first as SettingsSection).tiles.first,
+                    SettingsTile.switchTile(
+                      leading: const Icon(Icons.airplanemode_active),
+                      title: const Text('Airplane mode'),
+                      initialValue: value,
+                      onToggle: (v) => setState(() => value = v),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          platform: TargetPlatform.windows,
+        ),
+      );
+      await tester.pumpAndSettle();
+      final toggle = visibleNodes(
+        tester,
+      ).where((node) => node.flagsCollection.isToggled != Tristate.none).single;
+      expect(toggle.label, 'Airplane mode');
+      expect(toggle.flagsCollection.isToggled, Tristate.isTrue);
+      expect(toggle.flagsCollection.isButton, isFalse);
+      tester.semantics.tap(
+        find.semantics.byFlag(SemanticsFlag.hasToggledState),
+      );
+      await tester.pumpAndSettle();
+      expect(value, isFalse);
+      handle.dispose();
+    });
+
     testWidgets('GNOME one pane: no row is selected', (tester) async {
       final handle = tester.ensureSemantics();
       await _setSize(tester, const Size(400, 800));
