@@ -1,5 +1,6 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:settings_ui/src/utils/fluent_tokens.dart';
 import 'package:settings_ui/src/utils/platform_utils.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 
@@ -17,8 +18,9 @@ class ThemeProvider {
         return _adwaitaTheme(brightness: brightness);
       case DevicePlatform.iOS:
       case DevicePlatform.macOS:
-      case DevicePlatform.windows:
         return _iosTheme(context: context, brightness: brightness);
+      case DevicePlatform.windows:
+        return _fluentTheme(brightness: brightness);
       case DevicePlatform.web:
         return _webTheme(context: context, brightness: brightness);
       case DevicePlatform.device:
@@ -70,7 +72,7 @@ class ThemeProvider {
     );
   }
 
-  /// Uses Cupertino system colors for iOS/macOS/Windows — these are not
+  /// Uses Cupertino system colors for iOS/macOS — these are not
   /// derived from [ColorScheme] because Cupertino doesn't use Material theming.
   static SettingsThemeData _iosTheme({
     required BuildContext context,
@@ -166,6 +168,27 @@ class ThemeProvider {
       // Disabled rows are drawn at opacity 0.5.
       inactiveTitleColor: dim(0.5),
       inactiveSubtitleColor: dim(0.55 * 0.5),
+    );
+  }
+
+  /// Windows 11 Settings colors (WinUI 3 theme resources): the Mica
+  /// fallback page, near-white (#2B2B2B dark) cards with a hairline border,
+  /// and the Windows text colors. Like the iOS style, it does not read the
+  /// app's [ColorScheme].
+  static SettingsThemeData _fluentTheme({required Brightness brightness}) {
+    final tokens = FluentTokens.of(brightness);
+    return SettingsThemeData(
+      settingsListBackground: tokens.page,
+      settingsSectionBackground: tokens.card,
+      dividerColor: tokens.cardStroke,
+      tileHighlightColor: tokens.cardPressed,
+      titleTextColor: tokens.textPrimary,
+      settingsTileTextColor: tokens.textPrimary,
+      tileDescriptionTextColor: tokens.textSecondary,
+      trailingTextColor: tokens.textSecondary,
+      leadingIconsColor: tokens.textPrimary,
+      inactiveTitleColor: tokens.textDisabled,
+      inactiveSubtitleColor: tokens.textDisabled,
     );
   }
 

@@ -50,6 +50,7 @@ void main() {
       expect(find.text('iOS Native Settings Screen'), findsOneWidget);
       expect(find.text('Android Native Settings Screen'), findsOneWidget);
       expect(find.text('GNOME Settings (Power)'), findsOneWidget);
+      expect(find.text('Windows Display Settings'), findsOneWidget);
 
       // Section titles
       expect(find.text('General'), findsOneWidget);
@@ -247,8 +248,9 @@ void main() {
       await tester.tap(find.text('Material 3 Theme Demo'));
       await pumpSettled(tester);
 
-      // The tile shows a Switch on Android, a CupertinoSettingsSwitch on iOS
-      // and an AdwaitaSettingsSwitch on Linux.
+      // The tile shows a Switch on Android, a CupertinoSettingsSwitch on iOS,
+      // an AdwaitaSettingsSwitch on Linux and a FluentSettingsSwitch on
+      // Windows.
       final darkModeSwitchFinder = find.descendant(
         of: find.widgetWithText(SettingsTile, 'Dark mode'),
         matching: find.byWidgetPredicate(_isSettingsSwitch),
@@ -520,6 +522,37 @@ void main() {
     });
   });
 
+  group('Windows Display Settings', () {
+    testWidgets('Renders the Windows style and toggles Night light', (
+      tester,
+    ) async {
+      app.main();
+      await pumpSettled(tester);
+
+      await tester.scrollUntilVisible(
+        find.text('Windows Display Settings'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.tap(find.text('Windows Display Settings'));
+      await pumpSettled(tester);
+
+      expect(find.text('Brightness & color'), findsOneWidget);
+      expect(find.text('Scale & layout'), findsOneWidget);
+      expect(find.text('150% (Recommended)'), findsOneWidget);
+
+      final nightLight = find.byType(FluentSettingsSwitch);
+      expect(tester.widget<FluentSettingsSwitch>(nightLight).value, false);
+      expect(find.text('Off'), findsOneWidget);
+      await tester.tap(nightLight);
+      await pumpSettled(tester);
+      expect(tester.widget<FluentSettingsSwitch>(nightLight).value, true);
+      expect(find.text('On'), findsOneWidget);
+
+      await goBack(tester);
+    });
+  });
+
   group('SettingsTile states', () {
     testWidgets('Disabled tile is not interactive', (tester) async {
       app.main();
@@ -565,11 +598,13 @@ void main() {
 bool _isSettingsSwitch(Widget widget) =>
     widget is Switch ||
     widget is CupertinoSettingsSwitch ||
-    widget is AdwaitaSettingsSwitch;
+    widget is AdwaitaSettingsSwitch ||
+    widget is FluentSettingsSwitch;
 
 bool _switchValue(Widget widget) => switch (widget) {
   Switch(:final value) => value,
   CupertinoSettingsSwitch(:final value) => value,
   AdwaitaSettingsSwitch(:final value) => value,
+  FluentSettingsSwitch(:final value) => value,
   _ => throw ArgumentError('$widget is not a settings switch'),
 };

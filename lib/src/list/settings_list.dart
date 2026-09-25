@@ -164,7 +164,6 @@ class SettingsList extends StatelessWidget {
       case DevicePlatform.fuchsia:
       case DevicePlatform.iOS:
       case DevicePlatform.macOS:
-      case DevicePlatform.windows:
         contentWidth = math.min(availableWidth, 810);
         minSidePadding = 0;
         topPadding = 0;
@@ -182,10 +181,18 @@ class SettingsList extends StatelessWidget {
         minSidePadding = 0;
         topPadding = kAdwaitaPageTopMargin;
         bottomPadding = 0;
+      case DevicePlatform.windows:
+        // Windows 11 Settings pages: 36 margins, down to 16 below the
+        // NavigationView's minimal-mode width (641), a column of at most
+        // 1000, and 36 at the bottom (the last section adds 4). Section
+        // headers bring their own 30 at the top.
+        contentWidth = math.min(availableWidth, 1000);
+        minSidePadding = availableWidth < 641 ? 16 : 36;
+        topPadding = 0;
+        bottomPadding = 32;
       case DevicePlatform.web:
-        // Chrome's settings page uses a narrower 680px column than the other
-        // platforms' 810px, and keeps the cards off the edges of narrow
-        // browser windows.
+        // Chrome's settings page uses a 680px column and keeps the cards off
+        // the edges of narrow browser windows.
         contentWidth = math.min(availableWidth, 680);
         minSidePadding = 16;
         topPadding = 20;

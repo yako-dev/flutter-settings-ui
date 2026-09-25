@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:settings_ui/src/tiles/abstract_settings_tile.dart';
 import 'package:settings_ui/src/tiles/platforms/adwaita_settings_tile.dart';
 import 'package:settings_ui/src/tiles/platforms/android_settings_tile.dart';
+import 'package:settings_ui/src/tiles/platforms/fluent_settings_tile.dart';
 import 'package:settings_ui/src/tiles/platforms/ios_settings_tile.dart';
 import 'package:settings_ui/src/tiles/platforms/web_settings_tile.dart';
 import 'package:settings_ui/src/utils/platform_utils.dart';
@@ -162,8 +163,28 @@ class SettingsTile extends AbstractSettingsTile {
         );
       case DevicePlatform.iOS:
       case DevicePlatform.macOS:
-      case DevicePlatform.windows:
         return IOSSettingsTile(
+          description: description,
+          onPressed: onPressed,
+          onToggle: onToggle,
+          tileType: tileType,
+          value: value,
+          leading: leading,
+          title: title,
+          titleDescription: titleDescription,
+          trailing: trailing,
+          enabled: enabled,
+          compact: compact,
+          activeSwitchColor: activeSwitchColor,
+          initialValue: initialValue ?? false,
+          titlePadding: titlePadding,
+          leadingPadding: leadingPadding,
+          trailingPadding: trailingPadding,
+          descriptionPadding: descriptionPadding,
+          titleDescriptionPadding: titleDescriptionPadding,
+        );
+      case DevicePlatform.windows:
+        return FluentSettingsTile(
           description: description,
           onPressed: onPressed,
           onToggle: onToggle,
