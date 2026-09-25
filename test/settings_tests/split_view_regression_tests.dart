@@ -10,8 +10,10 @@ import 'package:settings_ui/settings_ui.dart';
 import 'package:settings_ui/src/split/adwaita_split.dart';
 import 'package:settings_ui/src/split/fluent_split.dart';
 import 'package:settings_ui/src/split/macos_split.dart';
+import 'package:settings_ui/src/split/split_geometry.dart';
 import 'package:settings_ui/src/tiles/platforms/fluent_settings_tile.dart';
 import 'package:settings_ui/src/tiles/platforms/macos_settings_tile.dart';
+import 'package:settings_ui/src/utils/settings_style.dart';
 
 /// Regression tests for the split view bugs found in the 4.0.0 release
 /// candidate: back and layout changes with routes pushed from the list pane,
@@ -258,6 +260,26 @@ bool _ringShown(WidgetTester tester, DevicePlatform platform, String title) {
               .foregroundDecoration !=
           null;
   }
+}
+
+/// Android 14's non-linear font scale 1.3: body text grows 30%, large
+/// sizes much less.
+class _NonLinearTextScaler extends TextScaler {
+  const _NonLinearTextScaler();
+
+  @override
+  double scale(double fontSize) =>
+      fontSize <= 20 ? fontSize * 1.3 : fontSize + 6 + (fontSize - 20) * 0.01;
+
+  @override
+  // ignore: deprecated_member_use
+  double get textScaleFactor => 1.3;
+
+  @override
+  bool operator ==(Object other) => other is _NonLinearTextScaler;
+
+  @override
+  int get hashCode => (_NonLinearTextScaler).hashCode;
 }
 
 void splitViewRegressionTests() {
@@ -1664,6 +1686,58 @@ void splitViewRegressionTests() {
         expect(display.right, lessThan(ellipsis.left));
         expect(title.right, lessThan(display.left));
       });
+    });
+  });
+  group('GNOME text size', () {
+    const scaler = _NonLinearTextScaler();
+
+    test('the sidebar and the collapse width follow the text size', () {
+      expect(adwaitaSpScale(scaler), closeTo(1.3, 1e-9));
+      // A quarter of 851 is less than 180sp at 1.3.
+      expect(adwaitaSidebarWidth(851, scaler), closeTo(180 * 1.3, 1e-9));
+      expect(adwaitaSidebarWidth(1600, scaler), closeTo(280 * 1.3, 1e-9));
+      expect(
+        defaultShowsTwoPanes(
+          family: SettingsStyleFamily.adwaita,
+          width: 700,
+          shortestSide: 700,
+          desktop: true,
+          textScaler: scaler,
+        ),
+        isFalse,
+      );
+      expect(
+        defaultShowsTwoPanes(
+          family: SettingsStyleFamily.adwaita,
+          width: 716,
+          shortestSide: 716,
+          desktop: true,
+          textScaler: scaler,
+        ),
+        isTrue,
+      );
+      // Linear scalers are unchanged.
+      expect(
+        adwaitaSidebarWidth(600, const TextScaler.linear(2)),
+        closeTo(360, 1e-9),
+      );
+    });
+
+    testWidgets('an unfolded foldable at font scale 1.3', (tester) async {
+      await _setSize(tester, const Size(851, 883));
+      await tester.pumpWidget(
+        _app(
+          SettingsSplitView(
+            platform: DevicePlatform.linux,
+            sections: _sections(),
+          ),
+          platform: TargetPlatform.android,
+          textScaler: scaler,
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(_controllerOf(tester).isSplit, isTrue);
+      expect(tester.getSize(_listPane).width, closeTo(234, 0.01));
     });
   });
 }

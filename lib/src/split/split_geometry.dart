@@ -58,6 +58,15 @@ const double kAdwaitaSidebarMaxWidth = 280;
 /// ...and the view collapses to one pane at `max-width: 550sp`.
 const double kAdwaitaCollapseWidth = 550;
 
+/// GNOME's body text, 11pt (14.67px).
+const double _kAdwaitaBodyFontSize = 44 / 3;
+
+/// How much GNOME's sp sizes grow with the text size: as much as its body
+/// text. A non-linear [TextScaler] (Android 14 and later) grows large sizes
+/// less than text, so scaling 180 or 550 directly would barely move them.
+double adwaitaSpScale(TextScaler textScaler) =>
+    textScaler.scale(_kAdwaitaBodyFontSize) / _kAdwaitaBodyFontSize;
+
 /// Where the panes go, for one layout pass. Internal.
 @immutable
 class SplitGeometry {
@@ -146,7 +155,7 @@ bool defaultShowsTwoPanes({
     case SettingsStyleFamily.fluent:
       return width >= kFluentCompactMinWidth;
     case SettingsStyleFamily.adwaita:
-      return width > textScaler.scale(kAdwaitaCollapseWidth);
+      return width > kAdwaitaCollapseWidth * adwaitaSpScale(textScaler);
   }
 }
 
@@ -177,8 +186,9 @@ double defaultListPaneWidth(
 /// GNOME's sidebar width in a window [width] wide: a quarter of it,
 /// clamped to 180–280sp.
 double adwaitaSidebarWidth(double width, TextScaler textScaler) {
-  final min = textScaler.scale(kAdwaitaSidebarMinWidth);
-  final max = math.max(min, textScaler.scale(kAdwaitaSidebarMaxWidth));
+  final sp = adwaitaSpScale(textScaler);
+  final min = kAdwaitaSidebarMinWidth * sp;
+  final max = math.max(min, kAdwaitaSidebarMaxWidth * sp);
   return (width * kAdwaitaSidebarFraction).clamp(min, max);
 }
 
