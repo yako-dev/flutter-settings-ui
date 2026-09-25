@@ -1,7 +1,27 @@
 name: settings_ui
-description: Create native settings for Flutter app in minutes. Use single interfaces to build
+description: Settings screens that look native on iOS, Android, macOS, Windows, Linux (GNOME) and the web, from one API, with sub-pages and a split view for tablets and desktop.
 version: 4.0.0
 homepage: https://github.com/yako-dev/flutter-settings-ui
+repository: https://github.com/yako-dev/flutter-settings-ui
+issue_tracker: https://github.com/yako-dev/flutter-settings-ui/issues
+
+topics:
+  - settings
+  - preferences
+  - ui
+  - widget
+  - adaptive
+
+# At most 10 files of 4 MB each, inside the package (see .pubignore).
+screenshots:
+  - description: "iOS style: iOS 26 grouped cards, footers and the CupertinoSettingsSwitch."
+    path: assets/v3/ios_cupertino.png
+  - description: "Android style: Android 16 cards with colors from the Material 3 ColorScheme."
+    path: assets/v3/android_settings.png
+  - description: "Web style modeled on the Chrome settings page."
+    path: assets/v3/web_chrome.png
+  - description: "Android style following a custom Material 3 seed color, with compact tiles."
+    path: assets/v3/android_material3.png
 
 platforms:
   android:
