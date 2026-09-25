@@ -114,7 +114,7 @@ class _ShowcaseScreenState extends State<ShowcaseScreen> {
       _Look.android => _seeded(
         context,
         const Color(0xFF3F6FD8),
-        DynamicSchemeVariant.fidelity,
+        DynamicSchemeVariant.vibrant,
         brightness,
         view,
       ),
