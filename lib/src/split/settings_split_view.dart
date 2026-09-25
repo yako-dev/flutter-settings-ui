@@ -230,6 +230,7 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
   bool _rebuildScheduled = false;
 
   // What the last layout showed.
+  bool _laidOut = false;
   bool _isSplit = false;
   String? _shownId;
 
@@ -437,6 +438,9 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
   // Back ---------------------------------------------------------------------
 
   bool get _detailVisible => _isSplit || _pickedId != null;
+
+  /// Whether the list pane shows: not under a page in one pane.
+  bool get _listShown => _isSplit || _pickedId == null;
 
   bool get _canHandleBack =>
       !_leaving &&
@@ -651,6 +655,8 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
     final isSplit = geometry.isSplit;
     final picked = _pickedId;
     final shownId = isSplit ? (picked ?? _autoId) : picked;
+    if (_laidOut && isSplit != _isSplit) _keepFocusAcrossLayouts();
+    _laidOut = true;
     _isSplit = isSplit;
     if (!geometry.compactPane) _fluentPaneOpen = false;
     _shownId = shownId;
@@ -701,6 +707,75 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
   bool _isNavigatorFocus(FocusNode node) =>
       node == _detailKey.currentState?.focusNode ||
       node == _stackKey.currentState?.focusNode;
+
+  /// The layout is switching between one and two panes, which rebuilds the
+  /// navigators around the panes: puts the keyboard focus back where it
+  /// was once the new layout is built. A row the new layout draws as a card
+  /// (macOS, Windows) gives it to that card; a page one pane doesn't show
+  /// gives it to its tile.
+  void _keepFocusAcrossLayouts() {
+    final node = FocusManager.instance.primaryFocus;
+    if (node == null) return;
+    bool isIn(FocusNode? pane) =>
+        pane != null && (node == pane || node.ancestors.contains(pane));
+    final inList = isIn(_listFocusNode);
+    final inDetail = !inList && isIn(_detailKey.currentState?.focusNode);
+    if (!inList && !inDetail) return;
+    // The detail navigator's own node: nothing in the page had the focus.
+    final navigatorOnly = _isNavigatorFocus(node);
+    final nodeContext = node.context;
+    final tile = nodeContext != null && nodeContext.mounted
+        ? nodeContext.findAncestorWidgetOfExactType<SettingsTile>()
+        : null;
+    final pageId = _shownId;
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final context = node.context;
+      final alive = context != null && context.mounted && node.canRequestFocus;
+      final FocusNode? target;
+      if (alive && !navigatorOnly && (inDetail || _listShown)) {
+        target = node;
+      } else if (!_listShown) {
+        // One pane shows a page over the list: its route has the focus.
+        return;
+      } else if (inList && tile != null) {
+        target =
+            _listNodeWhere((candidate) => identical(candidate, tile)) ??
+            _listNodeWhere(
+              (candidate) =>
+                  tile.destination != null &&
+                  candidate.destination?.id == tile.destination!.id,
+            );
+      } else {
+        // The page is gone (one pane shows the list), or had no focus.
+        target = _listNodeWhere(
+          (candidate) => pageId != null && candidate.destination?.id == pageId,
+        );
+      }
+      if (target == null) {
+        _focusListPane(first: true);
+      } else if (!target.hasPrimaryFocus) {
+        FocusTraversalPolicy.defaultTraversalRequestFocusCallback(
+          target,
+          alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
+        );
+      }
+    }, debugLabel: 'SettingsSplitView.keepFocus');
+  }
+
+  /// The first focusable node in the list pane inside a tile that passes
+  /// [test].
+  FocusNode? _listNodeWhere(bool Function(SettingsTile tile) test) {
+    for (final node in _listFocusNode.traversalDescendants) {
+      final context = node.context;
+      if (context == null || !context.mounted || !node.canRequestFocus) {
+        continue;
+      }
+      final tile = context.findAncestorWidgetOfExactType<SettingsTile>();
+      if (tile != null && test(tile)) return node;
+    }
+    return null;
+  }
 
   /// Gives the keyboard focus to the first (or last) control of the list
   /// pane. Returns whether there was one.
@@ -1287,13 +1362,16 @@ class _PaneFocusAction<T extends Intent> extends Action<T> {
     // Nothing is focused yet: the detail navigator took the focus when it
     // was built (navigators autofocus). Start in the list pane, like the
     // platforms' settings apps, not after the navigator in the page.
+    // In one pane, a page shown over the list hides it: stay in the page.
+    final listShown = view._listShown;
     if (forward &&
+        listShown &&
         view._isNavigatorFocus(node) &&
         view._focusListPane(first: true)) {
       return null;
     }
     final moved = forward ? node.nextFocus() : node.previousFocus();
-    if (!moved) view._focusListPane(first: forward);
+    if (!moved && listShown) view._focusListPane(first: forward);
     return null;
   }
 }

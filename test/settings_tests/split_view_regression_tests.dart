@@ -9,6 +9,8 @@ import 'package:settings_ui/settings_ui.dart';
 import 'package:settings_ui/src/split/adwaita_split.dart';
 import 'package:settings_ui/src/split/fluent_split.dart';
 import 'package:settings_ui/src/split/macos_split.dart';
+import 'package:settings_ui/src/tiles/platforms/fluent_settings_tile.dart';
+import 'package:settings_ui/src/tiles/platforms/macos_settings_tile.dart';
 
 /// Regression tests for the split view bugs found in the 4.0.0 release
 /// candidate: back and layout changes with routes pushed from the list pane,
@@ -1131,6 +1133,176 @@ void splitViewRegressionTests() {
       );
       expect(viewport.top, lessThanOrEqualTo(selection.top - 3));
       expect(viewport.bottom, 800);
+    });
+  });
+
+  group('keyboard focus across layout changes', () {
+    for (final platform in [DevicePlatform.linux, DevicePlatform.android]) {
+      testWidgets('$platform one pane: Tab stays in a page shown over the '
+          'list', (tester) async {
+        await _setSize(tester, const Size(400, 800));
+        await tester.pumpWidget(
+          _app(
+            SettingsSplitView(
+              platform: platform,
+              sections: [
+                SettingsSection(
+                  tiles: [
+                    SettingsTile.navigation(
+                      title: const Text('First'),
+                      destination: SettingsDestination(
+                        id: 'first',
+                        builder: (_) => SettingsList(
+                          sections: [
+                            SettingsSection(
+                              tiles: [
+                                SettingsTile(
+                                  title: const Text('First control'),
+                                  onPressed: (_) {},
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    SettingsTile.navigation(
+                      title: const Text('Second'),
+                      destination: SettingsDestination(
+                        id: 'second',
+                        builder: (_) => const Text('Second body'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            platform: _targetOf(platform),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await _tabTo(tester, _tile('First'));
+        await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+        await tester.pumpAndSettle();
+        expect(find.text('First control'), findsOneWidget);
+
+        final control = find.ancestor(
+          of: find.text('First control'),
+          matching: find.byType(SettingsTile),
+        );
+        for (var i = 0; i < 4; i++) {
+          await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+          await tester.pump();
+          // Never on the list under the page.
+          expect(_focusIn(_listPane), isFalse, reason: 'Tab $i');
+        }
+        await _tabTo(tester, control, max: 3);
+      });
+    }
+
+    for (final (platform, twoPanes, onePane) in [
+      (DevicePlatform.macOS, MacosSidebarItem, MacosSettingsTile),
+      (DevicePlatform.windows, FluentNavigationItem, FluentSettingsTile),
+      (DevicePlatform.linux, AdwaitaSidebarRow, AdwaitaSidebarRow),
+    ]) {
+      testWidgets('$platform: the focused tile keeps the focus', (
+        tester,
+      ) async {
+        await _setSize(tester, const Size(1280, 800));
+        await tester.pumpWidget(
+          _app(
+            SettingsSplitView(platform: platform, sections: _sections()),
+            platform: _targetOf(platform),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await _tabTo(tester, _tile('Sound'));
+        expect(_inList(find.byType(twoPanes)), findsWidgets);
+
+        await _setSize(tester, const Size(400, 800));
+        await tester.pumpAndSettle();
+        expect(_controllerOf(tester).isSplit, isFalse);
+        expect(_inList(find.byType(onePane)), findsWidgets);
+        expect(
+          _focusIn(_tile('Sound')),
+          isTrue,
+          reason: 'focus: ${FocusManager.instance.primaryFocus}',
+        );
+
+        await _setSize(tester, const Size(1280, 800));
+        await tester.pumpAndSettle();
+        expect(
+          _focusIn(_tile('Sound')),
+          isTrue,
+          reason: 'focus: ${FocusManager.instance.primaryFocus}',
+        );
+        // And Tab goes on from there.
+        await tester.sendKeyEvent(LogicalKeyboardKey.shiftLeft);
+        await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+        await tester.pumpAndSettle();
+        expect(_focusIn(_tile('Display')), isTrue);
+      });
+    }
+
+    testWidgets('a control in a page keeps the focus, or gives it to the '
+        'page\'s tile when one pane shows the list', (tester) async {
+      await _setSize(tester, const Size(1280, 800));
+      await tester.pumpWidget(
+        _app(
+          SettingsSplitView(
+            platform: DevicePlatform.linux,
+            sections: [
+              SettingsSection(
+                tiles: [
+                  for (final name in ['First', 'Second'])
+                    SettingsTile.navigation(
+                      title: Text(name),
+                      destination: SettingsDestination(
+                        id: name,
+                        builder: (_) => SettingsList(
+                          sections: [
+                            SettingsSection(
+                              tiles: [
+                                SettingsTile(
+                                  title: Text('$name control'),
+                                  onPressed: (_) {},
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          ),
+          platform: TargetPlatform.linux,
+        ),
+      );
+      await tester.pumpAndSettle();
+      final control = find.ancestor(
+        of: find.text('First control'),
+        matching: find.byType(SettingsTile),
+      );
+      await _tabTo(tester, control);
+
+      // The first page shows by default: one pane shows the list instead.
+      await _setSize(tester, const Size(400, 800));
+      await tester.pumpAndSettle();
+      expect(find.text('First control'), findsNothing);
+      expect(_focusIn(_tile('First')), isTrue);
+
+      // A picked page stays, with its focused control.
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pumpAndSettle();
+      await _tabTo(tester, control);
+      await _setSize(tester, const Size(1280, 800));
+      await tester.pumpAndSettle();
+      expect(_focusIn(control), isTrue);
+      await _setSize(tester, const Size(400, 800));
+      await tester.pumpAndSettle();
+      expect(_focusIn(control), isTrue);
     });
   });
 }
