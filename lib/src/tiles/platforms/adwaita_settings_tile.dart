@@ -44,7 +44,8 @@ const double _kBodyFontSize = 44 / 3;
 /// Row subtitles use the `smaller` size (12.22 px) on a 15 px line.
 const double _kSubtitleFontSize = _kBodyFontSize / 1.2;
 
-const TextStyle _kTitleStyle = TextStyle(
+/// Row titles: body text. The boxed list also gives it to custom rows.
+const TextStyle kAdwaitaBodyStyle = TextStyle(
   fontSize: _kBodyFontSize,
   fontWeight: FontWeight.w400,
   height: 18 / _kBodyFontSize,
@@ -175,7 +176,7 @@ class _AdwaitaSettingsTileState extends State<AdwaitaSettingsTile> {
     final iconColor = enabled
         ? theme.leadingIconsColor
         : theme.inactiveTitleColor;
-    final titleStyle = (theme.tileTextStyle ?? _kTitleStyle).copyWith(
+    final titleStyle = (theme.tileTextStyle ?? kAdwaitaBodyStyle).copyWith(
       color: enabled ? theme.settingsTileTextColor : theme.inactiveTitleColor,
     );
     final subtitleStyle = (theme.tileDescriptionTextStyle ?? _kSubtitleStyle)
@@ -245,11 +246,12 @@ class _AdwaitaSettingsTileState extends State<AdwaitaSettingsTile> {
           ConstrainedBox(
             constraints: BoxConstraints(maxWidth: maxValueWidth),
             child: DefaultTextStyle(
-              style: (theme.tileDescriptionTextStyle ?? _kTitleStyle).copyWith(
-                color: enabled
-                    ? theme.trailingTextColor
-                    : theme.inactiveSubtitleColor,
-              ),
+              style: (theme.tileDescriptionTextStyle ?? kAdwaitaBodyStyle)
+                  .copyWith(
+                    color: enabled
+                        ? theme.trailingTextColor
+                        : theme.inactiveSubtitleColor,
+                  ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.end,

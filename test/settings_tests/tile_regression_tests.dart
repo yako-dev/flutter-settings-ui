@@ -632,4 +632,85 @@ void tileRegressionTests() {
       });
     }
   });
+
+  group('Desktop cards host Material widgets and style custom tiles', () {
+    const desktopStyles = [
+      DevicePlatform.macOS,
+      DevicePlatform.windows,
+      DevicePlatform.linux,
+    ];
+
+    List<AbstractSettingsSection> sections() => [
+      SettingsSection(
+        tiles: [
+          CustomSettingsTile(
+            child: ListTile(title: const Text('List tile'), onTap: () {}),
+          ),
+          SettingsTile(
+            title: const Text('Tile'),
+            leading: Checkbox(value: true, onChanged: (_) {}),
+            trailing: IconButton(
+              icon: const Icon(Icons.info_outline),
+              onPressed: () {},
+            ),
+          ),
+        ],
+      ),
+    ];
+
+    for (final platform in desktopStyles) {
+      testWidgets('$platform: without a Scaffold in a MaterialApp', (
+        tester,
+      ) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: SettingsList(platform: platform, sections: sections()),
+          ),
+        );
+        expect(tester.takeException(), isNull);
+        expect(find.byType(Checkbox), findsOneWidget);
+      });
+
+      testWidgets('$platform: in a CupertinoApp', (tester) async {
+        await tester.pumpWidget(
+          CupertinoApp(
+            home: SettingsList(platform: platform, sections: sections()),
+          ),
+        );
+        expect(tester.takeException(), isNull);
+        expect(find.byType(ListTile), findsOneWidget);
+      });
+
+      for (final forced in Brightness.values) {
+        testWidgets('$platform: custom tile text takes the tile text color '
+            'in a list forced to $forced', (tester) async {
+          await tester.pumpWidget(
+            MaterialApp(
+              theme: ThemeData(brightness: _other(forced)),
+              home: Scaffold(
+                body: SettingsList(
+                  platform: platform,
+                  brightness: forced,
+                  sections: [
+                    SettingsSection(
+                      tiles: [
+                        SettingsTile(title: const Text('Title')),
+                        CustomSettingsTile(child: const Text('Custom')),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+          Color colorOf(String text) => tester
+              .renderObject<RenderParagraph>(find.text(text))
+              .text
+              .style!
+              .color!;
+          expect(colorOf('Custom'), colorOf('Title'));
+        });
+      }
+    }
+  });
 }
