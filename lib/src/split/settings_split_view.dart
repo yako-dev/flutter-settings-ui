@@ -221,6 +221,13 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
   /// Whether the iOS large title has scrolled under the bar.
   final ValueNotifier<bool> _largeTitleHidden = ValueNotifier<bool>(false);
 
+  /// Around the list pane, to hand it the keyboard focus.
+  final FocusNode _listFocusNode = FocusNode(
+    debugLabel: 'SettingsSplitView list',
+    skipTraversal: true,
+    canRequestFocus: false,
+  );
+
   @override
   String? get restorationId => widget.restorationId;
 
@@ -259,6 +266,7 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
     _ownController?.dispose();
     _picked.dispose();
     _largeTitleHidden.dispose();
+    _listFocusNode.dispose();
     super.dispose();
   }
 
@@ -534,21 +542,46 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
       shownId: shownId,
       hostGeneration: _hostGeneration,
       goBack: _handleBack,
-      child: PopScope<Object?>(
-        canPop: !_canHandleBack,
-        onPopInvokedWithResult: (didPop, result) {
-          if (!didPop) _handleBack();
+      child: Actions(
+        actions: <Type, Action<Intent>>{
+          NextFocusIntent: _PaneFocusAction<NextFocusIntent>(this, true),
+          PreviousFocusIntent: _PaneFocusAction<PreviousFocusIntent>(
+            this,
+            false,
+          ),
         },
-        child: UnmanagedRestorationScope(
-          bucket: bucket,
-          child: SettingsTheme(
-            themeData: style.themeData,
-            platform: style.platform,
-            child: panes,
+        child: PopScope<Object?>(
+          canPop: !_canHandleBack,
+          onPopInvokedWithResult: (didPop, result) {
+            if (!didPop) _handleBack();
+          },
+          child: UnmanagedRestorationScope(
+            bucket: bucket,
+            child: SettingsTheme(
+              themeData: style.themeData,
+              platform: style.platform,
+              child: panes,
+            ),
           ),
         ),
       ),
     );
+  }
+
+  /// Gives the keyboard focus to the first (or last) control of the list
+  /// pane. Returns whether there was one.
+  bool _focusListPane({required bool first}) {
+    final nodes =
+        _listFocusNode.traversalDescendants
+            .where((node) => node.context != null && node.canRequestFocus)
+            .toList()
+          ..sort((a, b) {
+            final byTop = a.rect.top.compareTo(b.rect.top);
+            return byTop != 0 ? byTop : a.rect.left.compareTo(b.rect.left);
+          });
+    if (nodes.isEmpty) return false;
+    (first ? nodes.first : nodes.last).requestFocus();
+    return true;
   }
 
   Widget _buildTwoPanes(
@@ -644,6 +677,9 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
       child: Navigator(
         key: _stackKey,
         restorationScopeId: widget.restorationId == null ? null : 'stack',
+        // Tab leaves the navigator's pages for the rest of the app, as in
+        // the app's own navigator (nested ones default to a closed loop).
+        routeTraversalEdgeBehavior: TraversalEdgeBehavior.parentScope,
         pages: pages,
         onDidRemovePage: _handleStackPageRemoved,
       ),
@@ -678,6 +714,12 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
       child: Navigator(
         key: _detailKey,
         restorationScopeId: widget.restorationId == null ? null : 'detail',
+        // Tab moves on from the detail pane to the list pane (a closed loop
+        // would keep the focus in the page). Showing a page picked in the
+        // list leaves the focus in the list, like the platforms' sidebars;
+        // pages opened inside the pane take it (see _DetailObserver).
+        routeTraversalEdgeBehavior: TraversalEdgeBehavior.parentScope,
+        requestFocus: false,
         observers: [_detailObserver],
         pages: [_detailRootPage(style)],
         onDidRemovePage: (_) {},
@@ -871,9 +913,32 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
       hideLeading: hideLeading,
       child: KeyedSubtree(
         key: const ValueKey<String>('settings_split_list_pane'),
-        child: Material(key: _listKey, color: background, child: content),
+        child: Material(
+          key: _listKey,
+          color: background,
+          child: Focus(focusNode: _listFocusNode, child: content),
+        ),
       ),
     );
+  }
+}
+
+/// Tab and Shift+Tab in a split view. A page without any control leaves
+/// its route's focus scope with nothing to move to, which would keep the
+/// focus there: then the focus goes on to the list pane.
+class _PaneFocusAction<T extends Intent> extends Action<T> {
+  _PaneFocusAction(this.view, this.forward);
+
+  final _SettingsSplitViewState view;
+  final bool forward;
+
+  @override
+  Object? invoke(T intent) {
+    final node = FocusManager.instance.primaryFocus;
+    if (node == null) return null;
+    final moved = forward ? node.nextFocus() : node.previousFocus();
+    if (!moved) view._focusListPane(first: forward);
+    return null;
   }
 }
 
@@ -1032,7 +1097,19 @@ class _DetailObserver extends NavigatorObserver {
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
     top = route;
-    if (previousRoute != null && route.settings is! Page) onUserPush();
+    if (previousRoute != null && route.settings is! Page) {
+      onUserPush();
+      // The detail navigator doesn't move the focus by itself: give it to a
+      // page opened from inside the pane, as a navigator normally does.
+      if (route is ModalRoute<dynamic>) {
+        SchedulerBinding.instance.addPostFrameCallback((_) {
+          final context = route.subtreeContext;
+          if (route.isActive && route.isCurrent && context != null) {
+            FocusScope.of(context).requestFocus();
+          }
+        });
+      }
+    }
   }
 
   @override

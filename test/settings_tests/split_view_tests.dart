@@ -1825,6 +1825,60 @@ void splitViewTests() {
     });
   });
 
+  group('keyboard focus', () {
+    bool focusInListPane() {
+      final context = FocusManager.instance.primaryFocus?.context;
+      if (context == null) return false;
+      var found = false;
+      context.visitAncestorElements((element) {
+        if (element.widget.key ==
+            const ValueKey<String>('settings_split_list_pane')) {
+          found = true;
+          return false;
+        }
+        return true;
+      });
+      return found;
+    }
+
+    testWidgets('Tab goes on from a page without controls to the list', (
+      tester,
+    ) async {
+      await _setSize(tester, const Size(1280, 800));
+      await tester.pumpWidget(_app(_view(platform: DevicePlatform.web)));
+      await tester.pumpAndSettle();
+      // The first page ("Network") has nothing to focus.
+      for (var i = 0; i < 3 && !focusInListPane(); i++) {
+        await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+        await tester.pump();
+      }
+      expect(focusInListPane(), isTrue);
+    });
+
+    testWidgets('picking a page with the keyboard keeps the focus in the '
+        'list, a page opened inside the pane takes it', (tester) async {
+      await _setSize(tester, const Size(1280, 800));
+      await tester.pumpWidget(_app(_view(platform: DevicePlatform.web)));
+      await tester.pumpAndSettle();
+      final display = Focus.of(tester.element(_listTile('Display')));
+      for (var i = 0; i < 10 && !display.hasPrimaryFocus; i++) {
+        await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+        await tester.pump();
+      }
+      expect(display.hasPrimaryFocus, isTrue);
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pumpAndSettle();
+      expect(find.text('Text size'), findsOneWidget);
+      expect(display.hasPrimaryFocus, isTrue);
+
+      await tester.tap(find.text('Text size'));
+      await tester.pumpAndSettle();
+      expect(find.text('Count 0'), findsOneWidget);
+      expect(focusInListPane(), isFalse);
+      expect(FocusManager.instance.primaryFocus?.context, isNot(isNull));
+    });
+  });
+
   group('iOS tiles in a narrow pane', () {
     testWidgets('descriptions take the pane width, not the screen width', (
       tester,
