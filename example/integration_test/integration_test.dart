@@ -543,9 +543,17 @@ void main() {
       await tester.tap(find.text('GNOME Settings (Power)'));
       await pumpSettled(tester);
 
+      // The General page.
+      expect(find.text('Battery Level'), findsOneWidget);
       expect(find.text('Power Mode'), findsOneWidget);
       expect(find.text('Balanced'), findsOneWidget);
+      expect(find.byType(AdwaitaPanDownIcon), findsOneWidget);
+
+      // The Power Saving page, from the view switcher.
+      await tester.tap(find.text('Power Saving'));
+      await pumpSettled(tester);
       expect(find.text('Automatic Suspend'), findsOneWidget);
+      expect(find.text('Delay'), findsNWidgets(3));
 
       final dimScreen = find.descendant(
         of: find.widgetWithText(SettingsTile, 'Dim Screen'),

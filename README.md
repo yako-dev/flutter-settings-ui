@@ -882,6 +882,26 @@ The switch of the GNOME style, drawn in Flutter: a 46x26 track with a round 20px
 | `brightness` | `Brightness?` | Light or dark colors. Default: from the `CupertinoTheme`, or the platform |
 | `focusNode`, `autofocus` | `FocusNode?`, `bool` | Keyboard focus |
 
+### `AdwaitaPanDownIcon`
+
+GNOME's `pan-down-symbolic` arrow (16px icon, 10x6 chevron) for combo rows, which show the selected value at full strength and this arrow. In the GNOME style, text in `trailing` gets the row's font and color, so a combo row is:
+
+```dart
+SettingsTile(
+  title: const Text('Screen Blank'),
+  trailing: const Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [Text('5 minutes'), SizedBox(width: 9), AdwaitaPanDownIcon()],
+  ),
+  onPressed: (context) { /* show the choices */ },
+)
+```
+
+| Parameter | Type | Description |
+|---|---|---|
+| `color` | `Color?` | Default: the `IconTheme` color (the row's foreground in a GNOME tile) |
+| `size` | `double` | Icon box size. Default 16 |
+
 ### `SettingsThemeData`
 
 | Field | Type | Description |

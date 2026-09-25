@@ -27,7 +27,7 @@ it:
   `flutter run --route '/split-view?platform=windows&page=display'`, or
   `/#/split-view?platform=windows` on the web
 - `--dart-define`s: `flutter run --dart-define=SCREEN=macos --dart-define=THEME=dark`
-  (and `PLATFORM`, `PAGE`)
+  (and `PLATFORM`, `PAGE`, `TAB`)
 
 `screen` is one of the keys of `launchScreens` in `lib/main.dart`:
 `split-view`, `macos`, `gnome-power`, `windows-display`, `ios-developer`,
@@ -35,5 +35,6 @@ it:
 `web-chrome`, `web-chrome-addresses`, `material3` or `cross-platform`.
 `platform` is a `DevicePlatform` name in any case (`ios`, `macOS`, `linux`...)
 and sets the style of the gallery, the cross-platform screen and the split
-view. `page` is the split view page to open (e.g. `display`). `theme` is
+view. `page` is the split view page to open (e.g. `display`), and `tab` the
+tab of the GNOME Power replica (`power-saving`). `theme` is
 `light` or `dark`; without it the app follows the system.

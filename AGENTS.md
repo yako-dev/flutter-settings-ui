@@ -67,6 +67,7 @@ lib/src/tiles/
     macos_settings_switch.dart      ← public, used by the macOS tile
     fluent_settings_switch.dart     ← public, used by the Windows tile
     adwaita_settings_switch.dart    ← public, used by the GNOME tile
+    adwaita_symbolic_icons.dart     ← AdwaitaPanDownIcon public; go-next internal
 ```
 
 Same pattern for `lib/src/sections/`. `lib/src/list/settings_list.dart` resolves the platform, brightness and default padding.
@@ -121,7 +122,7 @@ Tap behavior on switch tiles differs on purpose: Android, GNOME and web toggle o
 - `SettingsList` (+ `ApplicationType`)
 - `SettingsSection`, `AbstractSettingsSection`, `CustomSettingsSection`
 - `SettingsTile` (+ `SettingsTileType`), `AbstractSettingsTile`, `CustomSettingsTile`
-- `CupertinoSettingsSwitch`, `MacosSettingsSwitch` (+ `MacosSettingsSwitchSize`), `FluentSettingsSwitch`, `AdwaitaSettingsSwitch`
+- `CupertinoSettingsSwitch`, `MacosSettingsSwitch` (+ `MacosSettingsSwitchSize`), `FluentSettingsSwitch`, `AdwaitaSettingsSwitch`, `AdwaitaPanDownIcon` (only this class from `adwaita_symbolic_icons.dart`; `AdwaitaGoNextIcon` stays internal)
 - `DevicePlatform`, `PlatformUtils`
 - `SettingsTheme`, `SettingsThemeData`
 - `SettingsDestination`

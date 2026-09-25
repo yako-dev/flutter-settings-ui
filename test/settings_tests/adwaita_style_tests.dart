@@ -4,8 +4,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/settings_ui.dart';
+import 'package:settings_ui/settings_ui.dart' as settings_ui;
 import 'package:settings_ui/src/sections/platforms/adwaita_settings_section.dart';
 import 'package:settings_ui/src/tiles/platforms/adwaita_settings_tile.dart';
+import 'package:settings_ui/src/tiles/platforms/adwaita_symbolic_icons.dart';
 
 /// Tests for the GNOME (libadwaita 1.10) style used for DevicePlatform.linux.
 
@@ -700,6 +702,56 @@ void adwaitaStyleTests() {
       expect(paddingAround(find.text('Description')), const EdgeInsets.all(11));
     });
 
+    testWidgets('text in trailing gets the title style', (tester) async {
+      await _pumpTiles(tester, [
+        SettingsTile(title: const Text('On'), trailing: const Text('Suspend')),
+        SettingsTile(
+          title: const Text('Off'),
+          trailing: const Text('Hibernate'),
+          enabled: false,
+        ),
+      ]);
+      final style = _styleOf(tester, 'Suspend');
+      expect(style.fontSize, closeTo(14.67, 0.01));
+      expect(style.color, _lightForeground);
+      expect(
+        _styleOf(tester, 'Hibernate').color,
+        _theme(tester).inactiveTitleColor,
+      );
+    });
+
+    testWidgets('a combo row: value, 9 px, then pan-down 14 px from the edge', (
+      tester,
+    ) async {
+      await _pumpTiles(tester, [
+        SettingsTile(
+          title: const Text('Screen Blank'),
+          trailing: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('5 minutes'),
+              SizedBox(width: 9),
+              AdwaitaPanDownIcon(),
+            ],
+          ),
+          onPressed: (_) {},
+        ),
+      ], size: const Size(600, 800));
+
+      final card = _card(tester);
+      final arrow = tester.getRect(find.byType(AdwaitaPanDownIcon));
+      expect(arrow.size, const Size(16, 16));
+      expect(card.right - arrow.right, 14);
+      expect(arrow.left - tester.getRect(find.text('5 minutes')).right, 9);
+      expect(
+        arrow.center.dy,
+        moreOrLessEquals(
+          tester.getCenter(find.text('Screen Blank')).dy,
+          epsilon: 0.5,
+        ),
+      );
+    });
+
     testWidgets('trailing widgets get the 16 px foreground icon theme', (
       tester,
     ) async {
@@ -1105,6 +1157,106 @@ void adwaitaStyleTests() {
       );
       await tester.pumpAndSettle();
       expect(value, isTrue);
+    });
+  });
+
+  group('symbolic icons', () {
+    Future<void> pumpIcon(
+      WidgetTester tester,
+      Widget icon, {
+      TextDirection direction = TextDirection.ltr,
+    }) => tester.pumpWidget(
+      Directionality(
+        textDirection: direction,
+        child: IconTheme(
+          data: const IconThemeData(color: Colors.pink),
+          child: Center(child: icon),
+        ),
+      ),
+    );
+
+    testWidgets('AdwaitaPanDownIcon: 16 px box, 10x6 of ink, IconTheme color', (
+      tester,
+    ) async {
+      await pumpIcon(tester, const AdwaitaPanDownIcon());
+      expect(
+        tester.getSize(find.byType(AdwaitaPanDownIcon)),
+        const Size(16, 16),
+      );
+      expect(
+        find.byType(AdwaitaPanDownIcon),
+        paints..path(
+          color: Colors.pink,
+          strokeWidth: 2,
+          style: PaintingStyle.stroke,
+          // The stroke runs (4,6) -> (8,10) -> (12,6): with its 2 px round
+          // stroke that is ink from x 3 to 13 and y 5 to 11.
+          includes: const [Offset(4, 6), Offset(8, 10), Offset(12, 6)],
+          excludes: const [Offset(2, 5), Offset(14, 5), Offset(8, 12)],
+        ),
+      );
+    });
+
+    testWidgets('AdwaitaPanDownIcon: color and size parameters', (
+      tester,
+    ) async {
+      await pumpIcon(
+        tester,
+        const AdwaitaPanDownIcon(color: Colors.green, size: 32),
+      );
+      expect(
+        tester.getSize(find.byType(AdwaitaPanDownIcon)),
+        const Size(32, 32),
+      );
+      expect(
+        find.byType(AdwaitaPanDownIcon),
+        paints..path(
+          color: Colors.green,
+          strokeWidth: 4,
+          includes: const [Offset(16, 20)],
+        ),
+      );
+    });
+
+    testWidgets('AdwaitaPanDownIcon is not mirrored in RTL', (tester) async {
+      await pumpIcon(
+        tester,
+        const AdwaitaPanDownIcon(),
+        direction: TextDirection.rtl,
+      );
+      expect(
+        find.byType(AdwaitaPanDownIcon),
+        paints..path(includes: const [Offset(4, 6), Offset(12, 6)]),
+      );
+    });
+
+    testWidgets('AdwaitaGoNextIcon: 8x14 of ink, mirrored in RTL', (
+      tester,
+    ) async {
+      await pumpIcon(tester, const AdwaitaGoNextIcon());
+      expect(
+        find.byType(AdwaitaGoNextIcon),
+        paints..path(
+          color: Colors.pink,
+          includes: const [Offset(5, 2), Offset(11, 8), Offset(5, 14)],
+          excludes: const [Offset(3, 8), Offset(13, 8)],
+        ),
+      );
+      await pumpIcon(
+        tester,
+        const AdwaitaGoNextIcon(),
+        direction: TextDirection.rtl,
+      );
+      expect(
+        find.byType(AdwaitaGoNextIcon),
+        paints..path(includes: const [Offset(11, 2), Offset(5, 8)]),
+      );
+    });
+
+    test('AdwaitaPanDownIcon is part of the public library', () {
+      // Compiles only while package:settings_ui/settings_ui.dart exports it.
+      const Widget icon = settings_ui.AdwaitaPanDownIcon();
+      expect(icon, isA<AdwaitaPanDownIcon>());
     });
   });
 
