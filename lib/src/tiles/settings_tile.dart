@@ -1,7 +1,11 @@
 import 'package:flutter/widgets.dart';
+import 'package:settings_ui/src/split/settings_destination.dart';
+import 'package:settings_ui/src/split/settings_destination_page.dart';
+import 'package:settings_ui/src/split/split_scopes.dart';
 import 'package:settings_ui/src/tiles/abstract_settings_tile.dart';
 import 'package:settings_ui/src/tiles/platforms/android_settings_tile.dart';
 import 'package:settings_ui/src/tiles/platforms/ios_settings_tile.dart';
+import 'package:settings_ui/src/tiles/platforms/web_settings_menu_item.dart';
 import 'package:settings_ui/src/tiles/platforms/web_settings_tile.dart';
 import 'package:settings_ui/src/utils/platform_utils.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
@@ -25,7 +29,7 @@ class SettingsTile extends AbstractSettingsTile {
     this.descriptionPadding,
     this.titleDescriptionPadding,
     super.key,
-  }) {
+  }) : destination = null {
     onToggle = null;
     initialValue = null;
     activeSwitchColor = null;
@@ -47,6 +51,7 @@ class SettingsTile extends AbstractSettingsTile {
     this.trailingPadding,
     this.descriptionPadding,
     this.titleDescriptionPadding,
+    this.destination,
     super.key,
   }) {
     onToggle = null;
@@ -73,7 +78,7 @@ class SettingsTile extends AbstractSettingsTile {
     this.descriptionPadding,
     this.titleDescriptionPadding,
     super.key,
-  }) {
+  }) : destination = null {
     value = null;
     tileType = SettingsTileType.switchTile;
   }
@@ -106,6 +111,16 @@ class SettingsTile extends AbstractSettingsTile {
   final EdgeInsetsGeometry? descriptionPadding;
   final EdgeInsetsGeometry? titleDescriptionPadding;
 
+  /// The page this navigation tile opens (set with
+  /// [SettingsTile.navigation]).
+  ///
+  /// A tap calls [onPressed] first, if set, then opens the page: in a
+  /// [SettingsList] it pushes a platform route (Cupertino on the iOS style,
+  /// Material otherwise) with the package's page header over the body; in
+  /// the list pane of a [SettingsSplitView] it shows the page in the detail
+  /// pane, and the tile is drawn selected while its page shows there.
+  final SettingsDestination? destination;
+
   late final Color? activeSwitchColor;
   late final Widget? value;
   late final Function(bool value)? onToggle;
@@ -113,9 +128,36 @@ class SettingsTile extends AbstractSettingsTile {
   late final bool? initialValue;
   late final bool enabled;
 
+  /// [onPressed], followed by opening [destination].
+  Function(BuildContext context)? get _effectiveOnPressed {
+    final destination = this.destination;
+    if (destination == null) return onPressed;
+    return (BuildContext context) {
+      onPressed?.call(context);
+      if (!context.mounted) return;
+      openSettingsDestination(
+        context,
+        destination: destination,
+        tileTitle: title,
+      );
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
+    final listPane = SettingsSplitListScope.maybeOf(context);
+    final tile = _buildTile(context, listPane);
+    if (listPane != null && listPane.isSplit && destination != null) {
+      return Semantics(selected: listPane.isSelected(destination), child: tile);
+    }
+    return tile;
+  }
+
+  Widget _buildTile(BuildContext context, SettingsSplitListScope? listPane) {
     final theme = SettingsTheme.of(context);
+    final inSplitListPane = listPane != null && listPane.isSplit;
+    final selected = listPane?.isSelected(destination) ?? false;
+    final onPressed = _effectiveOnPressed;
 
     switch (theme.platform) {
       case DevicePlatform.android:
@@ -127,7 +169,7 @@ class SettingsTile extends AbstractSettingsTile {
           onToggle: onToggle,
           tileType: tileType,
           value: value,
-          leading: leading,
+          leading: inSplitListPane && listPane.hideLeading ? null : leading,
           title: title,
           enabled: enabled,
           compact: compact,
@@ -138,6 +180,7 @@ class SettingsTile extends AbstractSettingsTile {
           leadingPadding: leadingPadding,
           trailingPadding: trailingPadding,
           descriptionPadding: descriptionPadding,
+          selected: selected,
         );
       case DevicePlatform.iOS:
       case DevicePlatform.macOS:
@@ -161,8 +204,24 @@ class SettingsTile extends AbstractSettingsTile {
           trailingPadding: trailingPadding,
           descriptionPadding: descriptionPadding,
           titleDescriptionPadding: titleDescriptionPadding,
+          selected: selected,
+          sidebar: inSplitListPane,
         );
       case DevicePlatform.web:
+        if (inSplitListPane) {
+          return WebSettingsMenuItem(
+            onPressed: onPressed,
+            onToggle: onToggle,
+            tileType: tileType,
+            leading: leading,
+            title: title,
+            enabled: enabled,
+            initialValue: initialValue ?? false,
+            activeSwitchColor: activeSwitchColor,
+            selected: selected,
+            trailing: trailing,
+          );
+        }
         return WebSettingsTile(
           description: description,
           onPressed: onPressed,

@@ -8,3 +8,6 @@ export 'package:settings_ui/src/tiles/settings_tile.dart';
 export 'package:settings_ui/src/utils/platform_utils.dart';
 export 'package:settings_ui/src/utils/settings_theme.dart';
 export 'package:settings_ui/src/tiles/platforms/cupertino_settings_switch.dart';
+export 'package:settings_ui/src/split/settings_destination.dart';
+export 'package:settings_ui/src/split/settings_split_view.dart'
+    show SettingsSplitView, SettingsSplitController, SettingsSplitLayout;

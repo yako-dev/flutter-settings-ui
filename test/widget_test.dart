@@ -14,6 +14,7 @@ import 'settings_tests/setting_tile_tests.dart';
 import 'settings_tests/settings_list_tests.dart';
 import 'settings_tests/settings_sections_tests.dart';
 import 'settings_tests/settings_tile_on_tap_tests.dart';
+import 'settings_tests/split_view_tests.dart';
 import 'settings_tests/tile_padding_tests.dart';
 import 'utils_tests/device_platform_tests.dart';
 
@@ -189,6 +190,10 @@ void main() {
 
   group('SettingsTile paddings and switch colors (v4.0.0)', () {
     tilePaddingTests();
+  });
+
+  group('SettingsSplitView', () {
+    splitViewTests();
   });
 
   group('Settings tile on Tap tests for different platforms', () {

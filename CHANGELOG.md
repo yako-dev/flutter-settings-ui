@@ -29,6 +29,8 @@
 * Android and web: disabled switches use `SettingsThemeData.inactiveSwitchColor` with or without a `trailing` widget, and a web switch next to a `trailing` widget no longer has a hard-coded blue active color (#188)
 
 ### New features
+* `SettingsSplitView`: the list and the selected page side by side on iPad, tablets, unfolded foldables, desktop and the web, and a list with pushed pages on phones. It follows each platform app: iPad Settings (320pt sidebar, blue capsule selection, two panes from 600pt on iPads), Android Settings (36.36% list pane on surface dim, two panes at 720dp wide with a 600dp smallest width, no icons in a list pane under 380dp) and Chrome (266px menu, two panes above 980px). It keeps pages, their state and pushed sub-pages when a device folds, unfolds or rotates, handles back and Android predictive back, restores the shown page, puts the panes on each side of a hinge, and mirrors in right-to-left layouts. Control it with `SettingsSplitController`, `SettingsSplitLayout`, `initialDestinationId` and `onDestinationChanged`
+* `SettingsDestination` and `SettingsTile.navigation(destination: ...)`: a tile can open a page without your own `Navigator.push`. In a `SettingsList` it pushes a Cupertino or Material route with the platform's page header (iOS 26 inline title and glass back button, Android's collapsing large title, Chrome's page title), and the `SettingsList` in the page takes the platform, brightness and themes of the list that opened it
 * `SettingsThemeData.selectedTileColor`, `selectedTileTextColor`, `selectedTileIconColor` and `listPaneBackground` for the split view
 * Debug builds print a one-time warning when `SettingsList` finds no `material_ui` or `cupertino_ui` theme above it
 

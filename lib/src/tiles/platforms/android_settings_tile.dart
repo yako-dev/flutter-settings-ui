@@ -25,6 +25,7 @@ class AndroidSettingsTile extends StatelessWidget {
     this.leadingPadding,
     this.trailingPadding,
     this.descriptionPadding,
+    this.selected = false,
     super.key,
   });
 
@@ -45,10 +46,33 @@ class AndroidSettingsTile extends StatelessWidget {
   final EdgeInsetsGeometry? trailingPadding;
   final EdgeInsetsGeometry? descriptionPadding;
 
+  /// Drawn as the selected item of a split view's list pane.
+  final bool selected;
+
   @override
   Widget build(BuildContext context) {
     final theme = SettingsTheme.of(context);
     final textScaler = MediaQuery.textScalerOf(context);
+    final themeData = theme.themeData;
+
+    // AOSP two-pane Settings fills the selected homepage card with the
+    // detail pane's color, so it looks joined to it.
+    final titleColor = !enabled
+        ? themeData.inactiveTitleColor
+        : selected
+        ? (themeData.selectedTileTextColor ?? themeData.settingsTileTextColor)
+        : themeData.settingsTileTextColor;
+    final subtitleColor = !enabled
+        ? themeData.inactiveSubtitleColor
+        : selected
+        ? (themeData.selectedTileTextColor?.withValues(alpha: 0.78) ??
+              themeData.tileDescriptionTextColor)
+        : themeData.tileDescriptionTextColor;
+    final iconColor = !enabled
+        ? themeData.inactiveTitleColor
+        : selected
+        ? (themeData.selectedTileIconColor ?? themeData.leadingIconsColor)
+        : themeData.leadingIconsColor;
 
     final cantShowAnimation = tileType == SettingsTileType.switchTile
         ? onToggle == null && onPressed == null
@@ -57,7 +81,9 @@ class AndroidSettingsTile extends StatelessWidget {
     return IgnorePointer(
       ignoring: !enabled,
       child: Material(
-        color: Colors.transparent,
+        color: selected
+            ? (themeData.selectedTileColor ?? Colors.transparent)
+            : Colors.transparent,
         child: InkWell(
           onTap: cantShowAnimation
               ? null
@@ -77,11 +103,7 @@ class AndroidSettingsTile extends StatelessWidget {
                       leadingPadding ??
                       const EdgeInsetsDirectional.only(start: 16),
                   child: IconTheme(
-                    data: IconTheme.of(context).copyWith(
-                      color: enabled
-                          ? theme.themeData.leadingIconsColor
-                          : theme.themeData.inactiveTitleColor,
-                    ),
+                    data: IconTheme.of(context).copyWith(color: iconColor),
                     child: leading!,
                   ),
                 ),
@@ -105,11 +127,7 @@ class AndroidSettingsTile extends StatelessWidget {
                                         fontSize: 16,
                                         fontWeight: FontWeight.w400,
                                       ))
-                                  .copyWith(
-                                    color: enabled
-                                        ? theme.themeData.settingsTileTextColor
-                                        : theme.themeData.inactiveTitleColor,
-                                  ),
+                                  .copyWith(color: titleColor),
                           child: title ?? Container(),
                         ),
                       ),
@@ -120,15 +138,7 @@ class AndroidSettingsTile extends StatelessWidget {
                             style:
                                 (theme.themeData.tileDescriptionTextStyle ??
                                         const TextStyle())
-                                    .copyWith(
-                                      color: enabled
-                                          ? theme
-                                                .themeData
-                                                .tileDescriptionTextColor
-                                          : theme
-                                                .themeData
-                                                .inactiveSubtitleColor,
-                                    ),
+                                    .copyWith(color: subtitleColor),
                             child: value!,
                           ),
                         )
@@ -141,15 +151,7 @@ class AndroidSettingsTile extends StatelessWidget {
                             style:
                                 (theme.themeData.tileDescriptionTextStyle ??
                                         const TextStyle())
-                                    .copyWith(
-                                      color: enabled
-                                          ? theme
-                                                .themeData
-                                                .tileDescriptionTextColor
-                                          : theme
-                                                .themeData
-                                                .inactiveSubtitleColor,
-                                    ),
+                                    .copyWith(color: subtitleColor),
                             child: description!,
                           ),
                         ),
