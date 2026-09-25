@@ -116,14 +116,15 @@ Widget _app(
   double textScale = 1,
   TextScaler? textScaler,
   Map<String, WidgetBuilder> routes = const {},
+  String? restorationScopeId,
 }) {
   return MaterialApp(
+    restorationScopeId: restorationScopeId,
     theme: ThemeData(platform: platform),
     routes: routes,
     builder: (context, child) => MediaQuery(
-      data: MediaQuery.of(
-        context,
-      ).copyWith(textScaler: textScaler ?? TextScaler.linear(textScale)),
+      data: MediaQuery.of(context)
+          .copyWith(textScaler: textScaler ?? TextScaler.linear(textScale)),
       child: child!,
     ),
     home: home,
@@ -139,9 +140,9 @@ Widget _pushedFromHome(
   Builder(
     builder: (context) => Center(
       child: GestureDetector(
-        onTap: () => Navigator.of(
-          context,
-        ).push(MaterialPageRoute<void>(builder: (_) => view)),
+        onTap: () =>
+            Navigator.of(context)
+                .push(MaterialPageRoute<void>(builder: (_) => view)),
         child: const Text('Open settings'),
       ),
     ),
@@ -182,9 +183,9 @@ void splitViewRegressionTests() {
             // "About", licenses and so on.
             SettingsTile.navigation(
               title: const Text('About'),
-              onPressed: (context) => Navigator.of(
-                context,
-              ).push(MaterialPageRoute<void>(builder: (_) => page)),
+              onPressed: (context) =>
+                  Navigator.of(context)
+                      .push(MaterialPageRoute<void>(builder: (_) => page)),
             ),
             SettingsTile.navigation(
               title: const Text('Licenses'),
@@ -567,6 +568,172 @@ void splitViewRegressionTests() {
         tester.takeException().toString(),
         contains('can only be used by one SettingsSplitView at a time'),
       );
+    });
+  });
+  group('destinations', () {
+    /// A list with a conditional page, like "Developer options" that shows
+    /// only while enabled.
+    Widget conditional(
+      ValueNotifier<bool> show,
+      DevicePlatform platform, {
+      ValueChanged<String?>? onDestinationChanged,
+    }) => ValueListenableBuilder<bool>(
+      valueListenable: show,
+      builder: (context, value, _) => SettingsSplitView(
+        platform: platform,
+        onDestinationChanged: onDestinationChanged,
+        sections: [
+          SettingsSection(
+            tiles: [
+              (_sections().first as SettingsSection).tiles.first,
+              if (value)
+                SettingsTile.navigation(
+                  title: const Text('Developer'),
+                  destination: SettingsDestination(
+                    id: 'dev',
+                    builder: (_) => const Center(child: Text('Dev body')),
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+
+    testWidgets('two panes: a removed page does not come back with its tile', (
+      tester,
+    ) async {
+      final show = ValueNotifier<bool>(true);
+      addTearDown(show.dispose);
+      final changes = <String?>[];
+      await _setSize(tester, const Size(1280, 800));
+      await tester.pumpWidget(
+        _app(
+          conditional(
+            show,
+            DevicePlatform.macOS,
+            onDestinationChanged: changes.add,
+          ),
+          platform: TargetPlatform.macOS,
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Developer'));
+      await tester.pumpAndSettle();
+      expect(find.text('Dev body'), findsOneWidget);
+
+      show.value = false;
+      await tester.pumpAndSettle();
+      expect(find.text('Network body'), findsOneWidget);
+      expect(_controllerOf(tester).selectedId, 'network');
+
+      show.value = true;
+      await tester.pumpAndSettle();
+      expect(find.text('Network body'), findsOneWidget);
+      expect(find.text('Dev body'), findsNothing);
+      expect(_controllerOf(tester).selectedId, 'network');
+      expect(changes, ['dev', 'network']);
+    });
+
+    testWidgets('one pane: a removed page is not pushed again with its tile', (
+      tester,
+    ) async {
+      final show = ValueNotifier<bool>(true);
+      addTearDown(show.dispose);
+      await _setSize(tester, const Size(402, 874));
+      await tester.pumpWidget(
+        _app(
+          conditional(show, DevicePlatform.iOS),
+          platform: TargetPlatform.iOS,
+        ),
+      );
+      await tester.tap(find.text('Developer'));
+      await tester.pumpAndSettle();
+      show.value = false;
+      await tester.pumpAndSettle();
+      expect(find.text('Dev body'), findsNothing);
+      expect(_controllerOf(tester).selectedId, isNull);
+
+      show.value = true;
+      await tester.pumpAndSettle();
+      expect(find.text('Dev body'), findsNothing);
+      expect(_controllerOf(tester).selectedId, isNull);
+    });
+
+    Widget customSection(
+      ValueNotifier<int> version, {
+      DevicePlatform platform = DevicePlatform.macOS,
+      String? restorationId,
+    }) => ValueListenableBuilder<int>(
+      valueListenable: version,
+      builder: (context, v, _) => SettingsSplitView(
+        platform: platform,
+        restorationId: restorationId,
+        sections: [
+          SettingsSection(
+            tiles: [(_sections().first as SettingsSection).tiles.first],
+          ),
+          CustomSettingsSection(
+            child: SettingsTile.navigation(
+              title: const Text('Account'),
+              destination: SettingsDestination(
+                id: 'account',
+                title: Text('Account title v$v'),
+                builder: (_) => Center(child: Text('Account v$v')),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    testWidgets('a page opened from a custom section follows its tile', (
+      tester,
+    ) async {
+      final version = ValueNotifier<int>(1);
+      addTearDown(version.dispose);
+      await _setSize(tester, const Size(1280, 800));
+      await tester.pumpWidget(
+        _app(customSection(version), platform: TargetPlatform.macOS),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Account'));
+      await tester.pumpAndSettle();
+      expect(find.text('Account v1'), findsOneWidget);
+      expect(find.text('Account title v1'), findsOneWidget);
+
+      version.value = 2;
+      await tester.pumpAndSettle();
+      expect(find.text('Account v2'), findsOneWidget);
+      expect(find.text('Account title v2'), findsOneWidget);
+      expect(find.text('Account v1'), findsNothing);
+    });
+
+    testWidgets('a page opened from a custom section is restored', (
+      tester,
+    ) async {
+      final version = ValueNotifier<int>(1);
+      addTearDown(version.dispose);
+      await _setSize(tester, const Size(402, 874));
+      await tester.pumpWidget(
+        _app(
+          customSection(
+            version,
+            platform: DevicePlatform.iOS,
+            restorationId: 'settings',
+          ),
+          platform: TargetPlatform.iOS,
+          restorationScopeId: 'app',
+        ),
+      );
+      await tester.tap(find.text('Account'));
+      await tester.pumpAndSettle();
+      expect(find.text('Account v1'), findsOneWidget);
+
+      await tester.restartAndRestore();
+      await tester.pumpAndSettle();
+      expect(find.text('Account v1'), findsOneWidget);
+      expect(_controllerOf(tester).selectedId, 'account');
     });
   });
 }

@@ -18,6 +18,7 @@ class SettingsSplitListScope extends InheritedWidget {
     required this.isSplit,
     required this.selectedId,
     required this.onOpen,
+    this.onTileBuilt,
     this.hideLeading = false,
     bool? sidebar,
     required super.child,
@@ -36,6 +37,11 @@ class SettingsSplitListScope extends InheritedWidget {
   final String? selectedId;
 
   final SettingsDestinationOpener onOpen;
+
+  /// Called by each tile with a destination as it builds, so the split view
+  /// knows the destinations of tiles in custom sections and follows their
+  /// rebuilds. It must not rebuild anything synchronously.
+  final SettingsDestinationOpener? onTileBuilt;
 
   /// Android's split list pane drops the leading icons when it's narrower
   /// than 380dp, like AOSP Settings.

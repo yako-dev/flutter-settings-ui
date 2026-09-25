@@ -224,8 +224,10 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
   /// Top-level destinations from [SettingsSplitView.sections], in order.
   Map<String, _Entry> _destinations = const {};
 
-  /// Destinations tapped in custom sections, which can't be read ahead.
+  /// Destinations of tiles in custom sections, which can't be read ahead:
+  /// the tiles report them as they build (and when tapped).
   final Map<String, _Entry> _tapped = {};
+  bool _rebuildScheduled = false;
 
   // What the last layout showed.
   bool _isSplit = false;
@@ -360,6 +362,34 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
       _lookup(_picked.value) == null ? null : _picked.value;
 
   // Selection ----------------------------------------------------------------
+
+  /// A tile in the list pane built with [destination]. Tiles in a
+  /// [SettingsSection] are read ahead in [build]; for the others (custom
+  /// sections), this keeps the page in step with the tile.
+  void _handleTileBuilt(SettingsDestination destination, Widget tileTitle) {
+    final id = destination.id;
+    if (_destinations.containsKey(id)) return;
+    final title = destination.title ?? tileTitle;
+    final known = _tapped[id];
+    if (known != null &&
+        identical(known.destination, destination) &&
+        identical(known.title, title)) {
+      return;
+    }
+    _tapped[id] = _Entry(destination, title);
+    // The tile builds during the list pane's build: show the new
+    // destination on the next frame.
+    if (id == _shownId || id == _picked.value) _scheduleRebuild();
+  }
+
+  void _scheduleRebuild() {
+    if (_rebuildScheduled) return;
+    _rebuildScheduled = true;
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      _rebuildScheduled = false;
+      if (mounted) setState(() {});
+    }, debugLabel: 'SettingsSplitView.destinationChanged');
+  }
 
   void _openFromTile(SettingsDestination destination, Widget tileTitle) {
     if (!_destinations.containsKey(destination.id)) {
@@ -536,7 +566,17 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
       darkTheme: widget.darkTheme,
       applicationType: widget.applicationType,
     ).resolve(context);
+    final previous = _destinations;
     _destinations = _collectDestinations();
+    final picked = _picked.value;
+    if (picked != null &&
+        previous.containsKey(picked) &&
+        _lookup(picked) == null) {
+      // The picked page's tile is gone (a conditional page): forget the
+      // pick, so the page doesn't come back by itself with the tile. (A
+      // restorable value; writing it doesn't call setState.)
+      _picked.value = null;
+    }
     final route = ModalRoute.of(context);
     final canLeave = route?.impliesAppBarDismissal ?? false;
 
@@ -1180,6 +1220,7 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
       sidebar: sidebar || isSplit,
       selectedId: _shownId,
       onOpen: _openFromTile,
+      onTileBuilt: _handleTileBuilt,
       hideLeading: hideLeading,
       child: KeyedSubtree(
         key: const ValueKey<String>('settings_split_list_pane'),

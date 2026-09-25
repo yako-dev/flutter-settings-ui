@@ -152,6 +152,10 @@ class SettingsTile extends AbstractSettingsTile {
   @override
   Widget build(BuildContext context) {
     final listPane = SettingsSplitListScope.maybeOf(context);
+    final destination = this.destination;
+    if (listPane != null && destination != null) {
+      listPane.onTileBuilt?.call(destination, title);
+    }
     final tile = _buildTile(context, listPane);
     if (listPane != null && listPane.isSplit && destination != null) {
       return Semantics(selected: listPane.isSelected(destination), child: tile);
