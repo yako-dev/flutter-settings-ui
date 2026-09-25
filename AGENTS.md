@@ -148,5 +148,16 @@ Everything else in `platforms/` is internal. Don't export it.
 
 - `.github/workflows/code-quality-tests.yml` runs on every push: `dart format --output=none --set-exit-if-changed .` → `flutter analyze .` → `flutter test --coverage --test-randomize-ordering-seed random` → `very_good_coverage` with **min_coverage: 60** (line coverage of `lib/`).
 - `.github/workflows/conventional-pr-title.yml`: PR titles must follow Conventional Commits and stay within 100 characters.
-- No automated publish. To release: bump `version` in `pubspec.yaml`, update `CHANGELOG.md`, `README.md` and `llms.txt`, tag, then `flutter pub publish`.
 - `llms.txt` (repo root) is the reference that coding agents fetch from `master`, and the README's agent prompts link to it. Keep it in sync with the public API and platform behavior whenever either changes.
+
+### Releasing
+
+No automated publish. Only a maintainer publishes; agents run the dry run at most. In this order:
+
+1. Bump `version` in `pubspec.yaml`. Update `CHANGELOG.md` (replace `[Unreleased]` with the publish date), `README.md` and `llms.txt`.
+2. Run the CI checks (format, analyze, tests) at the root, and `flutter analyze` in `example/`.
+3. `flutter pub publish --dry-run` must end with `Package has 0 warnings.` (exit code 0), with an archive of about 1 MB. Run it after `flutter test`, so a root `build/` exists, and check that the file list has no `build/`, `coverage/`, `doc/api/`, `*.iml`, `AGENTS.md` or `CLAUDE.md`. The root `.pubignore` replaces the root `.gitignore` for pub: anything added to `.gitignore` that must not ship goes into `.pubignore` too.
+4. Merge to `master` and push, **before** publishing. The README on pub.dev loads its images and `llms.txt` (every agent prompt links it) from `master` on raw.githubusercontent.com, so they must be there first. Check that `curl -sI https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master/llms.txt` returns 200 and that the README's image URLs load.
+5. Tag the merge commit (`vX.Y.Z`) and push the tag.
+6. `flutter pub publish` on the tagged commit, with a clean working tree.
+7. Create the GitHub release from the tag, with the CHANGELOG entry.
