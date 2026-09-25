@@ -6,6 +6,7 @@ import 'package:example/screens/gallery/ios_developer_screen.dart';
 import 'package:example/screens/gallery/ios_native_settings_screen.dart';
 import 'package:example/screens/gallery/macos_notifications_screen.dart';
 import 'package:example/screens/gallery/material3_demo_screen.dart';
+import 'package:example/screens/gallery/split_view_screen.dart';
 import 'package:example/screens/gallery/web_chrome_settings.dart';
 import 'package:example/screens/gallery/windows_display_settings_screen.dart';
 import 'package:example/utils/launch_options.dart';
@@ -54,6 +55,28 @@ class GalleryScreen extends StatelessWidget {
                   Navigation.navigateTo(
                     context: context,
                     screen: const Material3DemoScreen(),
+                    style: NavigationRouteStyle.material,
+                  );
+                },
+              ),
+            ],
+          ),
+          SettingsSection(
+            title: const Text('New in v4'),
+            tiles: [
+              SettingsTile.navigation(
+                leading: const Icon(Icons.vertical_split_outlined),
+                title: const Text('Split view'),
+                description: const Text(
+                  'List and page side by side on tablets, foldables, '
+                  'desktop and the web',
+                ),
+                onPressed: (context) {
+                  Navigation.navigateTo(
+                    context: context,
+                    screen: SplitViewScreen(
+                      platform: LaunchOptions.platform ?? DevicePlatform.device,
+                    ),
                     style: NavigationRouteStyle.material,
                   );
                 },

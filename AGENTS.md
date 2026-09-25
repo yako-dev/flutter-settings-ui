@@ -31,10 +31,11 @@ flutter test test/widget_test.dart --name "CupertinoSettingsSwitch"
 
 # Example app, and its integration test (needs a running device, simulator or emulator)
 cd example && flutter run
-# Open a screen, style and brightness directly (example/lib/utils/launch_options.dart):
-# on the web through the URL, e.g. /?screen=windows-display&theme=dark, elsewhere
-# through --dart-define
-cd example && flutter run -d chrome
+# Open a screen in a style and brightness directly (example/lib/utils/launch_options.dart):
+# options screen, platform, page, theme, from the web URL's query, the initial route
+# (--route, or #/... on the web; its path is the screen) or --dart-define
+cd example && flutter run -d chrome   # then /?screen=split-view&platform=macOS&theme=dark
+cd example && flutter run -d macos --route '/split-view?platform=windows&page=display'
 cd example && flutter run -d macos --dart-define=SCREEN=macos --dart-define=THEME=dark
 cd example && flutter test integration_test/integration_test.dart -d <device-id>
 ```
@@ -84,6 +85,15 @@ Layout: `SettingsList` sizes its default padding from its own width (`LayoutBuil
 
 `DevicePlatform.device` means "auto-detect" and is valid only as input to `SettingsList`. It must never reach the switch statements in tiles, sections or `ThemeProvider` (they throw). `PlatformUtils.detectPlatform()` resolves it: `kIsWeb` → web, otherwise `Theme.of(context).platform`. Its `default:` branch sends platforms that only exist in Flutter forks (e.g. OpenHarmony) to the iOS style; keep it, or forks stop compiling.
 
+### Pages and split view (`lib/src/split/`)
+
+- `SettingsTile.navigation(destination:)` calls `openSettingsDestination`: in a split view's list pane it selects the page through `SettingsSplitListScope`; anywhere else it pushes `settingsDestinationRoute` (Cupertino or Material route) on the nearest `Navigator`, so tiles in a detail page push inside the detail pane.
+- `SettingsDestinationPage` draws the header (`SettingsPageBar` for iOS and web, `SettingsCollapsingTitleView`, a `NestedScrollView`, for Android) and puts `SettingsStyleScope(inherit: true)` above the body, so a `SettingsList` there takes its unset style inputs from the opener. A list's own `SettingsStyleScope` has `inherit: false`, so nested lists keep detecting their style.
+- `SettingsSplitView` keeps one detail `Navigator` and the list pane under `GlobalKey`s. Two panes put them in a `Row`; one pane puts them in pages of a second `Navigator`, so state survives layout changes. A page pushed over the list that is still animating out hands the detail navigator to the new one (`hostGeneration`). One `PopScope` on the app's route handles back for both navigators.
+- Breakpoints, pane widths and hinges are pure functions in `split_geometry.dart`. The list-pane look (iPad sidebar rows, Chrome menu, Android cards on `surfaceDim`) is chosen by tiles and sections that find a `SettingsSplitListScope` with `isSplit`.
+- The macOS, Windows and GNOME styles have no split view look yet. `settingsStyleFamily` (in `settings_style.dart`) gives them the iPad (macOS, Windows) or Android (GNOME) headers, routes and pane rules, and `SettingsSplitListScope.tilePlatformOf` makes `SettingsSection` and `SettingsTile` draw iPad sidebar rows for them in a two-pane list pane, with the style's own `SettingsThemeData` (its `listPaneBackground` and `selectedTile*` defaults come from the platforms' sidebars). In the detail pane only iOS and Android lists fill the pane (`SettingsContentColumnHint.fillWidth`); the other styles keep their columns.
+- Each pane is its own semantics container: the detail navigator's routes block the semantics of what was painted before them in their container.
+
 ### `IOSSettingsTileAdditionalInfo`
 
 An internal `InheritedWidget` that `IOSSettingsSection` puts above each tile to say whether to round the top/bottom corners and draw the divider. A tile's `description` becomes a footer outside the card, so the next tile starts a new rounded card.
@@ -96,6 +106,7 @@ An internal `InheritedWidget` that `IOSSettingsSection` puts above each tile to 
 - **macOS** (macOS 26/27 System Settings, a SwiftUI grouped `Form`): #F7F7F7/#252525 cards with 12pt continuous corners on a #FFFFFF/#1E1E1E page, no border or shadow, 20pt side margins, 10pt between cards; 36pt rows (10 + 16pt line + 10; 48pt with a leading widget, 52pt with a subtitle), 13pt text with translucent `NSColor` label colors, 1pt separators inset 10pt on both sides, 13pt semibold headers 10pt above the card and 30pt below the previous card, 11pt footers; value, trailing widget and switch line up with the title's first line, the chevron is drawn (`MacosChevron`) and centered. No hover highlight (System Settings has none); rows with `onPressed` tint while pressed and take keyboard focus with a focus ring. `MacosSettingsTileScope` tells a tile its place in the card; the section draws the card, the separators and the `description` footers. The list starts 12pt down, or 0 when the first visible section has a title (its own 20pt top margin then matches System Settings).
 - **Windows** (Windows 11 Settings, WinUI 3 / CommunityToolkit `SettingsCard`): one card per tile, 4px corners, 1px border (`dividerColor`), 4px apart, 68px min height (52 compact), 16px padding inside the 1px border; 20px icons with 2/20 margins; Body 14/20 titles, Caption 12/16 descriptions; value in secondary text and a painted 13px chevron at the end; section headers 14/20 semibold with margin 1,30,0,6; below 476px card width the content moves under the header, below 286px the icon hides. Clickable cards (with `onPressed`) get the WinUI hover, pressed and 2px+1px focus-ring states; others don't react. 1000px column with 36px margins (16 below 641px), 36 at the bottom. Colors are WinUI theme resources in `lib/src/utils/fluent_tokens.dart`; inside a list the Fluent controls pick light or dark from the card color. Fonts come from the app (Segoe UI on Windows; Segoe UI Variable is not bundled).
 - **GNOME** (GNOME Settings 51, libadwaita 1.10): one card per section (`.boxed-list`: 12px corners, 3-layer soft shadow painted only outside the card), 12px side margins, 24px between groups and above the first, 54px rows (2 + 50 + 2), full-width 1px separators, text 14px in, 16px leading icons 12px before the title, 14.67px titles, 12.22px subtitles at 55% opacity (`description` and `titleDescription` both become subtitles), bold 14.67px group titles in a 34px row 6px above the card, dimmed `value` at the end, painted `go-next-symbolic` arrow on navigation tiles, hover 3% / pressed 8% of the foreground, 2px accent focus ring, fixed libadwaita colors. Sources: the libadwaita 1.10 stylesheet (`src/stylesheet/_colors.scss`, `widgets/_lists.scss`, `_preferences.scss`, `_switch.scss`) and `src/adw-clamp-layout.c`.
+- **Split view** (measured on iPadOS 27, Android 16 two-pane Settings and Chrome): iPad 320pt sidebar on #E2E6F0/#181D20, 288x52 capsule selection #0080F5/#13A4FF, no divider, pages fill the pane with 20pt margins; Android list pane 36.36% on `surfaceDim` with the phone cards, the selected card in `surfaceContainer`, no icons under 380dp, 36sp collapsing page titles at pane + 24dp; Chrome 266px menu with 40px items and an end-rounded pill, the 680px column placed like Chrome's (`SettingsContentColumnHint`). macOS and Windows use the iPad rules and headers and GNOME the Android ones for now, with iPad sidebar rows in the list pane drawn in the style's colors (`SettingsSplitListScope.tilePlatformOf`); their pages keep their own columns and margins in the detail pane, where only iOS and Android pages fill it.
 - **`CupertinoSettingsSwitch`**: iOS 26 switch drawn with a `CustomPainter` (no platform view, shader or backdrop filter). 63x28 track, 37x24 thumb, Liquid Glass-style lens while pressed or dragged. The lens paints outside the 63x28 box, so don't clip it tightly.
 - **`MacosSettingsSwitch`**: 36x16 track with a 21x13 capsule knob (44x20 / 26x16 with `MacosSettingsSwitchSize.large`), drawn with a `CustomPainter`. ON track #0476F7 light / #117BFC dark, OFF track black or white 10%, knob white (dark: #E2E2E2, tinted when on). The knob follows a drag and the value flips on release past the middle.
 - **`FluentSettingsSwitch`**: WinUI `ToggleSwitch` drawn with a `CustomPainter`: 40x20 track, knob 12 / 14 hovered / 17x14 pressed (anchored 3px in), accent `#005FB8`/`#60CDFF` at 90%/80% when hovered/pressed, black knob on the dark-mode accent. The keyboard focus ring paints outside its 40x20 box.
@@ -113,6 +124,8 @@ Tap behavior on switch tiles differs on purpose: Android, GNOME and web toggle o
 - `CupertinoSettingsSwitch`, `MacosSettingsSwitch` (+ `MacosSettingsSwitchSize`), `FluentSettingsSwitch`, `AdwaitaSettingsSwitch`
 - `DevicePlatform`, `PlatformUtils`
 - `SettingsTheme`, `SettingsThemeData`
+- `SettingsDestination`
+- `SettingsSplitView`, `SettingsSplitController`, `SettingsSplitLayout` (exported with `show` from `settings_split_view.dart`, so its internal helpers stay private)
 
 Everything else in `platforms/` is internal. Don't export it.
 

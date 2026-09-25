@@ -631,6 +631,36 @@ void main() {
       },
     );
   });
+
+  group('Split view', () {
+    testWidgets('Opens the demo, shows a page, and goes back', (tester) async {
+      app.main();
+      await pumpSettled(tester);
+
+      await tester.tap(find.text('Split view'));
+      await pumpSettled(tester);
+      expect(find.byType(SettingsSplitView), findsOneWidget);
+
+      // The iPad and Android trees both have a 'display' page.
+      final controller = SettingsSplitView.of(
+        tester.element(find.byType(SettingsList).first),
+      );
+      controller.select('display');
+      await pumpSettled(tester);
+      expect(controller.selectedId, 'display');
+      expect(find.textContaining('Display &'), findsWidgets);
+
+      // System back: one pane closes the page first, then the screen.
+      if (!controller.isSplit) {
+        await tester.binding.handlePopRoute();
+        await pumpSettled(tester);
+        expect(controller.selectedId, isNull);
+      }
+      await tester.binding.handlePopRoute();
+      await pumpSettled(tester);
+      expect(find.text('Split view'), findsOneWidget);
+    });
+  });
 }
 
 /// The switch of a switch tile, in any style.

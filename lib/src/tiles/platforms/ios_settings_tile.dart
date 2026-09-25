@@ -22,6 +22,8 @@ class IOSSettingsTile extends StatefulWidget {
     this.trailingPadding,
     this.descriptionPadding,
     this.titleDescriptionPadding,
+    this.selected = false,
+    this.sidebar = false,
     super.key,
   });
 
@@ -43,6 +45,13 @@ class IOSSettingsTile extends StatefulWidget {
   final EdgeInsetsGeometry? trailingPadding;
   final EdgeInsetsGeometry? descriptionPadding;
   final EdgeInsetsGeometry? titleDescriptionPadding;
+
+  /// Drawn as the selected row of an iPad sidebar: a filled capsule.
+  final bool selected;
+
+  /// In the list pane of a split view with two panes: an iPad sidebar row
+  /// (no card, separator or chevron; highlighted as a capsule).
+  final bool sidebar;
 
   @override
   IOSSettingsTileState createState() => IOSSettingsTileState();
@@ -88,6 +97,11 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
       content = Material(color: Colors.transparent, child: content);
     }
 
+    // iPad sidebar rows highlight as a 52pt capsule.
+    if (widget.sidebar) {
+      return ClipRRect(borderRadius: BorderRadius.circular(26), child: content);
+    }
+
     // Continuous (superellipse) corners, like the grouped cards in iOS
     // Settings.
     return ClipRSuperellipse(
@@ -110,23 +124,34 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
   }) {
     final textScaler = MediaQuery.textScalerOf(context);
 
-    return Container(
-      width: MediaQuery.of(context).size.width,
-      padding:
-          widget.descriptionPadding ??
-          EdgeInsets.only(
-            left: 16,
-            right: 16,
-            top: textScaler.scale(8),
-            bottom: additionalInfo.needToShowDivider ? 24 : textScaler.scale(8),
-          ),
-      decoration: BoxDecoration(color: theme.themeData.settingsListBackground),
-      child: DefaultTextStyle(
-        style:
-            (theme.themeData.tileDescriptionTextStyle ??
-                    const TextStyle(fontSize: 13))
-                .copyWith(color: theme.themeData.titleTextColor),
-        child: widget.description!,
+    // Fill the width the tile gets (a pane of a split view can be much
+    // narrower than the screen), falling back to the screen width when it's
+    // unbounded.
+    return LayoutBuilder(
+      builder: (context, constraints) => Container(
+        width: constraints.hasBoundedWidth
+            ? constraints.maxWidth
+            : MediaQuery.sizeOf(context).width,
+        padding:
+            widget.descriptionPadding ??
+            EdgeInsets.only(
+              left: 16,
+              right: 16,
+              top: textScaler.scale(8),
+              bottom: additionalInfo.needToShowDivider
+                  ? 24
+                  : textScaler.scale(8),
+            ),
+        decoration: BoxDecoration(
+          color: theme.themeData.settingsListBackground,
+        ),
+        child: DefaultTextStyle(
+          style:
+              (theme.themeData.tileDescriptionTextStyle ??
+                      const TextStyle(fontSize: 13))
+                  .copyWith(color: theme.themeData.titleTextColor),
+          child: widget.description!,
+        ),
       ),
     );
   }
@@ -138,6 +163,10 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
   }) {
     final textScaler = MediaQuery.textScalerOf(context);
     final isRTL = Directionality.of(context) == TextDirection.rtl;
+    final iconColor = widget.selected
+        ? (theme.themeData.selectedTileIconColor ??
+              theme.themeData.leadingIconsColor)
+        : theme.themeData.leadingIconsColor;
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -150,7 +179,7 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
             child: IconTheme(
               data: IconTheme.of(context).copyWith(
                 color: widget.enabled
-                    ? theme.themeData.leadingIconsColor
+                    ? iconColor
                     : theme.themeData.inactiveTitleColor,
               ),
               child: widget.trailing!,
@@ -168,13 +197,13 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
                 : (theme.themeData.inactiveSwitchColor ??
                       theme.themeData.inactiveTitleColor),
           ),
-        if (widget.tileType == SettingsTileType.navigationTile)
+        // iPad sidebar rows have no chevron.
+        if (widget.tileType == SettingsTileType.navigationTile &&
+            !widget.sidebar)
           Padding(
             padding: const EdgeInsetsDirectional.only(start: 6, end: 2),
             child: IconTheme(
-              data: IconTheme.of(
-                context,
-              ).copyWith(color: theme.themeData.leadingIconsColor),
+              data: IconTheme.of(context).copyWith(color: iconColor),
               child: Icon(
                 isRTL
                     ? CupertinoIcons.chevron_back
@@ -205,6 +234,35 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
         (widget.tileType == SettingsTileType.navigationTile ||
             widget.tileType == SettingsTileType.simpleTile) &&
         widget.value != null;
+    final themeData = theme.themeData;
+    final selected = widget.selected;
+    final Color? background;
+    if (widget.sidebar) {
+      background = selected
+          ? themeData.selectedTileColor
+          : isPressed
+          ? themeData.tileHighlightColor
+          : null;
+    } else {
+      background = isPressed
+          ? themeData.tileHighlightColor
+          : themeData.settingsSectionBackground;
+    }
+    final titleColor = !widget.enabled
+        ? themeData.inactiveTitleColor
+        : selected
+        ? (themeData.selectedTileTextColor ?? themeData.settingsTileTextColor)
+        : themeData.settingsTileTextColor;
+    final valueColor = !widget.enabled
+        ? themeData.inactiveTitleColor
+        : selected
+        ? (themeData.selectedTileTextColor ?? themeData.trailingTextColor)
+        : themeData.trailingTextColor;
+    final iconColor = !widget.enabled
+        ? themeData.inactiveTitleColor
+        : selected
+        ? (themeData.selectedTileIconColor ?? themeData.leadingIconsColor)
+        : themeData.leadingIconsColor;
 
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
@@ -227,23 +285,21 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
       onTapCancel: () =>
           widget.onPressed == null ? null : changePressState(isPressed: false),
       child: Container(
-        color: isPressed
-            ? theme.themeData.tileHighlightColor
-            : theme.themeData.settingsSectionBackground,
-        padding: const EdgeInsetsDirectional.only(start: 16),
+        color: background,
+        // iPad sidebar: icon 14pt into the row, label 8.5pt after a 28pt
+        // icon.
+        padding: EdgeInsetsDirectional.only(start: widget.sidebar ? 14 : 16),
         child: Row(
           children: [
             if (widget.leading != null)
               Padding(
                 padding:
                     widget.leadingPadding ??
-                    const EdgeInsetsDirectional.only(end: 12.0),
+                    EdgeInsetsDirectional.only(
+                      end: widget.sidebar ? 8.5 : 12.0,
+                    ),
                 child: IconTheme.merge(
-                  data: IconThemeData(
-                    color: widget.enabled
-                        ? theme.themeData.leadingIconsColor
-                        : theme.themeData.inactiveTitleColor,
-                  ),
+                  data: IconThemeData(color: iconColor),
                   child: widget.leading!,
                 ),
               ),
@@ -253,7 +309,9 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Padding(
-                    padding: const EdgeInsetsDirectional.only(end: 16),
+                    padding: EdgeInsetsDirectional.only(
+                      end: widget.sidebar ? 14 : 16,
+                    ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
@@ -299,15 +357,7 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
                                                       const TextStyle(
                                                         fontSize: 17,
                                                       ))
-                                                  .copyWith(
-                                                    color: widget.enabled
-                                                        ? theme
-                                                              .themeData
-                                                              .settingsTileTextColor
-                                                        : theme
-                                                              .themeData
-                                                              .inactiveTitleColor,
-                                                  ),
+                                                  .copyWith(color: titleColor),
                                           child: widget.title!,
                                         ),
                                       ),
@@ -322,13 +372,13 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
                                               ),
                                           child: DefaultTextStyle(
                                             style: TextStyle(
-                                              color: widget.enabled
-                                                  ? theme
-                                                        .themeData
-                                                        .titleTextColor
-                                                  : theme
-                                                        .themeData
-                                                        .inactiveTitleColor,
+                                              color: !widget.enabled
+                                                  ? themeData.inactiveTitleColor
+                                                  : selected
+                                                  ? titleColor?.withValues(
+                                                      alpha: 0.8,
+                                                    )
+                                                  : themeData.titleTextColor,
                                               fontSize: 15,
                                             ),
                                             child: widget.titleDescription!,
@@ -348,13 +398,7 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
                                       ),
                                       child: DefaultTextStyle(
                                         style: TextStyle(
-                                          color: widget.enabled
-                                              ? theme
-                                                    .themeData
-                                                    .trailingTextColor
-                                              : theme
-                                                    .themeData
-                                                    .inactiveTitleColor,
+                                          color: valueColor,
                                           fontSize: 17,
                                         ),
                                         overflow: TextOverflow.ellipsis,
@@ -373,7 +417,8 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
                     ),
                   ),
                   if (widget.description == null &&
-                      additionalInfo.needToShowDivider)
+                      additionalInfo.needToShowDivider &&
+                      !widget.sidebar)
                     Divider(
                       height: 0,
                       thickness: 0.7,

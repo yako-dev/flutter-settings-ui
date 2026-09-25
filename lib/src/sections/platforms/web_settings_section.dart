@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/settings_ui.dart';
+import 'package:settings_ui/src/split/split_scopes.dart';
 
 class WebSettingsSection extends StatelessWidget {
   const WebSettingsSection({
@@ -23,6 +24,42 @@ class WebSettingsSection extends StatelessWidget {
   Widget buildSectionBody(BuildContext context) {
     final theme = SettingsTheme.of(context);
     final textScaler = MediaQuery.textScalerOf(context);
+
+    // The list pane of a split view is Chrome's menu: no cards.
+    if (SettingsSplitListScope.maybeOf(context)?.isSplit ?? false) {
+      return Padding(
+        padding: margin ?? EdgeInsets.zero,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (title != null)
+              Padding(
+                padding:
+                    titlePadding ??
+                    EdgeInsetsDirectional.only(
+                      start: 24,
+                      end: 16,
+                      top: textScaler.scale(8),
+                      bottom: textScaler.scale(4),
+                    ),
+                child: DefaultTextStyle(
+                  style:
+                      (theme.themeData.titleTextStyle ??
+                              const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                              ))
+                          .copyWith(
+                            color: theme.themeData.tileDescriptionTextColor,
+                          ),
+                  child: title!,
+                ),
+              ),
+            ...tiles,
+          ],
+        ),
+      );
+    }
 
     return Padding(
       padding: margin ?? EdgeInsets.zero,

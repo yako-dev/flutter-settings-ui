@@ -148,6 +148,31 @@ Reference: https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master
 </details>
 
 <details>
+<summary>Show my settings as a split view on tablets, foldables, desktop and the web</summary>
+
+```text
+Make my settings_ui screen show the list and the selected page side by side on iPad, Android
+tablets and foldables, desktop and the web, and keep the phone layout as it is. Reference:
+https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master/llms.txt (SettingsSplitView)
+
+1. Find the settings screen and its sub-screens. List which rows open a sub-screen and how (routes,
+   router, Navigator.push), and tell me before changing the app's routing.
+2. Replace the screen with SettingsSplitView (same sections, `title: Text('Settings')`, no app bar
+   above it). Give every row that opens a settings sub-screen a
+   `destination: SettingsDestination(id: ..., builder: ...)`, where the builder returns the
+   sub-screen's body without its Scaffold and app bar. Keep rows that open pickers, dialogs or
+   other parts of the app as they are.
+3. If the app has URLs for settings pages, keep them in sync with `onDestinationChanged` and open
+   deep links with a SettingsSplitController (`controller.select(id)`).
+4. Tests: one pane on a phone size, two panes on an iPad size (tester.view.physicalSize), a tap
+   shows the page, back returns to the list on a phone. Run `flutter analyze` and `flutter test`.
+5. Run it on an iPad simulator and an Android tablet or foldable emulator, in both orientations,
+   and on the web at 1280px, and attach screenshots.
+```
+
+</details>
+
+<details>
 <summary>Audit my settings screen against iOS and Android conventions</summary>
 
 ```text
@@ -189,6 +214,7 @@ Agents (and people) can read [`llms.txt`](https://raw.githubusercontent.com/yako
 - [Quick start](#quick-start)
 - [Tile types](#tile-types)
 - [Platform styles](#platform-styles)
+- [Pages and split view](#pages-and-split-view)
 - [Theming](#theming)
 - [Advanced usage](#advanced-usage)
 - [API reference](#api-reference)
@@ -332,6 +358,8 @@ SettingsTile.navigation(
 )
 ```
 
+Or give it a `destination` and the package opens the page for you, with the platform's page header. See [Pages and split view](#pages-and-split-view).
+
 ### `SettingsTile.switchTile`: switch tile
 
 In the iOS style it shows `CupertinoSettingsSwitch`, the iOS 26 switch, in the macOS style `MacosSettingsSwitch`, the System Settings switch, in the Windows style `FluentSettingsSwitch`, the Windows 11 toggle, and in the GNOME style `AdwaitaSettingsSwitch`, the GNOME switch. In the Android style it shows a Material `Switch` with a check or a cross on the thumb, and on the web a Material `Switch`.
@@ -429,6 +457,101 @@ SettingsList(
 - **Web** matches Chrome's settings page: cards with 8px corners and a light shadow, 14px titles, 13px descriptions, a chevron on navigation tiles, and a 680px column on wide windows.
 
 In a browser, the web style is used on every device, phones included. Elsewhere the style follows `Theme.of(context).platform`, so `ThemeData(platform: ...)` changes it too. Platforms that only exist in forks of Flutter, such as OpenHarmony, get the iOS style.
+
+## Pages and split view
+
+### Pages: `SettingsDestination`
+
+Give a navigation tile a `destination` instead of writing `Navigator.push`, a `Scaffold` and an app bar for every sub-page. A tap pushes a platform route (Cupertino on the iOS style, and for now on macOS and Windows; Material otherwise) with the platform's page header: the iOS 26 inline title and round back button, Android's large title that collapses on scroll, or Chrome's page title. `builder` returns only the body:
+
+```dart
+SettingsTile.navigation(
+  leading: const Icon(Icons.wifi),
+  title: const Text('Network & internet'),
+  destination: SettingsDestination(
+    id: 'network',
+    builder: (context) => SettingsList(
+      sections: [ /* ... */ ],
+    ),
+  ),
+)
+```
+
+A `SettingsList` in the page looks like the list that opened it: it takes the `platform`, `brightness`, themes and `applicationType` it doesn't set itself. `onPressed`, if set, runs first. The header title defaults to the tile's; set `title` or `actions` on the destination to change it.
+
+### Split view (iPad, tablets, foldables, desktop, web)
+
+`SettingsSplitView` takes the same sections and shows the list and the selected page side by side when there is room, and the list with pages pushed over it otherwise:
+
+```dart
+SettingsSplitView(
+  title: const Text('Settings'),
+  sections: [
+    SettingsSection(
+      tiles: [
+        SettingsTile.navigation(
+          leading: const Icon(Icons.wifi),
+          title: const Text('Network & internet'),
+          destination: SettingsDestination(
+            id: 'network',
+            builder: (context) => const NetworkSettings(),
+          ),
+        ),
+        SettingsTile.navigation(
+          leading: const Icon(Icons.brightness_medium),
+          title: const Text('Display'),
+          destination: SettingsDestination(
+            id: 'display',
+            builder: (context) => const DisplaySettings(),
+          ),
+        ),
+      ],
+    ),
+  ],
+)
+```
+
+Use it as the whole screen (no app bar above it): it draws both panes' headers, and a back button in the list pane when the screen was pushed.
+
+Each style follows its platform's Settings app:
+
+| Style | Two panes when | List pane | Selected tile |
+|---|---|---|---|
+| iOS | width >= 600 and shortest side >= 600: iPads in both orientations, iPad mini included, not iPhones. Desktop: width only | 320pt sidebar on a tinted background, rows without cards | blue capsule, white text |
+| Android, Fuchsia | width >= 720dp and smallest width >= 600dp (AOSP's rule): tablets and unfolded foldables, not phones in landscape. Desktop: width only | 36.36% of the width on `surfaceDim`, the same cards as the phone. No icons under 380dp | card filled with the page color |
+| Web | width > 980px (Chrome's rule) | Chrome's 266px menu | tinted pill rounded on the end side |
+| macOS, Windows (for now) | as iOS | as iOS, in the style's colors: the System Settings sidebar grey, or the Windows page color | macOS: accent capsule, white text. Windows: neutral grey |
+| Linux (GNOME, for now) | as Android | 36.36% of the width on the GNOME sidebar grey, iPad-style rows without cards | the text color at 10%, like GNOME |
+
+The macOS, Windows and GNOME styles don't have a split view look of their own yet: they take the headers and pane rules of the iOS or Android style. Their pages keep their own look in the detail pane, with their own column and margins; iOS and Android pages fill the pane.
+
+- **Selection.** Two panes open on the first destination (like iPad, Android and Chrome), or on `initialDestinationId`. Set `emptyDetailBuilder` to open on an empty page instead. A tile is highlighted while its page shows.
+- **Pages inside pages.** A tile with a `destination` in a page pushes inside the detail pane, and the list keeps its highlight. Tapping the highlighted tile goes back to its first screen.
+- **Folding and rotating.** Going to one pane keeps a page the user opened on top of the list (and the pages pushed inside it), but drops the page two panes opened by default. Going to two panes shows the page next to the list, or the default page. Pages keep their state through all of this.
+- **Back.** The system back button (and Android predictive back) pops the pages pushed inside the detail pane, then the page over the list in one pane, then leaves the screen. A `PopScope` in a page can veto it.
+- **Hinges.** A hinge, or a fold in the half-opened (book) posture, gets one pane on each side of it. Flat folds are ignored.
+- **Right-to-left.** The list pane goes on the right.
+- **Restoration.** With a `restorationId` (and `restorationScopeId` on the app), the shown page comes back after the app is killed.
+
+Change the layout with `layout` (`SettingsSplitLayout.auto`, `single` or `split`), `breakpoint` (a width that replaces the style's rule) and `listPaneWidth`. Drive it with a `SettingsSplitController`, and keep a URL in sync with `onDestinationChanged`; the package doesn't touch your router:
+
+```dart
+final controller = SettingsSplitController();
+
+SettingsSplitView(
+  controller: controller,
+  onDestinationChanged: (id) => router.go('/settings/${id ?? ''}'),
+  sections: [ /* ... */ ],
+);
+
+// A deep link, before or after the view is built. Also opens in one pane.
+controller.select('display');
+
+// From inside a page:
+SettingsSplitView.of(context).select('network');
+```
+
+The example app's gallery has a "Split view" demo with iPad, Android and Chrome settings trees. Open it directly in any style with `flutter run --route '/split-view?platform=android&theme=dark'` (on the web: `?screen=split-view&platform=macOS`).
 
 ---
 
@@ -554,6 +677,8 @@ SettingsList(
 
 Setting `contentPadding` replaces the default padding altogether, and `crossAxisAlignment` then has no effect.
 
+For a list next to its pages, see [Split view](#split-view-ipad-tablets-foldables-desktop-web).
+
 ### Scroll controller
 
 ```dart
@@ -677,6 +802,7 @@ None of the constructors is `const`.
 | `description` | `Widget?` | all | Secondary text; see [where it shows](#value-description-and-titledescription) |
 | `titleDescription` | `Widget?` | all | Line under the title, iOS, macOS, Windows and GNOME styles only |
 | `onPressed` | `Function(BuildContext)?` | all | Tap callback |
+| `destination` | `SettingsDestination?` | navigation | Page the tile opens, after `onPressed`. See [Pages and split view](#pages-and-split-view) |
 | `enabled` | `bool` | all | `false` greys out the tile and ignores taps. Default `true` |
 | `compact` | `bool` | all | Halves the vertical padding. Default `false` |
 | `initialValue` | `bool?` | switchTile | Current switch state (required) |
@@ -687,6 +813,33 @@ None of the constructors is `const`.
 | `titleDescriptionPadding` | `EdgeInsetsGeometry?` | all | Padding around `titleDescription` (iOS, macOS, Windows and GNOME styles) |
 | `trailingPadding` | `EdgeInsetsGeometry?` | all | Padding around `trailing` (Android and web styles: not on switch tiles) |
 | `descriptionPadding` | `EdgeInsetsGeometry?` | all | Padding around `description` |
+
+### `SettingsDestination`
+
+| Parameter | Type | Description |
+|---|---|---|
+| `id` | `String` | Identifies the page (required). Unique within a `SettingsSplitView`; also the pushed route's name |
+| `builder` | `WidgetBuilder` | Builds the page body, usually a `SettingsList` (required) |
+| `title` | `Widget?` | Header title. Default: the tile's title |
+| `actions` | `List<Widget>?` | Widgets at the end of the header |
+
+### `SettingsSplitView`
+
+Takes `sections`, `platform`, `applicationType`, `brightness`, `lightTheme` and `darkTheme` like `SettingsList`, and:
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `title` | `Widget?` | — | List pane title |
+| `initialDestinationId` | `String?` | first destination | Page two panes show until the user picks one |
+| `emptyDetailBuilder` | `WidgetBuilder?` | — | Detail pane with no page; when set, two panes open empty unless `initialDestinationId` is set |
+| `controller` | `SettingsSplitController?` | — | `select(id)`, `clearSelection()`, `selectedId`, `isSplit`; notifies its listeners |
+| `onDestinationChanged` | `ValueChanged<String?>?` | — | Called after the shown page changes, layout changes included |
+| `layout` | `SettingsSplitLayout` | `auto` | `auto`, `single` or `split` |
+| `breakpoint` | `double?` | style's rule | Width from which `auto` shows two panes |
+| `listPaneWidth` | `double?` | 320 / 36.36% / 266 | List pane width, at most half the view |
+| `restorationId` | `String?` | — | Restores the shown page |
+
+`SettingsSplitView.of(context)` and `maybeOf(context)` return the controller of the view around `context`.
 
 ### `CupertinoSettingsSwitch`
 
@@ -748,6 +901,10 @@ The switch of the GNOME style, drawn in Flutter: a 46x26 track with a round 20px
 | `inactiveTitleColor` | `Color?` | Title and icon color of a disabled tile |
 | `inactiveSubtitleColor` | `Color?` | `description` and `value` color of a disabled tile (Android, Windows, GNOME and web styles) |
 | `inactiveSwitchColor` | `Color?` | Switch color of a disabled tile. Without it, the macOS style draws a paler accent, like System Settings |
+| `selectedTileColor` | `Color?` | Fill of the selected tile in a split view's list pane |
+| `selectedTileTextColor` | `Color?` | Title and value color of the selected tile |
+| `selectedTileIconColor` | `Color?` | Icon and chevron color of the selected tile |
+| `listPaneBackground` | `Color?` | Background of a split view's list pane with two panes |
 
 ---
 

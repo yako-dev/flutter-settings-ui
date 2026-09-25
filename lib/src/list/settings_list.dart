@@ -5,9 +5,10 @@ import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/src/sections/abstract_settings_section.dart';
 import 'package:settings_ui/src/sections/platforms/adwaita_settings_section.dart';
 import 'package:settings_ui/src/sections/settings_section.dart';
+import 'package:settings_ui/src/utils/content_column.dart';
 import 'package:settings_ui/src/utils/platform_utils.dart';
+import 'package:settings_ui/src/utils/settings_style.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
-import 'package:settings_ui/src/utils/theme_provider.dart';
 
 enum ApplicationType {
   /// Use this parameter is you are using the MaterialApp
@@ -94,20 +95,18 @@ class SettingsList extends StatelessWidget {
       return true;
     }());
 
-    DevicePlatform platform;
-    if (this.platform == null || this.platform == DevicePlatform.device) {
-      platform = PlatformUtils.detectPlatform(context);
-    } else {
-      platform = this.platform!;
-    }
-
-    final brightness = calculateBrightness(context);
-
-    final themeData = ThemeProvider.getTheme(
-      context: context,
-      platform: platform,
+    // A list in a page opened from a settings tile takes the style inputs it
+    // leaves unset from the list that opened the page.
+    final config = SettingsStyleConfig(
+      platform: this.platform,
       brightness: brightness,
-    ).merge(theme: brightness == Brightness.dark ? darkTheme : lightTheme);
+      lightTheme: lightTheme,
+      darkTheme: darkTheme,
+      applicationType: applicationType,
+    ).inheritFrom(SettingsStyleScope.inheritedConfigOf(context));
+    final style = config.resolve(context);
+    final platform = style.platform;
+    final themeData = style.themeData;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -124,24 +123,53 @@ class SettingsList extends StatelessWidget {
           alignment: crossAxisAlignment == CrossAxisAlignment.start
               ? AlignmentDirectional.topStart
               : Alignment.center,
-          child: SettingsTheme(
-            themeData: themeData,
-            platform: platform,
-            child: ListView.builder(
-              controller: scrollController,
-              physics: physics,
-              shrinkWrap: shrinkWrap,
-              itemCount: sections.length,
-              padding:
-                  contentPadding ??
-                  calculateDefaultPadding(platform, context, width: width),
-              itemBuilder: (BuildContext context, int index) {
-                return sections[index];
-              },
+          child: SettingsStyleScope(
+            config: style.resolvedConfig,
+            child: SettingsTheme(
+              themeData: themeData,
+              platform: platform,
+              child: ListView.builder(
+                controller: scrollController,
+                physics: physics,
+                shrinkWrap: shrinkWrap,
+                itemCount: sections.length,
+                padding:
+                    contentPadding ?? _defaultPadding(context, platform, width),
+                itemBuilder: (BuildContext context, int index) {
+                  return sections[index];
+                },
+              ),
             ),
           ),
         );
       },
+    );
+  }
+
+  /// [calculateDefaultPadding], adjusted for a split view's detail pane
+  /// (see [SettingsContentColumnHint]).
+  EdgeInsets _defaultPadding(
+    BuildContext context,
+    DevicePlatform platform,
+    double width,
+  ) {
+    final hint = SettingsContentColumnHint.of(context, width);
+    if (hint != null && hint.fillWidth) {
+      // A page in the detail pane of iPad or Android Settings fills the
+      // pane: no spare width to turn into side padding.
+      return calculateDefaultPadding(platform, context, width: 0);
+    }
+    final reserve = hint?.endReserve ?? 0;
+    final padding = calculateDefaultPadding(
+      platform,
+      context,
+      width: width - reserve,
+    );
+    if (reserve == 0) return padding;
+    final isRtl = Directionality.maybeOf(context) == TextDirection.rtl;
+    return padding.copyWith(
+      left: isRtl ? padding.left + reserve : null,
+      right: isRtl ? null : padding.right + reserve,
     );
   }
 
@@ -252,29 +280,9 @@ class SettingsList extends StatelessWidget {
   }
 
   Brightness calculateBrightness(BuildContext context) {
-    final brightness = this.brightness;
-    if (brightness != null) return brightness;
-
-    final materialBrightness = Theme.of(context).brightness;
-    final cupertinoBrightness =
-        CupertinoTheme.of(context).brightness ??
-        MediaQuery.of(context).platformBrightness;
-
-    switch (applicationType) {
-      case ApplicationType.material:
-        return materialBrightness;
-      case ApplicationType.cupertino:
-        return cupertinoBrightness;
-      case ApplicationType.both:
-        // Decide by the platform the app runs on, which picks the app widget,
-        // not by the tile style set in [platform]. Inside a MaterialApp the
-        // CupertinoTheme follows the Material theme, so the Cupertino
-        // brightness is also right for a MaterialApp on iOS or macOS.
-        final hostPlatform = PlatformUtils.detectPlatform(context);
-        return hostPlatform == DevicePlatform.iOS ||
-                hostPlatform == DevicePlatform.macOS
-            ? cupertinoBrightness
-            : materialBrightness;
-    }
+    return SettingsStyleConfig(
+      brightness: brightness,
+      applicationType: applicationType,
+    ).resolveBrightness(context);
   }
 }

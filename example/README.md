@@ -18,15 +18,22 @@ samples, guidance on mobile development, and a full API reference.
 ## Opening a screen directly
 
 Screenshot scripts can skip the gallery, pick a style and force light or dark
-mode (see `lib/utils/launch_options.dart`):
+mode with four options (see `lib/utils/launch_options.dart`): `screen`,
+`platform`, `page` and `theme`. Each is read from the first of these that sets
+it:
 
-- Web: `?screen=macos&theme=dark`, `?platform=linux`
-- Other platforms: `flutter run --dart-define=SCREEN=macos --dart-define=THEME=dark`
-  (and `--dart-define=PLATFORM=linux`)
+- The web page's query: `/?screen=split-view&platform=macOS&theme=dark`
+- The initial route, whose path is the screen:
+  `flutter run --route '/split-view?platform=windows&page=display'`, or
+  `/#/split-view?platform=windows` on the web
+- `--dart-define`s: `flutter run --dart-define=SCREEN=macos --dart-define=THEME=dark`
+  (and `PLATFORM`, `PAGE`)
 
-`screen` is one of the keys of `launchScreens` in `lib/main.dart`: `macos`,
-`gnome-power`, `windows-display`, `ios-developer`, `ios-native`,
-`android-settings`, `android-native`, `android-notifications`, `web-chrome`,
-`web-chrome-addresses`, `material3` or `cross-platform`. `platform` is a
-`DevicePlatform` name and sets the style of the gallery and the cross-platform
-screen. `theme` is `light` or `dark`; without it the app follows the system.
+`screen` is one of the keys of `launchScreens` in `lib/main.dart`:
+`split-view`, `macos`, `gnome-power`, `windows-display`, `ios-developer`,
+`ios-native`, `android-settings`, `android-native`, `android-notifications`,
+`web-chrome`, `web-chrome-addresses`, `material3` or `cross-platform`.
+`platform` is a `DevicePlatform` name in any case (`ios`, `macOS`, `linux`...)
+and sets the style of the gallery, the cross-platform screen and the split
+view. `page` is the split view page to open (e.g. `display`). `theme` is
+`light` or `dark`; without it the app follows the system.

@@ -11,3 +11,6 @@ export 'package:settings_ui/src/tiles/platforms/adwaita_settings_switch.dart';
 export 'package:settings_ui/src/tiles/platforms/cupertino_settings_switch.dart';
 export 'package:settings_ui/src/tiles/platforms/fluent_settings_switch.dart';
 export 'package:settings_ui/src/tiles/platforms/macos_settings_switch.dart';
+export 'package:settings_ui/src/split/settings_destination.dart';
+export 'package:settings_ui/src/split/settings_split_view.dart'
+    show SettingsSplitView, SettingsSplitController, SettingsSplitLayout;
