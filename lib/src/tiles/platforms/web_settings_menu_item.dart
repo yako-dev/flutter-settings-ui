@@ -56,7 +56,12 @@ class WebSettingsMenuItem extends StatelessWidget {
         : theme.leadingIconsColor;
 
     final isSwitch = tileType == SettingsTileType.switchTile;
-    final VoidCallback? onTap = isSwitch
+    // A disabled item takes no focus, keys or taps (the IgnorePointer below
+    // only blocks new pointers).
+    final onChanged = enabled ? onToggle : null;
+    final VoidCallback? onTap = !enabled
+        ? null
+        : isSwitch
         ? (onToggle == null ? null : () => onToggle!(!initialValue))
         : (onPressed == null ? null : () => onPressed!(context));
 
@@ -140,7 +145,7 @@ class WebSettingsMenuItem extends StatelessWidget {
                           child: FittedBox(
                             child: Switch(
                               value: initialValue,
-                              onChanged: onToggle,
+                              onChanged: onChanged,
                               activeThumbColor: activeSwitchColor,
                             ),
                           ),

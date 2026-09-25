@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/settings_ui.dart';
@@ -60,6 +62,28 @@ class IOSSettingsTile extends StatefulWidget {
 
 class IOSSettingsTileState extends State<IOSSettingsTile> {
   bool isPressed = false;
+
+  /// Clears the pressed tint shortly after a tap.
+  Timer? _releaseTimer;
+
+  /// Only an enabled row with `onPressed` reacts to taps, and only then does
+  /// it expose a tap action to screen readers.
+  bool get _canPress => widget.enabled && widget.onPressed != null;
+
+  @override
+  void didUpdateWidget(IOSSettingsTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!_canPress) {
+      _releaseTimer?.cancel();
+      isPressed = false;
+    }
+  }
+
+  @override
+  void dispose() {
+    _releaseTimer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -199,7 +223,8 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
             ).copyWith(brightness: SettingsStyleScope.brightnessOf(context)),
             child: CupertinoSettingsSwitch(
               value: widget.initialValue ?? true,
-              onChanged: widget.onToggle,
+              // A disabled tile's switch takes no focus, keys or taps.
+              onChanged: widget.enabled ? widget.onToggle : null,
               activeTrackColor: widget.enabled
                   ? widget.activeSwitchColor
                   : (theme.themeData.inactiveSwitchColor ??
@@ -226,7 +251,9 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
   }
 
   void changePressState({bool isPressed = false}) {
-    if (mounted) {
+    // A tap recognizer that is dropped mid-press (the tile was disabled)
+    // cancels during the build. didUpdateWidget has cleared the tint by then.
+    if (mounted && this.isPressed != isPressed) {
       setState(() {
         this.isPressed = isPressed;
       });
@@ -273,26 +300,28 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
         ? (themeData.selectedTileIconColor ?? themeData.leadingIconsColor)
         : themeData.leadingIconsColor;
 
+    // Without callbacks the detector has no tap recognizer, so a row that
+    // does nothing exposes no tap action, and a press that started before
+    // the tile was disabled does not fire.
+    final canPress = _canPress;
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
-      onTap: widget.onPressed == null
-          ? null
-          : () {
+      onTap: canPress
+          ? () {
               changePressState(isPressed: true);
 
               widget.onPressed!.call(context);
 
-              Future.delayed(
+              _releaseTimer?.cancel();
+              _releaseTimer = Timer(
                 const Duration(milliseconds: 100),
                 () => changePressState(isPressed: false),
               );
-            },
-      onTapDown: (_) =>
-          widget.onPressed == null ? null : changePressState(isPressed: true),
-      onTapUp: (_) =>
-          widget.onPressed == null ? null : changePressState(isPressed: false),
-      onTapCancel: () =>
-          widget.onPressed == null ? null : changePressState(isPressed: false),
+            }
+          : null,
+      onTapDown: canPress ? (_) => changePressState(isPressed: true) : null,
+      onTapUp: canPress ? (_) => changePressState(isPressed: false) : null,
+      onTapCancel: canPress ? () => changePressState(isPressed: false) : null,
       child: Container(
         color: background,
         // iPad sidebar: icon 14pt into the row, label 8.5pt after a 28pt

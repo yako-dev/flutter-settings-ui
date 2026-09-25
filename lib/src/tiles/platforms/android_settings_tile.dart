@@ -78,9 +78,14 @@ class AndroidSettingsTile extends StatelessWidget {
         ? (themeData.selectedTileIconColor ?? themeData.leadingIconsColor)
         : themeData.leadingIconsColor;
 
-    final cantShowAnimation = tileType == SettingsTileType.switchTile
-        ? onToggle == null && onPressed == null
-        : onPressed == null;
+    // A disabled tile takes no focus, keys or taps (the IgnorePointer below
+    // only blocks new pointers).
+    final cantShowAnimation =
+        !enabled ||
+        (tileType == SettingsTileType.switchTile
+            ? onToggle == null && onPressed == null
+            : onPressed == null);
+    final onChanged = enabled ? onToggle : null;
 
     return IgnorePointer(
       ignoring: !enabled,
@@ -171,7 +176,7 @@ class AndroidSettingsTile extends StatelessWidget {
                       padding: const EdgeInsetsDirectional.only(end: 12),
                       child: Switch(
                         value: initialValue,
-                        onChanged: onToggle,
+                        onChanged: onChanged,
                         thumbIcon: _thumbIcon,
                         activeThumbColor: enabled
                             ? activeSwitchColor
@@ -186,7 +191,7 @@ class AndroidSettingsTile extends StatelessWidget {
                   padding: const EdgeInsetsDirectional.only(start: 16, end: 12),
                   child: Switch(
                     value: initialValue,
-                    onChanged: onToggle,
+                    onChanged: onChanged,
                     thumbIcon: _thumbIcon,
                     activeThumbColor: enabled
                         ? activeSwitchColor

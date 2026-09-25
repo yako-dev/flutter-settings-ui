@@ -48,9 +48,14 @@ class WebSettingsTile extends StatelessWidget {
     final theme = SettingsTheme.of(context);
     final textScaler = MediaQuery.textScalerOf(context);
 
-    final cantShowAnimation = tileType == SettingsTileType.switchTile
-        ? onToggle == null && onPressed == null
-        : onPressed == null;
+    // A disabled tile takes no focus, keys or taps (the IgnorePointer below
+    // only blocks new pointers).
+    final cantShowAnimation =
+        !enabled ||
+        (tileType == SettingsTileType.switchTile
+            ? onToggle == null && onPressed == null
+            : onPressed == null);
+    final onChanged = enabled ? onToggle : null;
 
     return IgnorePointer(
       ignoring: !enabled,
@@ -179,7 +184,7 @@ class WebSettingsTile extends StatelessWidget {
                               : (theme.themeData.inactiveSwitchColor ??
                                     theme.themeData.inactiveTitleColor),
                           value: initialValue,
-                          onChanged: onToggle,
+                          onChanged: onChanged,
                         ),
                       ),
                     ],
@@ -196,7 +201,7 @@ class WebSettingsTile extends StatelessWidget {
                           ? (theme.themeData.inactiveSwitchColor ??
                                 theme.themeData.inactiveTitleColor)
                           : activeSwitchColor,
-                      onChanged: onToggle,
+                      onChanged: onChanged,
                     ),
                   )
                 else if (trailing != null)
