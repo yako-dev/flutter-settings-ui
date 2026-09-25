@@ -825,6 +825,64 @@ void splitViewRegressionTests() {
       expect(find.text('Account v1'), findsNothing);
     });
 
+    for (final (platform, size) in [
+      (DevicePlatform.macOS, const Size(1280, 800)),
+      (DevicePlatform.iOS, const Size(402, 874)),
+    ]) {
+      testWidgets('$platform: clearSelection closes the page of a removed '
+          'custom-section tile', (tester) async {
+        // Tiles in custom sections can't be read ahead, so their pages stay
+        // when they go away: the app clears the selection (documented).
+        final show = ValueNotifier<bool>(true);
+        addTearDown(show.dispose);
+        final controller = SettingsSplitController();
+        addTearDown(controller.dispose);
+        await _setSize(tester, size);
+        await tester.pumpWidget(
+          _app(
+            ValueListenableBuilder<bool>(
+              valueListenable: show,
+              builder: (context, value, _) => SettingsSplitView(
+                platform: platform,
+                controller: controller,
+                sections: [
+                  SettingsSection(
+                    tiles: [(_sections().first as SettingsSection).tiles.first],
+                  ),
+                  if (value)
+                    CustomSettingsSection(
+                      child: SettingsTile.navigation(
+                        title: const Text('Account'),
+                        destination: SettingsDestination(
+                          id: 'account',
+                          builder: (_) => const Center(child: Text('Account')),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            platform: _targetOf(platform),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(_inList(find.text('Account')));
+        await tester.pumpAndSettle();
+        expect(controller.selectedId, 'account');
+
+        show.value = false;
+        await tester.pumpAndSettle();
+        expect(controller.selectedId, 'account');
+        controller.clearSelection();
+        await tester.pumpAndSettle();
+        expect(controller.selectedId, controller.isSplit ? 'network' : null);
+
+        show.value = true;
+        await tester.pumpAndSettle();
+        expect(controller.selectedId, controller.isSplit ? 'network' : null);
+      });
+    }
+
     testWidgets('a page opened from a custom section is restored', (
       tester,
     ) async {

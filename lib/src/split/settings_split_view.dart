@@ -80,6 +80,14 @@ part 'settings_split_controller.dart';
 /// the view either way). Menus and bottom sheets opened from the list work
 /// the same way.
 ///
+/// When the tile of the page the user picked goes away (a conditional page
+/// such as Developer options), the page closes: two panes go back to the
+/// [initialDestinationId] page, one pane to the list, and the page doesn't
+/// come back by itself with its tile. The view reads the tiles of each
+/// [SettingsSection] ahead; a tile inside a [CustomSettingsSection] is only
+/// known once it has built, so its page stays open when it goes away. Call
+/// [SettingsSplitController.clearSelection] when you remove such a tile.
+///
 /// ```dart
 /// SettingsSplitView(
 ///   title: const Text('Settings'),
