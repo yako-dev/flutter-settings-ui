@@ -2,6 +2,7 @@ import 'dart:ui' show Tristate;
 
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/gestures.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -1380,5 +1381,289 @@ void splitViewRegressionTests() {
         expect(_controllerOf(tester).selectedId, 'row0');
       });
     }
+  });
+  group('Windows pane and page header', () {
+    /// The 3px accent pill of the pane item [title], in global coordinates,
+    /// as painted now.
+    Rect? pill(WidgetTester tester, String title) {
+      final item = find.ancestor(
+        of: _inList(find.text(title)),
+        matching: find.byType(FluentNavigationItem),
+      );
+      for (final element
+          in find
+              .descendant(of: item, matching: find.byType(CustomPaint))
+              .evaluate()) {
+        final box = element.renderObject! as RenderCustomPaint;
+        if (box.foregroundPainter?.runtimeType.toString() != '_PillPainter') {
+          continue;
+        }
+        Rect? local;
+        expect(
+          box,
+          paints..something((method, args) {
+            if (method == #drawRRect && (args[0] as RRect).width < 4) {
+              local = (args[0] as RRect).outerRect;
+              return true;
+            }
+            return false;
+          }),
+        );
+        return local!.shift(box.localToGlobal(Offset.zero));
+      }
+      return null;
+    }
+
+    testWidgets('after one pane, the pill slides from the selected item', (
+      tester,
+    ) async {
+      await _setSize(tester, const Size(1280, 800));
+      await tester.pumpWidget(
+        _app(
+          SettingsSplitView(
+            platform: DevicePlatform.windows,
+            sections: _sections(),
+          ),
+          platform: TargetPlatform.windows,
+        ),
+      );
+      await tester.pumpAndSettle();
+      // Network is selected; pick Display in one pane, then widen again.
+      await _setSize(tester, const Size(500, 800));
+      await tester.pumpAndSettle();
+      await tester.tap(_inList(find.text('Display')));
+      await tester.pumpAndSettle();
+      await _setSize(tester, const Size(1280, 800));
+      await tester.pumpAndSettle();
+      final display = pill(tester, 'Display')!;
+
+      await tester.tap(_inList(find.text('Sound')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 30));
+      // Going down, the trailing (top) edge still sits where it starts.
+      expect(pill(tester, 'Sound')!.top, closeTo(display.top, 1));
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('compact rail: the menu button stays in the rail with a '
+        'side inset', (tester) async {
+      tester.view.physicalSize = const Size(952, 427);
+      tester.view.devicePixelRatio = 1;
+      // A display cutout in landscape.
+      tester.view.padding = const FakeViewPadding(left: 52);
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        _app(
+          SettingsSplitView(
+            platform: DevicePlatform.windows,
+            sections: _sections(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final menu = find.bySemanticsLabel('Open navigation menu');
+      final icon = tester.getRect(_inList(find.byIcon(Icons.wifi)));
+      expect(tester.getCenter(menu).dx, closeTo(icon.center.dx, 0.5));
+      expect(menu.hitTestable(), findsOneWidget);
+      await tester.tap(menu);
+      await tester.pumpAndSettle();
+      expect(_inList(find.text('Network')), findsOneWidget);
+    });
+
+    testWidgets('one pane at 2x text on a phone: a one-line title', (
+      tester,
+    ) async {
+      const long =
+          'Bluetooth and other devices, printers, scanners and accessories';
+      await _setSize(tester, const Size(360, 700));
+      await tester.pumpWidget(
+        _app(
+          SettingsSplitView(
+            platform: DevicePlatform.windows,
+            title: const Text(long),
+            sections: [
+              SettingsSection(
+                tiles: [
+                  SettingsTile.navigation(
+                    leading: const Icon(Icons.bluetooth),
+                    title: const Text('Devices'),
+                    destination: SettingsDestination(
+                      id: 'devices',
+                      title: const Text(long),
+                      builder: (_) => const Center(child: Text('Devices body')),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          platform: TargetPlatform.windows,
+          textScale: 2,
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      // 36 at 1x: one line.
+      expect(tester.getSize(find.text(long)).height, 72);
+
+      await tester.tap(find.text('Devices'));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      expect(find.text('Devices body'), findsOneWidget);
+    });
+
+    group('breadcrumb', () {
+      // Titles sized for the test font, where every letter is as wide as
+      // the font size: 84, 196 and 224 wide in the 28px Title, and 43 for
+      // each chevron.
+      SettingsSplitView view({TextDirection? direction}) => SettingsSplitView(
+        platform: DevicePlatform.windows,
+        sections: [
+          SettingsSection(
+            tiles: [
+              SettingsTile.navigation(
+                leading: const Icon(Icons.computer),
+                title: const Text('Sys'),
+                destination: SettingsDestination(
+                  id: 'sys',
+                  builder: (_) => SettingsList(
+                    sections: [
+                      SettingsSection(
+                        tiles: [
+                          SettingsTile.navigation(
+                            title: const Text('Display'),
+                            destination: SettingsDestination(
+                              id: 'display',
+                              builder: (_) => SettingsList(
+                                sections: [
+                                  SettingsSection(
+                                    tiles: [
+                                      SettingsTile.navigation(
+                                        title: const Text('Advanced'),
+                                        destination: SettingsDestination(
+                                          id: 'advanced',
+                                          builder: (_) => const Center(
+                                            child: Text('Advanced body'),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      );
+
+      Finder inHeader(Finder finder) => find.descendant(
+        of: find.byType(FluentPageHeader).last,
+        matching: finder,
+      );
+
+      Future<void> openAdvanced(WidgetTester tester) async {
+        await tester.tap(_inList(find.text('Sys')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Display'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Advanced'));
+        await tester.pumpAndSettle();
+        expect(find.text('Advanced body'), findsOneWidget);
+      }
+
+      testWidgets('all the crumbs when they fit', (tester) async {
+        await _setSize(tester, const Size(1280, 800));
+        await tester.pumpWidget(_app(view(), platform: TargetPlatform.windows));
+        await tester.pumpAndSettle();
+        await openAdvanced(tester);
+        expect(inHeader(find.text('…')).hitTestable(), findsNothing);
+        final sys = tester.getRect(inHeader(find.text('Sys')));
+        final display = tester.getRect(inHeader(find.text('Display')));
+        final title = tester.getRect(inHeader(find.text('Advanced')));
+        expect(sys.left, 300 + 24);
+        expect(display.left, sys.right + 43);
+        expect(title.left, display.right + 43);
+        expect(title.height, 36);
+      });
+
+      testWidgets('the first crumbs collapse into "…", on one line', (
+        tester,
+      ) async {
+        final handle = tester.ensureSemantics();
+        await _setSize(tester, const Size(600, 800));
+        await tester.pumpWidget(_app(view(), platform: TargetPlatform.windows));
+        await tester.pumpAndSettle();
+        await openAdvanced(tester);
+        expect(tester.takeException(), isNull);
+
+        final ellipsis = inHeader(find.text('…'));
+        expect(ellipsis.hitTestable(), findsOneWidget);
+        expect(inHeader(find.text('Sys')).hitTestable(), findsNothing);
+        expect(inHeader(find.text('Display')).hitTestable(), findsOneWidget);
+        final title = tester.getRect(inHeader(find.text('Advanced')));
+        expect(title.height, 36);
+        expect(tester.getRect(ellipsis).left, 16);
+        expect(tester.getRect(ellipsis).top, title.top);
+        // Screen readers hear the collapsed page, not the hidden crumb.
+        expect(find.bySemanticsLabel('Sys'), findsOneWidget);
+        expect(tester.getSemantics(ellipsis).getSemanticsData().label, 'Sys');
+
+        // Tab reaches the "…" crumb, but not the collapsed one.
+        final focused = <String>[];
+        for (var i = 0; i < 6; i++) {
+          await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+          await tester.pump();
+          final context = FocusManager.instance.primaryFocus?.context;
+          final texts = context == null
+              ? const <Text>[]
+              : find
+                    .descendant(
+                      of: find.byElementPredicate((e) => e == context),
+                      matching: find.byType(Text),
+                    )
+                    .evaluate()
+                    .map((e) => e.widget as Text);
+          focused.addAll(texts.map((text) => text.data ?? ''));
+        }
+        expect(focused, contains('…'));
+        expect(focused, isNot(contains('Sys')));
+
+        // "…" goes back to the last collapsed page.
+        await tester.tap(ellipsis);
+        await tester.pumpAndSettle();
+        expect(find.text('Advanced body'), findsNothing);
+        expect(find.text('Display'), findsOneWidget);
+        expect(inHeader(find.text('…')).hitTestable(), findsNothing);
+        handle.dispose();
+      });
+
+      testWidgets('right to left', (tester) async {
+        await _setSize(tester, const Size(600, 800));
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: ThemeData(platform: TargetPlatform.windows),
+            builder: (context, child) =>
+                Directionality(textDirection: TextDirection.rtl, child: child!),
+            home: view(),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await openAdvanced(tester);
+        final ellipsis = tester.getRect(inHeader(find.text('…')));
+        final display = tester.getRect(inHeader(find.text('Display')));
+        final title = tester.getRect(inHeader(find.text('Advanced')));
+        expect(ellipsis.right, 600 - 16);
+        expect(display.right, lessThan(ellipsis.left));
+        expect(title.right, lessThan(display.left));
+      });
+    });
   });
 }

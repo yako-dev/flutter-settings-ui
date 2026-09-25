@@ -1005,20 +1005,15 @@ void desktopSplitViewTests() {
       expect(tester.getSize(back), const Size(40, 36));
       await tester.tap(find.text('Text size'));
       await tester.pumpAndSettle();
-      // The nested page has the breadcrumb instead.
-      expect(
-        find.descendant(
-          of: find.byType(FluentPageHeader).last,
-          matching: find.text('Display & brightness'),
-        ),
-        findsOneWidget,
+      // The nested page has the breadcrumb instead. In the test font the
+      // parent's crumb doesn't fit next to the title at this width, so it
+      // collapses into "…", which goes back to it too.
+      final ellipsis = find.descendant(
+        of: find.byType(FluentPageHeader).last,
+        matching: find.text('…'),
       );
-      await tester.tap(
-        find.descendant(
-          of: find.byType(FluentPageHeader).last,
-          matching: find.text('Display & brightness'),
-        ),
-      );
+      expect(ellipsis.hitTestable(), findsOneWidget);
+      await tester.tap(ellipsis);
       await tester.pumpAndSettle();
       await tester.tap(find.byType(FluentSubtleButton));
       await tester.pumpAndSettle();

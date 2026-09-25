@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/src/split/settings_page_header.dart';
@@ -301,7 +302,9 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
       if (id != null) _indicator?.unregister(id, this);
       _indicator = indicator;
       if (id != null) indicator?.register(id, this);
-      if (widget.selected && id != null) indicator?.shownId ??= id;
+      // A newly built selected item is where the pill is: after one pane
+      // (cards, no items) the indicator's last item is stale.
+      if (widget.selected && id != null) indicator?.shownId = id;
     }
   }
 
@@ -915,7 +918,12 @@ class FluentPaneHeader extends StatelessWidget {
         ),
       );
     }
+    // Only the top inset: the pane's items don't move away from a side
+    // inset (a display cutout in landscape) either, and the 48 wide rail
+    // has no room for one, which would push the buttons out of it.
     return SafeArea(
+      left: false,
+      right: false,
       bottom: false,
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -1142,23 +1150,11 @@ class FluentPageHeader extends StatelessWidget {
                 Expanded(
                   child: Semantics(
                     header: true,
-                    child: Wrap(
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        for (final parent in parents) ...[
-                          _Crumb(
-                            entry: parent,
-                            color: secondary,
-                            hoverColor: primary,
-                          ),
-                          _BreadcrumbChevron(color: secondary),
-                        ],
-                        if (title != null)
-                          DefaultTextStyle(
-                            style: kFluentTitleStyle.copyWith(color: primary),
-                            child: title,
-                          ),
-                      ],
+                    child: _FluentBreadcrumb(
+                      parents: parents,
+                      title: title,
+                      primary: primary,
+                      secondary: secondary,
                     ),
                   ),
                 ),
@@ -1173,6 +1169,320 @@ class FluentPageHeader extends StatelessWidget {
   }
 }
 
+/// The page title of a Windows page on one line: the crumbs of the pages
+/// above it, then its title, like WinUI's `BreadcrumbBar` in Windows
+/// Settings. When they don't fit, the crumbs nearest the start collapse
+/// into a "…" crumb (which goes back to the last collapsed page), and a
+/// title too long for the line ends in an ellipsis.
+class _FluentBreadcrumb extends StatefulWidget {
+  const _FluentBreadcrumb({
+    required this.parents,
+    required this.title,
+    required this.primary,
+    required this.secondary,
+  });
+
+  final List<SettingsPageTrailEntry> parents;
+  final Widget? title;
+  final Color primary;
+  final Color secondary;
+
+  @override
+  State<_FluentBreadcrumb> createState() => _FluentBreadcrumbState();
+}
+
+class _FluentBreadcrumbState extends State<_FluentBreadcrumb> {
+  /// How many crumbs (from the first) the last layout collapsed. Only for
+  /// the keyboard focus and the "…" crumb's target: the layout decides.
+  int _collapsed = 0;
+
+  void _handleCollapsed(int count) {
+    if (count == _collapsed) return;
+    // Called during layout.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && count != _collapsed) setState(() => _collapsed = count);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final parents = widget.parents;
+    final title = widget.title;
+    final collapsed = math.min(_collapsed, parents.length);
+    Widget line(Widget child, Color color) => DefaultTextStyle(
+      style: kFluentTitleStyle.copyWith(color: color),
+      maxLines: 1,
+      softWrap: false,
+      overflow: TextOverflow.ellipsis,
+      child: child,
+    );
+    final titleWidget = title == null
+        ? const SizedBox.shrink()
+        : line(title, widget.primary);
+    if (parents.isEmpty) return titleWidget;
+
+    final last = parents[math.max(0, collapsed - 1)];
+    final lastTitle = last.title;
+    return _BreadcrumbLayout(
+      crumbCount: parents.length,
+      textDirection: Directionality.of(context),
+      onCollapsed: _handleCollapsed,
+      children: [
+        ExcludeFocus(
+          excluding: collapsed == 0,
+          child: _Crumb(
+            entry: last,
+            color: widget.secondary,
+            hoverColor: widget.primary,
+            label: Text(
+              '…',
+              semanticsLabel: lastTitle is Text ? lastTitle.data : null,
+            ),
+          ),
+        ),
+        _BreadcrumbChevron(color: widget.secondary),
+        for (final (index, parent) in parents.indexed) ...[
+          ExcludeFocus(
+            excluding: index < collapsed,
+            child: _Crumb(
+              entry: parent,
+              color: widget.secondary,
+              hoverColor: widget.primary,
+            ),
+          ),
+          _BreadcrumbChevron(color: widget.secondary),
+        ],
+        titleWidget,
+      ],
+    );
+  }
+}
+
+/// Lays out the "…" crumb and its chevron, [crumbCount] crumbs with their
+/// chevrons, and the title (in that order) on one line; see
+/// [_FluentBreadcrumb].
+class _BreadcrumbLayout extends MultiChildRenderObjectWidget {
+  const _BreadcrumbLayout({
+    required this.crumbCount,
+    required this.textDirection,
+    required this.onCollapsed,
+    required super.children,
+  });
+
+  final int crumbCount;
+  final TextDirection textDirection;
+  final ValueChanged<int> onCollapsed;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) =>
+      _RenderBreadcrumb(crumbCount, textDirection, onCollapsed);
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    _RenderBreadcrumb renderObject,
+  ) {
+    renderObject
+      ..crumbCount = crumbCount
+      ..textDirection = textDirection
+      ..onCollapsed = onCollapsed;
+  }
+}
+
+class _BreadcrumbParentData extends ContainerBoxParentData<RenderBox> {
+  bool shown = true;
+}
+
+class _RenderBreadcrumb extends RenderBox
+    with
+        ContainerRenderObjectMixin<RenderBox, _BreadcrumbParentData>,
+        RenderBoxContainerDefaultsMixin<RenderBox, _BreadcrumbParentData> {
+  _RenderBreadcrumb(this._crumbCount, this._textDirection, this.onCollapsed);
+
+  int get crumbCount => _crumbCount;
+  int _crumbCount;
+  set crumbCount(int value) {
+    if (value == _crumbCount) return;
+    _crumbCount = value;
+    markNeedsLayout();
+  }
+
+  TextDirection get textDirection => _textDirection;
+  TextDirection _textDirection;
+  set textDirection(TextDirection value) {
+    if (value == _textDirection) return;
+    _textDirection = value;
+    markNeedsLayout();
+  }
+
+  ValueChanged<int> onCollapsed;
+
+  @override
+  void setupParentData(RenderBox child) {
+    if (child.parentData is! _BreadcrumbParentData) {
+      child.parentData = _BreadcrumbParentData();
+    }
+  }
+
+  /// How many crumbs collapse into the "…" crumb, from the natural widths
+  /// of the children, when the line is [maxWidth] wide; and the width the
+  /// title gets.
+  (int, double) _fit(List<double> widths, double maxWidth) {
+    final count = crumbCount;
+    final title = widths.last;
+    double pair(int index) => widths[2 + 2 * index] + widths[3 + 2 * index];
+    var crumbs = 0.0;
+    for (var i = 0; i < count; i++) {
+      crumbs += pair(i);
+    }
+    if (!maxWidth.isFinite || crumbs + title <= maxWidth) return (0, title);
+    // The title stays whole when it leaves room for the "…" crumb; the
+    // crumbs nearest it show while they fit.
+    final ellipsis = widths[0] + widths[1];
+    final titleWidth = math.min(title, math.max(0.0, maxWidth - ellipsis));
+    var room = maxWidth - ellipsis - titleWidth;
+    var collapsed = count;
+    for (var i = count - 1; i >= 0 && pair(i) <= room; i--) {
+      room -= pair(i);
+      collapsed = i;
+    }
+    // Everything that fits (a collapse of 0 would have fit whole).
+    return (math.max(1, collapsed), titleWidth);
+  }
+
+  bool get _valid => childCount == 2 * crumbCount + 3;
+
+  @override
+  void performLayout() {
+    final children = getChildrenAsList();
+    final loose = BoxConstraints(maxHeight: constraints.maxHeight);
+    for (final child in children) {
+      child.layout(loose, parentUsesSize: true);
+    }
+    if (!_valid) {
+      size = constraints.constrain(Size.zero);
+      return;
+    }
+    final maxWidth = constraints.maxWidth;
+    final (collapsed, titleWidth) = _fit([
+      for (final child in children) child.size.width,
+    ], maxWidth);
+    onCollapsed(collapsed);
+    final title = children.last;
+    if (title.size.width > titleWidth) {
+      title.layout(loose.copyWith(maxWidth: titleWidth), parentUsesSize: true);
+    }
+
+    bool isShown(int index) {
+      if (index == children.length - 1) return true;
+      if (index < 2) return collapsed > 0;
+      return (index - 2) ~/ 2 >= collapsed;
+    }
+
+    var height = 0.0;
+    var width = 0.0;
+    for (final (index, child) in children.indexed) {
+      final shown = isShown(index);
+      (child.parentData! as _BreadcrumbParentData).shown = shown;
+      if (!shown) continue;
+      height = math.max(height, child.size.height);
+      width += child.size.width;
+    }
+    size = constraints.constrain(Size(width, height));
+    var x = 0.0;
+    for (final child in children) {
+      final data = child.parentData! as _BreadcrumbParentData;
+      if (!data.shown) {
+        data.offset = Offset.zero;
+        continue;
+      }
+      final dx = textDirection == TextDirection.rtl
+          ? size.width - x - child.size.width
+          : x;
+      data.offset = Offset(dx, (size.height - child.size.height) / 2);
+      x += child.size.width;
+    }
+  }
+
+  @override
+  Size computeDryLayout(covariant BoxConstraints constraints) {
+    final loose = BoxConstraints(maxHeight: constraints.maxHeight);
+    final sizes = [
+      for (final child in getChildrenAsList()) child.getDryLayout(loose),
+    ];
+    if (!_valid) return constraints.constrain(Size.zero);
+    final (collapsed, titleWidth) = _fit([
+      for (final size in sizes) size.width,
+    ], constraints.maxWidth);
+    var width = titleWidth;
+    var height = sizes.last.height;
+    for (var i = 0; i < sizes.length - 1; i++) {
+      final shown = i < 2 ? collapsed > 0 : (i - 2) ~/ 2 >= collapsed;
+      if (!shown) continue;
+      width += sizes[i].width;
+      height = math.max(height, sizes[i].height);
+    }
+    return constraints.constrain(Size(width, height));
+  }
+
+  @override
+  double computeMinIntrinsicWidth(double height) => 0;
+
+  @override
+  double computeMaxIntrinsicWidth(double height) {
+    var width = 0.0;
+    for (final (index, child) in getChildrenAsList().indexed) {
+      if (index < 2) continue;
+      width += child.getMaxIntrinsicWidth(height);
+    }
+    return width;
+  }
+
+  @override
+  double computeMinIntrinsicHeight(double width) =>
+      computeMaxIntrinsicHeight(width);
+
+  @override
+  double computeMaxIntrinsicHeight(double width) {
+    var height = 0.0;
+    for (final child in getChildrenAsList()) {
+      height = math.max(height, child.getMaxIntrinsicHeight(double.infinity));
+    }
+    return height;
+  }
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    for (final child in getChildrenAsList()) {
+      final data = child.parentData! as _BreadcrumbParentData;
+      if (data.shown) context.paintChild(child, offset + data.offset);
+    }
+  }
+
+  @override
+  bool hitTestChildren(BoxHitTestResult result, {required Offset position}) {
+    for (final child in getChildrenAsList().reversed) {
+      final data = child.parentData! as _BreadcrumbParentData;
+      if (!data.shown) continue;
+      final hit = result.addWithPaintOffset(
+        offset: data.offset,
+        position: position,
+        hitTest: (result, transformed) =>
+            child.hitTest(result, position: transformed),
+      );
+      if (hit) return true;
+    }
+    return false;
+  }
+
+  @override
+  void visitChildrenForSemantics(RenderObjectVisitor visitor) {
+    for (final child in getChildrenAsList()) {
+      if ((child.parentData! as _BreadcrumbParentData).shown) visitor(child);
+    }
+  }
+}
+
 /// A parent page in the breadcrumb: secondary text that turns primary on
 /// hover and goes back to its page when clicked.
 class _Crumb extends StatefulWidget {
@@ -1180,11 +1490,15 @@ class _Crumb extends StatefulWidget {
     required this.entry,
     required this.color,
     required this.hoverColor,
+    this.label,
   });
 
   final SettingsPageTrailEntry entry;
   final Color color;
   final Color hoverColor;
+
+  /// Shown instead of the page's title (the "…" crumb).
+  final Widget? label;
 
   @override
   State<_Crumb> createState() => _CrumbState();
@@ -1202,7 +1516,10 @@ class _CrumbState extends State<_Crumb> {
       style: kFluentTitleStyle.copyWith(
         color: _hovered || _focusHighlight ? widget.hoverColor : widget.color,
       ),
-      child: widget.entry.title,
+      maxLines: 1,
+      softWrap: false,
+      overflow: TextOverflow.ellipsis,
+      child: widget.label ?? widget.entry.title,
     );
     if (_focusHighlight) {
       crumb = CustomPaint(
