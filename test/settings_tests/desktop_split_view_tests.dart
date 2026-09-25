@@ -1292,6 +1292,75 @@ void desktopSplitViewTests() {
       });
     }
 
+    for (final platform in [
+      DevicePlatform.macOS,
+      DevicePlatform.windows,
+      DevicePlatform.linux,
+    ]) {
+      for (final direction in TextDirection.values) {
+        testWidgets(
+          '$platform ${direction.name}: Tab starts in the list pane, then '
+          'the page',
+          (tester) async {
+            await _setSize(tester, const Size(1280, 800));
+            SettingsTile row(String name) => SettingsTile.navigation(
+              title: Text('Row $name'),
+              destination: SettingsDestination(
+                id: name,
+                builder: (context) => SettingsList(
+                  sections: [
+                    SettingsSection(
+                      tiles: [
+                        SettingsTile(
+                          title: Text('Body $name'),
+                          onPressed: (_) {},
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+            await tester.pumpWidget(
+              _app(
+                SettingsSplitView(
+                  platform: platform,
+                  title: const Text('Settings'),
+                  sections: [
+                    SettingsSection(tiles: [row('A'), row('B')]),
+                  ],
+                ),
+                platform: _targetOf(platform),
+                textDirection: direction,
+              ),
+            );
+            await tester.pumpAndSettle();
+
+            String? focusedText() {
+              final context = FocusManager.instance.primaryFocus?.context;
+              if (context == null) return null;
+              final texts = find
+                  .descendant(
+                    of: find.byElementPredicate((e) => e == context),
+                    matching: find.byType(Text),
+                  )
+                  .evaluate()
+                  .map((e) => (e.widget as Text).data);
+              return texts.isEmpty ? null : texts.first;
+            }
+
+            final order = <String?>[];
+            for (var i = 0; i < 4; i++) {
+              await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+              await tester.pump();
+              order.add(focusedText());
+            }
+            expect(order, ['Row A', 'Row B', 'Body A', 'Row A']);
+          },
+        );
+      }
+    }
+
     testWidgets('macOS: the focus ring follows the selection shape', (
       tester,
     ) async {

@@ -604,6 +604,12 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
     );
   }
 
+  /// Whether [node] is the focus node of one of the view's navigators,
+  /// which holds the focus until something in a pane takes it.
+  bool _isNavigatorFocus(FocusNode node) =>
+      node == _detailKey.currentState?.focusNode ||
+      node == _stackKey.currentState?.focusNode;
+
   /// Gives the keyboard focus to the first (or last) control of the list
   /// pane. Returns whether there was one.
   bool _focusListPane({required bool first}) {
@@ -695,6 +701,18 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
       );
     }
 
+    // Tab visits the list pane, then the page, whatever the reading order
+    // of their contents says: the page's first control can sit above the
+    // first row, under a taller pane header.
+    listPane = FocusTraversalOrder(
+      order: const NumericFocusOrder(0),
+      child: listPane,
+    );
+    final orderedDetailPane = FocusTraversalOrder(
+      order: const NumericFocusOrder(1),
+      child: detailPane,
+    );
+
     final background =
         theme.listPaneBackground ??
         theme.settingsListBackground ??
@@ -705,30 +723,37 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
         widget.listPaneWidth ?? kFluentOverlayPaneWidth,
         geometry.listWidth + geometry.detailWidth,
       );
-      return ColoredBox(
-        color: background,
-        child: FluentCompactPaneLayout(
-          open: _fluentPaneOpen,
-          railWidth: geometry.listWidth,
-          openWidth: openWidth,
-          onDismiss: _closeFluentPane,
-          pane: listPane,
-          detail: detailPane,
+      return _orderedPanes(
+        ColoredBox(
+          color: background,
+          child: FluentCompactPaneLayout(
+            open: _fluentPaneOpen,
+            railWidth: geometry.listWidth,
+            openWidth: openWidth,
+            onDismiss: _closeFluentPane,
+            pane: listPane,
+            detail: orderedDetailPane,
+          ),
         ),
       );
     }
 
-    return ColoredBox(
-      color: background,
-      child: Row(
-        children: [
-          SizedBox(width: geometry.listWidth, child: listPane),
-          if (geometry.gap > 0) SizedBox(width: geometry.gap),
-          Expanded(child: detailPane),
-        ],
+    return _orderedPanes(
+      ColoredBox(
+        color: background,
+        child: Row(
+          children: [
+            SizedBox(width: geometry.listWidth, child: listPane),
+            if (geometry.gap > 0) SizedBox(width: geometry.gap),
+            Expanded(child: orderedDetailPane),
+          ],
+        ),
       ),
     );
   }
+
+  static Widget _orderedPanes(Widget child) =>
+      FocusTraversalGroup(policy: OrderedTraversalPolicy(), child: child);
 
   void _toggleFluentPane() =>
       setState(() => _fluentPaneOpen = !_fluentPaneOpen);
@@ -1139,6 +1164,14 @@ class _PaneFocusAction<T extends Intent> extends Action<T> {
   Object? invoke(T intent) {
     final node = FocusManager.instance.primaryFocus;
     if (node == null) return null;
+    // Nothing is focused yet: the detail navigator took the focus when it
+    // was built (navigators autofocus). Start in the list pane, like the
+    // platforms' settings apps, not after the navigator in the page.
+    if (forward &&
+        view._isNavigatorFocus(node) &&
+        view._focusListPane(first: true)) {
+      return null;
+    }
     final moved = forward ? node.nextFocus() : node.previousFocus();
     if (!moved) view._focusListPane(first: forward);
     return null;
