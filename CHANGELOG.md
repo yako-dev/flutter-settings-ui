@@ -29,6 +29,7 @@
 * Android and web: disabled switches use `SettingsThemeData.inactiveSwitchColor` with or without a `trailing` widget, and a web switch next to a `trailing` widget no longer has a hard-coded blue active color (#188)
 
 ### New features
+* `SettingsThemeData.selectedTileColor`, `selectedTileTextColor`, `selectedTileIconColor` and `listPaneBackground` for the split view
 * Debug builds print a one-time warning when `SettingsList` finds no `material_ui` or `cupertino_ui` theme above it
 
 ### Documentation

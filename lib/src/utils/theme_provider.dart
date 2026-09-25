@@ -3,6 +3,13 @@ import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/src/utils/platform_utils.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 
+// iPadOS 27 Settings, measured in the simulator: the sidebar's tint and the
+// filled capsule of the selected row.
+const _iPadSidebarBackgroundLight = Color(0xFFE2E6F0);
+const _iPadSidebarBackgroundDark = Color(0xFF181D20);
+const _iPadSelectedTileColorLight = Color(0xFF0080F5);
+const _iPadSelectedTileColorDark = Color(0xFF13A4FF);
+
 class ThemeProvider {
   static SettingsThemeData getTheme({
     required BuildContext context,
@@ -66,6 +73,13 @@ class ThemeProvider {
       leadingIconsColor: leadingIconsColor,
       inactiveTitleColor: inactiveTitleColor,
       inactiveSubtitleColor: inactiveSubtitleColor,
+      // AOSP two-pane Settings: the homepage cards sit on surface dim, and
+      // the selected card takes the detail pane's color (the page
+      // background), so it looks joined to the page next to it.
+      listPaneBackground: colorScheme.surfaceDim,
+      selectedTileColor: listBackground,
+      selectedTileTextColor: settingsTileTextColor,
+      selectedTileIconColor: leadingIconsColor,
     );
   }
 
@@ -126,6 +140,14 @@ class ThemeProvider {
           : darkLeadingIconsColor,
       inactiveTitleColor: CupertinoColors.inactiveGray,
       inactiveSubtitleColor: CupertinoColors.inactiveGray,
+      listPaneBackground: isLight
+          ? _iPadSidebarBackgroundLight
+          : _iPadSidebarBackgroundDark,
+      selectedTileColor: isLight
+          ? _iPadSelectedTileColorLight
+          : _iPadSelectedTileColorDark,
+      selectedTileTextColor: CupertinoColors.white,
+      selectedTileIconColor: CupertinoColors.white,
     );
   }
 
@@ -162,6 +184,21 @@ class ThemeProvider {
       leadingIconsColor: leadingIconsColor,
       inactiveTitleColor: inactiveTitleColor,
       inactiveSubtitleColor: inactiveSubtitleColor,
+      // Chrome's settings menu: a light tint of the accent with accent text
+      // (#E8F0FE / #1967D2), and the light accent with dark text in dark
+      // mode (#8AB4F8 / #202124).
+      selectedTileColor: isLight
+          ? Color.alphaBlend(
+              colorScheme.primary.withValues(alpha: 0.1),
+              listBackground,
+            )
+          : colorScheme.primary,
+      selectedTileTextColor: isLight
+          ? colorScheme.primary
+          : colorScheme.onPrimary,
+      selectedTileIconColor: isLight
+          ? colorScheme.primary
+          : colorScheme.onPrimary,
     );
   }
 }

@@ -39,6 +39,10 @@ class SettingsThemeData {
     this.titleTextStyle,
     this.tileTextStyle,
     this.tileDescriptionTextStyle,
+    this.selectedTileColor,
+    this.selectedTileTextColor,
+    this.selectedTileIconColor,
+    this.listPaneBackground,
   });
 
   final Color? settingsListBackground;
@@ -67,6 +71,22 @@ class SettingsThemeData {
   /// Override the text style for tile descriptions/values.
   final TextStyle? tileDescriptionTextStyle;
 
+  /// Fill of the selected tile in the list pane of a [SettingsSplitView]:
+  /// the tile whose page shows in the detail pane.
+  final Color? selectedTileColor;
+
+  /// Title and value color of the selected tile in a [SettingsSplitView].
+  final Color? selectedTileTextColor;
+
+  /// Leading icon and chevron color of the selected tile in a
+  /// [SettingsSplitView].
+  final Color? selectedTileIconColor;
+
+  /// Background of a [SettingsSplitView]'s list pane when it shows two panes:
+  /// the tinted iPad sidebar, the surface-dim Android homepage. Defaults to
+  /// [settingsListBackground] on the web.
+  final Color? listPaneBackground;
+
   SettingsThemeData merge({SettingsThemeData? theme}) {
     if (theme == null) return this;
 
@@ -86,6 +106,10 @@ class SettingsThemeData {
       titleTextStyle: theme.titleTextStyle,
       tileTextStyle: theme.tileTextStyle,
       tileDescriptionTextStyle: theme.tileDescriptionTextStyle,
+      selectedTileColor: theme.selectedTileColor,
+      selectedTileTextColor: theme.selectedTileTextColor,
+      selectedTileIconColor: theme.selectedTileIconColor,
+      listPaneBackground: theme.listPaneBackground,
     );
   }
 
@@ -105,6 +129,10 @@ class SettingsThemeData {
     TextStyle? titleTextStyle,
     TextStyle? tileTextStyle,
     TextStyle? tileDescriptionTextStyle,
+    Color? selectedTileColor,
+    Color? selectedTileTextColor,
+    Color? selectedTileIconColor,
+    Color? listPaneBackground,
   }) {
     return SettingsThemeData(
       settingsListBackground:
@@ -128,6 +156,12 @@ class SettingsThemeData {
       tileTextStyle: tileTextStyle ?? this.tileTextStyle,
       tileDescriptionTextStyle:
           tileDescriptionTextStyle ?? this.tileDescriptionTextStyle,
+      selectedTileColor: selectedTileColor ?? this.selectedTileColor,
+      selectedTileTextColor:
+          selectedTileTextColor ?? this.selectedTileTextColor,
+      selectedTileIconColor:
+          selectedTileIconColor ?? this.selectedTileIconColor,
+      listPaneBackground: listPaneBackground ?? this.listPaneBackground,
     );
   }
 }
