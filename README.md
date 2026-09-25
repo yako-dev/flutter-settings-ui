@@ -4,17 +4,32 @@
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-android%20%7C%20ios%20%7C%20macos%20%7C%20windows%20%7C%20linux%20%7C%20web-lightgrey)](https://pub.dev/packages/settings_ui)
 
-A Flutter package for building settings screens that look native on **iOS**, **macOS**, **Android**, **Windows**, **Linux (GNOME)** and the **web**, from a single API. The style is picked at runtime: iOS 26-style grouped cards on iOS, macOS 26 System Settings-style forms on macOS, Windows 11-style cards on Windows, Android 16-style cards on Android and Fuchsia, GNOME-style boxed lists on Linux, and Chrome-style cards on the web.
-
 <p align="center">
-  <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master/assets/v2/settings_ui_cover.png" height="560px">
+  <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master/assets/v4/header-mobile.png" alt="settings_ui on Android and iPhone, and a split view on an iPad" width="100%">
+</p>
+<p align="center">
+  <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master/assets/v4/header-desktop.png" alt="settings_ui on macOS, Windows, Linux and the web" width="100%">
 </p>
 
----
+## Add it with your coding agent
 
-## Build it with an AI agent
+Paste this into Claude Code, Codex, Cursor or another coding agent, from your app's root folder. The agent reads the package's recipe in [`llms.txt`](https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master/llms.txt), looks at your app, asks before big changes, and builds a settings screen wired to real, saved state.
 
-A coding agent such as Claude Code, Codex or Cursor can build your settings screen with this package. Paste the prompt below into the agent from your app's root folder. It looks at your app first, asks before big changes, and connects every row to real, saved state.
+```text
+Add a settings screen to this Flutter app with the settings_ui package.
+Read the section "Recipe: build a settings screen for an app" in
+https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master/llms.txt
+and follow it step by step. If you can't open the link, tell me.
+
+Always:
+- Pick the version by the app's imports: package:material_ui or package:cupertino_ui
+  -> settings_ui: ^4.0.0; package:flutter/material.dart -> settings_ui: ^3.0.1.
+- Show me your plan and wait for my OK before adding dependencies or screens.
+- Never invent URLs or email addresses (privacy policy, terms, support). Ask me.
+```
+
+<details>
+<summary>Full prompt (if your agent can't open links)</summary>
 
 ```text
 Build a store-ready Settings screen for this Flutter app with the settings_ui package.
@@ -25,20 +40,25 @@ platform differences and mistakes to avoid). If you can't fetch it, read the pac
 1. Inspect the app before changing anything, and tell me what you found:
    - Flutter version and UI imports. package:material_ui / package:cupertino_ui -> settings_ui: ^4.0.0.
      package:flutter/material.dart -> settings_ui: ^3.0.1. Don't migrate the app unless I ask.
+   - The platforms it ships (ios/, android/, macos/, windows/, linux/, web/), and tablet support.
    - State management, persistence (shared_preferences, Hive, secure storage...), localization,
      routing, and whether the app supports light/dark/system theme modes.
    - Existing preferences and feature flags, sign-up/sign-in, in-app purchases, permissions in
      ios/Runner/Info.plist and android/app/src/main/AndroidManifest.xml, and any existing settings UI.
 2. Propose grouped sections that follow Apple HIG and Material conventions (for example: account,
    appearance, notifications, privacy, support, about; destructive actions last). For each row give
-   the tile type, the state behind it and where it is stored. Wait for my OK before adding
+   the tile type, the state behind it and where it is stored. If the app runs on tablets, desktop or
+   the web, propose SettingsSplitView (list and page side by side). Wait for my OK before adding
    dependencies, adding screens or moving existing code.
 3. Build it with settings_ui, following the app's existing patterns:
-   - SettingsTile.switchTile for on/off, SettingsTile.navigation for rows that open a screen or
+   - SettingsTile.switchTile for on/off, SettingsTile.navigation for rows that open a page or
      picker, plain SettingsTile for values and actions (no chevron). Section titles in sentence case.
+   - Settings sub-pages: `destination: SettingsDestination(id: ..., builder: ...)` on the navigation
+     tile. The builder returns only the body; the package draws the header and back button.
    - Wire every row to real state that survives a restart. No placeholder rows, empty handlers or
      TODOs. Permission rows show the real OS status and open system settings when denied.
-   - Use the app's localization for strings and its router for sub-screens. Leave `platform` unset.
+   - Use the app's localization for strings and its router for other screens. Leave `platform`
+     unset, so iOS, Android, macOS, Windows, Linux and the web each get their own style.
 4. Add these rows when they apply. Ask me for URLs and emails; never invent them.
    - Version and build number (package_info_plus). Open-source licenses (showLicensePage).
    - Privacy policy, terms of use and contact support (url_launcher).
@@ -46,223 +66,37 @@ platform differences and mistakes to avoid). If you can't fetch it, read the pac
    - Sign out and Delete account, if users can create accounts. Deletion starts in the app, asks for
      confirmation and calls the real backend (App Store Review Guideline 5.1.1(v); Google Play has a
      similar rule).
-5. Add widget tests: the screen renders in iOS and Android style (TargetPlatformVariant), every
-   toggle persists, and links and actions fire.
+5. Add widget tests: the screen renders in the style of every platform the app ships
+   (TargetPlatformVariant), every toggle persists, links and actions fire, and a split view shows
+   one pane at 402x874 and two at 1210x834 (tester.view.physicalSize).
 6. Run `flutter analyze` and `flutter test`. Then run the app on an iOS simulator and an Android
-   emulator, in light and dark mode (`xcrun simctl ui booted appearance dark`,
-   `adb shell cmd uimode night yes`), and screenshot the settings screen each time
-   (`xcrun simctl io booted screenshot`, `adb exec-out screencap -p`). Fix anything clipped,
-   misaligned or hard to read. If you can't launch a device, tell me what to run.
+   emulator, plus iPad, desktop or web if the app ships there, in light and dark mode
+   (`xcrun simctl ui booted appearance dark`, `adb shell cmd uimode night yes`), and screenshot
+   the settings screen each time (`xcrun simctl io booted screenshot`,
+   `adb exec-out screencap -p`). Fix anything clipped, misaligned or hard to read. If you can't
+   launch a device, tell me what to run.
 7. Summarize: files changed, dependencies added, each row with its state and storage key, tests
    added, screenshot paths, and anything I still need to provide.
 ```
 
-### Smaller tasks
-
-<details>
-<summary>Upgrade settings_ui 3.x to 4.0 (move the app to material_ui / cupertino_ui)</summary>
-
-```text
-Upgrade this Flutter app from settings_ui 3.x to 4.0.0. Reference:
-https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master/llms.txt
-
-1. Check `flutter --version`. 4.0.0 needs Flutter 3.44+ and Dart 3.12+. If the app can't move to
-   that, stop and tell me: staying on settings_ui ^3.0.1 is fine.
-2. Move the app off package:flutter/material.dart and package:flutter/cupertino.dart:
-   - Run the import migration from the material_ui README
-     (`dart fix --apply --code=migrate_design_widgets`). If your SDK doesn't have it, change the
-     imports by hand. Cover lib/, test/ and integration_test/.
-   - Add material_ui and cupertino_ui to pubspec.yaml if the fix didn't.
-   - If the app uses GlobalMaterialLocalizations or GlobalCupertinoLocalizations from
-     flutter_localizations, switch to the versions in material_ui and cupertino_ui.
-   - List dependencies that still import package:flutter/material.dart. Wrap only their widgets in
-     MaterialUiCompatibilityBridge or CupertinoUiCompatibilityBridge, and tell me which ones.
-3. Set `settings_ui: ^4.0.0` and run `flutter pub get`. The settings_ui API didn't change, so don't
-   rewrite settings screens. Only:
-   - In tests, look for CupertinoSettingsSwitch instead of CupertinoSwitch on iOS switch tiles,
-     MacosSettingsSwitch on macOS, FluentSettingsSwitch on Windows and AdwaitaSettingsSwitch (not
-     Switch) on Linux.
-   - Change ALL-CAPS section titles to sentence case; the iOS style now uses iOS 26 headers.
-   - Remove 3.x workarounds that 4.0 makes unnecessary, such as a `trailing: Text(...)` added
-     because iOS simple tiles didn't show `value`.
-4. Verify: `flutter analyze` and `flutter test` pass. Run the app in debug and confirm the log never
-   prints "settings_ui: SettingsList found no Theme". If it does, that screen still sits under a
-   flutter/material app or theme. Screenshot every settings screen on iOS and Android, in light
-   and dark mode, and check that colors and dark mode follow the app theme and that custom
-   margins, paddings and SettingsThemeData overrides still look right with the new sizes.
-5. Summarize: SDK constraint changes, files touched, bridged dependencies, and any visual
-   differences from before.
-```
-
 </details>
 
-<details>
-<summary>Replace my hand-built settings screen with settings_ui</summary>
-
-```text
-Replace my hand-built settings screen with settings_ui. Reference:
-https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master/llms.txt
-
-1. Find the current settings screen(s). List every row: label, control, the state it reads and
-   writes, its storage key, and side effects (navigation, dialogs, permission prompts, analytics).
-2. Pick the version from the app's imports: package:material_ui / package:cupertino_ui -> ^4.0.0,
-   package:flutter/material.dart -> ^3.0.1.
-3. Map each row: on/off -> SettingsTile.switchTile; opens a screen or picker ->
-   SettingsTile.navigation with the current choice as `value`; shows a value or runs an action ->
-   SettingsTile; anything else -> CustomSettingsTile. Group rows into SettingsSections.
-   Show me the mapping before editing.
-4. Rebuild the screen with SettingsList. Keep the same state, storage keys, callbacks, routes and
-   strings: no saved value may be lost and nothing may stop working. Keep the app bar.
-5. Delete old widgets and helpers that nothing uses anymore.
-6. Make sure tests still cover every original row, updating finders for the new widgets. Run
-   `flutter analyze` and `flutter test`.
-7. Screenshot old and new on iOS and Android, in light and dark mode. List every visible or
-   behavioral difference, and anything you couldn't map.
-```
-
-</details>
-
-<details>
-<summary>Add one new setting end to end (UI, storage and test)</summary>
-
-```text
-Add this setting to my settings_ui screen, end to end:
-[NAME, TYPE AND DEFAULT, e.g. "Autoplay videos: on/off, default on"]
-Reference: https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master/llms.txt
-
-1. Find the settings screen, how existing settings are stored and read (state management and
-   persistence), and how strings are localized. Follow those patterns exactly.
-2. Choose the tile: on/off -> SettingsTile.switchTile; one of several options ->
-   SettingsTile.navigation that shows the current choice as `value` and opens a picker;
-   read-only value or action -> SettingsTile. Put it in the section where users would look.
-3. Add the storage key with its default, the state that exposes it, and the row. Changing it must
-   update the UI right away and survive an app restart.
-4. Make the app honor the setting wherever it applies, and tell me where you wired it.
-5. Add the strings for every language the app ships.
-6. Tests: the default value, a change persists, the behavior it controls changes, and the row
-   renders in iOS and Android style (TargetPlatformVariant). Run `flutter analyze` and
-   `flutter test`.
-7. Summarize: files changed, storage key and default, and where the setting is read.
-```
-
-</details>
-
-<details>
-<summary>Show my settings as a split view on tablets, foldables, desktop and the web</summary>
-
-```text
-Make my settings_ui screen show the list and the selected page side by side on iPad, Android
-tablets and foldables, desktop and the web, and keep the phone layout as it is. Reference:
-https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master/llms.txt (SettingsSplitView)
-
-1. Find the settings screen and its sub-screens. List which rows open a sub-screen and how (routes,
-   router, Navigator.push), and tell me before changing the app's routing.
-2. Replace the screen with SettingsSplitView (same sections, `title: Text('Settings')`, no app bar
-   above it). Give every row that opens a settings sub-screen a
-   `destination: SettingsDestination(id: ..., builder: ...)`, where the builder returns the
-   sub-screen's body without its Scaffold and app bar. Keep rows that open pickers, dialogs or
-   other parts of the app as they are.
-3. If the app has URLs for settings pages, keep them in sync with `onDestinationChanged` and open
-   deep links with a SettingsSplitController (`controller.select(id)`).
-4. Tests: one pane on a phone size, two panes on an iPad size (tester.view.physicalSize), a tap
-   shows the page, back returns to the list on a phone. Run `flutter analyze` and `flutter test`.
-5. Run it on an iPad simulator and an Android tablet or foldable emulator, in both orientations,
-   and on the web at 1280px, and attach screenshots.
-```
-
-</details>
-
-<details>
-<summary>Audit my settings screen against iOS and Android conventions</summary>
-
-```text
-Audit my settings screen(s) against Apple HIG and Material Design conventions. Report only; don't
-change code until I pick what to fix. Reference:
-https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master/llms.txt
-
-For each finding give file:line, why it matters, and a fix. Check:
-- Tile types: chevrons (SettingsTile.navigation) only on rows that open another screen; values and
-  actions use SettingsTile; on/off uses switchTile; no switch that runs a one-off action.
-- Dead rows: no handler, a handler that does nothing, toggles that don't persist or don't change
-  the app, hardcoded values.
-- Structure: related rows grouped, short section titles in sentence case, destructive rows (sign
-  out, delete account) last, in red, behind a confirmation.
-- Store basics: version and build, open-source licenses, privacy policy, terms, support contact,
-  restore purchases (if the app has in-app purchases), in-app account deletion if users can
-  create accounts (App Store Review Guideline 5.1.1(v)). Check that every link opens.
-- Permissions: rows show the real OS status and link to system settings when denied.
-- Platform fit: `platform` left on auto-detect unless intended; the settings_ui version matches
-  the app's imports (4.x needs material_ui / cupertino_ui, otherwise ^3.0.1); dark mode renders
-  correctly; no hardcoded colors; no tile relies on text that one platform hides (see llms.txt).
-- Accessibility and localization: all strings localized, the largest text size doesn't clip,
-  right-to-left works, icon-only controls have semantics labels.
-- Tests: does anything cover this screen?
-Run the app on iOS and Android, in light and dark mode and at the largest text size, and attach
-screenshots. End with a prioritized list: blocks store review / should fix / nice to have.
-```
-
-</details>
-
-Agents (and people) can read [`llms.txt`](https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master/llms.txt): a short API reference with the platform differences and the mistakes to avoid.
+More prompts, to upgrade from 3.x, replace a hand-built settings screen, add one setting end to end, add a split view, or audit a screen: see [agent prompts](https://github.com/yako-dev/flutter-settings-ui/blob/master/doc/agent-prompts.md).
 
 ---
 
-## Contents
+## One API, every platform
 
-- [Build it with an AI agent](#build-it-with-an-ai-agent)
-- [Installing](#installing)
-- [Quick start](#quick-start)
-- [Tile types](#tile-types)
-- [Platform styles](#platform-styles)
-- [Pages and split view](#pages-and-split-view)
-- [Theming](#theming)
-- [Advanced usage](#advanced-usage)
-- [API reference](#api-reference)
+`settings_ui` draws iOS 26 and Android 16 settings on phones, macOS System Settings, Windows 11 and GNOME on the desktop, and Chrome's settings page on the web, and picks the style at runtime. Version 4.0.0 adds a split view for iPad, tablets, foldables, desktop and the web, and its own switches for iOS 26 (Liquid Glass), macOS, Windows 11 and GNOME. It is built on `material_ui` and `cupertino_ui` and needs Flutter 3.44+. See the [changelog](https://pub.dev/packages/settings_ui/changelog).
 
----
-
-## Installing
-
-Add to your `pubspec.yaml`:
+## Install
 
 ```yaml
 dependencies:
   settings_ui: ^4.0.0
 ```
 
-Then import:
-
-```dart
-import 'package:settings_ui/settings_ui.dart';
-```
-
-### Requirements
-
-Version 4 needs **Flutter 3.44+** (Dart 3.12+) and an app built on the
-[`material_ui`](https://pub.dev/packages/material_ui) and
-[`cupertino_ui`](https://pub.dev/packages/cupertino_ui) packages:
-
-```dart
-import 'package:material_ui/material_ui.dart'; // not package:flutter/material.dart
-import 'package:cupertino_ui/cupertino_ui.dart'; // not package:flutter/cupertino.dart
-```
-
-settings_ui depends on both packages, but if your code imports them, add them to your own
-`pubspec.yaml` as well (`flutter pub add material_ui cupertino_ui`), or the
-`depend_on_referenced_packages` lint fails.
-
-`SettingsList` reads colors, dark mode and platform from the `Theme` and
-`CupertinoTheme` of those packages. In an app still built on
-`package:flutter/material.dart` it can't see your theme, so it falls back to
-default colors and light mode (a debug build prints a warning). If your app
-hasn't switched yet, stay on version 3:
-
-```yaml
-dependencies:
-  settings_ui: ^3.0.1
-```
-
----
+Version 4 needs Flutter 3.44+ and an app built on [`material_ui`](https://pub.dev/packages/material_ui) and [`cupertino_ui`](https://pub.dev/packages/cupertino_ui) (`import 'package:material_ui/material_ui.dart'`, not `package:flutter/material.dart`). If your code imports them, add them to your own `pubspec.yaml` too: `flutter pub add material_ui cupertino_ui`. Apps still on `package:flutter/material.dart` stay on `settings_ui: ^3.0.1`, or see [Migrating from 3.x](#migrating-from-3x).
 
 ## Quick start
 
@@ -278,8 +112,7 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  bool _notificationsEnabled = true;
-  bool _darkMode = false;
+  bool _notifications = true; // load from and save to your store
 
   @override
   Widget build(BuildContext context) {
@@ -294,26 +127,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 leading: const Icon(Icons.language),
                 title: const Text('Language'),
                 value: const Text('English'),
-                onPressed: (context) { /* navigate */ },
-              ),
-            ],
-          ),
-          SettingsSection(
-            title: const Text('Appearance'),
-            tiles: [
-              SettingsTile.switchTile(
-                leading: const Icon(Icons.dark_mode),
-                title: const Text('Dark mode'),
-                initialValue: _darkMode,
-                onToggle: (value) => setState(() => _darkMode = value),
+                onPressed: (context) {/* open a language picker */},
               ),
               SettingsTile.switchTile(
                 leading: const Icon(Icons.notifications),
                 title: const Text('Notifications'),
-                description: const Text('Alerts, sounds, badges'),
-                initialValue: _notificationsEnabled,
-                onToggle: (value) =>
-                    setState(() => _notificationsEnabled = value),
+                initialValue: _notifications,
+                onToggle: (value) => setState(() => _notifications = value),
+              ),
+            ],
+          ),
+          SettingsSection(
+            title: const Text('About'),
+            tiles: [
+              SettingsTile(
+                title: const Text('Version'),
+                value: const Text('1.4.0 (57)'),
+              ),
+              SettingsTile.navigation(
+                title: const Text('Open-source licenses'),
+                onPressed: (context) => showLicensePage(context: context),
               ),
             ],
           ),
@@ -324,181 +157,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
 }
 ```
 
-Section titles are plain widgets. Write them in sentence case ("Appearance"), as iOS 26 and Android 16 do.
+- `SettingsTile.switchTile` for on/off. It is controlled: `initialValue` is the current value and `onToggle` gets the new one. Screen readers announce the switch with the tile's title.
+- `SettingsTile.navigation` for rows that open a page or a picker. It shows a chevron in the iOS, macOS, Windows and web styles.
+- `SettingsTile` for a value or an action, with no chevron.
+- `CustomSettingsTile` and `CustomSettingsSection` for any other widget. Write section titles in sentence case.
+- `enabled: false` greys out any tile, and it ignores taps and the keyboard.
 
----
+## Split view
 
-## Tile types
-
-### `SettingsTile`: basic tile
-
-A tappable tile with an optional leading icon, value, description and trailing widget. It never shows a chevron, so use it to show a value or run an action (version number, sign out).
-
-```dart
-SettingsTile(
-  leading: const Icon(Icons.storage),
-  title: const Text('Storage'),
-  value: const Text('5.60 GB free'),
-  onPressed: (context) { /* ... */ },
-)
-```
-
-### `SettingsTile.navigation`: navigation tile
-
-For rows that open another screen or a picker. In the iOS, macOS, Windows and web styles it adds a chevron after the value, and in the GNOME style GNOME's `go-next` arrow (they point left in right-to-left layouts). The Android style shows no chevron, like Android's own settings.
-
-```dart
-SettingsTile.navigation(
-  leading: const Icon(Icons.language),
-  title: const Text('Language'),
-  value: const Text('English'),
-  onPressed: (context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const LanguageScreen()),
-    );
-  },
-)
-```
-
-Or give it a `destination` and the package opens the page for you, with the platform's page header. See [Pages and split view](#pages-and-split-view).
-
-### `SettingsTile.switchTile`: switch tile
-
-In the iOS style it shows `CupertinoSettingsSwitch`, the iOS 26 switch, in the macOS style `MacosSettingsSwitch`, the System Settings switch, in the Windows style `FluentSettingsSwitch`, the Windows 11 toggle, and in the GNOME style `AdwaitaSettingsSwitch`, the GNOME switch. In the Android style it shows a Material `Switch` with a check or a cross on the thumb, and on the web a Material `Switch`.
-
-```dart
-SettingsTile.switchTile(
-  leading: const Icon(Icons.fingerprint),
-  title: const Text('Use biometrics'),
-  description: const Text('Unlock with fingerprint or Face ID'),
-  initialValue: _biometricsEnabled,
-  onToggle: (value) => setState(() => _biometricsEnabled = value),
-)
-```
-
-The tile is controlled: `initialValue` is the current value, and `onToggle` gets the new one. Passing `onToggle: null` disables the switch.
-
-Tapping the row works like each platform's settings app. In the Android, GNOME and web styles, tapping anywhere on the row toggles the switch, and `onPressed` isn't called. In the iOS, macOS and Windows styles only the switch itself toggles; tapping the rest of the row calls `onPressed`, if you set one.
-
-Screen readers read each tile as its own item, a tile with `onPressed` as a button, and section titles as headings. A switch tile is one item, "Title, switch, on". Where the row also has `onPressed` (iOS, macOS and Windows styles), the row and its switch are two items, both named by the title.
-
-Windows Settings writes "On" or "Off" before every switch. The package doesn't add that text, because it would be English only. For the Windows look, pass your own localized label as `trailing`; the Windows style puts it just before the switch. `trailing` shows in every style, so add it only on Windows:
-
-```dart
-SettingsTile.switchTile(
-  title: const Text('Night light'),
-  trailing: Theme.of(context).platform == TargetPlatform.windows
-      ? Text(_nightLight ? 'On' : 'Off') // use your app's localized strings
-      : null,
-  initialValue: _nightLight,
-  onToggle: (value) => setState(() => _nightLight = value),
-)
-```
-
-### `value`, `description` and `titleDescription`
-
-The same tile shows its secondary text in different places, following each platform:
-
-| Parameter | iOS and macOS styles | Windows style | Android and web styles | GNOME style |
-|---|---|---|---|---|
-| `value` | Grey text at the end of the row, one line, at most half the row | Grey text at the end of the row, one line, at most half the row | Second line under the title | Dimmed text at the end of the row, one line, at most half the row |
-| `description` | Footer text under the card; the tiles after it start a new card | Grey second line inside the card | Second line under the title, only when `value` is not set | Second line under the title |
-| `titleDescription` | Second line inside the row, under the title | Grey line under the title, above `description` | Not shown | Second line under the title, above `description` |
-
-So on Android and the web, a tile with both `value` and `description` shows only `value`. `value` exists on `SettingsTile` and `SettingsTile.navigation`; `description` and `titleDescription` exist on all three constructors.
-
-### `CustomSettingsTile`: any widget as a tile
-
-```dart
-CustomSettingsTile(
-  child: Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-    child: LinearProgressIndicator(value: 0.3),
-  ),
-)
-```
-
-### `CustomSettingsSection`: any widget as a section
-
-```dart
-CustomSettingsSection(
-  child: Padding(
-    padding: const EdgeInsets.all(16),
-    child: Text(
-      'Signed in as Danny Yako',
-      style: Theme.of(context).textTheme.bodySmall,
-    ),
-  ),
-)
-```
-
-Inside a `SettingsList`, `SettingsTheme.of(context)` gives custom tiles and sections the resolved colors (`themeData`) and style (`platform`).
-
----
-
-## Platform styles
-
-`SettingsList` detects the platform automatically. You can override it:
-
-```dart
-SettingsList(
-  platform: DevicePlatform.iOS,  // use the iOS style everywhere
-  sections: [ /* ... */ ],
-)
-```
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master/assets/v3/android_settings.png" width="30%">
-  &nbsp;
-  <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master/assets/v3/ios_cupertino.png" width="30%">
-  &nbsp;
-  <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master/assets/v3/web_chrome.png" width="30%">
-</p>
-<p align="center"><em>Android &nbsp;•&nbsp; iOS &nbsp;•&nbsp; Web</em></p>
-
-| `DevicePlatform` | Style |
-|---|---|
-| `device` *(default)* | Auto-detected at runtime |
-| `iOS` | iOS |
-| `macOS` | macOS System Settings |
-| `windows` | Windows 11 |
-| `linux` | GNOME |
-| `android`, `fuchsia` | Android |
-| `web` | Web (Chrome) |
-
-- **iOS** matches iOS 26 Settings: cards with 26pt continuous corners and 20pt side margins, 52pt rows with 17pt text, 17pt semibold section headers, grey footers, the `CupertinoSettingsSwitch`, and a chevron on navigation tiles.
-- **macOS** matches macOS 26/27 System Settings: `#F7F7F7` cards (`#252525` in dark mode) with 12pt continuous corners on a white page, 36pt rows with 13pt text and 1pt separators inset 10pt, 13pt semibold headers above the cards, 11pt grey footers, value text before a light chevron, `MacosSettingsSwitch`, and a 640pt column. Like System Settings, rows don't highlight on hover; rows with `onPressed` tint while pressed and take keyboard focus. For the colored icon squares of System Settings, pass your own widget as `leading` (the example app has `MacosIconBadge`); rows with a `leading` widget are 48pt.
-- **Android** matches Android 16 Settings: every tile sits on its own card, 2dp apart, with 20dp corners at the ends of a group, on a tinted page. 16sp titles and switches with a check or a cross.
-- **Windows** matches Windows 11 Settings (WinUI 3): every tile is its own card with 4px corners and a hairline border, 3px apart, at least 70px tall, with 14px titles, 12px descriptions, 20px icons, 14px semibold section headers, a thin chevron on navigation tiles, and the `FluentSettingsSwitch`. Clickable cards show the Windows hover, pressed and keyboard focus states. The content is a 1000px column with 24px margins (16px in narrow windows).
-- **GNOME** matches GNOME Settings 51 (libadwaita 1.10): each section is a boxed list, a card with 12px corners and a soft shadow, with 54px rows and full-width separators; bold 14.67px group titles, 14.67px titles and dimmed 12.22px subtitles, 16px leading icons, the `AdwaitaSettingsSwitch` in the GNOME accent blue, a `go-next` arrow on navigation tiles, hover and focus highlights, and a content column that eases from 400 to at most 600sp wide like `AdwClamp` (GNOME's sizes in sp grow as much as body text does, also with the non-linear font scaling of Android 14 and later). It uses fixed GNOME colors, not the `ColorScheme`. No font is bundled: GNOME uses Adwaita Sans, so set it with `tileTextStyle` and `titleTextStyle` if your app ships it.
-- **Web** matches Chrome's settings page: cards with 8px corners and a light shadow, 14px titles, 13px descriptions, a chevron on navigation tiles, and a 680px column on wide windows.
-
-In a browser, the web style is used on every device, phones included. Elsewhere the style follows `Theme.of(context).platform`, so `ThemeData(platform: ...)` changes it too. Platforms that only exist in forks of Flutter, such as OpenHarmony, get the iOS style.
-
-## Pages and split view
-
-### Pages: `SettingsDestination`
-
-Give a navigation tile a `destination` instead of writing `Navigator.push`, a `Scaffold` and an app bar for every sub-page. A tap pushes a platform route (Cupertino in the iOS, macOS and GNOME styles; Material otherwise) with the platform's page header: the iOS 26 inline title and round back button, Android's large title that collapses on scroll, the macOS toolbar with its back and forward buttons, the large Windows page title (with a breadcrumb on pages opened from a page), GNOME's flat header bar, or Chrome's page title. `builder` returns only the body:
-
-```dart
-SettingsTile.navigation(
-  leading: const Icon(Icons.wifi),
-  title: const Text('Network & internet'),
-  destination: SettingsDestination(
-    id: 'network',
-    builder: (context) => SettingsList(
-      sections: [ /* ... */ ],
-    ),
-  ),
-)
-```
-
-A `SettingsList` in the page looks like the list that opened it: it takes the `platform`, `brightness`, themes and `applicationType` it doesn't set itself. `onPressed`, if set, runs first. The header title defaults to the tile's; set `title` or `actions` on the destination to change it.
-
-### Split view (iPad, tablets, foldables, desktop, web)
-
-`SettingsSplitView` takes the same sections and shows the list and the selected page side by side when there is room, and the list with pages pushed over it otherwise:
+On iPad, tablets, foldables, desktop and the web, use `SettingsSplitView` as the whole screen (no app bar above it) and give each navigation tile a `SettingsDestination`. Wide windows show the list and the page side by side; phones push the page over the list. The package draws each platform's page header and back button, so `builder` returns only the body.
 
 ```dart
 SettingsSplitView(
@@ -528,450 +195,84 @@ SettingsSplitView(
 )
 ```
 
-Use it as the whole screen (no app bar above it): it draws both panes' headers, and a back button in the list pane when the screen was pushed.
-
-Each style follows its platform's Settings app:
-
-| Style | Two panes when | List pane | Selected tile |
-|---|---|---|---|
-| iOS | width >= 600 and shortest side >= 600: iPads in both orientations, iPad mini included, not iPhones. Desktop: width only | 320pt sidebar on a tinted background, rows without cards | blue capsule, white text |
-| Android, Fuchsia | width >= 720dp and smallest width >= 600dp (AOSP's rule): tablets and unfolded foldables, not phones in landscape. Desktop: width only | 36.36% of the width on `surfaceDim`, the same cards as the phone. No icons under 380dp | card filled with the page color |
-| Web | width > 980px (Chrome's rule) | Chrome's 266px menu | tinted pill rounded on the end side |
-| macOS | width >= 560. Narrower windows show one pane, like SwiftUI in a compact width | 232pt System Settings sidebar, full height | accent fill, white semibold text; grey while the window is inactive |
-| Windows | width >= 641. From 641 to 1007 the pane is a 48px icon rail | 300px `NavigationView` pane from 1008px | neutral grey with an accent pill at the start edge |
-| Linux (GNOME) | width > 550sp | a quarter of the width, 180 to 280sp | neutral grey (#D8D8DB, or white 10% in dark mode) |
-
-The macOS, Windows and GNOME pages keep their own look in the detail pane, with their own column and margins; iOS and Android pages fill the pane. GNOME's sp sizes grow as much as body text does, also with the non-linear font scaling of Android 14 and later.
-
-#### Desktop sidebars
-
-The macOS, Windows and GNOME styles draw the list pane as their settings apps' sidebar, and the detail pane with their own header:
-
-| | macOS (System Settings) | Windows 11 (Settings) | GNOME (Settings) |
-|---|---|---|---|
-| Pane | #EDEDED / #282828, a 0.5pt edge | the page color #F3F3F3 / #202020 | #EBEBED / #2E2E32, a 1px border |
-| Rows | 32pt, radius 8, 10pt from the edges | at least 36px, radius 4, 4px margins | 43px, radius 9, 6px margins, 2px apart |
-| Icons | 20pt. A plain `Icon` takes the accent color; your own widget (a colored squircle, say) keeps its colors | 16px in a 40px column | 16px |
-| Section titles | 11pt bold, tertiary grey | bold, secondary; hidden in the rail | bold |
-| Selection | accent fill, white semibold text; grey while the app is inactive | #EAEAEA / #2D2D2D and a 3x16 accent pill that slides to the new item | 10% of the text color, 13% hovered, 16% pressed |
-| Hover | none, like macOS | #EAEAEA / #2D2D2D, pressed #EDEDED / #292929 | 7% of the text color |
-| List pane header | a 52pt strip (the back and forward buttons when the screen was pushed) | the `title` and, in the rail, a menu button that opens the pane over the page | a 46px header bar with the centered bold title |
-| Detail header | a 52pt toolbar: back and forward buttons when there's a page to go back to, then the 15pt semibold title | the 28px semibold page title; pages opened from a page show a breadcrumb such as "System › Display", whose parent goes back. It stays on one line: the leading crumbs collapse into "…" and a long title ends in an ellipsis | a flat 46px header bar with the centered bold title, and a back button when collapsed or on a page opened from a page |
-| One pane | the list without the sidebar look, pages pushed over it | the Windows cards with the page title, pages pushed over them | the sidebar fills the window and no row stays selected |
-
-Up and Down move between sidebar rows and stop at the first and last ones, Enter or Space opens a row, and Tab moves between the panes. A click focuses the row, so the keys go on from there; its focus ring shows only after a key is pressed. In the macOS sidebar and the expanded Windows pane, Tab also reaches a switch row without `onPressed`, and Space toggles it. The macOS sidebar opens a row as the focus moves to it, like macOS sidebars. Each style draws its own focus ring, and screen readers hear which row is selected. The panes, the Windows pill and its overlay pane mirror in right-to-left layouts, and the rows grow with the text size.
-
-System Settings shows a colored squircle behind each icon. The package doesn't draw them, so a plain `Icon` gets the accent tint. For squircles, pass your own 20pt widget, for example a `ClipRSuperellipse` with a gradient and a white icon (the example app's `MacSidebarIcon` does this).
-
-- **Selection.** Two panes open on the first destination (like iPad, Android and Chrome), or on `initialDestinationId`. Set `emptyDetailBuilder` to open on an empty page instead. A tile is highlighted while its page shows.
-- **Pages inside pages.** A tile with a `destination` in a page pushes inside the detail pane, and the list keeps its highlight. Tapping the highlighted tile goes back to its first screen.
-- **Folding and rotating.** Going to one pane keeps a page the user opened on top of the list (and the pages pushed inside it), but drops the page two panes opened by default. Going to two panes shows the page next to the list, or the default page. Pages keep their state through all of this.
-- **Back.** The system back button, Android predictive back and the iOS back swipe close, in order: in one pane, a route a list tile pushed itself (`Navigator.push`, a menu, a sheet); the pages pushed inside the detail pane; the page over the list in one pane; then the screen. A `PopScope` in a page can veto it, the back swipe included. While a route a list tile pushed is open in one pane, the view stays in one pane until that route has closed, even if the window widens.
-- **Removed tiles.** When the tile of the shown page goes away (a page that only exists under a condition), the page closes: two panes show the default page, one pane shows the list. It doesn't come back with its tile. The view can't track tiles in a `CustomSettingsSection` this way: call `controller.clearSelection()` when you remove one.
-- **Hinges.** A hinge, or a fold in the half-opened (book) posture, gets one pane on each side of it. Flat folds are ignored.
-- **Right-to-left.** The list pane goes on the right.
-- **Restoration.** With a `restorationId` (and `restorationScopeId` on the app), the shown page comes back after the app is killed.
-
-Change the layout with `layout` (`SettingsSplitLayout.auto`, `single` or `split`), `breakpoint` (a width that replaces the style's rule) and `listPaneWidth`. Drive it with a `SettingsSplitController`, and keep a URL in sync with `onDestinationChanged`; the package doesn't touch your router:
-
-```dart
-final controller = SettingsSplitController();
-
-SettingsSplitView(
-  controller: controller,
-  onDestinationChanged: (id) => router.go('/settings/${id ?? ''}'),
-  sections: [ /* ... */ ],
-);
-
-// A deep link, before or after the view is built. Also opens in one pane.
-controller.select('display');
-
-// From inside a page:
-SettingsSplitView.of(context).select('network');
-```
-
-The example app's gallery has a "Split view" demo with iPad, Android, Chrome, macOS System Settings, Windows Settings and GNOME Settings trees. Open it directly in any style with `cd example && flutter run --route '/split-view?platform=android&theme=dark'` (on the web: `?screen=split-view&platform=macOS`).
-
----
-
-## Theming
-
-### Colors
-
-The Android and web styles derive their colors from your app's Material 3 `ColorScheme`. Seed colors, light and dark mode, and custom color schemes work without extra setup.
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master/assets/v3/android_material3.png" width="45%">
-</p>
-
-```dart
-MaterialApp(
-  theme: ThemeData(colorSchemeSeed: Colors.indigo),
-  home: const SettingsScreen(),
-)
-```
-
-The iOS style uses fixed iOS system colors, like the Settings app: a grey grouped background, white cards (`#1C1C1E` in dark mode) and grey headers and values. The macOS style uses fixed macOS system colors the same way: `#F7F7F7` cards on a white page (`#252525` on `#1E1E1E` in dark mode). The Windows style uses the Windows 11 colors: a `#F3F3F3` page with `#FBFBFB` cards (`#202020` and `#2B2B2B` in dark mode) and the default Windows accent `#0067C0` (`#4CC2FF` in dark mode) for switches. The GNOME style uses the libadwaita colors: a `#FAFAFB` page with white cards (`#222226` with translucent white cards in dark mode) and the GNOME blue `#3584E4` for switches. None of them reads your `ColorScheme`. Light or dark mode follows your app theme in every style.
-
-### Custom theme overrides
-
-Pass a `SettingsThemeData` for light mode, dark mode or both. Any field left `null` keeps the style's default.
-
-```dart
-SettingsList(
-  lightTheme: const SettingsThemeData(
-    settingsListBackground: Color(0xFFF2F2F7),
-    settingsSectionBackground: Colors.white,
-    titleTextColor: Colors.indigo,
-  ),
-  darkTheme: const SettingsThemeData(
-    settingsListBackground: Color(0xFF1C1C1E),
-    settingsSectionBackground: Color(0xFF2C2C2E),
-    titleTextColor: Colors.indigoAccent,
-  ),
-  sections: [ /* ... */ ],
-)
-```
-
-See [`SettingsThemeData`](#settingsthemedata) for what each field changes.
-
-### Custom text styles
-
-```dart
-SettingsList(
-  lightTheme: const SettingsThemeData(
-    tileTextStyle: TextStyle(fontFamily: 'Roboto', fontSize: 16),
-    tileDescriptionTextStyle: TextStyle(fontSize: 12),
-    titleTextStyle: TextStyle(
-      fontWeight: FontWeight.bold,
-      fontSize: 13,
-      letterSpacing: 0.5,
-    ),
-  ),
-  sections: [ /* ... */ ],
-)
-```
-
-### Disabled tiles
-
-```dart
-SettingsTile.switchTile(
-  title: const Text('Feature'),
-  initialValue: false,
-  onToggle: null,   // null disables the switch
-  enabled: false,   // greys out the row, ignores taps and the keyboard
-)
-
-// Control the disabled switch color:
-SettingsList(
-  lightTheme: const SettingsThemeData(
-    inactiveSwitchColor: Colors.grey,
-  ),
-  sections: [ /* ... */ ],
-)
-```
-
----
-
-## Advanced usage
-
-### Dark mode and `CupertinoApp`
-
-By default, light or dark mode comes from the Material `Theme`. In a `CupertinoApp`, tell the list to read the `CupertinoTheme` instead:
-
-```dart
-// Pure CupertinoApp:
-SettingsList(
-  applicationType: ApplicationType.cupertino,
-  sections: [ /* ... */ ],
-)
-
-// MaterialApp on Android, CupertinoApp on iOS: reads the CupertinoTheme when
-// the app runs on iOS or macOS, the Material Theme elsewhere.
-SettingsList(
-  applicationType: ApplicationType.both,
-  sections: [ /* ... */ ],
-)
-```
-
-To force one mode whatever the app theme says, set `brightness`. It works in every style: the Android and web styles, whose colors come from your `ColorScheme`, then use a color scheme of that brightness made from its primary color:
-
-```dart
-SettingsList(
-  brightness: Brightness.dark,
-  sections: [ /* ... */ ],
-)
-```
-
-### Wide screens and split views
-
-When the list is wider than 810 (680 on the web, 640 on macOS, 1000 on Windows, at most 600sp on Linux), the tiles sit in a centered column of that width. The width is the list's own, not the screen's, so a list in a split view or side panel is laid out for that pane. To put the column at the start edge (left, or right in right-to-left layouts) instead of centering it:
-
-```dart
-SettingsList(
-  crossAxisAlignment: CrossAxisAlignment.start,
-  sections: [ /* ... */ ],
-)
-```
-
-Setting `contentPadding` replaces the default padding altogether, and `crossAxisAlignment` then has no effect.
-
-For a list next to its pages, see [Split view](#split-view-ipad-tablets-foldables-desktop-web).
-
-### Scroll controller
-
-```dart
-final _controller = ScrollController();
-
-SettingsList(
-  scrollController: _controller,
-  sections: [
-    SettingsSection(
-      tiles: [
-        SettingsTile(
-          title: const Text('Jump to bottom'),
-          onPressed: (_) => _controller.animateTo(
-            _controller.position.maxScrollExtent,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOut,
-          ),
-        ),
-      ],
-    ),
-  ],
-)
-```
-
-### Compact tiles
-
-```dart
-SettingsTile(
-  title: const Text('Option'),
-  compact: true,  // halves the vertical padding
-)
-```
-
-### Embedding inside another scroll view
-
-```dart
-SettingsList(
-  shrinkWrap: true,
-  physics: const NeverScrollableScrollPhysics(),
-  sections: [ /* ... */ ],
-)
-```
-
-### The iOS 26 switch on its own
-
-`CupertinoSettingsSwitch` is the switch the iOS style uses. It is drawn entirely in Flutter: a 63x28 track with a pill-shaped thumb that turns into a Liquid Glass-style lens while you press or drag it. You can use it anywhere:
-
-```dart
-CupertinoSettingsSwitch(
-  value: _wifi,
-  onChanged: (value) => setState(() => _wifi = value),
-)
-```
-
-The lens paints a little outside the switch (about 12.5pt past each end and 6pt above and below), so don't clip it tightly.
-
-### The macOS switch on its own
-
-`MacosSettingsSwitch` is the switch the macOS style uses, also drawn in Flutter: a 36x16 track with a capsule knob, or the 44x20 one System Settings uses for the main switch of a pane:
-
-```dart
-MacosSettingsSwitch(
-  value: _wifi,
-  size: MacosSettingsSwitchSize.large,
-  onChanged: (value) => setState(() => _wifi = value),
-)
-```
-
-### The Windows 11 switch on its own
-
-`FluentSettingsSwitch` is the switch the Windows style uses: the WinUI 3 `ToggleSwitch`, a 40x20 outlined track whose knob grows on hover and stretches while pressed, filled with the accent when on. It supports dragging, keyboard focus (Space or Enter toggles) and right-to-left layouts:
-
-```dart
-FluentSettingsSwitch(
-  value: _wifi,
-  onChanged: (value) => setState(() => _wifi = value),
-)
-```
-
-The keyboard focus rectangle paints a little outside the switch (7px to the sides, 8px above and below).
-
----
-
-## API reference
-
-### `SettingsList`
-
-| Parameter | Type | Default | Description |
-|---|---|---|---|
-| `sections` | `List<AbstractSettingsSection>` | required | Sections to display |
-| `platform` | `DevicePlatform?` | `null` (auto-detect, same as `device`) | Force a specific platform style |
-| `applicationType` | `ApplicationType` | `material` | Where dark mode comes from: `material`, `cupertino` or `both` (Cupertino theme on iOS and macOS, Material elsewhere) |
-| `brightness` | `Brightness?` | — | Force light or dark instead of following the app theme |
-| `lightTheme` | `SettingsThemeData?` | — | Overrides for light mode |
-| `darkTheme` | `SettingsThemeData?` | — | Overrides for dark mode |
-| `contentPadding` | `EdgeInsetsGeometry?` | — | Replaces the default list padding |
-| `crossAxisAlignment` | `CrossAxisAlignment` | `center` | Where the content column sits on wide lists; `start` for the start edge |
-| `scrollController` | `ScrollController?` | — | Programmatic scroll control |
-| `shrinkWrap` | `bool` | `false` | Shrink-wrap to content height |
-| `physics` | `ScrollPhysics?` | — | Custom scroll physics |
-
-### `SettingsSection`
-
-| Parameter | Type | Description |
-|---|---|---|
-| `tiles` | `List<AbstractSettingsTile>` | The tiles in this section. A section with no tiles renders nothing |
-| `title` | `Widget?` | Section header |
-| `titlePadding` | `EdgeInsetsGeometry?` | Padding around the header |
-| `margin` | `EdgeInsetsDirectional?` | Override section margin |
-
-### `SettingsTile`
-
-None of the constructors is `const`.
-
-| Parameter | Type | Constructors | Description |
-|---|---|---|---|
-| `title` | `Widget` | all | Tile label (required) |
-| `leading` | `Widget?` | all | Icon or widget at the start |
-| `trailing` | `Widget?` | all | Widget at the end |
-| `value` | `Widget?` | default, navigation | Current value; see [where it shows](#value-description-and-titledescription) |
-| `description` | `Widget?` | all | Secondary text; see [where it shows](#value-description-and-titledescription) |
-| `titleDescription` | `Widget?` | all | Line under the title, iOS, macOS, Windows and GNOME styles only |
-| `onPressed` | `Function(BuildContext)?` | all | Tap callback |
-| `destination` | `SettingsDestination?` | navigation | Page the tile opens, after `onPressed`. See [Pages and split view](#pages-and-split-view) |
-| `enabled` | `bool` | all | `false` greys out the tile and ignores taps and the keyboard. Default `true` |
-| `compact` | `bool` | all | Halves the vertical padding. Default `false` |
-| `initialValue` | `bool?` | switchTile | Current switch state (required) |
-| `onToggle` | `Function(bool)?` | switchTile | Toggle callback (required); `null` disables the switch |
-| `activeSwitchColor` | `Color?` | switchTile | Switch color when on |
-| `leadingPadding` | `EdgeInsetsGeometry?` | all | Padding around `leading` |
-| `titlePadding` | `EdgeInsetsGeometry?` | all | Padding around `title` |
-| `titleDescriptionPadding` | `EdgeInsetsGeometry?` | all | Padding around `titleDescription` (iOS, macOS, Windows and GNOME styles) |
-| `trailingPadding` | `EdgeInsetsGeometry?` | all | Padding around `trailing` (Android and web styles: not on switch tiles) |
-| `descriptionPadding` | `EdgeInsetsGeometry?` | all | Padding around `description` |
-
-### `SettingsDestination`
-
-| Parameter | Type | Description |
-|---|---|---|
-| `id` | `String` | Identifies the page (required). Unique within a `SettingsSplitView`; also the pushed route's name |
-| `builder` | `WidgetBuilder` | Builds the page body, usually a `SettingsList` (required) |
-| `title` | `Widget?` | Header title. Default: the tile's title |
-| `actions` | `List<Widget>?` | Widgets at the end of the header |
-
-### `SettingsSplitView`
-
-Takes `sections`, `platform`, `applicationType`, `brightness`, `lightTheme` and `darkTheme` like `SettingsList`, and:
-
-| Parameter | Type | Default | Description |
-|---|---|---|---|
-| `title` | `Widget?` | — | List pane title |
-| `initialDestinationId` | `String?` | first destination | Page two panes show until the user picks one |
-| `emptyDetailBuilder` | `WidgetBuilder?` | — | Detail pane with no page; when set, two panes open empty unless `initialDestinationId` is set |
-| `controller` | `SettingsSplitController?` | — | `select(id)`, `clearSelection()`, `selectedId`, `isSplit`; notifies its listeners |
-| `onDestinationChanged` | `ValueChanged<String?>?` | — | Called after the shown page changes, layout changes included |
-| `layout` | `SettingsSplitLayout` | `auto` | `auto`, `single` or `split` |
-| `breakpoint` | `double?` | style's rule | Width from which `auto` shows two panes |
-| `listPaneWidth` | `double?` | style's (see [Split view](#split-view-ipad-tablets-foldables-desktop-web)) | List pane width, at most half the view. Windows: the open pane only; the rail stays 48 and its menu opens a pane this wide (default 320) |
-| `restorationId` | `String?` | — | Restores the shown page |
-
-`SettingsSplitView.of(context)` and `maybeOf(context)` return the controller of the view around `context`.
-
-### `CupertinoSettingsSwitch`
-
-| Parameter | Type | Description |
-|---|---|---|
-| `value` | `bool` | Whether the switch is on (required) |
-| `onChanged` | `ValueChanged<bool>?` | Called with the new value (required); `null` disables the switch |
-| `activeTrackColor` | `Color?` | Track color when on. Default: iOS system green |
-| `inactiveTrackColor` | `Color?` | Track color when off. Default: `#C5C5C7` light, `#5A5A5E` dark |
-
-### `MacosSettingsSwitch`
-
-| Parameter | Type | Description |
-|---|---|---|
-| `value` | `bool` | Whether the switch is on (required) |
-| `onChanged` | `ValueChanged<bool>?` | Called with the new value (required); `null` disables the switch |
-| `activeTrackColor` | `Color?` | Track color when on. Default: the macOS accent blue |
-| `inactiveTrackColor` | `Color?` | Track color when off. Default: black 10% light, white 10% dark |
-| `size` | `MacosSettingsSwitchSize` | `regular` (36x16, default) or `large` (44x20) |
-
-### `FluentSettingsSwitch`
-
-| Parameter | Type | Description |
-|---|---|---|
-| `value` | `bool` | Whether the switch is on (required) |
-| `onChanged` | `ValueChanged<bool>?` | Called with the new value (required); `null` disables the switch |
-| `activeTrackColor` | `Color?` | Track color when on. Default: the Windows accent, `#0067C0` light, `#4CC2FF` dark. The knob turns white or black to contrast |
-| `inactiveTrackColor` | `Color?` | Outline and knob color when off. Default: the Windows control stroke and secondary text colors |
-
-### `AdwaitaSettingsSwitch`
-
-The switch of the GNOME style, drawn in Flutter: a 46x26 track with a round 20px knob. It toggles on a tap, a drag past the middle or Space/Enter, and you can use it anywhere.
-
-| Parameter | Type | Description |
-|---|---|---|
-| `value` | `bool` | Whether the switch is on (required) |
-| `onChanged` | `ValueChanged<bool>?` | Called with the new value (required); `null` disables the switch |
-| `activeTrackColor` | `Color?` | Track color when on. Default: GNOME blue `#3584E4` |
-| `inactiveTrackColor` | `Color?` | Track color when off. Default: black 12% light, white 15% dark |
-| `brightness` | `Brightness?` | Light or dark colors. Default: from the `CupertinoTheme`, or the platform |
-| `focusNode`, `autofocus` | `FocusNode?`, `bool` | Keyboard focus |
-
-### `AdwaitaPanDownIcon`
-
-GNOME's `pan-down-symbolic` arrow (16px icon, 10x6 chevron) for combo rows, which show the selected value at full strength and this arrow. In the GNOME style, text in `trailing` gets the row's font and color, so a combo row is:
-
-```dart
-SettingsTile(
-  title: const Text('Screen Blank'),
-  trailing: const Row(
-    mainAxisSize: MainAxisSize.min,
-    children: [Text('5 minutes'), SizedBox(width: 9), AdwaitaPanDownIcon()],
-  ),
-  onPressed: (context) { /* show the choices */ },
-)
-```
-
-| Parameter | Type | Description |
-|---|---|---|
-| `color` | `Color?` | Default: the `IconTheme` color (the row's foreground in a GNOME tile) |
-| `size` | `double` | Icon box size. Default 16 |
-
-### `SettingsThemeData`
-
-| Field | Type | Description |
-|---|---|---|
-| `settingsListBackground` | `Color?` | Background of the whole list |
-| `settingsSectionBackground` | `Color?` | Background of the cards |
-| `dividerColor` | `Color?` | Line between tiles (iOS, macOS, GNOME and web styles), card border (Windows style) |
-| `tileHighlightColor` | `Color?` | Tile press highlight color. The GNOME style also hovers with 3/8 of its opacity |
-| `titleTextColor` | `Color?` | Section header text color. In the iOS style also `titleDescription` and `description` |
-| `titleTextStyle` | `TextStyle?` | Section header text style |
-| `settingsTileTextColor` | `Color?` | Tile title text color |
-| `tileTextStyle` | `TextStyle?` | Tile title text style |
-| `tileDescriptionTextColor` | `Color?` | `description` and `value` text color (Android and web styles), `description` and `titleDescription` (macOS, Windows and GNOME styles) |
-| `tileDescriptionTextStyle` | `TextStyle?` | `description` text style in every style; also `value` in the Android, GNOME and web styles, and `titleDescription` in the macOS, Windows and GNOME styles |
-| `trailingTextColor` | `Color?` | `value` text color (iOS, macOS, Windows and GNOME styles) |
-| `leadingIconsColor` | `Color?` | Leading and trailing icons, and the chevron |
-| `inactiveTitleColor` | `Color?` | Title and icon color of a disabled tile |
-| `inactiveSubtitleColor` | `Color?` | `description` and `value` color of a disabled tile (Android, Windows, GNOME and web styles) |
-| `inactiveSwitchColor` | `Color?` | Switch color of a disabled tile. Without it, the macOS style draws a paler accent, like System Settings |
-| `selectedTileColor` | `Color?` | Fill of the selected tile in a split view's list pane |
-| `selectedTileTextColor` | `Color?` | Title and value color of the selected tile |
-| `selectedTileIconColor` | `Color?` | Icon and chevron color of the selected tile |
-| `listPaneBackground` | `Color?` | Background of a split view's list pane with two panes |
-
----
+Each style follows its platform's Settings app: two panes on iPads in both orientations, on Android tablets and unfolded foldables, and above 980px on the web; on the desktop, the sidebars of System Settings, Windows 11 Settings and GNOME Settings. Pages keep their state when a device folds, unfolds or rotates; system back, Android predictive back and the iOS back swipe work; hinges and right-to-left layouts are handled. A `destination` works in a plain `SettingsList` too: the tile pushes its page. For deep links and URL sync, see `SettingsSplitController` and `onDestinationChanged` in the [API reference](https://pub.dev/documentation/settings_ui/latest/settings_ui/SettingsSplitView-class.html).
+
+## Platform gallery
+
+<table>
+  <tr>
+    <td align="center"><img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master/assets/v4/gallery/ios.png" alt="iOS style on an iPhone" width="180"></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master/assets/v4/gallery/android.png" alt="Android style on a Pixel phone" width="180"></td>
+  </tr>
+  <tr>
+    <td align="center">iOS 26</td>
+    <td align="center">Android 16</td>
+  </tr>
+  <tr>
+    <td align="center"><img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master/assets/v4/gallery/ipad-split.png" alt="Split view on an iPad" width="340"></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master/assets/v4/gallery/fold-split.png" alt="Split view on an unfolded foldable" width="340"></td>
+  </tr>
+  <tr>
+    <td align="center">iPad, split view</td>
+    <td align="center">Foldable, split view</td>
+  </tr>
+  <tr>
+    <td align="center"><img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master/assets/v4/gallery/macos.png" alt="macOS style with the System Settings sidebar" width="340"></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master/assets/v4/gallery/windows.png" alt="Windows 11 style with the Settings navigation pane" width="340"></td>
+  </tr>
+  <tr>
+    <td align="center">macOS System Settings</td>
+    <td align="center">Windows 11</td>
+  </tr>
+  <tr>
+    <td align="center"><img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master/assets/v4/gallery/gnome.png" alt="GNOME style with the GNOME Settings sidebar" width="340"></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master/assets/v4/gallery/web.png" alt="Web style with the Chrome settings menu" width="340"></td>
+  </tr>
+  <tr>
+    <td align="center">Linux (GNOME)</td>
+    <td align="center">Web (Chrome)</td>
+  </tr>
+</table>
+
+The style follows the platform the app runs on, and every browser gets the web style. To use one style everywhere, set `platform`, for example `SettingsList(platform: DevicePlatform.iOS, ...)`.
+
+## API overview
+
+| Class | What it is |
+|---|---|
+| `SettingsList` | The scrolling list of sections. Optional: `platform`, `brightness`, `applicationType`, `lightTheme` and `darkTheme`, `contentPadding`, `crossAxisAlignment`, `scrollController`, `shrinkWrap`, `physics` |
+| `SettingsSection` | A group of tiles with an optional `title`. `CustomSettingsSection` takes any widget |
+| `SettingsTile` | `SettingsTile()`, `.navigation()` and `.switchTile()`, with `title`, `leading`, `trailing`, `value`, `description`, `titleDescription`, `onPressed`, `enabled`, `compact`. `CustomSettingsTile` takes any widget |
+| `SettingsDestination` | The page a navigation tile opens: `id`, `builder`, `title`, `actions` |
+| `SettingsSplitView` | The list and the selected page side by side. `SettingsSplitController` selects pages from code |
+| `SettingsThemeData` | Colors and text styles for light and dark mode, over each style's defaults |
+| `CupertinoSettingsSwitch`, `MacosSettingsSwitch`, `FluentSettingsSwitch`, `AdwaitaSettingsSwitch` | The iOS 26, macOS, Windows 11 and GNOME switches, which you can also use on their own. `AdwaitaPanDownIcon` is the arrow of GNOME combo rows |
+
+The Android and web styles take their colors from your Material 3 `ColorScheme`; the iOS, macOS, Windows and GNOME styles use their platforms' own colors. Light and dark mode follow your app theme in every style, and `brightness` forces one; in a `CupertinoApp`, pass `applicationType: ApplicationType.cupertino` so they follow the `CupertinoTheme`.
+
+- Every parameter: [API reference on pub.dev](https://pub.dev/documentation/settings_ui/latest/).
+- Each style's look, where `value` and `description` show on each platform, how taps work on switch tiles, theme fields and testing: [`llms.txt`](https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master/llms.txt).
+- Every style and the split view in a running app: the [example app](https://github.com/yako-dev/flutter-settings-ui/tree/master/example/lib) (`cd example && flutter run --route '/split-view?platform=android&theme=dark'`).
+
+## Migrating from 3.x
+
+The settings_ui API didn't change: 4.0.0 only adds to it. What changes is the UI library your app uses, and the look.
+
+1. **Flutter 3.44+ and Dart 3.12+.** If your app can't move yet, stay on `settings_ui: ^3.0.1`.
+2. **Move the app to `material_ui` and `cupertino_ui`.** Run the import migration from the [`material_ui` README](https://pub.dev/packages/material_ui) (`dart fix --apply --code=migrate_design_widgets`) on `lib/`, `test/` and `integration_test/`, and add both packages to your `pubspec.yaml` (`flutter pub add material_ui cupertino_ui`). Dependencies that still import `package:flutter/material.dart` can be wrapped in `MaterialUiCompatibilityBridge` or `CupertinoUiCompatibilityBridge`.
+3. **Set `settings_ui: ^4.0.0`.** Your settings screens compile as they are.
+4. **Update tests that find switches.** Switch tiles now show `CupertinoSettingsSwitch` on iOS, `MacosSettingsSwitch` on macOS and `FluentSettingsSwitch` on Windows, where 3.x showed a `CupertinoSwitch`, and `AdwaitaSettingsSwitch` on Linux, where it showed a Material `Switch`.
+5. **Write section titles in sentence case**, like iOS 26. If you passed ALL-CAPS titles for the old iOS look, change them.
+6. **Check the new look.** Sizes, paddings and default colors changed (a list in a side panel or a narrow pane now gets less side padding, because the padding follows the list's own width), and macOS, Windows and Linux have their own styles now (3.x used the iOS style on macOS and Windows, the Android style on Linux). Colors you set in `SettingsThemeData` still win. To keep one style on every platform, set `platform`.
+7. **Remove 3.x workarounds**, such as a `trailing: Text(...)` added because iOS simple tiles didn't show `value`.
+
+If a debug build prints `settings_ui: SettingsList found no Theme`, that screen still sits under a `package:flutter/material.dart` app or theme.
+
+A coding agent can do the upgrade: use the "Upgrade settings_ui 3.x to 4.0" prompt in [agent prompts](https://github.com/yako-dev/flutter-settings-ui/blob/master/doc/agent-prompts.md).
 
 ## Known issues
 
-- **iOS, VoiceOver:** after a `SettingsSplitView` changes layout (for example on rotation, or when an iPad window is resized), VoiceOver can place the frames of the rows in a pane wrongly until the app restarts. This is a Flutter engine bug that also happens without settings_ui; touch input without VoiceOver is not affected.
-
----
+- **iOS, VoiceOver:** after a `SettingsSplitView` changes layout (rotation, an iPad window resize), VoiceOver can misplace the rows' frames until the app restarts. It is a Flutter engine bug; touch input is not affected.
 
 ## License
 

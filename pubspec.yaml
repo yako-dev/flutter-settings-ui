@@ -14,14 +14,26 @@ topics:
 
 # At most 10 files of 4 MB each, inside the package (see .pubignore).
 screenshots:
-  - description: "iOS style: iOS 26 grouped cards, footers and the CupertinoSettingsSwitch."
-    path: assets/v3/ios_cupertino.png
+  - description: "settings_ui on Android, iOS and an iPad in split view."
+    path: assets/v4/header-mobile.png
+  - description: "settings_ui on macOS, Windows, Linux (GNOME) and the web, each with its native sidebar."
+    path: assets/v4/header-desktop.png
+  - description: "iOS style: iOS 26 grouped cards and the CupertinoSettingsSwitch."
+    path: assets/v4/gallery/ios.png
   - description: "Android style: Android 16 cards with colors from the Material 3 ColorScheme."
-    path: assets/v3/android_settings.png
+    path: assets/v4/gallery/android.png
+  - description: "Split view on an iPad: the list on the left, the selected page on the right."
+    path: assets/v4/gallery/ipad-split.png
+  - description: "Split view on an unfolded Android foldable."
+    path: assets/v4/gallery/fold-split.png
+  - description: "macOS style with the System Settings sidebar."
+    path: assets/v4/gallery/macos.png
+  - description: "Windows 11 style with the Settings navigation pane."
+    path: assets/v4/gallery/windows.png
+  - description: "GNOME style for Linux with the Settings sidebar."
+    path: assets/v4/gallery/gnome.png
   - description: "Web style modeled on the Chrome settings page."
-    path: assets/v3/web_chrome.png
-  - description: "Android style following a custom Material 3 seed color, with compact tiles."
-    path: assets/v3/android_material3.png
+    path: assets/v4/gallery/web.png
 
 platforms:
   android:
