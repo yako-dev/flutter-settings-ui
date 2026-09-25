@@ -317,6 +317,31 @@ Don't:
 - Don't call `SettingsSplitController.select` with the id of a page that only exists inside another page. It takes top-level destination ids.
 - 3.x only: the iOS style of a plain `SettingsTile` doesn't show `value`. Use `SettingsTile.navigation` or `trailing` there. Fixed in 4.0.0.
 
+## Recipe: build a settings screen for an app
+
+Follow these steps when the user asks you to add or build a settings screen with settings_ui. The goal is a store-ready screen in which every row works.
+
+1. Inspect the app before changing anything, and tell the user what you found:
+   - Flutter version and UI imports: `package:material_ui` / `package:cupertino_ui` -> `settings_ui: ^4.0.0`; `package:flutter/material.dart` -> `settings_ui: ^3.0.1` (see Install and requirements). Don't migrate the app unless the user asks.
+   - The platforms it ships (`ios/`, `android/`, `macos/`, `windows/`, `linux/`, `web/`), and whether it runs on iPad, tablets or foldables.
+   - State management, persistence (shared_preferences, Hive, secure storage...), localization, routing, and whether the app supports light, dark and system theme modes.
+   - Existing preferences and feature flags, sign-up and sign-in, in-app purchases, permissions in `ios/Runner/Info.plist` and `android/app/src/main/AndroidManifest.xml`, and any existing settings UI.
+2. Propose grouped sections that follow Apple's Human Interface Guidelines and Material conventions (for example: account, appearance, notifications, privacy, support, about; destructive actions last). For each row give the tile type, the state behind it and where it is stored. If the app runs on tablets, desktop or the web, propose a `SettingsSplitView` (list and page side by side). Wait for the user's OK before adding dependencies, adding screens or moving existing code.
+3. Build it with settings_ui, following the app's existing patterns and the Rules for agents above:
+   - `SettingsTile.switchTile` for on/off, `SettingsTile.navigation` for rows that open a page or picker, plain `SettingsTile` for values and actions (no chevron). Section titles in sentence case.
+   - Settings sub-pages: `destination: SettingsDestination(id: ..., builder: ...)` on the navigation tile. The builder returns only the body; the package draws the header and back button.
+   - On tablets, desktop and the web: `SettingsSplitView` as the whole screen, with no app bar above it and a unique `id` on every destination.
+   - Wire every row to real state that survives a restart. No placeholder rows, empty handlers or TODOs. Permission rows show the real OS status and open system settings when denied.
+   - Use the app's localization for strings and its router for other screens. Leave `platform` unset, so iOS, Android, macOS, Windows, Linux and the web each get their own style.
+4. Add these rows when they apply. Ask the user for URLs and email addresses; never invent them.
+   - Version and build number (package_info_plus). Open-source licenses (`showLicensePage`).
+   - Privacy policy, terms of use and contact support (url_launcher).
+   - Restore purchases, if the app sells subscriptions or non-consumable purchases.
+   - Sign out and Delete account, if users can create accounts. Deletion starts in the app, asks for confirmation and calls the real backend (App Store Review Guideline 5.1.1(v); Google Play has a similar rule).
+5. Add widget tests (see Testing): the screen renders in the style of every platform the app ships (`TargetPlatformVariant`), every toggle persists, links and actions fire, and a split view shows one pane at 402x874 and two at 1210x834 (`tester.view.physicalSize`).
+6. Run `flutter analyze` and `flutter test`. Then run the app on an iOS simulator and an Android emulator, plus iPad, desktop or the web if the app ships there, in light and dark mode (`xcrun simctl ui booted appearance dark`, `adb shell cmd uimode night yes`), and screenshot the settings screen each time (`xcrun simctl io booted screenshot`, `adb exec-out screencap -p`). Fix anything clipped, misaligned or hard to read. If you can't launch a device, tell the user what to run.
+7. Summarize: files changed, dependencies added, each row with its state and storage key, tests added, screenshot paths, and anything the user still needs to provide.
+
 ## Known issues
 
 - iOS with VoiceOver: after a `SettingsSplitView` changes layout (for example on rotation, or when an iPad window is resized), VoiceOver can place the frames of the rows in a pane wrongly until the app restarts. This is a Flutter engine bug: it also happens without settings_ui when a subtree with its own semantics node moves to a new parent. Touch input without VoiceOver is not affected. Don't try to work around it in app code.
