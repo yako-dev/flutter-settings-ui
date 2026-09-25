@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/settings_ui.dart';
+import 'package:settings_ui/src/tiles/tile_semantics.dart';
 import 'package:settings_ui/src/utils/settings_style.dart';
 
 class IOSSettingsTile extends StatefulWidget {
@@ -116,6 +117,12 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
     required IOSSettingsTileAdditionalInfo additionalInfo,
   }) {
     Widget content = buildTileContent(context, theme, additionalInfo);
+    // A switch row without an action of its own reads as its switch:
+    // "title, switch, on". With onPressed, the switch is labelled instead.
+    if (widget.tileType == SettingsTileType.switchTile &&
+        widget.onPressed == null) {
+      content = MergeSemantics(child: content);
+    }
     // Use the platform from SettingsTheme (respects user's explicit choice)
     // rather than re-detecting from the system, which ignored platform overrides.
     if (theme.platform != DevicePlatform.iOS) {
@@ -214,21 +221,23 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
         // above and below it. The 16pt end padding and the 52pt row keep it
         // inside the card.
         if (widget.tileType == SettingsTileType.switchTile)
-          CupertinoTheme(
-            // The switch picks its light or dark colors from this: the
-            // list's, which `SettingsList.brightness` can set apart from the
-            // app's.
-            data: CupertinoTheme.of(
-              context,
-            ).copyWith(brightness: SettingsStyleScope.brightnessOf(context)),
-            child: CupertinoSettingsSwitch(
-              value: widget.initialValue ?? true,
-              // A disabled tile's switch takes no focus, keys or taps.
-              onChanged: widget.enabled ? widget.onToggle : null,
-              activeTrackColor: widget.enabled
-                  ? widget.activeSwitchColor
-                  : (theme.themeData.inactiveSwitchColor ??
-                        theme.themeData.inactiveTitleColor),
+          _labelSwitchIfSeparate(
+            CupertinoTheme(
+              // The switch picks its light or dark colors from this: the
+              // list's, which `SettingsList.brightness` can set apart from the
+              // app's.
+              data: CupertinoTheme.of(
+                context,
+              ).copyWith(brightness: SettingsStyleScope.brightnessOf(context)),
+              child: CupertinoSettingsSwitch(
+                value: widget.initialValue ?? true,
+                // A disabled tile's switch takes no focus, keys or taps.
+                onChanged: widget.enabled ? widget.onToggle : null,
+                activeTrackColor: widget.enabled
+                    ? widget.activeSwitchColor
+                    : (theme.themeData.inactiveSwitchColor ??
+                          theme.themeData.inactiveTitleColor),
+              ),
             ),
           ),
         // iPad sidebar rows have no chevron.
@@ -249,6 +258,12 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
       ],
     );
   }
+
+  /// A row with onPressed and a switch has two actions, so the switch is a
+  /// semantics node of its own. It gets the title as its label.
+  Widget _labelSwitchIfSeparate(Widget child) => widget.onPressed == null
+      ? child
+      : labelTileSwitch(title: widget.title, child: child);
 
   void changePressState({bool isPressed = false}) {
     // A tap recognizer that is dropped mid-press (the tile was disabled)

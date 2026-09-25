@@ -1,3 +1,5 @@
+import 'dart:ui' show Tristate;
+
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -96,6 +98,23 @@ Future<void> _pressEverythingFromTheKeyboard(WidgetTester tester) async {
     await tester.sendKeyEvent(LogicalKeyboardKey.space);
     await tester.pumpAndSettle();
   }
+}
+
+/// The semantics nodes a screen reader visits (not merged into a parent).
+List<SemanticsData> _visibleNodes(WidgetTester tester) {
+  final nodes = <SemanticsData>[];
+  void visit(SemanticsNode node) {
+    if (!node.isMergedIntoParent) nodes.add(node.getSemanticsData());
+    node.visitChildren((child) {
+      visit(child);
+      return true;
+    });
+  }
+
+  visit(
+    tester.binding.renderViews.first.owner!.semanticsOwner!.rootSemanticsNode!,
+  );
+  return nodes;
 }
 
 void tileRegressionTests() {
@@ -415,6 +434,143 @@ void tileRegressionTests() {
           Theme.of(tester.element(find.byType(Switch))).colorScheme,
           appTheme.colorScheme,
         );
+      });
+    }
+  });
+
+  group('A switch says what it switches', () {
+    for (final platform in _styles) {
+      for (final withOnPressed in [false, true]) {
+        for (final enabled in [true, false]) {
+          final what = [
+            withOnPressed ? 'with onPressed' : 'without onPressed',
+            if (!enabled) 'disabled',
+          ].join(', ');
+
+          testWidgets('$platform: a switch tile $what', (tester) async {
+            final handle = tester.ensureSemantics();
+            final log = <String>[];
+            await tester.pumpWidget(
+              MaterialApp(
+                home: Scaffold(
+                  body: SettingsList(
+                    platform: platform,
+                    sections: [
+                      SettingsSection(
+                        tiles: [
+                          SettingsTile(
+                            title: const Text('Before'),
+                            value: const Text('Value'),
+                          ),
+                          SettingsTile.switchTile(
+                            title: const Text('Wi-Fi'),
+                            enabled: enabled,
+                            initialValue: true,
+                            onToggle: (v) => log.add('toggled $v'),
+                            onPressed: withOnPressed
+                                ? (_) => log.add('pressed')
+                                : null,
+                          ),
+                          SettingsTile(
+                            title: const Text('After'),
+                            onPressed: (_) {},
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+
+            final nodes = _visibleNodes(tester);
+            final toggles = nodes.where(
+              (node) => node.flagsCollection.isToggled != Tristate.none,
+            );
+            expect(toggles.map((node) => node.label), ['Wi-Fi']);
+            final toggle = toggles.single;
+            expect(toggle.hasAction(SemanticsAction.tap), enabled);
+            // No other row got merged into the switch.
+            expect(toggle.label, isNot(contains('Before')));
+            expect(toggle.label, isNot(contains('After')));
+
+            if (enabled) {
+              tester.semantics.tap(
+                find.semantics.byFlag(SemanticsFlag.hasToggledState),
+              );
+              await tester.pumpAndSettle();
+              expect(log, ['toggled false']);
+            }
+
+            // On iOS, macOS and Windows a row with onPressed is a second
+            // node, with the same label, that runs onPressed when enabled.
+            final separateRow =
+                withOnPressed &&
+                const [
+                  DevicePlatform.iOS,
+                  DevicePlatform.macOS,
+                  DevicePlatform.windows,
+                ].contains(platform);
+            final rows = nodes.where(
+              (node) =>
+                  node.label.contains('Wi-Fi') &&
+                  node.flagsCollection.isToggled == Tristate.none,
+            );
+            expect(rows, hasLength(separateRow ? 1 : 0));
+            if (separateRow) {
+              expect(rows.single.label, 'Wi-Fi');
+              expect(rows.single.hasAction(SemanticsAction.tap), enabled);
+            }
+            handle.dispose();
+          });
+        }
+      }
+    }
+
+    for (final platform in [
+      DevicePlatform.iOS,
+      DevicePlatform.android,
+      DevicePlatform.web,
+    ]) {
+      testWidgets('$platform: a switch in the list pane of a split view', (
+        tester,
+      ) async {
+        tester.view.physicalSize = const Size(1400, 900);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.reset);
+        final handle = tester.ensureSemantics();
+        await tester.pumpWidget(
+          MaterialApp(
+            home: SettingsSplitView(
+              platform: platform,
+              sections: [
+                SettingsSection(
+                  tiles: [
+                    SettingsTile.navigation(
+                      title: const Text('Page'),
+                      destination: SettingsDestination(
+                        id: 'page',
+                        builder: (_) => const Text('Page body'),
+                      ),
+                    ),
+                    SettingsTile.switchTile(
+                      title: const Text('Wi-Fi'),
+                      initialValue: true,
+                      onToggle: (_) {},
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final toggles = _visibleNodes(
+          tester,
+        ).where((node) => node.flagsCollection.isToggled != Tristate.none);
+        expect(toggles.map((node) => node.label), ['Wi-Fi']);
+        handle.dispose();
       });
     }
   });

@@ -57,7 +57,7 @@ class WebSettingsTile extends StatelessWidget {
             : onPressed == null);
     final onChanged = enabled ? onToggle : null;
 
-    return IgnorePointer(
+    final tile = IgnorePointer(
       ignoring: !enabled,
       child: Material(
         color: Colors.transparent,
@@ -243,5 +243,10 @@ class WebSettingsTile extends StatelessWidget {
         ),
       ),
     );
+    // The row and the switch both toggle, so a switch tile is one node:
+    // "title, switch, on".
+    return tileType == SettingsTileType.switchTile
+        ? MergeSemantics(child: tile)
+        : tile;
   }
 }

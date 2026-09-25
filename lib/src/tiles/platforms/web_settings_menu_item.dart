@@ -65,7 +65,7 @@ class WebSettingsMenuItem extends StatelessWidget {
         ? (onToggle == null ? null : () => onToggle!(!initialValue))
         : (onPressed == null ? null : () => onPressed!(context));
 
-    return IgnorePointer(
+    final item = IgnorePointer(
       ignoring: !enabled,
       child: Padding(
         // cr-nav-menu-item: 1px start margin, 2px end margin.
@@ -159,5 +159,7 @@ class WebSettingsMenuItem extends StatelessWidget {
         ),
       ),
     );
+    // The row and the switch both toggle: one node, "title, switch, on".
+    return isSwitch ? MergeSemantics(child: item) : item;
   }
 }
