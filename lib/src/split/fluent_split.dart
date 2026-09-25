@@ -224,11 +224,8 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
   bool _focusHighlight = false;
   int? _pressPointer;
 
-  late final AnimationController _pill = AnimationController(
-    vsync: this,
-    duration: _kPillDuration,
-    value: 1,
-  );
+  /// Slides the pill in when the item becomes selected.
+  late final AnimationController _pill;
 
   /// Where the pill slides in from, in this item's coordinates.
   Rect? _pillFrom;
@@ -263,6 +260,16 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
     } else if (_togglesOnTap(FluentPaneModeScope.compactOf(context))) {
       widget.onToggle!(!widget.initialValue);
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _pill = AnimationController(
+      vsync: this,
+      duration: _kPillDuration,
+      value: 1,
+    );
   }
 
   @override
