@@ -24,6 +24,12 @@ class _WindowsDisplaySettingsScreenState
           sections: [
             CustomSettingsSection(child: _PageTitle()),
             SettingsSection(
+              // Settings puts the first header 52 below the title's capitals.
+              titlePadding: const EdgeInsetsDirectional.only(
+                start: 1,
+                top: 19,
+                bottom: 6,
+              ),
               title: const Text('Brightness & color'),
               tiles: [
                 SettingsTile.switchTile(
@@ -139,14 +145,22 @@ class _PageTitle extends StatelessWidget {
                     text: 'System',
                     style: title.copyWith(color: secondary),
                   ),
+                  // A thin 7x12 chevron centered on the capitals: it sits
+                  // on the baseline in a box as tall as the cap height.
                   WidgetSpan(
-                    alignment: PlaceholderAlignment.middle,
+                    alignment: PlaceholderAlignment.aboveBaseline,
+                    baseline: TextBaseline.alphabetic,
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      child: Icon(
-                        Icons.chevron_right,
-                        size: 20,
-                        color: secondary,
+                      padding: const EdgeInsetsDirectional.only(
+                        start: 19,
+                        end: 17,
+                      ),
+                      child: CustomPaint(
+                        size: const Size(7, 20),
+                        painter: _BreadcrumbChevron(
+                          color: secondary ?? const Color(0xFF5F5F5F),
+                          textDirection: Directionality.of(context),
+                        ),
                       ),
                     ),
                   ),
@@ -162,4 +176,38 @@ class _PageTitle extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The breadcrumb separator: a thin chevron, 7 wide and 12 tall, centered
+/// in its box and mirrored in right-to-left layouts.
+class _BreadcrumbChevron extends CustomPainter {
+  const _BreadcrumbChevron({required this.color, required this.textDirection});
+
+  final Color color;
+  final TextDirection textDirection;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final double top = (size.height - 12) / 2;
+    if (textDirection == TextDirection.rtl) {
+      canvas.translate(size.width, 0);
+      canvas.scale(-1, 1);
+    }
+    canvas.drawPath(
+      Path()
+        ..moveTo(0.75, top + 0.75)
+        ..lineTo(6.25, top + 6)
+        ..lineTo(0.75, top + 11.25),
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.6
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round
+        ..color = color,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_BreadcrumbChevron oldDelegate) =>
+      oldDelegate.color != color || oldDelegate.textDirection != textDirection;
 }
