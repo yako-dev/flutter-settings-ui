@@ -216,7 +216,7 @@ class FluentNavigationItem extends StatefulWidget {
   final bool selected;
 
   /// Whether assistive technologies hear the row as selected: null for rows
-  /// that don't open a page, and in GNOME's one-pane sidebar.
+  /// that don't open a page.
   final bool? semanticsSelected;
 
   @override
