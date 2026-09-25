@@ -30,10 +30,12 @@ it:
   (and `PLATFORM`, `PAGE`)
 
 `screen` is one of the keys of `launchScreens` in `lib/main.dart`:
-`split-view`, `macos`, `gnome-power`, `windows-display`, `ios-developer`,
-`ios-native`, `android-settings`, `android-native`, `android-notifications`,
-`web-chrome`, `web-chrome-addresses`, `material3` or `cross-platform`.
-`platform` is a `DevicePlatform` name in any case (`ios`, `macOS`, `linux`...)
-and sets the style of the gallery, the cross-platform screen and the split
-view. `page` is the split view page to open (e.g. `display`). `theme` is
-`light` or `dark`; without it the app follows the system.
+`split-view`, `showcase`, `macos`, `gnome-power`, `windows-display`,
+`ios-developer`, `ios-native`, `android-settings`, `android-native`,
+`android-notifications`, `web-chrome`, `web-chrome-addresses`, `material3`
+or `cross-platform`. `platform` is a `DevicePlatform` name in any case
+(`ios`, `macOS`, `linux`...) and sets the style of the gallery, the
+cross-platform screen, the split view and the showcase. `page` is the split
+view or showcase page to open (e.g. `display`, or `privacy` in the
+showcase). `theme` is `light` or `dark`; without it the app follows the
+system.
