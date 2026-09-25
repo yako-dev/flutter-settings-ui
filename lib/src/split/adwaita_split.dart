@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart' show kPrimaryButton;
 import 'package:flutter/widgets.dart';
 import 'package:settings_ui/src/split/settings_page_header.dart';
+import 'package:settings_ui/src/split/sidebar_keyboard.dart';
 import 'package:settings_ui/src/tiles/platforms/adwaita_settings_switch.dart';
 import 'package:settings_ui/src/tiles/platforms/adwaita_settings_tile.dart';
 import 'package:settings_ui/src/tiles/settings_tile.dart';
@@ -127,6 +128,21 @@ class _AdwaitaSidebarRowState extends State<AdwaitaSidebarRow> {
   bool _pressed = false;
   bool _focusHighlight = false;
 
+  late final SidebarRowFocus _focus = SidebarRowFocus(
+    debugLabel: 'AdwaitaSidebarRow',
+    onChanged: _rebuild,
+  );
+
+  void _rebuild() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _focus.dispose();
+    super.dispose();
+  }
+
   late final Map<Type, Action<Intent>> _actions = <Type, Action<Intent>>{
     ActivateIntent: CallbackAction<ActivateIntent>(
       onInvoke: (_) => _activate(),
@@ -149,6 +165,11 @@ class _AdwaitaSidebarRowState extends State<AdwaitaSidebarRow> {
     } else {
       widget.onPressed!(context);
     }
+  }
+
+  void _handleTap() {
+    _focus.focusFromPointer();
+    _activate();
   }
 
   void _setPressed(bool value) {
@@ -265,7 +286,7 @@ class _AdwaitaSidebarRowState extends State<AdwaitaSidebarRow> {
         color: background,
         borderRadius: BorderRadius.circular(_kRowRadius),
       ),
-      foregroundDecoration: _focusHighlight && _activatable
+      foregroundDecoration: _focus.showsRing(_focusHighlight) && _activatable
           ? BoxDecoration(
               borderRadius: BorderRadius.circular(_kRowRadius),
               border: Border.all(
@@ -293,6 +314,8 @@ class _AdwaitaSidebarRowState extends State<AdwaitaSidebarRow> {
             ignoring: !enabled,
             child: FocusableActionDetector(
               enabled: _activatable,
+              focusNode: _focus.node,
+              onFocusChange: _focus.handleFocusChange,
               actions: _actions,
               onShowFocusHighlight: (value) {
                 if (value != _focusHighlight) {
@@ -322,7 +345,7 @@ class _AdwaitaSidebarRowState extends State<AdwaitaSidebarRow> {
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     excludeFromSemantics: true,
-                    onTap: _activatable ? _activate : null,
+                    onTap: _activatable ? _handleTap : null,
                     onTapCancel: () => _setPressed(false),
                     child: box,
                   ),

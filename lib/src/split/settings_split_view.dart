@@ -1005,7 +1005,12 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
     if (sidebar) {
       switch (family) {
         case SettingsStyleFamily.macos:
-          padding = const EdgeInsets.only(bottom: 10);
+          // Room for the first row's focus ring, which the list's viewport
+          // would clip: the list starts that much higher (see below).
+          padding = const EdgeInsets.only(
+            top: kMacosFocusRingWidth,
+            bottom: 10,
+          );
         case SettingsStyleFamily.fluent:
           // Windows Settings' open pane starts its items 16 from the
           // window edge; the rail and the pane opened from it keep
@@ -1172,17 +1177,28 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
           default:
             header = AdwaitaHeaderBar(title: title, onBack: onBack);
         }
+        Widget body = MediaQuery.removePadding(
+          context: context,
+          removeTop: true,
+          child: list,
+        );
+        if (family == SettingsStyleFamily.macos) {
+          // The macOS sidebar list reaches up under the (transparent)
+          // toolbar strip by the width of the focus ring, which its top
+          // padding leaves free, so its first row stays at the strip's
+          // bottom and its ring isn't clipped.
+          body = CustomSingleChildLayout(
+            delegate: _ExtendUpDelegate(
+              isSplit && sidebar ? kMacosFocusRingWidth : 0,
+            ),
+            child: body,
+          );
+        }
         content = Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             header,
-            Expanded(
-              child: MediaQuery.removePadding(
-                context: context,
-                removeTop: true,
-                child: list,
-              ),
-            ),
+            Expanded(child: body),
           ],
         );
     }
@@ -1374,6 +1390,27 @@ class _DetailHost extends StatelessWidget {
     }
     return child;
   }
+}
+
+/// Lays its child out [extent] taller and that far up, over what is above.
+class _ExtendUpDelegate extends SingleChildLayoutDelegate {
+  const _ExtendUpDelegate(this.extent);
+
+  final double extent;
+
+  @override
+  BoxConstraints getConstraintsForChild(BoxConstraints constraints) =>
+      constraints.copyWith(
+        minHeight: constraints.minHeight + extent,
+        maxHeight: constraints.maxHeight + extent,
+      );
+
+  @override
+  Offset getPositionForChild(Size size, Size childSize) => Offset(0, -extent);
+
+  @override
+  bool shouldRelayout(_ExtendUpDelegate oldDelegate) =>
+      extent != oldDelegate.extent;
 }
 
 /// A page without a transition: the list under one pane, and the root of

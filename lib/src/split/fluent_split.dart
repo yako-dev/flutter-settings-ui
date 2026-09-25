@@ -237,6 +237,15 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
 
   _FluentSelectionIndicator? _indicator;
 
+  late final SidebarRowFocus _focus = SidebarRowFocus(
+    debugLabel: 'FluentNavigationItem',
+    onChanged: _rebuild,
+  );
+
+  void _rebuild() {
+    if (mounted) setState(() {});
+  }
+
   late final Map<Type, Action<Intent>> _actions = <Type, Action<Intent>>{
     ActivateIntent: CallbackAction<ActivateIntent>(
       onInvoke: (_) => _activate(),
@@ -265,6 +274,11 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
     } else if (_togglesOnTap(FluentPaneModeScope.compactOf(context))) {
       widget.onToggle!(!widget.initialValue);
     }
+  }
+
+  void _handleTap() {
+    _focus.focusFromPointer();
+    _activate();
   }
 
   @override
@@ -312,6 +326,7 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
     final id = widget.id;
     if (id != null) _indicator?.unregister(id, this);
     _pill.dispose();
+    _focus.dispose();
     super.dispose();
   }
 
@@ -478,7 +493,10 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
           if (_isSwitch)
             Padding(
               padding: const EdgeInsetsDirectional.only(end: _kLabelEnd),
+              // The item takes the focus when it can be clicked;
+              // otherwise the switch does, so the keyboard can reach it.
               child: ExcludeFocus(
+                excluding: clickable,
                 child: FluentSettingsSwitch(
                   value: widget.initialValue,
                   onChanged: enabled ? widget.onToggle : null,
@@ -515,7 +533,7 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
       child: content,
     );
 
-    if (_focusHighlight && clickable) {
+    if (_focus.showsRing(_focusHighlight) && clickable) {
       item = CustomPaint(
         foregroundPainter: _FocusRingPainter(tokens),
         child: item,
@@ -546,6 +564,8 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
 
     item = FocusableActionDetector(
       enabled: clickable,
+      focusNode: _focus.node,
+      onFocusChange: _focus.handleFocusChange,
       actions: _actions,
       onShowFocusHighlight: (value) {
         if (value != _focusHighlight) setState(() => _focusHighlight = value);
@@ -567,7 +587,7 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             excludeFromSemantics: true,
-            onTap: clickable ? _activate : null,
+            onTap: clickable ? _handleTap : null,
             child: item,
           ),
         ),

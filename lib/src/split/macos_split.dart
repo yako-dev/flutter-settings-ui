@@ -58,7 +58,9 @@ const Color _kHeaderDark = Color(0xFF5A5A5A);
 const Color _kToolbarTitleLight = Color(0xFF4C4C4C);
 const Color _kToolbarTitleDark = Color(0xFFE9E9E9);
 
-/// `keyboardFocusIndicatorColor`.
+/// The focus ring, `keyboardFocusIndicatorColor`, 3pt outside the row's
+/// selection shape.
+const double kMacosFocusRingWidth = 3;
 const Color _kFocusLight = Color(0x800067F4);
 const Color _kFocusDark = Color(0x801AA9FF);
 
@@ -206,6 +208,21 @@ class MacosSidebarItem extends StatefulWidget {
 class _MacosSidebarItemState extends State<MacosSidebarItem> {
   bool _focusHighlight = false;
 
+  late final SidebarRowFocus _focus = SidebarRowFocus(
+    debugLabel: 'MacosSidebarItem',
+    onChanged: _rebuild,
+  );
+
+  void _rebuild() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _focus.dispose();
+    super.dispose();
+  }
+
   late final Map<Type, Action<Intent>> _actions = <Type, Action<Intent>>{
     ActivateIntent: CallbackAction<ActivateIntent>(
       onInvoke: (_) => _activate(),
@@ -225,6 +242,11 @@ class _MacosSidebarItemState extends State<MacosSidebarItem> {
 
   void _activate() {
     if (_canPress) widget.onPressed!(context);
+  }
+
+  void _handleTap() {
+    _focus.focusFromPointer();
+    _activate();
   }
 
   @override
@@ -300,7 +322,10 @@ class _MacosSidebarItemState extends State<MacosSidebarItem> {
               data: CupertinoTheme.of(context).copyWith(
                 brightness: isDark ? Brightness.dark : Brightness.light,
               ),
+              // The row takes the focus when it can be pressed; otherwise
+              // the switch does, so the keyboard can reach it.
               child: ExcludeFocus(
+                excluding: _canPress,
                 child: MacosSettingsSwitch(
                   value: widget.initialValue,
                   onChanged: enabled ? widget.onToggle : null,
@@ -323,12 +348,12 @@ class _MacosSidebarItemState extends State<MacosSidebarItem> {
         position: DecorationPosition.background,
         child: DecoratedBox(
           position: DecorationPosition.foreground,
-          decoration: _focusHighlight && _canPress
+          decoration: _focus.showsRing(_focusHighlight) && _canPress
               ? BoxDecoration(
                   borderRadius: BorderRadius.circular(_kSelectionRadius),
                   border: Border.all(
                     color: focusColor,
-                    width: 3,
+                    width: kMacosFocusRingWidth,
                     strokeAlign: BorderSide.strokeAlignOutside,
                   ),
                 )
@@ -358,6 +383,8 @@ class _MacosSidebarItemState extends State<MacosSidebarItem> {
         selected: widget.semanticsSelected,
         child: FocusableActionDetector(
           enabled: _canPress,
+          focusNode: _focus.node,
+          onFocusChange: _focus.handleFocusChange,
           actions: _actions,
           onShowFocusHighlight: (value) {
             if (value != _focusHighlight) {
@@ -367,7 +394,7 @@ class _MacosSidebarItemState extends State<MacosSidebarItem> {
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             excludeFromSemantics: !_canPress,
-            onTap: _canPress ? _activate : null,
+            onTap: _canPress ? _handleTap : null,
             child: item,
           ),
         ),

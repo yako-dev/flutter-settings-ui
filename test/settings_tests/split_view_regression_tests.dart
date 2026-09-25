@@ -2,9 +2,13 @@ import 'dart:ui' show Tristate;
 
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/gestures.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/settings_ui.dart';
+import 'package:settings_ui/src/split/adwaita_split.dart';
+import 'package:settings_ui/src/split/fluent_split.dart';
+import 'package:settings_ui/src/split/macos_split.dart';
 
 /// Regression tests for the split view bugs found in the 4.0.0 release
 /// candidate: back and layout changes with routes pushed from the list pane,
@@ -169,6 +173,89 @@ SettingsSplitController _controllerOf(WidgetTester tester) =>
             .first,
       ),
     );
+
+/// The list pane tile of [title] (a row, or a card with one pane).
+Finder _tile(String title) => find.ancestor(
+  of: _inList(find.text(title)),
+  matching: find.byType(SettingsTile),
+);
+
+/// Whether the primary focus is inside [finder]'s widget.
+bool _focusIn(Finder finder) {
+  final context = FocusManager.instance.primaryFocus?.context;
+  if (context == null) return false;
+  final targets = finder.evaluate().toSet();
+  if (targets.contains(context)) return true;
+  var found = false;
+  context.visitAncestorElements((element) {
+    if (targets.contains(element)) {
+      found = true;
+      return false;
+    }
+    return true;
+  });
+  return found;
+}
+
+/// Presses Tab until the focus is in [finder] (at most [max] times).
+Future<void> _tabTo(WidgetTester tester, Finder finder, {int max = 12}) async {
+  for (var i = 0; i < max && !_focusIn(finder); i++) {
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.pump();
+  }
+  expect(_focusIn(finder), isTrue, reason: 'Tab never got to $finder');
+}
+
+/// Whether the sidebar row of [title] shows its focus ring.
+bool _ringShown(WidgetTester tester, DevicePlatform platform, String title) {
+  final type = switch (platform) {
+    DevicePlatform.macOS => MacosSidebarItem,
+    DevicePlatform.windows => FluentNavigationItem,
+    _ => AdwaitaSidebarRow,
+  };
+  final row = find.ancestor(
+    of: _inList(find.text(title)),
+    matching: find.byType(type),
+  );
+  switch (platform) {
+    case DevicePlatform.macOS:
+      return find
+          .descendant(
+            of: row,
+            matching: find.byWidgetPredicate(
+              (widget) =>
+                  widget is DecoratedBox &&
+                  widget.position == DecorationPosition.foreground &&
+                  (widget.decoration as BoxDecoration).border != null,
+            ),
+          )
+          .evaluate()
+          .isNotEmpty;
+    case DevicePlatform.windows:
+      return find
+          .descendant(
+            of: row,
+            matching: find.byWidgetPredicate(
+              (widget) =>
+                  widget is CustomPaint &&
+                  widget.foregroundPainter.runtimeType.toString() ==
+                      '_FocusRingPainter',
+            ),
+          )
+          .evaluate()
+          .isNotEmpty;
+    default:
+      return tester
+              .widget<AnimatedContainer>(
+                find.descendant(
+                  of: row,
+                  matching: find.byType(AnimatedContainer),
+                ),
+              )
+              .foregroundDecoration !=
+          null;
+  }
+}
 
 void splitViewRegressionTests() {
   group('one pane: routes pushed from the list pane', () {
@@ -846,6 +933,204 @@ void splitViewRegressionTests() {
         );
       }
       handle.dispose();
+    });
+  });
+  group('sidebar keyboard', () {
+    for (final platform in [
+      DevicePlatform.macOS,
+      DevicePlatform.windows,
+      DevicePlatform.linux,
+    ]) {
+      testWidgets('$platform: the arrow keys stay in the sidebar', (
+        tester,
+      ) async {
+        await _setSize(tester, const Size(1280, 800));
+        SettingsTile row(String name, {required int controls}) =>
+            SettingsTile.navigation(
+              leading: const Icon(Icons.list),
+              title: Text(name),
+              destination: SettingsDestination(
+                id: name,
+                builder: (_) => SettingsList(
+                  sections: [
+                    SettingsSection(
+                      tiles: [
+                        for (var i = 0; i < controls; i++)
+                          SettingsTile(
+                            title: Text('$name row $i'),
+                            onPressed: (_) {},
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+        await tester.pumpWidget(
+          _app(
+            SettingsSplitView(
+              platform: platform,
+              title: const Text('Settings'),
+              initialDestinationId: 'Long',
+              sections: [
+                SettingsSection(
+                  tiles: [
+                    row('Short', controls: 1),
+                    // Its page has controls lower than the last row, and
+                    // to the side of the first one.
+                    row('Long', controls: 20),
+                  ],
+                ),
+              ],
+            ),
+            platform: _targetOf(platform),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await _tabTo(tester, _tile('Long'));
+
+        await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+        await tester.pumpAndSettle();
+        expect(_focusIn(_tile('Long')), isTrue);
+        expect(_controllerOf(tester).selectedId, 'Long');
+
+        await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+        await tester.pumpAndSettle();
+        expect(_focusIn(_tile('Short')), isTrue);
+        await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+        await tester.pumpAndSettle();
+        expect(_focusIn(_listPane), isTrue);
+      });
+
+      testWidgets('$platform: a click focuses the row, without a ring until '
+          'a key is pressed', (tester) async {
+        await _setSize(tester, const Size(1280, 800));
+        await tester.pumpWidget(
+          _app(
+            SettingsSplitView(platform: platform, sections: _sections()),
+            platform: _targetOf(platform),
+          ),
+        );
+        await tester.pumpAndSettle();
+        // Keyboard use first, so the focus rings would show.
+        await tester.sendKeyEvent(LogicalKeyboardKey.shift);
+        await tester.tap(
+          _inList(find.text('Display')),
+          kind: PointerDeviceKind.mouse,
+        );
+        await tester.pumpAndSettle();
+        expect(_controllerOf(tester).selectedId, 'display');
+        expect(_focusIn(_tile('Display')), isTrue);
+        expect(_ringShown(tester, platform, 'Display'), isFalse);
+
+        // The keys go on from the clicked row.
+        await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+        await tester.pumpAndSettle();
+        expect(_focusIn(_tile('Sound')), isTrue);
+        expect(_ringShown(tester, platform, 'Sound'), isTrue);
+        expect(
+          _controllerOf(tester).selectedId,
+          platform == DevicePlatform.macOS ? 'sound' : 'display',
+        );
+
+        // Tab goes on from the clicked row too, not from the first one.
+        await tester.tap(
+          _inList(find.text('Display')),
+          kind: PointerDeviceKind.mouse,
+        );
+        await tester.pumpAndSettle();
+        expect(_focusIn(_tile('Display')), isTrue);
+        await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+        await tester.pump();
+        expect(_focusIn(_tile('Sound')), isTrue);
+
+        // A click on the focused row hides the ring again.
+        await tester.tap(
+          _inList(find.text('Network')),
+          kind: PointerDeviceKind.mouse,
+        );
+        await tester.pumpAndSettle();
+        expect(_focusIn(_tile('Network')), isTrue);
+        expect(_ringShown(tester, platform, 'Network'), isFalse);
+        await tester.sendKeyEvent(LogicalKeyboardKey.shift);
+        await tester.pump();
+        expect(_ringShown(tester, platform, 'Network'), isTrue);
+      });
+    }
+
+    for (final platform in [DevicePlatform.macOS, DevicePlatform.windows]) {
+      testWidgets('$platform: Tab and Space reach a switch without '
+          'onPressed', (tester) async {
+        var value = false;
+        await _setSize(tester, const Size(1280, 800));
+        await tester.pumpWidget(
+          _app(
+            StatefulBuilder(
+              builder: (context, setState) => SettingsSplitView(
+                platform: platform,
+                sections: [
+                  SettingsSection(
+                    tiles: [
+                      (_sections().first as SettingsSection).tiles.first,
+                      SettingsTile.switchTile(
+                        leading: const Icon(Icons.airplanemode_active),
+                        title: const Text('Airplane mode'),
+                        initialValue: value,
+                        onToggle: (v) => setState(() => value = v),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            platform: _targetOf(platform),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await _tabTo(tester, _tile('Airplane mode'));
+        await tester.sendKeyEvent(LogicalKeyboardKey.space);
+        await tester.pumpAndSettle();
+        expect(value, isTrue);
+        // Still one tab stop per row: a row with onPressed keeps the focus
+        // and its switch stays out of the way.
+        await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+        await tester.pump();
+        expect(_focusIn(_tile('Airplane mode')), isFalse);
+      });
+    }
+
+    testWidgets('macOS: the first row\'s focus ring is not clipped', (
+      tester,
+    ) async {
+      await _setSize(tester, const Size(1280, 800));
+      await tester.pumpWidget(
+        _app(
+          SettingsSplitView(
+            platform: DevicePlatform.macOS,
+            sections: _sections(),
+          ),
+          platform: TargetPlatform.macOS,
+        ),
+      );
+      await tester.pumpAndSettle();
+      await _tabTo(tester, _tile('Network'));
+      await tester.pumpAndSettle();
+      expect(_ringShown(tester, DevicePlatform.macOS, 'Network'), isTrue);
+      final row = find.ancestor(
+        of: _inList(find.text('Network')),
+        matching: find.byType(MacosSidebarItem),
+      );
+      final selection = tester.getRect(
+        find.descendant(of: row, matching: find.byType(DecoratedBox)).first,
+      );
+      // The row still starts under the 52pt toolbar strip...
+      expect(selection.top, 52);
+      // ...and the list's viewport leaves room for the 3pt ring above it.
+      final viewport = tester.getRect(
+        find.descendant(of: _listPane, matching: find.byType(Scrollable)).first,
+      );
+      expect(viewport.top, lessThanOrEqualTo(selection.top - 3));
+      expect(viewport.bottom, 800);
     });
   });
 }
