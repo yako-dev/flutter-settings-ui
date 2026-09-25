@@ -1,8 +1,10 @@
+import 'package:example/utils/launch_options.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/settings_ui.dart';
 
-/// A replica of the Power panel of GNOME Settings 51 on a desktop computer
-/// (no battery), in the Linux (libadwaita) style.
+/// A replica of the Power panel of GNOME Settings 48 to 51 on a laptop, in
+/// the Linux (libadwaita) style. Since GNOME 48 the panel has two pages,
+/// General and Power Saving, picked with a view switcher in the header bar.
 class GnomePowerSettingsScreen extends StatefulWidget {
   const GnomePowerSettingsScreen({super.key});
 
@@ -11,11 +13,21 @@ class GnomePowerSettingsScreen extends StatefulWidget {
       _GnomePowerSettingsScreenState();
 }
 
+enum _PowerPage { general, powerSaving }
+
 enum _PowerMode { performance, balanced, powerSaver }
 
 class _GnomePowerSettingsScreenState extends State<GnomePowerSettingsScreen> {
+  _PowerPage page = LaunchOptions.tab == 'power-saving'
+      ? _PowerPage.powerSaving
+      : _PowerPage.general;
   _PowerMode powerMode = _PowerMode.balanced;
+  bool showBatteryPercentage = false;
   bool dimScreen = true;
+  bool automaticPowerSaver = true;
+  bool automaticScreenBlank = true;
+  bool suspendOnBattery = true;
+  bool suspendWhenPluggedIn = true;
 
   @override
   Widget build(BuildContext context) {
@@ -27,78 +39,137 @@ class _GnomePowerSettingsScreenState extends State<GnomePowerSettingsScreen> {
           : const Color(0xFFFAFAFB),
       body: Column(
         children: [
-          _GnomeHeaderBar(title: 'Power', isDark: isDark),
+          _GnomeHeaderBar(
+            isDark: isDark,
+            center: _ViewSwitcher(
+              isDark: isDark,
+              selected: page.index,
+              onSelected: (index) =>
+                  setState(() => page = _PowerPage.values[index]),
+              items: const [
+                (Icons.battery_charging_full_outlined, 'General'),
+                (Icons.eco_outlined, 'Power Saving'),
+              ],
+            ),
+          ),
           Expanded(
             child: SettingsList(
+              key: ValueKey(page),
               platform: DevicePlatform.linux,
-              sections: [
-                SettingsSection(
-                  title: const Text('Power Mode'),
-                  tiles: [
-                    _powerModeTile(
-                      _PowerMode.performance,
-                      'Performance',
-                      'High performance and power usage',
-                    ),
-                    _powerModeTile(
-                      _PowerMode.balanced,
-                      'Balanced',
-                      'Standard performance and power usage',
-                    ),
-                    _powerModeTile(
-                      _PowerMode.powerSaver,
-                      'Power Saver',
-                      'Reduced performance and power usage',
-                    ),
-                  ],
-                ),
-                SettingsSection(
-                  title: const Text('Power Saving'),
-                  tiles: [
-                    SettingsTile.switchTile(
-                      title: const Text('Dim Screen'),
-                      description: const Text(
-                        'Reduce screen brightness when the computer is '
-                        'inactive',
-                      ),
-                      initialValue: dimScreen,
-                      onToggle: (value) => setState(() => dimScreen = value),
-                    ),
-                    SettingsTile(
-                      title: const Text('Screen Blank'),
-                      description: const Text(
-                        'Turn the screen off after a period of inactivity',
-                      ),
-                      trailing: const _ComboValue('5 minutes'),
-                      onPressed: (_) {},
-                    ),
-                    SettingsTile.navigation(
-                      title: const Text('Automatic Suspend'),
-                      description: const Text(
-                        'Pause the computer after a period of inactivity',
-                      ),
-                      value: const Text('Off'),
-                      onPressed: (_) {},
-                    ),
-                  ],
-                ),
-                SettingsSection(
-                  title: const Text('General'),
-                  tiles: [
-                    SettingsTile(
-                      title: const Text('Power Button Behavior'),
-                      trailing: const _ComboValue('Suspend'),
-                      onPressed: (_) {},
-                    ),
-                  ],
-                ),
-              ],
+              sections: switch (page) {
+                _PowerPage.general => _generalPage(),
+                _PowerPage.powerSaving => _powerSavingPage(),
+              },
             ),
           ),
         ],
       ),
     );
   }
+
+  List<AbstractSettingsSection> _generalPage() => [
+    SettingsSection(
+      title: const Text('Battery Level'),
+      tiles: [
+        const CustomSettingsTile(
+          child: _BatteryLevel(level: 0.44, remaining: '55 minutes remaining'),
+        ),
+      ],
+    ),
+    SettingsSection(
+      title: const Text('Power Mode'),
+      tiles: [
+        _powerModeTile(
+          _PowerMode.performance,
+          'Performance',
+          'High performance and power usage',
+        ),
+        _powerModeTile(
+          _PowerMode.balanced,
+          'Balanced',
+          'Standard performance and power usage',
+        ),
+        _powerModeTile(
+          _PowerMode.powerSaver,
+          'Power Saver',
+          'Reduced performance and power usage',
+        ),
+      ],
+    ),
+    SettingsSection(
+      title: const Text('General'),
+      tiles: [
+        SettingsTile(
+          title: const Text('Power Button Behavior'),
+          trailing: const _ComboValue('Suspend'),
+          onPressed: (_) {},
+        ),
+        SettingsTile.switchTile(
+          title: const Text('Show Battery Percentage'),
+          description: const Text('Show exact charge level in the top bar'),
+          initialValue: showBatteryPercentage,
+          onToggle: (value) => setState(() => showBatteryPercentage = value),
+        ),
+      ],
+    ),
+  ];
+
+  List<AbstractSettingsSection> _powerSavingPage() => [
+    SettingsSection(
+      tiles: [
+        SettingsTile.switchTile(
+          title: const Text('Dim Screen'),
+          description: const Text(
+            'Reduce screen brightness when the device is inactive',
+          ),
+          initialValue: dimScreen,
+          onToggle: (value) => setState(() => dimScreen = value),
+        ),
+        SettingsTile.switchTile(
+          title: const Text('Automatic Power Saver'),
+          description: const Text(
+            'Turn on power saver mode when battery power is low',
+          ),
+          initialValue: automaticPowerSaver,
+          onToggle: (value) => setState(() => automaticPowerSaver = value),
+        ),
+      ],
+    ),
+    SettingsSection(
+      tiles: [
+        SettingsTile.switchTile(
+          title: const Text('Automatic Screen Blank'),
+          description: const Text(
+            'Turn the screen off after a period of inactivity',
+          ),
+          initialValue: automaticScreenBlank,
+          onToggle: (value) => setState(() => automaticScreenBlank = value),
+        ),
+        _delayTile('5 minutes', enabled: automaticScreenBlank),
+      ],
+    ),
+    SettingsSection(
+      title: const Text('Automatic Suspend'),
+      tiles: [
+        SettingsTile.switchTile(
+          title: const Text('On Battery Power'),
+          initialValue: suspendOnBattery,
+          onToggle: (value) => setState(() => suspendOnBattery = value),
+        ),
+        _delayTile('15 minutes', enabled: suspendOnBattery),
+      ],
+    ),
+    SettingsSection(
+      tiles: [
+        SettingsTile.switchTile(
+          title: const Text('When Plugged In'),
+          initialValue: suspendWhenPluggedIn,
+          onToggle: (value) => setState(() => suspendWhenPluggedIn = value),
+        ),
+        _delayTile('15 minutes', enabled: suspendWhenPluggedIn),
+      ],
+    ),
+  ];
 
   SettingsTile _powerModeTile(_PowerMode mode, String title, String subtitle) {
     return SettingsTile(
@@ -108,21 +179,29 @@ class _GnomePowerSettingsScreenState extends State<GnomePowerSettingsScreen> {
       onPressed: (_) => setState(() => powerMode = mode),
     );
   }
+
+  /// A combo row that GNOME turns insensitive while its switch is off.
+  SettingsTile _delayTile(String value, {required bool enabled}) {
+    return SettingsTile(
+      title: const Text('Delay'),
+      trailing: _ComboValue(value),
+      enabled: enabled,
+      onPressed: (_) {},
+    );
+  }
 }
 
-/// A flat GNOME header bar: 46 tall, on the window background, with the
-/// page title in bold in the middle.
+/// A flat GNOME header bar: 46 tall, on the window background, with
+/// [center] in the middle and a back button when the page can pop.
 class _GnomeHeaderBar extends StatelessWidget {
-  const _GnomeHeaderBar({required this.title, required this.isDark});
+  const _GnomeHeaderBar({required this.center, required this.isDark});
 
-  final String title;
+  final Widget center;
   final bool isDark;
 
   @override
   Widget build(BuildContext context) {
-    final foreground = isDark
-        ? Colors.white
-        : const Color.fromRGBO(0, 0, 6, 0.8);
+    final foreground = _foreground(isDark);
     final canPop = Navigator.of(context).canPop();
 
     return SafeArea(
@@ -132,14 +211,7 @@ class _GnomeHeaderBar extends StatelessWidget {
         child: Stack(
           alignment: Alignment.center,
           children: [
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 44 / 3,
-                fontWeight: FontWeight.w700,
-                color: foreground,
-              ),
-            ),
+            center,
             if (canPop)
               PositionedDirectional(
                 start: 6,
@@ -148,8 +220,7 @@ class _GnomeHeaderBar extends StatelessWidget {
                   onPressed: () => Navigator.of(context).maybePop(),
                   child: CustomPaint(
                     size: const Size.square(16),
-                    painter: _SymbolicPainter(
-                      _Symbolic.goPrevious,
+                    painter: _GoPreviousPainter(
                       foreground,
                       mirrored: Directionality.of(context) == TextDirection.rtl,
                     ),
@@ -158,6 +229,78 @@ class _GnomeHeaderBar extends StatelessWidget {
               ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// An `AdwViewSwitcher` in its wide form: equally wide 34-tall buttons with
+/// an icon and a bold label, 4 apart. The selected one is on a pill of the
+/// foreground at 10%.
+class _ViewSwitcher extends StatelessWidget {
+  const _ViewSwitcher({
+    required this.items,
+    required this.selected,
+    required this.onSelected,
+    required this.isDark,
+  });
+
+  final List<(IconData, String)> items;
+  final int selected;
+  final ValueChanged<int> onSelected;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    final foreground = _foreground(isDark);
+    return IntrinsicWidth(
+      child: Row(
+        children: [
+          for (var i = 0; i < items.length; i++) ...[
+            if (i > 0) const SizedBox(width: 4),
+            Expanded(
+              child: Semantics(
+                selected: i == selected,
+                child: Material(
+                  type: MaterialType.transparency,
+                  child: InkWell(
+                    onTap: () => onSelected(i),
+                    borderRadius: BorderRadius.circular(9),
+                    splashFactory: NoSplash.splashFactory,
+                    hoverColor: foreground.withValues(
+                      alpha: foreground.a * 0.07,
+                    ),
+                    child: Ink(
+                      height: 34,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: i == selected
+                            ? foreground.withValues(alpha: foreground.a * 0.1)
+                            : null,
+                        borderRadius: BorderRadius.circular(9),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(items[i].$1, size: 16, color: foreground),
+                          const SizedBox(width: 6),
+                          Text(
+                            items[i].$2,
+                            style: TextStyle(
+                              fontSize: 44 / 3,
+                              fontWeight: FontWeight.w700,
+                              color: foreground,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -193,7 +336,8 @@ class _FlatButton extends StatelessWidget {
 }
 
 /// The value of a GNOME combo row: the selected item at full strength, then
-/// a `pan-down-symbolic` arrow.
+/// the `pan-down-symbolic` arrow 9 px after it. In a Linux style tile the
+/// text and the arrow get the row's foreground color and font.
 class _ComboValue extends StatelessWidget {
   const _ComboValue(this.text);
 
@@ -201,24 +345,68 @@ class _ComboValue extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = IconTheme.of(context).color!;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          text,
-          style: TextStyle(
-            fontSize: 44 / 3,
-            height: 18 / (44 / 3),
-            color: color,
-          ),
-        ),
-        const SizedBox(width: 6),
-        CustomPaint(
-          size: const Size.square(16),
-          painter: _SymbolicPainter(_Symbolic.panDown, color),
-        ),
+        Text(text),
+        const SizedBox(width: 9),
+        const AdwaitaPanDownIcon(),
       ],
+    );
+  }
+}
+
+/// The battery card of the Power panel: a level bar and the time left.
+class _BatteryLevel extends StatelessWidget {
+  const _BatteryLevel({required this.level, required this.remaining});
+
+  final double level;
+  final String remaining;
+
+  @override
+  Widget build(BuildContext context) {
+    final foreground = SettingsTheme.of(
+      context,
+    ).themeData.settingsTileTextColor!;
+    final style = TextStyle(
+      fontSize: 44 / 3,
+      height: 18 / (44 / 3),
+      color: foreground,
+    );
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 18, 14, 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // GtkLevelBar: an 8 px pill, the accent over the foreground at 15%.
+          Container(
+            height: 8,
+            alignment: AlignmentDirectional.centerStart,
+            decoration: BoxDecoration(
+              color: foreground.withValues(alpha: foreground.a * 0.15),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: FractionallySizedBox(
+              widthFactor: level,
+              heightFactor: 1,
+              child: const DecoratedBox(
+                decoration: BoxDecoration(
+                  color: Color(0xFF3584E4),
+                  borderRadius: BorderRadius.all(Radius.circular(4)),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(child: Text(remaining, style: style)),
+              Text('${(level * 100).round()} %', style: style),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
@@ -269,29 +457,21 @@ class _RadioPainter extends CustomPainter {
       oldDelegate.selected != selected || oldDelegate.foreground != foreground;
 }
 
-enum _Symbolic { goPrevious, panDown }
+/// The `go-previous-symbolic` arrow of the back button: a 16 px chevron
+/// drawn with a 2 px round stroke.
+class _GoPreviousPainter extends CustomPainter {
+  const _GoPreviousPainter(this.color, {this.mirrored = false});
 
-/// Adwaita symbolic arrows: 16 px chevrons drawn with a 2 px round stroke.
-class _SymbolicPainter extends CustomPainter {
-  const _SymbolicPainter(this.icon, this.color, {this.mirrored = false});
-
-  final _Symbolic icon;
   final Color color;
   final bool mirrored;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final points = switch (icon) {
-      _Symbolic.goPrevious => const [
-        Offset(11, 2),
-        Offset(5, 8),
-        Offset(11, 14),
-      ],
-      _Symbolic.panDown => const [Offset(2, 5), Offset(8, 11), Offset(14, 5)],
-    };
-    Offset map(Offset p) => Offset(mirrored ? 16 - p.dx : p.dx, p.dy);
+    const points = [Offset(11, 2), Offset(5, 8), Offset(11, 14)];
     canvas.drawPath(
-      Path()..addPolygon([for (final p in points) map(p)], false),
+      Path()..addPolygon([
+        for (final p in points) Offset(mirrored ? 16 - p.dx : p.dx, p.dy),
+      ], false),
       Paint()
         ..color = color
         ..style = PaintingStyle.stroke
@@ -302,8 +482,9 @@ class _SymbolicPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_SymbolicPainter oldDelegate) =>
-      oldDelegate.icon != icon ||
-      oldDelegate.color != color ||
-      oldDelegate.mirrored != mirrored;
+  bool shouldRepaint(_GoPreviousPainter oldDelegate) =>
+      oldDelegate.color != color || oldDelegate.mirrored != mirrored;
 }
+
+Color _foreground(bool isDark) =>
+    isDark ? Colors.white : const Color.fromRGBO(0, 0, 6, 0.8);

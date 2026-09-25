@@ -43,7 +43,9 @@ class MacosIconBadge extends StatelessWidget {
 /// The value of a macOS pop-up button in a settings row: the selected item
 /// in the label color, then a 20pt circle with `chevron.up.chevron.down`.
 ///
-/// Pass it as a `SettingsTile.trailing`.
+/// Pass it as a `SettingsTile.trailing`. It lays out 17pt tall and lets the
+/// circle overflow, so the row stays 37pt tall like a System Settings pop-up
+/// row (10 + 17 + 10).
 class MacosPopupValue extends StatelessWidget {
   const MacosPopupValue(this.text, {super.key});
 
@@ -53,22 +55,33 @@ class MacosPopupValue extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final label = isDark ? const Color(0xD8FFFFFF) : const Color(0xD8000000);
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(text),
-        const SizedBox(width: 12),
-        Container(
-          width: 20,
-          height: 20,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: isDark ? const Color(0x12FFFFFF) : const Color(0x14000000),
+    return SizedBox(
+      height: MediaQuery.textScalerOf(context).scale(16) + 1,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(text),
+          const SizedBox(width: 12),
+          SizedBox(
+            width: 20,
+            child: OverflowBox(
+              maxHeight: 20,
+              child: Container(
+                width: 20,
+                height: 20,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: isDark
+                      ? const Color(0x12FFFFFF)
+                      : const Color(0x14000000),
+                ),
+                child: CustomPaint(painter: _UpDownChevronPainter(label)),
+              ),
+            ),
           ),
-          child: CustomPaint(painter: _UpDownChevronPainter(label)),
-        ),
-        const SizedBox(width: 4),
-      ],
+          const SizedBox(width: 4),
+        ],
+      ),
     );
   }
 }

@@ -132,22 +132,25 @@ class ResolvedSettingsStyle {
   );
 }
 
-/// Which of the three split view and page header looks a [DevicePlatform]
-/// uses: the iPad one (iOS, and for now macOS and Windows), the Android one
-/// (Android, Fuchsia, and for now GNOME) or Chrome's. Tiles and sections
-/// dispatch on the [DevicePlatform] itself.
-enum SettingsStyleFamily { cupertino, material, web }
+/// Which split view and page header look a [DevicePlatform] uses: iPad
+/// Settings (iOS), Android Settings (Android, Fuchsia), Chrome's settings
+/// page (web), macOS System Settings, Windows 11 Settings or GNOME
+/// Settings. Tiles and sections dispatch on the [DevicePlatform] itself.
+enum SettingsStyleFamily { cupertino, material, web, macos, fluent, adwaita }
 
 SettingsStyleFamily settingsStyleFamily(DevicePlatform platform) {
   switch (platform) {
     case DevicePlatform.iOS:
-    case DevicePlatform.macOS:
-    case DevicePlatform.windows:
       return SettingsStyleFamily.cupertino;
+    case DevicePlatform.macOS:
+      return SettingsStyleFamily.macos;
+    case DevicePlatform.windows:
+      return SettingsStyleFamily.fluent;
     case DevicePlatform.android:
     case DevicePlatform.fuchsia:
-    case DevicePlatform.linux:
       return SettingsStyleFamily.material;
+    case DevicePlatform.linux:
+      return SettingsStyleFamily.adwaita;
     case DevicePlatform.web:
       return SettingsStyleFamily.web;
     case DevicePlatform.device:
@@ -155,6 +158,22 @@ SettingsStyleFamily settingsStyleFamily(DevicePlatform platform) {
         'You can\'t use the DevicePlatform.device in this context. '
         'Incorrect platform: settingsStyleFamily',
       );
+  }
+}
+
+/// Whether pages of a style slide in over the page below, like iOS pages
+/// (iOS, macOS, and GNOME's `AdwNavigationView`, which pushes pages the
+/// same way). The other styles use the app's Material page transitions.
+bool settingsUsesCupertinoRoutes(SettingsStyleFamily family) {
+  switch (family) {
+    case SettingsStyleFamily.cupertino:
+    case SettingsStyleFamily.macos:
+    case SettingsStyleFamily.adwaita:
+      return true;
+    case SettingsStyleFamily.material:
+    case SettingsStyleFamily.web:
+    case SettingsStyleFamily.fluent:
+      return false;
   }
 }
 

@@ -9,8 +9,8 @@ import 'package:settings_ui/settings_ui.dart';
 
 final Finder _switch = find.byType(FluentSettingsSwitch);
 
-const Color _accentLight = Color(0xFF005FB8);
-const Color _accentDark = Color(0xFF60CDFF);
+const Color _accentLight = Color(0xFF0067C0);
+const Color _accentDark = Color(0xFF4CC2FF);
 const Color _white = Color(0xFFFFFFFF);
 const Color _black = Color(0xFF000000);
 

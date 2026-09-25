@@ -8,6 +8,8 @@ export 'package:settings_ui/src/tiles/settings_tile.dart';
 export 'package:settings_ui/src/utils/platform_utils.dart';
 export 'package:settings_ui/src/utils/settings_theme.dart';
 export 'package:settings_ui/src/tiles/platforms/adwaita_settings_switch.dart';
+export 'package:settings_ui/src/tiles/platforms/adwaita_symbolic_icons.dart'
+    show AdwaitaPanDownIcon;
 export 'package:settings_ui/src/tiles/platforms/cupertino_settings_switch.dart';
 export 'package:settings_ui/src/tiles/platforms/fluent_settings_switch.dart';
 export 'package:settings_ui/src/tiles/platforms/macos_settings_switch.dart';

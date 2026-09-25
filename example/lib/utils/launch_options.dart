@@ -3,16 +3,16 @@ import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/settings_ui.dart';
 
 /// Options that open a screen in a given style and brightness directly, e.g.
-/// for screenshots: `screen`, `platform`, `page` and `theme`.
+/// for screenshots: `screen`, `platform`, `page`, `tab` and `theme`.
 ///
 /// Each option is read from the first of these that sets it:
 ///
 /// 1. The web page's query: `/?screen=gnome-power&theme=dark`.
 /// 2. The initial route, whose path names the screen:
-///    `flutter run --route '/split-view?platform=macOS&page=display'`, or
+///    `flutter run --route '/split-view?platform=macOS&page=displays'`, or
 ///    `/#/split-view?platform=macOS` on the web.
 /// 3. `--dart-define`s: `--dart-define=SCREEN=macos --dart-define=THEME=dark`
-///    (and `PLATFORM`, `PAGE`).
+///    (and `PLATFORM`, `PAGE`, `TAB`).
 ///
 /// Without any, the app opens the gallery and follows the system brightness.
 class LaunchOptions {
@@ -20,6 +20,7 @@ class LaunchOptions {
     'screen': String.fromEnvironment('SCREEN'),
     'platform': String.fromEnvironment('PLATFORM'),
     'page': String.fromEnvironment('PAGE'),
+    'tab': String.fromEnvironment('TAB'),
     'theme': String.fromEnvironment('THEME'),
   };
 
@@ -63,6 +64,9 @@ class LaunchOptions {
 
   /// `page=<destination id>`: the page the split view opens, e.g. `display`.
   static String? get page => _option('page');
+
+  /// `tab=power-saving`: the tab the GNOME Power replica opens on.
+  static String? get tab => _option('tab');
 
   /// `screen=<name>`: the screen to open instead of the gallery, one of the
   /// keys of `launchScreens` in `main.dart`.

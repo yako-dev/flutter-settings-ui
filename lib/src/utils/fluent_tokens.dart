@@ -25,6 +25,10 @@ class FluentTokens {
     required this.textSecondary,
     required this.textDisabled,
     required this.navItemSelected,
+    required this.navItemPressed,
+    required this.divider,
+    required this.overlayPane,
+    required this.overlayStroke,
     required this.focusOuter,
     required this.focusInner,
     required this.accent,
@@ -80,14 +84,30 @@ class FluentTokens {
   /// of a NavigationView pane.
   final Color navItemSelected;
 
+  /// `SubtleFillColorTertiary` on [page]: a pressed NavigationView item, and
+  /// a hovered selected one.
+  final Color navItemPressed;
+
+  /// `DividerStrokeColorDefault` (alpha): NavigationView separators.
+  final Color divider;
+
+  /// The NavigationView pane opened over the content from the compact rail
+  /// (`NavigationViewDefaultPaneBackground`, acrylic; its flat fallback).
+  final Color overlayPane;
+
+  /// `SurfaceStrokeColorFlyout` (alpha): the edge of that pane.
+  final Color overlayStroke;
+
   /// `FocusStrokeColorOuter` (alpha), the 2px outer focus ring.
   final Color focusOuter;
 
   /// `FocusStrokeColorInner` (alpha), the 1px inner focus ring.
   final Color focusInner;
 
-  /// `AccentFillColorDefault` for the default Windows accent (#0078D4):
-  /// SystemAccentColorDark1 in light mode, Light2 in dark mode.
+  /// `AccentFillColorDefault` for the default Windows 11 accent, as the
+  /// Settings app shows it: #0067C0 in light mode, #4CC2FF in dark mode.
+  /// (WinUI's built-in fallback, used when there is no system accent, is
+  /// #005FB8 / #60CDFF.)
   final Color accent;
 
   /// `ControlAltFillColorSecondary` / `Tertiary` / `Quarternary` (alpha):
@@ -125,9 +145,13 @@ class FluentTokens {
     textSecondary: Color(0xFF5F5F5F),
     textDisabled: Color(0xFFA0A0A0),
     navItemSelected: Color(0xFFEAEAEA),
+    navItemPressed: Color(0xFFEDEDED),
+    divider: Color(0x0F000000),
+    overlayPane: Color(0xFFF9F9F9),
+    overlayStroke: Color(0x0F000000),
     focusOuter: Color(0xE4000000),
     focusInner: Color(0xB3FFFFFF),
-    accent: Color(0xFF005FB8),
+    accent: Color(0xFF0067C0),
     switchOffFill: Color(0x06000000),
     switchOffFillHover: Color(0x0F000000),
     switchOffFillPressed: Color(0x18000000),
@@ -152,9 +176,13 @@ class FluentTokens {
     textSecondary: Color(0xFFCFCFCF),
     textDisabled: Color(0xFF787878),
     navItemSelected: Color(0xFF2D2D2D),
+    navItemPressed: Color(0xFF292929),
+    divider: Color(0x15FFFFFF),
+    overlayPane: Color(0xFF2C2C2C),
+    overlayStroke: Color(0x33000000),
     focusOuter: Color(0xFFFFFFFF),
     focusInner: Color(0xB3000000),
-    accent: Color(0xFF60CDFF),
+    accent: Color(0xFF4CC2FF),
     switchOffFill: Color(0x19000000),
     switchOffFillHover: Color(0x0BFFFFFF),
     switchOffFillPressed: Color(0x12FFFFFF),

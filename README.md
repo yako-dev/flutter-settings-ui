@@ -378,6 +378,19 @@ The tile is controlled: `initialValue` is the current value, and `onToggle` gets
 
 Tapping the row works like each platform's settings app. In the Android, GNOME and web styles, tapping anywhere on the row toggles the switch, and `onPressed` isn't called. In the iOS, macOS and Windows styles only the switch itself toggles; tapping the rest of the row calls `onPressed`, if you set one.
 
+Windows Settings writes "On" or "Off" before every switch. The package doesn't add that text, because it would be English only. For the Windows look, pass your own localized label as `trailing`; the Windows style puts it just before the switch. `trailing` shows in every style, so add it only on Windows:
+
+```dart
+SettingsTile.switchTile(
+  title: const Text('Night light'),
+  trailing: Theme.of(context).platform == TargetPlatform.windows
+      ? Text(_nightLight ? 'On' : 'Off') // use your app's localized strings
+      : null,
+  initialValue: _nightLight,
+  onToggle: (value) => setState(() => _nightLight = value),
+)
+```
+
 ### `value`, `description` and `titleDescription`
 
 The same tile shows its secondary text in different places, following each platform:
@@ -452,7 +465,7 @@ SettingsList(
 - **iOS** matches iOS 26 Settings: cards with 26pt continuous corners and 20pt side margins, 52pt rows with 17pt text, 17pt semibold section headers, grey footers, the `CupertinoSettingsSwitch`, and a chevron on navigation tiles.
 - **macOS** matches macOS 26/27 System Settings: `#F7F7F7` cards (`#252525` in dark mode) with 12pt continuous corners on a white page, 36pt rows with 13pt text and 1pt separators inset 10pt, 13pt semibold headers above the cards, 11pt grey footers, value text before a light chevron, `MacosSettingsSwitch`, and a 640pt column. Like System Settings, rows don't highlight on hover; rows with `onPressed` tint while pressed and take keyboard focus. For the colored icon squares of System Settings, pass your own widget as `leading` (the example app has `MacosIconBadge`); rows with a `leading` widget are 48pt.
 - **Android** matches Android 16 Settings: every tile sits on its own card, 2dp apart, with 20dp corners at the ends of a group, on a tinted page. 16sp titles and switches with a check or a cross.
-- **Windows** matches Windows 11 Settings (WinUI 3): every tile is its own card with 4px corners and a hairline border, 4px apart, at least 68px tall, with 14px titles, 12px descriptions, 20px icons, 14px semibold section headers, a thin chevron on navigation tiles, and the `FluentSettingsSwitch`. Clickable cards show the Windows hover, pressed and keyboard focus states. The content is a 1000px column with 36px margins (16px in narrow windows).
+- **Windows** matches Windows 11 Settings (WinUI 3): every tile is its own card with 4px corners and a hairline border, 3px apart, at least 70px tall, with 14px titles, 12px descriptions, 20px icons, 14px semibold section headers, a thin chevron on navigation tiles, and the `FluentSettingsSwitch`. Clickable cards show the Windows hover, pressed and keyboard focus states. The content is a 1000px column with 24px margins (16px in narrow windows).
 - **GNOME** matches GNOME Settings 51 (libadwaita 1.10): each section is a boxed list, a card with 12px corners and a soft shadow, with 54px rows and full-width separators; bold 14.67px group titles, 14.67px titles and dimmed 12.22px subtitles, 16px leading icons, the `AdwaitaSettingsSwitch` in the GNOME accent blue, a `go-next` arrow on navigation tiles, hover and focus highlights, and a content column that eases from 400 to at most 600px wide like `AdwClamp`. It uses fixed GNOME colors, not the `ColorScheme`. No font is bundled: GNOME uses Adwaita Sans, so set it with `tileTextStyle` and `titleTextStyle` if your app ships it.
 - **Web** matches Chrome's settings page: cards with 8px corners and a light shadow, 14px titles, 13px descriptions, a chevron on navigation tiles, and a 680px column on wide windows.
 
@@ -462,7 +475,7 @@ In a browser, the web style is used on every device, phones included. Elsewhere 
 
 ### Pages: `SettingsDestination`
 
-Give a navigation tile a `destination` instead of writing `Navigator.push`, a `Scaffold` and an app bar for every sub-page. A tap pushes a platform route (Cupertino on the iOS style, and for now on macOS and Windows; Material otherwise) with the platform's page header: the iOS 26 inline title and round back button, Android's large title that collapses on scroll, or Chrome's page title. `builder` returns only the body:
+Give a navigation tile a `destination` instead of writing `Navigator.push`, a `Scaffold` and an app bar for every sub-page. A tap pushes a platform route (Cupertino in the iOS, macOS and GNOME styles; Material otherwise) with the platform's page header: the iOS 26 inline title and round back button, Android's large title that collapses on scroll, the macOS toolbar with its back and forward buttons, the large Windows page title (with a breadcrumb on pages opened from a page), GNOME's flat header bar, or Chrome's page title. `builder` returns only the body:
 
 ```dart
 SettingsTile.navigation(
@@ -520,10 +533,31 @@ Each style follows its platform's Settings app:
 | iOS | width >= 600 and shortest side >= 600: iPads in both orientations, iPad mini included, not iPhones. Desktop: width only | 320pt sidebar on a tinted background, rows without cards | blue capsule, white text |
 | Android, Fuchsia | width >= 720dp and smallest width >= 600dp (AOSP's rule): tablets and unfolded foldables, not phones in landscape. Desktop: width only | 36.36% of the width on `surfaceDim`, the same cards as the phone. No icons under 380dp | card filled with the page color |
 | Web | width > 980px (Chrome's rule) | Chrome's 266px menu | tinted pill rounded on the end side |
-| macOS, Windows (for now) | as iOS | as iOS, in the style's colors: the System Settings sidebar grey, or the Windows page color | macOS: accent capsule, white text. Windows: neutral grey |
-| Linux (GNOME, for now) | as Android | as Android, in GNOME's colors: the GNOME sidebar grey and white cards | a neutral grey (#D8D8DB, or white 10% in dark mode), like GNOME's selection |
+| macOS | width >= 560. Narrower windows show one pane, like SwiftUI in a compact width | 232pt System Settings sidebar, full height | accent fill, white semibold text; grey while the window is inactive |
+| Windows | width >= 641. From 641 to 1007 the pane is a 48px icon rail | 300px `NavigationView` pane from 1008px | neutral grey with an accent pill at the start edge |
+| Linux (GNOME) | width > 550 (scaled by the text size) | a quarter of the width, 180 to 280 | neutral grey (#D8D8DB, or white 10% in dark mode) |
 
-The macOS, Windows and GNOME styles don't have a split view look of their own yet: they take the headers and pane rules of the iOS or Android style. Their pages keep their own look in the detail pane, with their own column and margins; iOS and Android pages fill the pane.
+The macOS, Windows and GNOME pages keep their own look in the detail pane, with their own column and margins; iOS and Android pages fill the pane.
+
+#### Desktop sidebars
+
+The macOS, Windows and GNOME styles draw the list pane as their settings apps' sidebar, and the detail pane with their own header:
+
+| | macOS (System Settings) | Windows 11 (Settings) | GNOME (Settings) |
+|---|---|---|---|
+| Pane | #EDEDED / #282828, a 0.5pt edge | the page color #F3F3F3 / #202020 | #EBEBED / #2E2E32, a 1px border |
+| Rows | 32pt, radius 8, 10pt from the edges | at least 36px, radius 4, 4px margins | 43px, radius 9, 6px margins, 2px apart |
+| Icons | 20pt. A plain `Icon` takes the accent color; your own widget (a colored squircle, say) keeps its colors | 16px in a 40px column | 16px |
+| Section titles | 11pt bold, tertiary grey | bold, secondary; hidden in the rail | bold |
+| Selection | accent fill, white semibold text; grey while the app is inactive | #EAEAEA / #2D2D2D and a 3x16 accent pill that slides to the new item | 10% of the text color, 13% hovered, 16% pressed |
+| Hover | none, like macOS | #EAEAEA / #2D2D2D, pressed #EDEDED / #292929 | 7% of the text color |
+| List pane header | a 52pt strip (the back and forward buttons when the screen was pushed) | the `title` and, in the rail, a menu button that opens the pane over the page | a 46px header bar with the centered bold title |
+| Detail header | a 52pt toolbar: back and forward buttons when there's a page to go back to, then the 15pt semibold title | the 28px semibold page title; pages opened from a page show a breadcrumb such as "System › Display", whose parent goes back | a flat 46px header bar with the centered bold title, and a back button when collapsed or on a page opened from a page |
+| One pane | the list without the sidebar look, pages pushed over it | the Windows cards with the page title, pages pushed over them | the sidebar fills the window and no row stays selected |
+
+The arrow keys move between sidebar rows, Enter or Space opens one, and Tab moves between the panes. The macOS sidebar opens a row as the focus moves to it, like macOS sidebars. Each style draws its own focus ring. The panes, the Windows pill and its overlay pane mirror in right-to-left layouts, and the rows grow with the text size.
+
+System Settings shows a colored squircle behind each icon. The package doesn't draw them, so a plain `Icon` gets the accent tint. For squircles, pass your own 20pt widget, for example a `ClipRSuperellipse` with a gradient and a white icon (the example app's `MacSidebarIcon` does this).
 
 - **Selection.** Two panes open on the first destination (like iPad, Android and Chrome), or on `initialDestinationId`. Set `emptyDetailBuilder` to open on an empty page instead. A tile is highlighted while its page shows.
 - **Pages inside pages.** A tile with a `destination` in a page pushes inside the detail pane, and the list keeps its highlight. Tapping the highlighted tile goes back to its first screen.
@@ -551,7 +585,7 @@ controller.select('display');
 SettingsSplitView.of(context).select('network');
 ```
 
-The example app's gallery has a "Split view" demo with iPad, Android and Chrome settings trees. Open it directly in any style with `flutter run --route '/split-view?platform=android&theme=dark'` (on the web: `?screen=split-view&platform=macOS`).
+The example app's gallery has a "Split view" demo with iPad, Android, Chrome, macOS System Settings, Windows Settings and GNOME Settings trees. Open it directly in any style with `flutter run --route '/split-view?platform=android&theme=dark'` (on the web: `?screen=split-view&platform=macOS`).
 
 ---
 
@@ -572,7 +606,7 @@ MaterialApp(
 )
 ```
 
-The iOS style uses fixed iOS system colors, like the Settings app: a grey grouped background, white cards (`#1C1C1E` in dark mode) and grey headers and values. The macOS style uses fixed macOS system colors the same way: `#F7F7F7` cards on a white page (`#252525` on `#1E1E1E` in dark mode). The Windows style uses the Windows 11 colors: a `#F3F3F3` page with `#FBFBFB` cards (`#202020` and `#2B2B2B` in dark mode) and the Windows accent `#005FB8` (`#60CDFF` in dark mode) for switches. The GNOME style uses the libadwaita colors: a `#FAFAFB` page with white cards (`#222226` with translucent white cards in dark mode) and the GNOME blue `#3584E4` for switches. None of them reads your `ColorScheme`. Light or dark mode follows your app theme in every style.
+The iOS style uses fixed iOS system colors, like the Settings app: a grey grouped background, white cards (`#1C1C1E` in dark mode) and grey headers and values. The macOS style uses fixed macOS system colors the same way: `#F7F7F7` cards on a white page (`#252525` on `#1E1E1E` in dark mode). The Windows style uses the Windows 11 colors: a `#F3F3F3` page with `#FBFBFB` cards (`#202020` and `#2B2B2B` in dark mode) and the default Windows accent `#0067C0` (`#4CC2FF` in dark mode) for switches. The GNOME style uses the libadwaita colors: a `#FAFAFB` page with white cards (`#222226` with translucent white cards in dark mode) and the GNOME blue `#3584E4` for switches. None of them reads your `ColorScheme`. Light or dark mode follows your app theme in every style.
 
 ### Custom theme overrides
 
@@ -836,7 +870,7 @@ Takes `sections`, `platform`, `applicationType`, `brightness`, `lightTheme` and 
 | `onDestinationChanged` | `ValueChanged<String?>?` | — | Called after the shown page changes, layout changes included |
 | `layout` | `SettingsSplitLayout` | `auto` | `auto`, `single` or `split` |
 | `breakpoint` | `double?` | style's rule | Width from which `auto` shows two panes |
-| `listPaneWidth` | `double?` | 320 / 36.36% / 266 | List pane width, at most half the view |
+| `listPaneWidth` | `double?` | style's (see [Split view](#split-view-ipad-tablets-foldables-desktop-web)) | List pane width, at most half the view. Windows: the open pane only; the rail stays 48 and its menu opens a pane this wide (default 320) |
 | `restorationId` | `String?` | — | Restores the shown page |
 
 `SettingsSplitView.of(context)` and `maybeOf(context)` return the controller of the view around `context`.
@@ -866,7 +900,7 @@ Takes `sections`, `platform`, `applicationType`, `brightness`, `lightTheme` and 
 |---|---|---|
 | `value` | `bool` | Whether the switch is on (required) |
 | `onChanged` | `ValueChanged<bool>?` | Called with the new value (required); `null` disables the switch |
-| `activeTrackColor` | `Color?` | Track color when on. Default: the Windows accent, `#005FB8` light, `#60CDFF` dark. The knob turns white or black to contrast |
+| `activeTrackColor` | `Color?` | Track color when on. Default: the Windows accent, `#0067C0` light, `#4CC2FF` dark. The knob turns white or black to contrast |
 | `inactiveTrackColor` | `Color?` | Outline and knob color when off. Default: the Windows control stroke and secondary text colors |
 
 ### `AdwaitaSettingsSwitch`
@@ -881,6 +915,26 @@ The switch of the GNOME style, drawn in Flutter: a 46x26 track with a round 20px
 | `inactiveTrackColor` | `Color?` | Track color when off. Default: black 12% light, white 15% dark |
 | `brightness` | `Brightness?` | Light or dark colors. Default: from the `CupertinoTheme`, or the platform |
 | `focusNode`, `autofocus` | `FocusNode?`, `bool` | Keyboard focus |
+
+### `AdwaitaPanDownIcon`
+
+GNOME's `pan-down-symbolic` arrow (16px icon, 10x6 chevron) for combo rows, which show the selected value at full strength and this arrow. In the GNOME style, text in `trailing` gets the row's font and color, so a combo row is:
+
+```dart
+SettingsTile(
+  title: const Text('Screen Blank'),
+  trailing: const Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [Text('5 minutes'), SizedBox(width: 9), AdwaitaPanDownIcon()],
+  ),
+  onPressed: (context) { /* show the choices */ },
+)
+```
+
+| Parameter | Type | Description |
+|---|---|---|
+| `color` | `Color?` | Default: the `IconTheme` color (the row's foreground in a GNOME tile) |
+| `size` | `double` | Icon box size. Default 16 |
 
 ### `SettingsThemeData`
 

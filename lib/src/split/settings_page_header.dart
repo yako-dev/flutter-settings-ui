@@ -2,6 +2,10 @@ import 'dart:math' as math;
 
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:settings_ui/src/split/adwaita_split.dart';
+import 'package:settings_ui/src/split/fluent_split.dart';
+import 'package:settings_ui/src/split/macos_split.dart';
+import 'package:settings_ui/src/split/settings_page_trail.dart';
 import 'package:settings_ui/src/split/split_geometry.dart';
 import 'package:settings_ui/src/utils/content_column.dart';
 import 'package:settings_ui/src/utils/platform_utils.dart';
@@ -30,6 +34,11 @@ bool _isRegularWidthDevice(BuildContext context) =>
 /// - Material: 64dp top app bar with an arrow back button and a 22sp title.
 /// - Web: the page title as a heading over the content column, with an arrow
 ///   back button before it when there is somewhere to go back to.
+/// - macOS: the 52pt System Settings toolbar ([MacosToolbar]).
+/// - Windows: the Windows Settings page title, a breadcrumb on pages opened
+///   from another page ([FluentPageHeader]).
+/// - GNOME: a flat 46px header bar with the title in the middle
+///   ([AdwaitaHeaderBar]).
 class SettingsPageBar extends StatelessWidget {
   const SettingsPageBar({
     super.key,
@@ -38,11 +47,15 @@ class SettingsPageBar extends StatelessWidget {
     this.actions,
     this.onBack,
     this.showTitle = true,
+    this.parents = const <SettingsPageTrailEntry>[],
   });
 
   final DevicePlatform platform;
   final Widget? title;
   final List<Widget>? actions;
+
+  /// The pages above this one, for the Windows style's breadcrumb.
+  final List<SettingsPageTrailEntry> parents;
 
   /// Shows a back button that calls this.
   final VoidCallback? onBack;
@@ -61,6 +74,25 @@ class SettingsPageBar extends StatelessWidget {
         return _buildMaterial(context, theme);
       case SettingsStyleFamily.web:
         return _buildWeb(context, theme);
+      case SettingsStyleFamily.macos:
+        return MacosToolbar(
+          title: showTitle ? title : null,
+          onBack: onBack,
+          actions: actions,
+        );
+      case SettingsStyleFamily.fluent:
+        return FluentPageHeader(
+          title: showTitle ? title : null,
+          parents: parents,
+          onBack: onBack,
+          actions: actions,
+        );
+      case SettingsStyleFamily.adwaita:
+        return AdwaitaHeaderBar(
+          title: showTitle ? title : null,
+          onBack: onBack,
+          actions: actions,
+        );
     }
   }
 

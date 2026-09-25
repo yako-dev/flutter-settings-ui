@@ -1,7 +1,9 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:settings_ui/src/sections/platforms/fluent_settings_section.dart';
 import 'package:settings_ui/src/split/settings_destination.dart';
 import 'package:settings_ui/src/split/settings_page_header.dart';
+import 'package:settings_ui/src/split/settings_page_trail.dart';
 import 'package:settings_ui/src/split/split_scopes.dart';
 import 'package:settings_ui/src/utils/platform_utils.dart';
 import 'package:settings_ui/src/utils/settings_style.dart';
@@ -16,6 +18,7 @@ class SettingsDestinationPage extends StatelessWidget {
     required this.title,
     required this.config,
     this.isDetailRoot = false,
+    this.parents = const <SettingsPageTrailEntry>[],
   });
 
   final SettingsDestination destination;
@@ -31,18 +34,34 @@ class SettingsDestinationPage extends StatelessWidget {
   /// through the split view.
   final bool isDetailRoot;
 
+  /// The pages this one was opened from, first one first (the Windows
+  /// style shows them as a breadcrumb).
+  final List<SettingsPageTrailEntry> parents;
+
   @override
   Widget build(BuildContext context) {
     final style = config.resolve(context);
+    final route = ModalRoute.of(context);
     final VoidCallback? onBack;
     if (isDetailRoot) {
       final split = SettingsSplitScope.maybeOf(context);
       onBack = split == null || split.isSplit ? null : split.goBack;
     } else {
-      final route = ModalRoute.of(context);
       onBack = route != null && route.impliesAppBarDismissal
           ? () => Navigator.maybePop(context)
           : null;
+    }
+
+    final family = settingsStyleFamily(style.platform);
+    Widget body = SettingsPageTrail(
+      entries: [
+        ...parents,
+        SettingsPageTrailEntry(title: title, route: route),
+      ],
+      child: Builder(builder: destination.builder),
+    );
+    if (family == SettingsStyleFamily.fluent) {
+      body = FluentPageTitleAbove(child: body);
     }
 
     return SettingsStyleScope(
@@ -53,14 +72,12 @@ class SettingsDestinationPage extends StatelessWidget {
         platform: style.platform,
         child: Material(
           color: style.themeData.settingsListBackground,
-          child:
-              settingsStyleFamily(style.platform) ==
-                  SettingsStyleFamily.material
+          child: family == SettingsStyleFamily.material
               ? SettingsCollapsingTitleView(
                   title: title,
                   actions: destination.actions,
                   onBack: onBack,
-                  body: Builder(builder: destination.builder),
+                  body: body,
                 )
               : Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -70,12 +87,13 @@ class SettingsDestinationPage extends StatelessWidget {
                       title: title,
                       actions: destination.actions,
                       onBack: onBack,
+                      parents: parents,
                     ),
                     Expanded(
                       child: MediaQuery.removePadding(
                         context: context,
                         removeTop: true,
-                        child: Builder(builder: destination.builder),
+                        child: body,
                       ),
                     ),
                   ],
@@ -87,21 +105,24 @@ class SettingsDestinationPage extends StatelessWidget {
 }
 
 /// The platform route for a destination page pushed from a tile:
-/// [CupertinoPageRoute] for the iOS style, [MaterialPageRoute] otherwise
-/// (so Android gets the app's page transitions, predictive back included).
+/// [CupertinoPageRoute] for the styles whose pages slide in over the last
+/// one (iOS, macOS, GNOME), [MaterialPageRoute] otherwise (so Android gets
+/// the app's page transitions, predictive back included).
 Route<void> settingsDestinationRoute({
   required SettingsDestination destination,
   required Widget title,
   required SettingsStyleConfig config,
   required DevicePlatform platform,
+  List<SettingsPageTrailEntry> parents = const <SettingsPageTrailEntry>[],
 }) {
   final settings = RouteSettings(name: destination.id);
   Widget build(BuildContext context) => SettingsDestinationPage(
     destination: destination,
     title: title,
     config: config,
+    parents: parents,
   );
-  if (settingsStyleFamily(platform) == SettingsStyleFamily.cupertino) {
+  if (settingsUsesCupertinoRoutes(settingsStyleFamily(platform))) {
     return CupertinoPageRoute<void>(builder: build, settings: settings);
   }
   return MaterialPageRoute<void>(builder: build, settings: settings);
@@ -130,6 +151,7 @@ void openSettingsDestination(
       title: destination.title ?? tileTitle,
       config: config,
       platform: platform,
+      parents: SettingsPageTrail.entriesOf(context),
     ),
   );
 }
