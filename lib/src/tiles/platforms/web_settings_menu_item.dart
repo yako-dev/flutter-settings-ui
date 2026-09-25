@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/settings_ui.dart';
+import 'package:settings_ui/src/utils/theme_provider.dart';
 
 /// A tile in the list pane of a web-style split view, drawn as an item of
 /// Chrome's settings menu: 40px tall, a 20px icon, 14px medium text, and a
@@ -35,7 +36,10 @@ class WebSettingsMenuItem extends StatelessWidget {
   final Widget? trailing;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) =>
+      ThemeProvider.withListColorScheme(context, Builder(builder: _buildTile));
+
+  Widget _buildTile(BuildContext context) {
     final theme = SettingsTheme.of(context).themeData;
     final textScaler = MediaQuery.textScalerOf(context);
     final textDirection = Directionality.of(context);

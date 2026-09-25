@@ -1,6 +1,7 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/settings_ui.dart';
+import 'package:settings_ui/src/utils/settings_style.dart';
 
 class IOSSettingsTile extends StatefulWidget {
   const IOSSettingsTile({
@@ -189,13 +190,21 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
         // above and below it. The 16pt end padding and the 52pt row keep it
         // inside the card.
         if (widget.tileType == SettingsTileType.switchTile)
-          CupertinoSettingsSwitch(
-            value: widget.initialValue ?? true,
-            onChanged: widget.onToggle,
-            activeTrackColor: widget.enabled
-                ? widget.activeSwitchColor
-                : (theme.themeData.inactiveSwitchColor ??
-                      theme.themeData.inactiveTitleColor),
+          CupertinoTheme(
+            // The switch picks its light or dark colors from this: the
+            // list's, which `SettingsList.brightness` can set apart from the
+            // app's.
+            data: CupertinoTheme.of(
+              context,
+            ).copyWith(brightness: SettingsStyleScope.brightnessOf(context)),
+            child: CupertinoSettingsSwitch(
+              value: widget.initialValue ?? true,
+              onChanged: widget.onToggle,
+              activeTrackColor: widget.enabled
+                  ? widget.activeSwitchColor
+                  : (theme.themeData.inactiveSwitchColor ??
+                        theme.themeData.inactiveTitleColor),
+            ),
           ),
         // iPad sidebar rows have no chevron.
         if (widget.tileType == SettingsTileType.navigationTile &&

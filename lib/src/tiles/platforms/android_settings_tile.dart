@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/settings_ui.dart';
+import 'package:settings_ui/src/utils/theme_provider.dart';
 
 /// Pixel settings switches show a check when on and a cross when off.
 final _thumbIcon = WidgetStateProperty.resolveWith<Icon>(
@@ -50,7 +51,10 @@ class AndroidSettingsTile extends StatelessWidget {
   final bool selected;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) =>
+      ThemeProvider.withListColorScheme(context, Builder(builder: _buildTile));
+
+  Widget _buildTile(BuildContext context) {
     final theme = SettingsTheme.of(context);
     final textScaler = MediaQuery.textScalerOf(context);
     final themeData = theme.themeData;

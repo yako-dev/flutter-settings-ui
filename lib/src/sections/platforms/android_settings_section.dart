@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:settings_ui/src/tiles/abstract_settings_tile.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
+import 'package:settings_ui/src/utils/theme_provider.dart';
 
 class AndroidSettingsSection extends StatelessWidget {
   const AndroidSettingsSection({
@@ -18,7 +19,10 @@ class AndroidSettingsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return buildSectionBody(context);
+    return ThemeProvider.withListColorScheme(
+      context,
+      buildSectionBody(context),
+    );
   }
 
   Widget buildSectionBody(BuildContext context) {

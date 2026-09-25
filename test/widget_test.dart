@@ -21,6 +21,7 @@ import 'settings_tests/settings_sections_tests.dart';
 import 'settings_tests/settings_tile_on_tap_tests.dart';
 import 'settings_tests/split_view_tests.dart';
 import 'settings_tests/tile_padding_tests.dart';
+import 'settings_tests/tile_regression_tests.dart';
 import 'utils_tests/device_platform_tests.dart';
 
 void main() {
@@ -211,6 +212,10 @@ void main() {
 
   group('SettingsTile paddings and switch colors (v4.0.0)', () {
     tilePaddingTests();
+  });
+
+  group('Tile, switch and theme fixes (4.0.0 RC)', () {
+    tileRegressionTests();
   });
 
   group('SettingsSplitView', () {
