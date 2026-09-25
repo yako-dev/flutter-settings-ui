@@ -1,10 +1,39 @@
-# IDE project files — not needed by package consumers
-*.iml
+# What `flutter pub publish` leaves out of the package.
+#
+# A .pubignore replaces the .gitignore of its folder for pub: with this file,
+# pub no longer reads the root .gitignore, so its rules are repeated here. Keep
+# the two in sync. Pub still reads the .gitignore files of subfolders (example/
+# and its platform runners), and always skips dotfiles, dot-directories
+# (.github/, .dart_tool/, .idea/), pubspec.lock and pubspec_overrides.yaml.
 
-# Internal planning and agent docs
-V3_PLAN.md
+# Build output: `flutter test` creates build/ at the root (75+ MB), and
+# example/build/ comes from running the example. `build/` matches both.
+build/
+.dart_tool/
+coverage/
+doc/api/
+
+# IDE files (pub skips the dot-directories anyway)
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+
+# Agent and contributor docs. llms.txt ships on purpose.
 CLAUDE.md
 AGENTS.md
 
-# Coverage output
-coverage/
+# Images that no file in this version uses. The READMEs of earlier versions on
+# pub.dev load them from GitHub, so they stay in the repository. The current
+# README loads its images from GitHub too; the package only needs the files
+# that `screenshots:` in pubspec.yaml lists.
+assets/dark_mode_animation.gif
+assets/flutter_settings_ui_logo.png
+assets/navigation-tile.png
+assets/settings-list.png
+assets/settings-section.png
+assets/simple-tile.png
+assets/switch-tile.png
+assets/v2/android/
+assets/v2/iOS/
