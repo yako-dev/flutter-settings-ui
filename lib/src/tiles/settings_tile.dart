@@ -174,28 +174,30 @@ class SettingsTile extends AbstractSettingsTile {
     if (listPane != null && destination != null) {
       listPane.onTileBuilt?.call(destination, title);
     }
+    // Tiles and sidebar rows are semantics containers that say themselves
+    // whether they are selected: an annotation around them would land on
+    // their section's node.
+    final semanticsSelected =
+        listPane != null && listPane.isSplit && destination != null
+        ? listPane.isSelected(destination)
+        : null;
     if (listPane != null && listPane.sidebar) {
-      // The macOS, Windows and GNOME sidebar rows are semantics containers
-      // that say themselves whether they are selected: an annotation
-      // around them would land on their section's node.
       final sidebarItem = _buildSidebarItem(
         SettingsTheme.of(context).platform,
         onPressed: _effectiveOnPressed,
         selected: listPane.isSelected(destination),
-        semanticsSelected: listPane.isSplit && destination != null
-            ? listPane.isSelected(destination)
-            : null,
+        semanticsSelected: semanticsSelected,
       );
       if (sidebarItem != null) return sidebarItem;
     }
-    final tile = _buildTile(context, listPane);
-    if (listPane != null && listPane.isSplit && destination != null) {
-      return Semantics(selected: listPane.isSelected(destination), child: tile);
-    }
-    return tile;
+    return _buildTile(context, listPane, semanticsSelected);
   }
 
-  Widget _buildTile(BuildContext context, SettingsSplitListScope? listPane) {
+  Widget _buildTile(
+    BuildContext context,
+    SettingsSplitListScope? listPane,
+    bool? semanticsSelected,
+  ) {
     final theme = SettingsTheme.of(context);
     final inSplitListPane = listPane != null && listPane.isSplit;
     final selected = listPane?.isSelected(destination) ?? false;
@@ -222,6 +224,7 @@ class SettingsTile extends AbstractSettingsTile {
           trailingPadding: trailingPadding,
           descriptionPadding: descriptionPadding,
           selected: selected,
+          semanticsSelected: semanticsSelected,
         );
       case DevicePlatform.linux:
         return AdwaitaSettingsTile(
@@ -287,6 +290,7 @@ class SettingsTile extends AbstractSettingsTile {
           titleDescriptionPadding: titleDescriptionPadding,
           selected: selected,
           sidebar: inSplitListPane,
+          semanticsSelected: semanticsSelected,
         );
       case DevicePlatform.windows:
         return FluentSettingsTile(
@@ -321,6 +325,7 @@ class SettingsTile extends AbstractSettingsTile {
             initialValue: initialValue ?? false,
             activeSwitchColor: activeSwitchColor,
             selected: selected,
+            semanticsSelected: semanticsSelected,
             trailing: trailing,
           );
         }

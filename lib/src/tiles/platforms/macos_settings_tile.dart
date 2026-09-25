@@ -121,11 +121,16 @@ Widget buildMacosFooter({
           top: textScaler.scale(10),
           bottom: isLast ? 0 : textScaler.scale(kMacosFooterBottomGap),
         ),
-    child: DefaultTextStyle(
-      style: style.copyWith(
-        color: style.color ?? theme.tileDescriptionTextColor,
+    // A node of its own, read after the card. Otherwise its text lands on
+    // the section's node and is read before the section title.
+    child: Semantics(
+      container: true,
+      child: DefaultTextStyle(
+        style: style.copyWith(
+          color: style.color ?? theme.tileDescriptionTextColor,
+        ),
+        child: description,
       ),
-      child: description,
     ),
   );
 }

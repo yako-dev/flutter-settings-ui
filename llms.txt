@@ -145,7 +145,7 @@ All constructors:
 
 Taps on switch tiles: in the Android, GNOME and web styles, tapping anywhere on the row toggles the switch and `onPressed` is never called. In the iOS, macOS and Windows styles, as in their Settings apps, only the switch itself toggles; tapping the rest of the row calls `onPressed` (if set).
 
-Screen readers read a switch tile as one item, "Title, switch, on". When the row also has `onPressed` in the iOS, macOS and Windows styles, the row and its switch are two items, both named by the title. A disabled tile ignores taps and the keyboard.
+Screen readers read each tile as its own item, a tile with `onPressed` as a button, and section titles as headings. They read a switch tile as one item, "Title, switch, on". When the row also has `onPressed` in the iOS, macOS and Windows styles, the row and its switch are two items, both named by the title. A disabled tile ignores taps and the keyboard.
 
 Windows Settings writes "On"/"Off" before each switch. The package does not add it (it would be English only). For that look, pass a localized label as `trailing` on switch tiles, only on Windows since `trailing` shows in every style: `trailing: Theme.of(context).platform == TargetPlatform.windows ? Text(isOn ? l10n.on : l10n.off) : null`.
 

@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:settings_ui/src/split/split_scopes.dart';
+import 'package:settings_ui/src/tiles/tile_semantics.dart';
 import 'package:settings_ui/src/utils/theme_provider.dart';
 
 class WebSettingsSection extends StatelessWidget {
@@ -46,20 +47,24 @@ class WebSettingsSection extends StatelessWidget {
                       top: textScaler.scale(8),
                       bottom: textScaler.scale(4),
                     ),
-                child: DefaultTextStyle(
-                  style:
-                      (theme.themeData.titleTextStyle ??
-                              const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                              ))
-                          .copyWith(
-                            color: theme.themeData.tileDescriptionTextColor,
-                          ),
-                  child: title!,
+                child: Semantics(
+                  container: true,
+                  header: true,
+                  child: DefaultTextStyle(
+                    style:
+                        (theme.themeData.titleTextStyle ??
+                                const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                ))
+                            .copyWith(
+                              color: theme.themeData.tileDescriptionTextColor,
+                            ),
+                    child: title!,
+                  ),
                 ),
               ),
-            ...tiles,
+            for (final tile in tiles) tileSemanticsNode(tile),
           ],
         ),
       );
@@ -78,15 +83,19 @@ class WebSettingsSection extends StatelessWidget {
                     top: textScaler.scale(24),
                     bottom: textScaler.scale(12),
                   ),
-              child: DefaultTextStyle(
-                style:
-                    (theme.themeData.titleTextStyle ??
-                            const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ))
-                        .copyWith(color: theme.themeData.titleTextColor),
-                child: title!,
+              child: Semantics(
+                container: true,
+                header: true,
+                child: DefaultTextStyle(
+                  style:
+                      (theme.themeData.titleTextStyle ??
+                              const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ))
+                          .copyWith(color: theme.themeData.titleTextColor),
+                  child: title!,
+                ),
               ),
             )
           else

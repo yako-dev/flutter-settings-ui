@@ -27,6 +27,7 @@ class AndroidSettingsTile extends StatelessWidget {
     this.trailingPadding,
     this.descriptionPadding,
     this.selected = false,
+    this.semanticsSelected,
     super.key,
   });
 
@@ -49,6 +50,10 @@ class AndroidSettingsTile extends StatelessWidget {
 
   /// Drawn as the selected item of a split view's list pane.
   final bool selected;
+
+  /// Whether assistive technologies hear the tile as selected: null for
+  /// tiles that don't open a page in a split view's list pane.
+  final bool? semanticsSelected;
 
   @override
   Widget build(BuildContext context) =>
@@ -218,10 +223,19 @@ class AndroidSettingsTile extends StatelessWidget {
         ),
       ),
     );
-    // The row and the switch both toggle, so a switch tile is one node:
-    // "title, switch, on".
-    return tileType == SettingsTileType.switchTile
-        ? MergeSemantics(child: tile)
-        : tile;
+    // Each tile is one node, or a section's rows would merge into one (a
+    // lone tappable row took the text of all the others). The row and the
+    // switch both toggle, so a switch tile reads as "title, switch, on"; a
+    // tile with onPressed is a button, dimmed when disabled.
+    final isSwitch = tileType == SettingsTileType.switchTile;
+    final isButton = !isSwitch && onPressed != null;
+    final node = Semantics(
+      container: true,
+      button: isButton,
+      enabled: isButton || (!isSwitch && !enabled) ? enabled : null,
+      selected: semanticsSelected,
+      child: tile,
+    );
+    return isSwitch ? MergeSemantics(child: node) : node;
   }
 }

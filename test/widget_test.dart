@@ -15,6 +15,7 @@ import 'settings_tests/ios_value_layout_tests.dart';
 import 'settings_tests/list_fix_tests.dart';
 import 'settings_tests/macos_style_tests.dart';
 import 'settings_tests/native_look_tests.dart';
+import 'settings_tests/section_semantics_tests.dart';
 import 'settings_tests/setting_tile_tests.dart';
 import 'settings_tests/settings_list_tests.dart';
 import 'settings_tests/settings_sections_tests.dart';
@@ -217,6 +218,10 @@ void main() {
 
   group('Tile, switch and theme fixes (4.0.0 RC)', () {
     tileRegressionTests();
+  });
+
+  group('Section semantics', () {
+    sectionSemanticsTests();
   });
 
   group('SettingsSplitView', () {

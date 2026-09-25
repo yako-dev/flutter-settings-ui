@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/src/tiles/abstract_settings_tile.dart';
 import 'package:settings_ui/src/tiles/settings_tile.dart';
+import 'package:settings_ui/src/tiles/tile_semantics.dart';
 import 'package:settings_ui/src/utils/fluent_tokens.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 
@@ -56,6 +57,7 @@ class FluentSettingsSection extends StatelessWidget {
                       bottom: 6,
                     ),
                 child: Semantics(
+                  container: true,
                   header: true,
                   child: DefaultTextStyle(
                     style: (theme.titleTextStyle ?? FluentTypography.bodyStrong)
@@ -69,7 +71,7 @@ class FluentSettingsSection extends StatelessWidget {
                 padding: EdgeInsets.only(top: i == 0 ? 0 : _kCardSpacing),
                 child: tiles[i] is SettingsTile
                     ? tiles[i]
-                    : _FluentCard(child: tiles[i]),
+                    : _FluentCard(child: tileSemanticsNode(tiles[i])),
               ),
           ],
         ),

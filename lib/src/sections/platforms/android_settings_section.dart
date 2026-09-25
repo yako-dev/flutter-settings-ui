@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:settings_ui/src/tiles/abstract_settings_tile.dart';
+import 'package:settings_ui/src/tiles/tile_semantics.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 import 'package:settings_ui/src/utils/theme_provider.dart';
 
@@ -44,15 +45,20 @@ class AndroidSettingsSection extends StatelessWidget {
                     start: 24,
                     end: 24,
                   ),
-              child: DefaultTextStyle(
-                style:
-                    (theme.themeData.titleTextStyle ??
-                            const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ))
-                        .copyWith(color: theme.themeData.titleTextColor),
-                child: title!,
+              // A heading of its own, like a PreferenceCategory title.
+              child: Semantics(
+                container: true,
+                header: true,
+                child: DefaultTextStyle(
+                  style:
+                      (theme.themeData.titleTextStyle ??
+                              const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ))
+                          .copyWith(color: theme.themeData.titleTextColor),
+                  child: title!,
+                ),
               ),
             )
           else
@@ -85,7 +91,7 @@ class AndroidSettingsSection extends StatelessWidget {
                   color:
                       theme.themeData.settingsSectionBackground ??
                       const Color(0x00000000),
-                  child: tiles[i],
+                  child: tileSemanticsNode(tiles[i]),
                 ),
               ),
             ),

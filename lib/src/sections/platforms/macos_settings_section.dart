@@ -4,6 +4,7 @@ import 'package:settings_ui/src/sections/settings_section.dart';
 import 'package:settings_ui/src/tiles/abstract_settings_tile.dart';
 import 'package:settings_ui/src/tiles/platforms/macos_settings_tile.dart';
 import 'package:settings_ui/src/tiles/settings_tile.dart';
+import 'package:settings_ui/src/tiles/tile_semantics.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 
 /// A group of a macOS 26/27 System Settings grouped form.
@@ -189,7 +190,7 @@ class _MacosCard extends StatelessWidget {
                   MacosSettingsTileScope(
                     isFirst: i == 0,
                     isLast: i == tiles.length - 1,
-                    child: tiles[i],
+                    child: tileSemanticsNode(tiles[i]),
                   ),
                 ],
               ],

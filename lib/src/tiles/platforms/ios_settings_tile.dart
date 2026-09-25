@@ -28,6 +28,7 @@ class IOSSettingsTile extends StatefulWidget {
     this.titleDescriptionPadding,
     this.selected = false,
     this.sidebar = false,
+    this.semanticsSelected,
     super.key,
   });
 
@@ -56,6 +57,10 @@ class IOSSettingsTile extends StatefulWidget {
   /// In the list pane of a split view with two panes: an iPad sidebar row
   /// (no card, separator or chevron; highlighted as a capsule).
   final bool sidebar;
+
+  /// Whether assistive technologies hear the row as selected: null for rows
+  /// that don't open a page in a split view's list pane.
+  final bool? semanticsSelected;
 
   @override
   IOSSettingsTileState createState() => IOSSettingsTileState();
@@ -91,15 +96,32 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
     final additionalInfo = IOSSettingsTileAdditionalInfo.of(context);
     final theme = SettingsTheme.of(context);
 
+    // The row is one node, so the rows of a section never merge into one. A
+    // row with onPressed is a button, dimmed when disabled. A switch row
+    // without onPressed reads as its switch: "title, switch, on" (with it,
+    // the switch is a node of its own, labelled with the title).
+    final isSwitch = widget.tileType == SettingsTileType.switchTile;
+    final isButton = widget.onPressed != null;
+    Widget row = Semantics(
+      container: true,
+      button: isButton,
+      enabled: isButton || (!isSwitch && !widget.enabled)
+          ? widget.enabled
+          : null,
+      selected: widget.semanticsSelected,
+      child: buildTitle(
+        context: context,
+        theme: theme,
+        additionalInfo: additionalInfo,
+      ),
+    );
+    if (isSwitch && !isButton) row = MergeSemantics(child: row);
+
     return IgnorePointer(
       ignoring: !widget.enabled,
       child: Column(
         children: [
-          buildTitle(
-            context: context,
-            theme: theme,
-            additionalInfo: additionalInfo,
-          ),
+          row,
           if (widget.description != null)
             buildDescription(
               context: context,
@@ -117,12 +139,6 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
     required IOSSettingsTileAdditionalInfo additionalInfo,
   }) {
     Widget content = buildTileContent(context, theme, additionalInfo);
-    // A switch row without an action of its own reads as its switch:
-    // "title, switch, on". With onPressed, the switch is labelled instead.
-    if (widget.tileType == SettingsTileType.switchTile &&
-        widget.onPressed == null) {
-      content = MergeSemantics(child: content);
-    }
     // Use the platform from SettingsTheme (respects user's explicit choice)
     // rather than re-detecting from the system, which ignored platform overrides.
     if (theme.platform != DevicePlatform.iOS) {
@@ -158,31 +174,35 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
 
     // Fill the width the tile gets (a pane of a split view can be much
     // narrower than the screen), falling back to the screen width when it's
-    // unbounded.
-    return LayoutBuilder(
-      builder: (context, constraints) => Container(
-        width: constraints.hasBoundedWidth
-            ? constraints.maxWidth
-            : MediaQuery.sizeOf(context).width,
-        padding:
-            widget.descriptionPadding ??
-            EdgeInsets.only(
-              left: 16,
-              right: 16,
-              top: textScaler.scale(8),
-              bottom: additionalInfo.needToShowDivider
-                  ? 24
-                  : textScaler.scale(8),
-            ),
-        decoration: BoxDecoration(
-          color: theme.themeData.settingsListBackground,
-        ),
-        child: DefaultTextStyle(
-          style:
-              (theme.themeData.tileDescriptionTextStyle ??
-                      const TextStyle(fontSize: 13))
-                  .copyWith(color: theme.themeData.titleTextColor),
-          child: widget.description!,
+    // unbounded. The footer is a semantics node of its own, read after the
+    // row.
+    return Semantics(
+      container: true,
+      child: LayoutBuilder(
+        builder: (context, constraints) => Container(
+          width: constraints.hasBoundedWidth
+              ? constraints.maxWidth
+              : MediaQuery.sizeOf(context).width,
+          padding:
+              widget.descriptionPadding ??
+              EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: textScaler.scale(8),
+                bottom: additionalInfo.needToShowDivider
+                    ? 24
+                    : textScaler.scale(8),
+              ),
+          decoration: BoxDecoration(
+            color: theme.themeData.settingsListBackground,
+          ),
+          child: DefaultTextStyle(
+            style:
+                (theme.themeData.tileDescriptionTextStyle ??
+                        const TextStyle(fontSize: 13))
+                    .copyWith(color: theme.themeData.titleTextColor),
+            child: widget.description!,
+          ),
         ),
       ),
     );

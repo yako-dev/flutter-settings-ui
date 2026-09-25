@@ -243,10 +243,17 @@ class WebSettingsTile extends StatelessWidget {
         ),
       ),
     );
-    // The row and the switch both toggle, so a switch tile is one node:
-    // "title, switch, on".
-    return tileType == SettingsTileType.switchTile
-        ? MergeSemantics(child: tile)
-        : tile;
+    // Each tile is one node, so a section's rows never merge into one. The
+    // row and the switch both toggle, so a switch tile reads as "title,
+    // switch, on"; a tile with onPressed is a button, dimmed when disabled.
+    final isSwitch = tileType == SettingsTileType.switchTile;
+    final isButton = !isSwitch && onPressed != null;
+    final node = Semantics(
+      container: true,
+      button: isButton,
+      enabled: isButton || (!isSwitch && !enabled) ? enabled : null,
+      child: tile,
+    );
+    return isSwitch ? MergeSemantics(child: node) : node;
   }
 }

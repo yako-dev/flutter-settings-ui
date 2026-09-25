@@ -17,6 +17,7 @@ class WebSettingsMenuItem extends StatelessWidget {
     required this.activeSwitchColor,
     required this.enabled,
     required this.selected,
+    this.semanticsSelected,
     this.trailing,
     super.key,
   });
@@ -30,6 +31,10 @@ class WebSettingsMenuItem extends StatelessWidget {
   final Color? activeSwitchColor;
   final bool enabled;
   final bool selected;
+
+  /// Whether assistive technologies hear the item as selected: null for
+  /// items that don't open a page.
+  final bool? semanticsSelected;
 
   /// Drawn right after the title, like the external-link icon of Chrome's
   /// "Extensions" item.
@@ -159,7 +164,17 @@ class WebSettingsMenuItem extends StatelessWidget {
         ),
       ),
     );
-    // The row and the switch both toggle: one node, "title, switch, on".
-    return isSwitch ? MergeSemantics(child: item) : item;
+    // Each item is one node, so a section's items never merge into one.
+    // The row and the switch both toggle: "title, switch, on". An item with
+    // onPressed is a button, dimmed when disabled.
+    final isButton = !isSwitch && onPressed != null;
+    final node = Semantics(
+      container: true,
+      button: isButton,
+      enabled: isButton || (!isSwitch && !enabled) ? enabled : null,
+      selected: semanticsSelected,
+      child: item,
+    );
+    return isSwitch ? MergeSemantics(child: node) : node;
   }
 }

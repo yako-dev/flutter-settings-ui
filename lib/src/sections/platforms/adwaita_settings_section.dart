@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/src/tiles/abstract_settings_tile.dart';
 import 'package:settings_ui/src/tiles/platforms/adwaita_settings_tile.dart';
+import 'package:settings_ui/src/tiles/tile_semantics.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 
 // A group of a GNOME preferences page (`AdwPreferencesGroup` holding a
@@ -145,7 +146,7 @@ class AdwaitaBoxedList extends StatelessWidget {
                     AdwaitaSettingsTileAdditionalInfo(
                       isFirst: i == 0,
                       isLast: i == tiles.length - 1,
-                      child: tiles[i],
+                      child: tileSemanticsNode(tiles[i]),
                     ),
                     if (i != tiles.length - 1)
                       SizedBox(height: 1, child: ColoredBox(color: divider)),

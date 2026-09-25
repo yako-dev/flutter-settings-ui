@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:settings_ui/src/tiles/settings_tile.dart';
 
 /// The text of a tile's [title] when it is a [Text] or a [RichText] (its
 /// semantics label if it has one), or null for other widgets. Internal.
@@ -25,3 +26,10 @@ Widget labelTileSwitch({required Widget? title, required Widget child}) {
     child: Semantics(label: tileTitleLabel(title), child: child),
   );
 }
+
+/// Makes a section's [tile] one semantics node, so screen readers read each
+/// row on its own. A [SettingsTile] is a node already; any other tile (a
+/// `CustomSettingsTile`) gets a node here, or its text would be read with
+/// the section title or the rows next to it. Internal.
+Widget tileSemanticsNode(Widget tile) =>
+    tile is SettingsTile ? tile : Semantics(container: true, child: tile);

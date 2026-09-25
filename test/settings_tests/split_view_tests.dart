@@ -1655,14 +1655,19 @@ List<String> _selectedTitles(WidgetTester tester) => [
       ((element.widget as SettingsTile).title as Text).data!,
 ];
 
+/// Whether a tile's semantics say it is selected. The tiles set it on their
+/// own semantics node, inside them.
 bool _isSelectedTile(Element element) {
   var selected = false;
-  element.visitChildElements((child) {
+  void visit(Element child) {
     final widget = child.widget;
     if (widget is Semantics && widget.properties.selected == true) {
       selected = true;
     }
-  });
+    if (!selected) child.visitChildElements(visit);
+  }
+
+  element.visitChildElements(visit);
   return selected;
 }
 

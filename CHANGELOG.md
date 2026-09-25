@@ -38,6 +38,7 @@
 * iOS, Android and web: a disabled tile no longer runs `onPressed` or `onToggle` from the keyboard (Tab, then Enter or Space)
 * Screen readers now read a switch tile with its title, as one item ("Wi-Fi, switch, on"), instead of just "switch, on" on iOS, Android and web. Where the row also has `onPressed` (iOS, macOS and Windows), the row and its switch are two items, both named by the title
 * iOS: rows that do nothing (no `onPressed`, or disabled) no longer offer screen readers a tap action
+* Screen readers read each tile as its own item in every style: an Android section with one tappable tile was read as one button holding all its tiles. Tiles with `onPressed` are buttons, and section titles headings
 * iOS: a widget test that ends right after tapping a tile no longer fails with a pending timer
 
 ### New features

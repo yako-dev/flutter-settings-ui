@@ -57,15 +57,19 @@ class IOSSettingsSection extends StatelessWidget {
                     start: sidebar ? 14 : 16,
                     bottom: textScaler.scale(8),
                   ),
-              child: DefaultTextStyle(
-                style:
-                    (theme.themeData.titleTextStyle ??
-                            const TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w600,
-                            ))
-                        .copyWith(color: theme.themeData.titleTextColor),
-                child: title!,
+              child: Semantics(
+                container: true,
+                header: true,
+                child: DefaultTextStyle(
+                  style:
+                      (theme.themeData.titleTextStyle ??
+                              const TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w600,
+                              ))
+                          .copyWith(color: theme.themeData.titleTextColor),
+                  child: title!,
+                ),
               ),
             ),
           buildTileList(sidebar: sidebar),
