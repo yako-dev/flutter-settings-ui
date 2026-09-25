@@ -110,23 +110,34 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
   }) {
     final textScaler = MediaQuery.textScalerOf(context);
 
-    return Container(
-      width: MediaQuery.of(context).size.width,
-      padding:
-          widget.descriptionPadding ??
-          EdgeInsets.only(
-            left: 16,
-            right: 16,
-            top: textScaler.scale(8),
-            bottom: additionalInfo.needToShowDivider ? 24 : textScaler.scale(8),
-          ),
-      decoration: BoxDecoration(color: theme.themeData.settingsListBackground),
-      child: DefaultTextStyle(
-        style:
-            (theme.themeData.tileDescriptionTextStyle ??
-                    const TextStyle(fontSize: 13))
-                .copyWith(color: theme.themeData.titleTextColor),
-        child: widget.description!,
+    // Fill the width the tile gets (a pane of a split view can be much
+    // narrower than the screen), falling back to the screen width when it's
+    // unbounded.
+    return LayoutBuilder(
+      builder: (context, constraints) => Container(
+        width: constraints.hasBoundedWidth
+            ? constraints.maxWidth
+            : MediaQuery.sizeOf(context).width,
+        padding:
+            widget.descriptionPadding ??
+            EdgeInsets.only(
+              left: 16,
+              right: 16,
+              top: textScaler.scale(8),
+              bottom: additionalInfo.needToShowDivider
+                  ? 24
+                  : textScaler.scale(8),
+            ),
+        decoration: BoxDecoration(
+          color: theme.themeData.settingsListBackground,
+        ),
+        child: DefaultTextStyle(
+          style:
+              (theme.themeData.tileDescriptionTextStyle ??
+                      const TextStyle(fontSize: 13))
+                  .copyWith(color: theme.themeData.titleTextColor),
+          child: widget.description!,
+        ),
       ),
     );
   }

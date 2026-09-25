@@ -22,7 +22,7 @@
 * `SettingsList.brightness` now overrides the brightness from the app theme. It was ignored
 * `ApplicationType.both` now goes by the platform the app runs on: the `CupertinoTheme` on iOS and macOS, the Material `Theme` elsewhere. Before, it read the Material brightness unless `platform: DevicePlatform.iOS` was set, so a `CupertinoApp` that follows the system could show light colors in dark mode
 * `crossAxisAlignment: CrossAxisAlignment.start` now puts the content at the start edge on wide screens (left in LTR, right in RTL). The default padding used to keep it centered
-* The wide-screen side padding now comes from the width the list gets, not the screen width, so a `SettingsList` in a narrow pane of a wide window fits the pane
+* The wide-screen side padding now comes from the width the list gets, not the screen width, so a `SettingsList` in a narrow pane of a wide window fits the pane. iOS tile descriptions also take the list's width now
 * A `SettingsSection` with no tiles no longer crashes on iOS, macOS and Windows. Empty sections now show nothing on every platform
 * `SettingsTile.titleDescriptionPadding` now pads the title description on iOS. `titlePadding` was used instead
 * `SettingsTile.trailingPadding` and `descriptionPadding` now work on iOS, macOS and Windows, and `titlePadding` on Android and web. They were ignored there
