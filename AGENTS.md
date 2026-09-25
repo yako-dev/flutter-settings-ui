@@ -70,6 +70,14 @@ Layout: `SettingsList` sizes its default padding from its own width (`LayoutBuil
 
 `DevicePlatform.device` means "auto-detect" and is valid only as input to `SettingsList`. It must never reach the switch statements in tiles, sections or `ThemeProvider` (they throw). `PlatformUtils.detectPlatform()` resolves it: `kIsWeb` → web, otherwise `Theme.of(context).platform`. Its `default:` branch sends platforms that only exist in Flutter forks (e.g. OpenHarmony) to the iOS style; keep it, or forks stop compiling.
 
+### Pages and split view (`lib/src/split/`)
+
+- `SettingsTile.navigation(destination:)` calls `openSettingsDestination`: in a split view's list pane it selects the page through `SettingsSplitListScope`; anywhere else it pushes `settingsDestinationRoute` (Cupertino or Material route) on the nearest `Navigator`, so tiles in a detail page push inside the detail pane.
+- `SettingsDestinationPage` draws the header (`SettingsPageBar` for iOS and web, `SettingsCollapsingTitleView`, a `NestedScrollView`, for Android) and puts `SettingsStyleScope(inherit: true)` above the body, so a `SettingsList` there takes its unset style inputs from the opener. A list's own `SettingsStyleScope` has `inherit: false`, so nested lists keep detecting their style.
+- `SettingsSplitView` keeps one detail `Navigator` and the list pane under `GlobalKey`s. Two panes put them in a `Row`; one pane puts them in pages of a second `Navigator`, so state survives layout changes. A page pushed over the list that is still animating out hands the detail navigator to the new one (`hostGeneration`). One `PopScope` on the app's route handles back for both navigators.
+- Breakpoints, pane widths and hinges are pure functions in `split_geometry.dart`. The list-pane look (iPad sidebar rows, Chrome menu, Android cards on `surfaceDim`) is chosen by tiles and sections that find a `SettingsSplitListScope` with `isSplit`.
+- Each pane is its own semantics container: the detail navigator's routes block the semantics of what was painted before them in their container.
+
 ### `IOSSettingsTileAdditionalInfo`
 
 An internal `InheritedWidget` that `IOSSettingsSection` puts above each tile to say whether to round the top/bottom corners and draw the divider. A tile's `description` becomes a footer outside the card, so the next tile starts a new rounded card.
@@ -79,6 +87,7 @@ An internal `InheritedWidget` that `IOSSettingsSection` puts above each tile to 
 - **iOS** (iOS 26/27 Settings): 26pt continuous corners (`ClipRSuperellipse`), 20pt side margins, 52pt rows (16 + 17pt text + 16), 17pt tile text, 17pt semibold section headers in the secondary grey, value at most half the row on one line, chevron on navigation tiles, `CupertinoSettingsSwitch`. Headers are not upper-cased.
 - **Android** (Android 16/17 Settings): each tile on its own card, 2dp apart, 20dp outer / 4dp inner corners, 16dp side margins, on a `surfaceContainer` page; 16sp titles, 14sp medium section titles in `primary`; Material `Switch` with check/cross thumb icons; no chevron.
 - **Web** (Chrome settings): cards with 8px corners and elevation 2, 14px titles, 13px descriptions, 20px leading icons, chevron on navigation tiles, 680px max column (810 for the other styles), 16px side margins in narrow windows.
+- **Split view** (measured on iPadOS 27, Android 16 two-pane Settings and Chrome): iPad 320pt sidebar on #E2E6F0/#181D20, 288x52 capsule selection #0080F5/#13A4FF, no divider, pages fill the pane with 20pt margins; Android list pane 36.36% on `surfaceDim` with the phone cards, the selected card in `surfaceContainer`, no icons under 380dp, 36sp collapsing page titles at pane + 24dp; Chrome 266px menu with 40px items and an end-rounded pill, the 680px column placed like Chrome's (`SettingsContentColumnHint`).
 - **`CupertinoSettingsSwitch`**: iOS 26 switch drawn with a `CustomPainter` (no platform view, shader or backdrop filter). 63x28 track, 37x24 thumb, Liquid Glass-style lens while pressed or dragged. The lens paints outside the 63x28 box, so don't clip it tightly.
 
 Tap behavior on switch tiles differs on purpose: Android and web toggle on a row tap and never call `onPressed`; iOS toggles only on the switch and calls `onPressed` for the rest of the row.
@@ -93,6 +102,8 @@ Tap behavior on switch tiles differs on purpose: Android and web toggle on a row
 - `CupertinoSettingsSwitch`
 - `DevicePlatform`, `PlatformUtils`
 - `SettingsTheme`, `SettingsThemeData`
+- `SettingsDestination`
+- `SettingsSplitView`, `SettingsSplitController`, `SettingsSplitLayout` (exported with `show` from `settings_split_view.dart`, so its internal helpers stay private)
 
 Everything else in `platforms/` is internal. Don't export it.
 
