@@ -1,3 +1,5 @@
+import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/settings_ui.dart';
@@ -412,6 +414,93 @@ void splitViewRegressionTests() {
         expect(find.text('Text size'), findsOneWidget);
         expect(_controllerOf(tester).selectedId, 'display');
       });
+    }
+  });
+
+  group('apps without MaterialLocalizations', () {
+    Widget cupertinoApp(Widget home) => CupertinoApp(home: home);
+    Widget widgetsApp(Widget home) => WidgetsApp(
+      color: const Color(0xFF2196F3),
+      pageRouteBuilder: <T>(RouteSettings settings, WidgetBuilder builder) =>
+          PageRouteBuilder<T>(
+            settings: settings,
+            pageBuilder: (context, _, _) => builder(context),
+          ),
+      home: home,
+    );
+
+    for (final (name, wrap) in [
+      ('CupertinoApp', cupertinoApp),
+      ('WidgetsApp', widgetsApp),
+    ]) {
+      for (final platform in [
+        DevicePlatform.iOS,
+        DevicePlatform.android,
+        DevicePlatform.web,
+        DevicePlatform.macOS,
+        DevicePlatform.windows,
+        DevicePlatform.linux,
+      ]) {
+        testWidgets('$name, $platform: every layout, pages, back and the '
+            'Windows pane', (tester) async {
+          for (final size in const [
+            Size(400, 800),
+            Size(800, 700),
+            Size(1280, 800),
+          ]) {
+            await _setSize(tester, size);
+            await tester.pumpWidget(
+              wrap(
+                SettingsSplitView(
+                  key: ValueKey(size),
+                  platform: platform,
+                  applicationType: ApplicationType.cupertino,
+                  title: const Text('Settings'),
+                  sections: _sections(),
+                ),
+              ),
+            );
+            await tester.pumpAndSettle();
+            expect(tester.takeException(), isNull, reason: '$size');
+
+            final controller = _controllerOf(tester);
+            if (platform == DevicePlatform.windows &&
+                controller.isSplit &&
+                size.width < 1008) {
+              // The compact rail: its tooltips and the pane over the page.
+              final mouse = await tester.createGesture(
+                kind: PointerDeviceKind.mouse,
+              );
+              await mouse.addPointer(location: Offset.zero);
+              await mouse.moveTo(
+                tester.getCenter(_inList(find.byIcon(Icons.volume_up))),
+              );
+              await tester.pump(const Duration(seconds: 1));
+              await mouse.moveTo(Offset.zero);
+              await mouse.removePointer();
+              await tester.pumpAndSettle();
+              expect(tester.takeException(), isNull, reason: '$size');
+              await tester.tap(find.bySemanticsLabel('Open navigation menu'));
+              await tester.pumpAndSettle();
+              expect(tester.takeException(), isNull, reason: '$size');
+            }
+
+            await tester.tap(_inList(find.text('Display')).first);
+            await tester.pumpAndSettle();
+            await tester.tap(find.text('Text size'));
+            await tester.pumpAndSettle();
+            expect(find.text('Count 0'), findsOneWidget, reason: '$size');
+            expect(tester.takeException(), isNull, reason: '$size');
+
+            await tester.binding.handlePopRoute();
+            await tester.pumpAndSettle();
+            await tester.binding.handlePopRoute();
+            await tester.pumpAndSettle();
+            expect(find.text('Count 0'), findsNothing, reason: '$size');
+            expect(tester.takeException(), isNull, reason: '$size');
+          }
+        });
+      }
     }
   });
 

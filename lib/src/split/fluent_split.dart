@@ -861,9 +861,7 @@ class FluentPaneHeader extends StatelessWidget {
                     end: _kItemMarginH,
                   ),
                   child: FluentSubtleButton(
-                    semanticLabel: MaterialLocalizations.of(
-                      context,
-                    ).openAppDrawerTooltip,
+                    semanticLabel: settingsMenuLabel(context),
                     onPressed: onTogglePane,
                     glyph: FluentGlyph.menu,
                   ),
