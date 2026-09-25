@@ -475,7 +475,7 @@ In a browser, the web style is used on every device, phones included. Elsewhere 
 
 ### Pages: `SettingsDestination`
 
-Give a navigation tile a `destination` instead of writing `Navigator.push`, a `Scaffold` and an app bar for every sub-page. A tap pushes a platform route (Cupertino on the iOS style, and for now on macOS and Windows; Material otherwise) with the platform's page header: the iOS 26 inline title and round back button, Android's large title that collapses on scroll, or Chrome's page title. `builder` returns only the body:
+Give a navigation tile a `destination` instead of writing `Navigator.push`, a `Scaffold` and an app bar for every sub-page. A tap pushes a platform route (Cupertino in the iOS, macOS and GNOME styles; Material otherwise) with the platform's page header: the iOS 26 inline title and round back button, Android's large title that collapses on scroll, the macOS toolbar with its back and forward buttons, the large Windows page title (with a breadcrumb on pages opened from a page), GNOME's flat header bar, or Chrome's page title. `builder` returns only the body:
 
 ```dart
 SettingsTile.navigation(
@@ -533,10 +533,31 @@ Each style follows its platform's Settings app:
 | iOS | width >= 600 and shortest side >= 600: iPads in both orientations, iPad mini included, not iPhones. Desktop: width only | 320pt sidebar on a tinted background, rows without cards | blue capsule, white text |
 | Android, Fuchsia | width >= 720dp and smallest width >= 600dp (AOSP's rule): tablets and unfolded foldables, not phones in landscape. Desktop: width only | 36.36% of the width on `surfaceDim`, the same cards as the phone. No icons under 380dp | card filled with the page color |
 | Web | width > 980px (Chrome's rule) | Chrome's 266px menu | tinted pill rounded on the end side |
-| macOS, Windows (for now) | as iOS | as iOS, in the style's colors: the System Settings sidebar grey, or the Windows page color | macOS: accent capsule, white text. Windows: neutral grey |
-| Linux (GNOME, for now) | as Android | as Android, in GNOME's colors: the GNOME sidebar grey and white cards | a neutral grey (#D8D8DB, or white 10% in dark mode), like GNOME's selection |
+| macOS | width >= 560. Narrower windows show one pane, like SwiftUI in a compact width | 232pt System Settings sidebar, full height | accent fill, white semibold text; grey while the window is inactive |
+| Windows | width >= 641. From 641 to 1007 the pane is a 48px icon rail | 300px `NavigationView` pane from 1008px | neutral grey with an accent pill at the start edge |
+| Linux (GNOME) | width > 550 (scaled by the text size) | a quarter of the width, 180 to 280 | neutral grey (#D8D8DB, or white 10% in dark mode) |
 
-The macOS, Windows and GNOME styles don't have a split view look of their own yet: they take the headers and pane rules of the iOS or Android style. Their pages keep their own look in the detail pane, with their own column and margins; iOS and Android pages fill the pane.
+The macOS, Windows and GNOME pages keep their own look in the detail pane, with their own column and margins; iOS and Android pages fill the pane.
+
+#### Desktop sidebars
+
+The macOS, Windows and GNOME styles draw the list pane as their settings apps' sidebar, and the detail pane with their own header:
+
+| | macOS (System Settings) | Windows 11 (Settings) | GNOME (Settings) |
+|---|---|---|---|
+| Pane | #EDEDED / #282828, a 0.5pt edge | the page color #F3F3F3 / #202020 | #EBEBED / #2E2E32, a 1px border |
+| Rows | 32pt, radius 8, 10pt from the edges | at least 36px, radius 4, 4px margins | 43px, radius 9, 6px margins, 2px apart |
+| Icons | 20pt. A plain `Icon` takes the accent color; your own widget (a colored squircle, say) keeps its colors | 16px in a 40px column | 16px |
+| Section titles | 11pt bold, tertiary grey | bold, secondary; hidden in the rail | bold |
+| Selection | accent fill, white semibold text; grey while the app is inactive | #EAEAEA / #2D2D2D and a 3x16 accent pill that slides to the new item | 10% of the text color, 13% hovered, 16% pressed |
+| Hover | none, like macOS | #EAEAEA / #2D2D2D, pressed #EDEDED / #292929 | 7% of the text color |
+| List pane header | a 52pt strip (the back and forward buttons when the screen was pushed) | the `title` and, in the rail, a menu button that opens the pane over the page | a 46px header bar with the centered bold title |
+| Detail header | a 52pt toolbar: back and forward buttons when there's a page to go back to, then the 15pt semibold title | the 28px semibold page title; pages opened from a page show a breadcrumb such as "System › Display", whose parent goes back | a flat 46px header bar with the centered bold title, and a back button when collapsed or on a page opened from a page |
+| One pane | the list without the sidebar look, pages pushed over it | the Windows cards with the page title, pages pushed over them | the sidebar fills the window and no row stays selected |
+
+The arrow keys move between sidebar rows, Enter or Space opens one, and Tab moves between the panes. The macOS sidebar opens a row as the focus moves to it, like macOS sidebars. Each style draws its own focus ring. The panes, the Windows pill and its overlay pane mirror in right-to-left layouts, and the rows grow with the text size.
+
+System Settings shows a colored squircle behind each icon. The package doesn't draw them, so a plain `Icon` gets the accent tint. For squircles, pass your own 20pt widget, for example a `ClipRSuperellipse` with a gradient and a white icon (the example app's `MacSidebarIcon` does this).
 
 - **Selection.** Two panes open on the first destination (like iPad, Android and Chrome), or on `initialDestinationId`. Set `emptyDetailBuilder` to open on an empty page instead. A tile is highlighted while its page shows.
 - **Pages inside pages.** A tile with a `destination` in a page pushes inside the detail pane, and the list keeps its highlight. Tapping the highlighted tile goes back to its first screen.
@@ -564,7 +585,7 @@ controller.select('display');
 SettingsSplitView.of(context).select('network');
 ```
 
-The example app's gallery has a "Split view" demo with iPad, Android and Chrome settings trees. Open it directly in any style with `flutter run --route '/split-view?platform=android&theme=dark'` (on the web: `?screen=split-view&platform=macOS`).
+The example app's gallery has a "Split view" demo with iPad, Android, Chrome, macOS System Settings, Windows Settings and GNOME Settings trees. Open it directly in any style with `flutter run --route '/split-view?platform=android&theme=dark'` (on the web: `?screen=split-view&platform=macOS`).
 
 ---
 
@@ -849,7 +870,7 @@ Takes `sections`, `platform`, `applicationType`, `brightness`, `lightTheme` and 
 | `onDestinationChanged` | `ValueChanged<String?>?` | — | Called after the shown page changes, layout changes included |
 | `layout` | `SettingsSplitLayout` | `auto` | `auto`, `single` or `split` |
 | `breakpoint` | `double?` | style's rule | Width from which `auto` shows two panes |
-| `listPaneWidth` | `double?` | 320 / 36.36% / 266 | List pane width, at most half the view |
+| `listPaneWidth` | `double?` | style's (see [Split view](#split-view-ipad-tablets-foldables-desktop-web)) | List pane width, at most half the view. Windows: the open pane only; the rail stays 48 and its menu opens a pane this wide (default 320) |
 | `restorationId` | `String?` | — | Restores the shown page |
 
 `SettingsSplitView.of(context)` and `maybeOf(context)` return the controller of the view around `context`.

@@ -9,7 +9,7 @@ import 'package:settings_ui/settings_ui.dart';
 ///
 /// 1. The web page's query: `/?screen=gnome-power&theme=dark`.
 /// 2. The initial route, whose path names the screen:
-///    `flutter run --route '/split-view?platform=macOS&page=display'`, or
+///    `flutter run --route '/split-view?platform=macOS&page=displays'`, or
 ///    `/#/split-view?platform=macOS` on the web.
 /// 3. `--dart-define`s: `--dart-define=SCREEN=macos --dart-define=THEME=dark`
 ///    (and `PLATFORM`, `PAGE`, `TAB`).

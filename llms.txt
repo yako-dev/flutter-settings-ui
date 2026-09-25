@@ -195,7 +195,7 @@ GNOME's `pan-down-symbolic` arrow (16px box, 10x6 chevron, `IconTheme` color by 
 
 `SettingsDestination(id: 'network', title: ..., builder: (context) => SettingsList(...), actions: [...])`. A navigation tile with a `destination` opens the page itself:
 
-- In a `SettingsList`: pushes a `CupertinoPageRoute` (iOS style, and for now macOS and Windows) or `MaterialPageRoute` (other styles) named `id`, with the package's header: iOS 26 inline title and round back button (also macOS and Windows for now), Android's 36sp title that collapses into a 64dp bar on scroll (also GNOME for now), Chrome's page title over the 680px column. `builder` returns only the body.
+- In a `SettingsList`: pushes a `CupertinoPageRoute` (iOS, macOS and GNOME styles) or `MaterialPageRoute` (other styles) named `id`, with the package's header: iOS 26 inline title and round back button; Android's 36sp title that collapses into a 64dp bar on scroll; the macOS 52pt toolbar (back/forward capsule, 15pt semibold title); the Windows 28px semibold page title, with a back button, or a breadcrumb "Parent › Page" (parent tappable, goes back) on pages opened from a page; GNOME's flat 46px header bar (centered bold title, flat back button); Chrome's page title over the 680px column. `builder` returns only the body.
 - `title` (`Widget?`) defaults to the tile's title. `actions` (`List<Widget>?`) go at the end of the header.
 - A `SettingsList` in the body takes the `platform`, `brightness`, `lightTheme`, `darkTheme` and `applicationType` it leaves unset from the list that opened the page. Nested lists elsewhere still detect their own style.
 - For the Android header to collapse, the body's scroll view must use the `PrimaryScrollController` (a `SettingsList` without `scrollController` does).
@@ -209,7 +209,7 @@ A whole settings screen: list pane plus detail pane when wide, the list with pag
 - `emptyDetailBuilder`: `WidgetBuilder?`, the detail pane with no page.
 - `controller`: `SettingsSplitController?` with `select(String id)`, `clearSelection()`, `selectedId`, `isSplit`; a `ChangeNotifier`. `select` before the view is built picks the first page, also in one pane (deep links). `SettingsSplitView.of(context)` / `maybeOf(context)` return it from inside the view.
 - `onDestinationChanged`: `ValueChanged<String?>?`, after the shown page changes, including when a layout change shows or hides the default page. For URL sync; the package has no router.
-- `layout`: `SettingsSplitLayout.auto` (default), `.single`, `.split`. `breakpoint`: `double?`, a width that replaces the style's rule. `listPaneWidth`: `double?`, at most half the width.
+- `layout`: `SettingsSplitLayout.auto` (default), `.single`, `.split`. `breakpoint`: `double?`, a width that replaces the style's rule. `listPaneWidth`: `double?`, at most half the width. Windows: sets the open pane only (the 48px rail stays; its menu button opens a pane this wide over the page, default 320).
 - `restorationId`: `String?`, restores the shown page (pages pushed inside a page are not restored).
 
 Defaults per style:
@@ -217,12 +217,13 @@ Defaults per style:
 | Style | Two panes when | List pane | Selected tile |
 |---|---|---|---|
 | iOS | width >= 600 and shortest side >= 600 (desktop: width only) | 320pt sidebar, `listPaneBackground` #E2E6F0 / #181D20, rows without cards | capsule #0080F5 / #13A4FF, white text |
-| macOS, Windows (for now) | as iOS | as iOS, on #EDEDED / #282828 (macOS) or the page color #F3F3F3 / #202020 (Windows) | macOS: capsule #0070F5 / #007AFF, white text; Windows: neutral #EAEAEA / #2D2D2D |
+| macOS | width >= 560 | 232pt full-height sidebar on #EDEDED / #282828, 0.5pt edge; 32pt rows, 20pt icons, 11pt bold headers | #0070F5 / #007AFF fill (radius 8, inset 10), white semibold text; #D7D7D7 / #464646 while the app is inactive (`AppLifecycleState` not resumed) |
+| Windows | width >= 641 (641-1007: 48px icon rail with tooltips and a menu button that opens a 320px pane over the page) | 300px `NavigationView` pane from 1008, page color #F3F3F3 / #202020; items >= 36px, radius 4, 16px icons | #EAEAEA / #2D2D2D plus a 3x16 accent pill at the start edge that slides between items |
 | Android, Fuchsia | width >= 720 and shortest side >= 600 (desktop: width only) | 36.36% of the width on `surfaceDim`, phone cards; no leading icons under 380dp | card filled with `surfaceContainer` (the page color) |
-| Linux (GNOME, for now) | as Android | as Android, on #EBEBED / #2E2E32 with the GNOME cards | neutral grey #D8D8DB (dark: white 10%), text unchanged |
+| Linux (GNOME) | width > 550 x text scale | 25% of the width, clamped 180-280 x text scale, on #EBEBED / #2E2E32, 1px border; 43px rows, radius 9, 16px icons; 46px header bar with centered bold title | #D8D8DB (dark: white 10%), text unchanged; hover 7%, pressed 16%. One pane: the sidebar fills the window, no row selected |
 | web | width > 980 | Chrome menu, 266px, 40px items, no descriptions | tint of `primary` / `primary` in dark, end-rounded pill |
 
-The macOS, Windows and GNOME styles have no split view look of their own yet: they take the headers and pane rules of the iOS or Android style, and their list pane draws iPad sidebar rows (macOS, Windows) or the Android cards (GNOME) in the style's colors. Their pages keep their own look, and their own column and margins, in the detail pane; iOS and Android pages fill it.
+The macOS, Windows and GNOME list panes are sidebars (System Settings, Windows Settings `NavigationView`, GNOME Settings `AdwNavigationSplitView`), not cards. The detail pane gets the style's page header (see SettingsDestination). Their pages keep their own look, and their own column and margins, in the detail pane; iOS and Android pages fill it. In these three styles: arrow keys move between sidebar rows, Enter/Space opens one (macOS opens on focus), Tab moves between panes. A plain `Icon` as a macOS sidebar `leading` is tinted with the accent; pass your own 20pt widget for System Settings' colored squircles.
 
 Behavior: only tiles with a `destination` whose id is shown are highlighted, and only with two panes. Destinations of tiles inside a page push inside the detail pane. Two panes to one: a page the user opened stays on top of the list (with its pushed pages and state), the default page is dropped. Back pops pages pushed inside the detail pane, then the page over the list, then the screen; a `PopScope` in a page can veto. A separating hinge (hinge, or fold half opened) gets one pane on each side. RTL puts the list on the right.
 

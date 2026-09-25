@@ -38,14 +38,32 @@ part 'settings_split_controller.dart';
 ///
 /// | Style | Two panes when | List pane |
 /// |---|---|---|
-/// | iOS (also macOS and Windows for now) | width >= 600 and shortest side >= 600 (any shortest side on desktop) | 320pt sidebar |
-/// | Android, Fuchsia (also GNOME for now) | width >= 720 and shortest side >= 600, like AOSP Settings | 36.36% of the width |
+/// | iOS | width >= 600 and shortest side >= 600 (any shortest side on desktop) | 320pt sidebar |
+/// | Android, Fuchsia | width >= 720 and shortest side >= 600, like AOSP Settings | 36.36% of the width |
 /// | Web | width > 980, like Chrome | 266px menu |
+/// | macOS | width >= 560 | 232pt System Settings sidebar |
+/// | Windows | width >= 641 | 300px navigation pane from 1008, a 48px icon rail below |
+/// | GNOME | width > 550 (scaled by the text size) | a quarter of the width, 180–280 |
 ///
-/// The macOS, Windows and GNOME styles don't have their own split view look
-/// yet: they use the header and pane rules above, and their list pane draws
-/// iPad sidebar rows (macOS, Windows) or the Android cards (GNOME) in the
-/// style's colors. Their pages keep their own look in the detail pane.
+/// The desktop styles draw their list pane like their platforms' settings
+/// apps:
+///
+/// - macOS: a full-height sidebar with 32pt rows, a rounded selection in the
+///   accent color (grey while the window is inactive) and small bold section
+///   headers. The detail pane has a 52pt toolbar with the page title and,
+///   when there is a page to go back to, the back and forward buttons.
+/// - Windows: a `NavigationView` pane with a sliding accent pill on the
+///   selected item. Between 641 and 1007 the pane is an icon rail with
+///   tooltips; its menu button opens the full pane over the page. The page
+///   title is large, and pages opened from a page show a breadcrumb.
+/// - GNOME: an `AdwNavigationSplitView` sidebar with rounded rows and its
+///   own header bar. The detail pane has a flat header bar with a centered
+///   title, and a back button when collapsed or on a nested page. With one
+///   pane no row stays selected.
+///
+/// In the three desktop styles the arrow keys move between the sidebar's
+/// rows, Enter or Space opens one (macOS opens the row as the focus moves,
+/// like its sidebars), and Tab moves between the panes.
 ///
 /// A separating hinge (a hinge, or a fold in the book posture) always gets a
 /// pane on each side of it. The panes follow the text direction.
@@ -126,6 +144,10 @@ class SettingsSplitView extends StatefulWidget {
 
   /// Width of the list pane with two panes. Defaults to the style's (see the
   /// table above). The detail pane always gets at least half the width.
+  ///
+  /// In the Windows style it sets the open pane only: the icon rail below
+  /// 1008 stays 48 wide, and its menu button opens a pane this wide (320 by
+  /// default, WinUI's) over the page.
   final double? listPaneWidth;
 
   /// Restores the shown page, and the state of the pages that support
