@@ -414,4 +414,70 @@ void splitViewRegressionTests() {
       });
     }
   });
+
+  group('controller', () {
+    testWidgets('a re-keyed view with the same controller takes it over', (
+      tester,
+    ) async {
+      final controller = SettingsSplitController();
+      addTearDown(controller.dispose);
+      await _setSize(tester, const Size(1280, 800));
+      Widget app(DevicePlatform platform) => _app(
+        SettingsSplitView(
+          key: ValueKey(platform),
+          platform: platform,
+          controller: controller,
+          sections: _sections(),
+        ),
+      );
+
+      await tester.pumpWidget(app(DevicePlatform.android));
+      await tester.pumpAndSettle();
+      controller.select('sound');
+      await tester.pumpAndSettle();
+      expect(find.text('Sound body'), findsOneWidget);
+
+      await tester.pumpWidget(app(DevicePlatform.macOS));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      expect(controller.isSplit, isTrue);
+      expect(controller.selectedId, 'network');
+      controller.select('display');
+      await tester.pumpAndSettle();
+      expect(find.text('Text size'), findsOneWidget);
+      expect(controller.selectedId, 'display');
+    });
+
+    testWidgets('two views at once with one controller still report it', (
+      tester,
+    ) async {
+      final controller = SettingsSplitController();
+      addTearDown(controller.dispose);
+      await _setSize(tester, const Size(1280, 800));
+      await tester.pumpWidget(
+        _app(
+          Row(
+            children: [
+              for (final platform in [
+                DevicePlatform.android,
+                DevicePlatform.iOS,
+              ])
+                Expanded(
+                  child: SettingsSplitView(
+                    platform: platform,
+                    controller: controller,
+                    layout: SettingsSplitLayout.single,
+                    sections: _sections(),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      );
+      expect(
+        tester.takeException().toString(),
+        contains('can only be used by one SettingsSplitView at a time'),
+      );
+    });
+  });
 }

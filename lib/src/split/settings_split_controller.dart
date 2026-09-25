@@ -66,13 +66,31 @@ class SettingsSplitController extends ChangeNotifier {
     view._clearSelection();
   }
 
+  /// The newest view takes over: a view re-created with a new key (and the
+  /// same controller) attaches before the old one is disposed.
   void _attach(_SettingsSplitViewState view) {
-    assert(
-      _view == null || _view == view,
-      'A SettingsSplitController can only be used by one SettingsSplitView '
-      'at a time.',
-    );
+    final previous = _view;
     _view = view;
+    assert(() {
+      if (previous != null && previous != view) {
+        // The old view is gone by the end of the frame, unless two views
+        // really share the controller.
+        SchedulerBinding.instance.addPostFrameCallback((_) {
+          if (previous.mounted && _view == view && view.mounted) {
+            FlutterError.reportError(
+              FlutterErrorDetails(
+                exception: FlutterError(
+                  'A SettingsSplitController can only be used by one '
+                  'SettingsSplitView at a time.',
+                ),
+                library: 'settings_ui',
+              ),
+            );
+          }
+        }, debugLabel: 'SettingsSplitController.checkSharing');
+      }
+      return true;
+    }());
   }
 
   void _detach(_SettingsSplitViewState view) {
