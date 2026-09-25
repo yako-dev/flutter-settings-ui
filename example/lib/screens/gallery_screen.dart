@@ -6,6 +6,7 @@ import 'package:example/screens/gallery/ios_developer_screen.dart';
 import 'package:example/screens/gallery/ios_native_settings_screen.dart';
 import 'package:example/screens/gallery/macos_notifications_screen.dart';
 import 'package:example/screens/gallery/material3_demo_screen.dart';
+import 'package:example/screens/gallery/showcase_screen.dart';
 import 'package:example/screens/gallery/split_view_screen.dart';
 import 'package:example/screens/gallery/web_chrome_settings.dart';
 import 'package:example/screens/gallery/windows_display_settings_screen.dart';
@@ -75,6 +76,22 @@ class GalleryScreen extends StatelessWidget {
                   Navigation.navigateTo(
                     context: context,
                     screen: SplitViewScreen(
+                      platform: LaunchOptions.platform ?? DevicePlatform.device,
+                    ),
+                    style: NavigationRouteStyle.material,
+                  );
+                },
+              ),
+              SettingsTile.navigation(
+                leading: const Icon(Icons.auto_awesome_outlined),
+                title: const Text('Showcase'),
+                description: const Text(
+                  'A made-up app\'s settings, one code base in every style',
+                ),
+                onPressed: (context) {
+                  Navigation.navigateTo(
+                    context: context,
+                    screen: ShowcaseScreen(
                       platform: LaunchOptions.platform ?? DevicePlatform.device,
                     ),
                     style: NavigationRouteStyle.material,

@@ -8,7 +8,8 @@ import 'package:settings_ui/settings_ui.dart';
 /// foldables, desktop and the web. The README's cover and gallery images are
 /// screenshots of this screen.
 ///
-/// Open it with the launch options (see `LaunchOptions`), e.g. `flutter run
+/// Open it from the gallery, or with the launch options (see
+/// `LaunchOptions`), e.g. `flutter run
 /// --route '/showcase?platform=ios&page=privacy'`, or on the web
 /// `/?screen=showcase&platform=windows&theme=dark`.
 class ShowcaseScreen extends StatefulWidget {
