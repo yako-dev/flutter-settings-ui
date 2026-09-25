@@ -494,7 +494,8 @@ class _MacosSettingsTileState extends State<MacosSettingsTile> {
       // into it, so the row reads as "title, switch, on".
       child: Semantics(
         container: true,
-        button: _canPress,
+        // A disabled row that would open something is a dimmed button.
+        button: widget.onPressed != null,
         enabled: enabled,
         child: FocusableActionDetector(
           enabled: _canPress,

@@ -574,4 +574,62 @@ void tileRegressionTests() {
       });
     }
   });
+
+  group('A disabled row with onPressed is a disabled button', () {
+    for (final platform in [
+      DevicePlatform.macOS,
+      DevicePlatform.windows,
+      DevicePlatform.linux,
+    ]) {
+      testWidgets('$platform', (tester) async {
+        final handle = tester.ensureSemantics();
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: SettingsList(
+                platform: platform,
+                sections: [
+                  SettingsSection(
+                    tiles: [
+                      SettingsTile.navigation(
+                        title: const Text('Keyboard'),
+                        enabled: false,
+                        onPressed: (_) {},
+                      ),
+                      SettingsTile(
+                        title: const Text('Model'),
+                        value: const Text('Mac'),
+                        enabled: false,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+
+        expect(
+          tester.getSemantics(find.text('Keyboard')),
+          isSemantics(
+            label: 'Keyboard',
+            isButton: true,
+            hasEnabledState: true,
+            isEnabled: false,
+            hasTapAction: false,
+          ),
+        );
+        // A row that does nothing is no button, enabled or not.
+        expect(
+          tester
+              .getSemantics(find.text('Model'))
+              .getSemanticsData()
+              .flagsCollection
+              .isButton,
+          isFalse,
+        );
+        handle.dispose();
+      });
+    }
+  });
 }
