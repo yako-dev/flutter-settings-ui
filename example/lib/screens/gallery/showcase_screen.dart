@@ -635,12 +635,19 @@ class _CategoryIcon extends StatelessWidget {
           ),
         ),
       ),
+      // The 20pt badges of the System Settings sidebar.
       _Look.macos => MacosIconBadge(
         icon: category.cupertinoIcon,
         color: category.color,
+        size: 20,
       ),
-      // Windows Settings: colored line icons.
-      _Look.windows => Icon(category.materialIcon, color: category.color),
+      // Windows Settings: colored line icons, lighter in dark mode.
+      _Look.windows => Icon(
+        category.materialIcon,
+        color: Theme.of(context).brightness == Brightness.dark
+            ? Color.lerp(category.color, Colors.white, 0.4)
+            : category.color,
+      ),
       _ => Icon(category.materialIcon),
     };
   }
