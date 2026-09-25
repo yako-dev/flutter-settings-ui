@@ -12,6 +12,13 @@ class AndroidNotificationsScreen extends StatefulWidget {
 class _AndroidNotificationsScreenState
     extends State<AndroidNotificationsScreen> {
   bool useNotificationDotOnAppIcon = true;
+
+  /// The other switches' values, by title, so that they toggle.
+  final _switches = <String, bool>{
+    'Hide silent notifications in status bar': false,
+    'Allow notification snoozing': false,
+    'Enable notifications': false,
+  };
   final ScrollController settingsListController = ScrollController();
 
   @override
@@ -81,13 +88,19 @@ class _AndroidNotificationsScreenState
               ),
               SettingsTile(title: Text('Wireless emergency alerts')),
               SettingsTile.switchTile(
-                initialValue: false,
-                onToggle: (_) {},
+                initialValue:
+                    _switches['Hide silent notifications in status bar']!,
+                onToggle: (value) => setState(
+                  () => _switches['Hide silent notifications in status bar'] =
+                      value,
+                ),
                 title: Text('Hide silent notifications in status bar'),
               ),
               SettingsTile.switchTile(
-                initialValue: false,
-                onToggle: (_) {},
+                initialValue: _switches['Allow notification snoozing']!,
+                onToggle: (value) => setState(
+                  () => _switches['Allow notification snoozing'] = value,
+                ),
                 title: Text('Allow notification snoozing'),
               ),
               SettingsTile.switchTile(
@@ -100,8 +113,9 @@ class _AndroidNotificationsScreenState
                 title: Text('Notification dot on app icon'),
               ),
               SettingsTile.switchTile(
-                initialValue: false,
-                onToggle: (_) {},
+                initialValue: _switches['Enable notifications']!,
+                onToggle: (value) =>
+                    setState(() => _switches['Enable notifications'] = value),
                 title: Text('Enable notifications'),
                 description: Text('Get suggested actions, replies and more'),
               ),

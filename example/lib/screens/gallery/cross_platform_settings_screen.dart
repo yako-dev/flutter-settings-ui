@@ -15,6 +15,14 @@ class _CrossPlatformSettingsScreenState
     extends State<CrossPlatformSettingsScreen> {
   bool useCustomTheme = false;
 
+  /// The other switches' values, by title, so that they toggle.
+  final _switches = <String, bool>{
+    'Lock app in background': true,
+    'Use fingerprint': true,
+    'Change password': true,
+    'Enable notifications': true,
+  };
+
   final platformsMap = <DevicePlatform, String>{
     DevicePlatform.device: 'Default',
     DevicePlatform.android: 'Android',
@@ -131,14 +139,16 @@ class _CrossPlatformSettingsScreenState
             title: Text('Security'),
             tiles: <SettingsTile>[
               SettingsTile.switchTile(
-                onToggle: (_) {},
-                initialValue: true,
+                onToggle: (value) =>
+                    setState(() => _switches['Lock app in background'] = value),
+                initialValue: _switches['Lock app in background']!,
                 leading: Icon(Icons.phonelink_lock),
                 title: Text('Lock app in background'),
               ),
               SettingsTile.switchTile(
-                onToggle: (_) {},
-                initialValue: true,
+                onToggle: (value) =>
+                    setState(() => _switches['Use fingerprint'] = value),
+                initialValue: _switches['Use fingerprint']!,
                 leading: Icon(Icons.fingerprint),
                 title: Text('Use fingerprint'),
                 description: Text(
@@ -146,14 +156,16 @@ class _CrossPlatformSettingsScreenState
                 ),
               ),
               SettingsTile.switchTile(
-                onToggle: (_) {},
-                initialValue: true,
+                onToggle: (value) =>
+                    setState(() => _switches['Change password'] = value),
+                initialValue: _switches['Change password']!,
                 leading: Icon(Icons.lock),
                 title: Text('Change password'),
               ),
               SettingsTile.switchTile(
-                onToggle: (_) {},
-                initialValue: true,
+                onToggle: (value) =>
+                    setState(() => _switches['Enable notifications'] = value),
+                initialValue: _switches['Enable notifications']!,
                 leading: Icon(Icons.notifications_active),
                 title: Text('Enable notifications'),
               ),

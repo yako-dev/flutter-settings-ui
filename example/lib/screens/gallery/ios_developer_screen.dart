@@ -11,6 +11,14 @@ class IosDeveloperScreen extends StatefulWidget {
 
 class _IosDeveloperScreenState extends State<IosDeveloperScreen> {
   bool darkTheme = true;
+
+  /// The other switches' values, by title, so that they toggle.
+  final _switches = <String, bool>{
+    'Enable UI Automation': true,
+    'HTTP/3': false,
+    'Fast App Termination': false,
+    'Unlimited Ad Presentation': false,
+  };
   final ScrollController settingsListController = ScrollController();
 
   @override
@@ -63,14 +71,16 @@ class _IosDeveloperScreenState extends State<IosDeveloperScreen> {
               title: Text('UI automation'),
               tiles: [
                 SettingsTile.switchTile(
-                  onToggle: (_) {},
-                  initialValue: true,
+                  onToggle: (value) =>
+                      setState(() => _switches['Enable UI Automation'] = value),
+                  initialValue: _switches['Enable UI Automation']!,
                   title: Text('Enable UI Automation'),
                 ),
                 SettingsTile.navigation(title: Text('Multipath Networking')),
                 SettingsTile.switchTile(
-                  onToggle: (_) {},
-                  initialValue: false,
+                  onToggle: (value) =>
+                      setState(() => _switches['HTTP/3'] = value),
+                  initialValue: _switches['HTTP/3']!,
                   title: Text('HTTP/3'),
                 ),
               ],
@@ -79,8 +89,9 @@ class _IosDeveloperScreenState extends State<IosDeveloperScreen> {
               title: Text('State restoration testing'),
               tiles: [
                 SettingsTile.switchTile(
-                  onToggle: (_) {},
-                  initialValue: false,
+                  onToggle: (value) =>
+                      setState(() => _switches['Fast App Termination'] = value),
+                  initialValue: _switches['Fast App Termination']!,
                   title: Text('Fast App Termination'),
                   description: Text(
                     'Terminate instead of suspending apps when backgrounded to '
@@ -112,8 +123,10 @@ class _IosDeveloperScreenState extends State<IosDeveloperScreen> {
                 ),
                 SettingsTile.navigation(title: Text('Add Refresh Rate')),
                 SettingsTile.switchTile(
-                  onToggle: (_) {},
-                  initialValue: false,
+                  onToggle: (value) => setState(
+                    () => _switches['Unlimited Ad Presentation'] = value,
+                  ),
+                  initialValue: _switches['Unlimited Ad Presentation']!,
                   title: Text('Unlimited Ad Presentation'),
                 ),
               ],
