@@ -496,6 +496,13 @@ void main() {
       expect(find.text('Notification Center'), findsOneWidget);
       expect(find.text('Show previews'), findsOneWidget);
       expect(find.text('Allow notifications'), findsOneWidget);
+      // A pop-up row is 37pt tall, as in System Settings.
+      expect(
+        tester
+            .getSize(find.widgetWithText(SettingsTile, 'Show previews'))
+            .height,
+        37,
+      );
 
       final lockedSwitch = find.descendant(
         of: find.widgetWithText(SettingsTile, 'When the screen is locked'),

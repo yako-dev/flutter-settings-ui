@@ -352,7 +352,9 @@ void macosStyleTests() {
       final footer = tester.getRect(find.text('Footer A'));
       expect(footer.top - first.bottom, 10);
       expect(footer.left, first.left + 10);
-      expect(second.top - footer.bottom, 10);
+      // The next card starts 30pt below the footer, as after a SwiftUI
+      // section footer.
+      expect(second.top - footer.bottom, 30);
       final style = _styleOf(tester, 'Footer A');
       expect(style.fontSize, 11);
       expect(style.color, _lightSecondary);
@@ -361,6 +363,34 @@ void macosStyleTests() {
         find.descendant(of: _cards.at(0), matching: find.text('Footer A')),
         findsNothing,
       );
+    });
+
+    testWidgets('after a footer, the next section starts 30pt below it', (
+      tester,
+    ) async {
+      await _pump(tester, [
+        SettingsSection(
+          tiles: [
+            SettingsTile(title: const Text('A'), description: const Text('F1')),
+          ],
+        ),
+        // Shows nothing, so the next section still follows the footer.
+        const SettingsSection(tiles: []),
+        SettingsSection(
+          tiles: [
+            SettingsTile(title: const Text('B'), description: const Text('F2')),
+          ],
+        ),
+        SettingsSection(title: const Text('Header'), tiles: _tiles(1)),
+        SettingsSection(tiles: _tiles(1)),
+      ]);
+
+      final f1 = tester.getRect(find.text('F1'));
+      final f2 = tester.getRect(find.text('F2'));
+      expect(_card(tester, 1).top - f1.bottom, 30);
+      expect(tester.getRect(find.text('Header')).top - f2.bottom, 30);
+      // Without a footer in between, cards stay 10pt apart.
+      expect(_card(tester, 3).top - _card(tester, 2).bottom, 10);
     });
 
     testWidgets('the column is 640pt wide and centered on wide screens', (

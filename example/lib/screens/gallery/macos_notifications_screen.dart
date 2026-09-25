@@ -138,8 +138,9 @@ class _MacosNotificationsScreenState extends State<MacosNotificationsScreen> {
   }
 }
 
-/// The top of a System Settings pane: the pane title in 15pt semibold on the
-/// window background, and a back button when there is a page to go back to.
+/// The top of a System Settings pane: the Liquid Glass back/forward capsule
+/// (always shown; back works when there is a page to go back to) and the
+/// pane title in 15pt semibold grey.
 class _MacosToolbar extends StatelessWidget {
   const _MacosToolbar({required this.title});
 
@@ -154,27 +155,56 @@ class _MacosToolbar extends StatelessWidget {
     return Container(
       height: 52,
       color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-      padding: const EdgeInsetsDirectional.only(start: 12, end: 20),
+      padding: const EdgeInsetsDirectional.only(start: 8, end: 20),
       child: Row(
         children: [
-          if (canPop)
-            Padding(
-              padding: const EdgeInsetsDirectional.only(end: 10),
-              child: IconButton(
-                tooltip: 'Back',
-                onPressed: () => Navigator.of(context).maybePop(),
-                style: IconButton.styleFrom(
-                  fixedSize: const Size(36, 36),
-                  minimumSize: const Size(36, 36),
-                  backgroundColor: isDark
-                      ? const Color(0x14FFFFFF)
-                      : const Color(0x0D000000),
-                ),
-                icon: Icon(CupertinoIcons.chevron_left, size: 15, color: label),
+          Container(
+            width: 73,
+            height: 36,
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF2E2E2E) : const Color(0xFFFCFCFC),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: isDark
+                    ? const Color(0x1FFFFFFF)
+                    : const Color(0x0F000000),
+                width: 0.5,
               ),
-            )
-          else
-            const SizedBox(width: 8),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x1A000000),
+                  blurRadius: 6,
+                  offset: Offset(0, 1),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                _ToolbarButton(
+                  icon: CupertinoIcons.chevron_left,
+                  tooltip: 'Back',
+                  color: label,
+                  onPressed: canPop
+                      ? () => Navigator.of(context).maybePop()
+                      : null,
+                ),
+                Container(
+                  width: 1,
+                  height: 16,
+                  color: isDark
+                      ? const Color(0x26FFFFFF)
+                      : const Color(0xFFCACBCA),
+                ),
+                _ToolbarButton(
+                  icon: CupertinoIcons.chevron_right,
+                  tooltip: 'Forward',
+                  color: label,
+                  onPressed: null,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 13),
           Text(
             title,
             style: TextStyle(
@@ -182,10 +212,45 @@ class _MacosToolbar extends StatelessWidget {
               height: 19 / 15,
               fontWeight: FontWeight.w600,
               letterSpacing: -0.2,
-              color: label,
+              // The toolbar title renders grey, not in the label color.
+              color: isDark ? const Color(0xFFE9E9E9) : const Color(0xFF4C4C4C),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ToolbarButton extends StatelessWidget {
+  const _ToolbarButton({
+    required this.icon,
+    required this.tooltip,
+    required this.color,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final Color color;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: IconButton(
+        tooltip: tooltip,
+        onPressed: onPressed,
+        padding: EdgeInsets.zero,
+        style: IconButton.styleFrom(
+          minimumSize: const Size(36, 36),
+          shape: const StadiumBorder(),
+        ),
+        icon: Icon(
+          icon,
+          size: 16,
+          color: onPressed == null ? color.withValues(alpha: 0.25) : color,
+        ),
       ),
     );
   }
