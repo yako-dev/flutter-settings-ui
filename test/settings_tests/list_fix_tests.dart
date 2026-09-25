@@ -153,26 +153,28 @@ void listFixTests() {
       variant: TargetPlatformVariant.only(TargetPlatform.iOS),
     );
 
-    testWidgets('MaterialApp: follows the Material theme on every platform', (
-      tester,
-    ) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: ThemeData(brightness: Brightness.dark),
-          home: Scaffold(
-            body: SettingsList(
-              applicationType: ApplicationType.both,
-              darkTheme: const SettingsThemeData(
-                settingsListBackground: _darkMarker,
+    testWidgets(
+      'MaterialApp: follows the Material theme on every platform',
+      variant: TargetPlatformVariant.all(),
+      (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: ThemeData(brightness: Brightness.dark),
+            home: Scaffold(
+              body: SettingsList(
+                applicationType: ApplicationType.both,
+                darkTheme: const SettingsThemeData(
+                  settingsListBackground: _darkMarker,
+                ),
+                sections: _sections(),
               ),
-              sections: _sections(),
             ),
           ),
-        ),
-      );
+        );
 
-      expect(_themeData(tester).settingsListBackground, _darkMarker);
-    }, variant: TargetPlatformVariant.all());
+        expect(_themeData(tester).settingsListBackground, _darkMarker);
+      },
+    );
   });
 
   group('crossAxisAlignment', () {

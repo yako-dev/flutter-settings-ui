@@ -765,7 +765,7 @@ void adwaitaStyleTests() {
     testWidgets('disabled switches use inactiveSwitchColor when it is set', (
       tester,
     ) async {
-      await _pumpTiles(tester, [
+      final tiles = [
         SettingsTile.switchTile(
           title: const Text('Title'),
           initialValue: true,
@@ -779,7 +779,9 @@ void adwaitaStyleTests() {
           activeSwitchColor: Colors.green,
           onToggle: (_) {},
         ),
-      ], lightTheme: const SettingsThemeData(inactiveSwitchColor: Colors.pink));
+      ];
+      const theme = SettingsThemeData(inactiveSwitchColor: Colors.pink);
+      await _pumpTiles(tester, tiles, lightTheme: theme);
       final switches = tester
           .widgetList<AdwaitaSettingsSwitch>(find.byType(AdwaitaSettingsSwitch))
           .toList();
