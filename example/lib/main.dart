@@ -66,11 +66,24 @@ class MyApp extends StatelessWidget {
       ),
       themeMode: LaunchOptions.themeMode,
       title: 'Settings UI Demo',
-      // LaunchOptions has already read the platform's initial route (from
-      // `--route`, or the `#/...` part of the web URL); don't push it again.
-      initialRoute: Navigator.defaultRouteName,
-      home:
-          launchScreens[LaunchOptions.screen]?.call() ?? const GalleryScreen(),
+      // The initial route (`--route`, or the `#/...` part of the web URL)
+      // picks the screen through LaunchOptions, so it isn't a route name
+      // the Navigator knows. Open the screen under that name instead of
+      // letting the Navigator look it up, fail with a debug error and fall
+      // back to `/`.
+      onGenerateInitialRoutes: (initialRoute) => [
+        _homeRoute(RouteSettings(name: initialRoute)),
+      ],
+      onGenerateRoute: (settings) => settings.name == Navigator.defaultRouteName
+          ? _homeRoute(settings)
+          : null,
     );
   }
+
+  /// The screen the launch options pick, or the gallery.
+  static Route<void> _homeRoute(RouteSettings settings) => MaterialPageRoute(
+    settings: settings,
+    builder: (_) =>
+        launchScreens[LaunchOptions.screen]?.call() ?? const GalleryScreen(),
+  );
 }
