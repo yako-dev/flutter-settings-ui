@@ -71,6 +71,15 @@ part 'settings_split_controller.dart';
 /// Use it as a whole screen: it draws the headers of both panes, so don't
 /// put it under an app bar.
 ///
+/// With two panes, a tile that pushes a route itself (for example
+/// `onPressed: (context) => Navigator.of(context).push(...)`) pushes it on
+/// the app's navigator. With one pane the list sits in the view's own
+/// navigator, so the route goes there: back closes it first, named routes
+/// come from the app's navigator, and the view keeps one pane until the
+/// route has closed, even if the window widens meanwhile (the route covers
+/// the view either way). Menus and bottom sheets opened from the list work
+/// the same way.
+///
 /// ```dart
 /// SettingsSplitView(
 ///   title: const Text('Settings'),

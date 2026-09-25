@@ -34,14 +34,15 @@ class SettingsSplitController extends ChangeNotifier {
   /// panes show an empty detail pane.
   String? get selectedId => _view != null ? _view!._shownId : _pendingId;
 
-  /// Whether the view shows two panes.
+  /// Whether the view shows two panes. It stays false while a route that a
+  /// list tile pushed in one pane is open (see [SettingsSplitView]).
   bool get isSplit => _view?._isSplit ?? false;
 
   /// Shows the destination with [id], like a tap on its tile: in the detail
   /// pane with two panes, pushed over the list with one.
   ///
   /// [id] must belong to a tile in the view's sections (or to a tile in a
-  /// [CustomSettingsSection] that was already tapped). Called before the view
+  /// [CustomSettingsSection] that was already built). Called before the view
   /// is built, it picks the first page shown, also in one pane, which suits
   /// deep links. Selecting the page already shown pops the pages pushed
   /// inside the detail pane.
