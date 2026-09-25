@@ -19,6 +19,7 @@ import 'settings_tests/setting_tile_tests.dart';
 import 'settings_tests/settings_list_tests.dart';
 import 'settings_tests/settings_sections_tests.dart';
 import 'settings_tests/settings_tile_on_tap_tests.dart';
+import 'settings_tests/split_view_regression_tests.dart';
 import 'settings_tests/split_view_tests.dart';
 import 'settings_tests/tile_padding_tests.dart';
 import 'settings_tests/tile_regression_tests.dart';
@@ -224,6 +225,10 @@ void main() {
 
   group('SettingsSplitView in the macOS, Windows and GNOME styles', () {
     desktopSplitViewTests();
+  });
+
+  group('SettingsSplitView regressions (4.0.0 release candidate)', () {
+    splitViewRegressionTests();
   });
 
   group('Settings tile on Tap tests for different platforms', () {

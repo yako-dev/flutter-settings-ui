@@ -1,6 +1,8 @@
-import 'package:flutter/gestures.dart' show kPrimaryButton;
+import 'package:flutter/gestures.dart'
+    show PointerDeviceKind, computeHitSlop, kPrimaryButton;
 import 'package:flutter/widgets.dart';
 import 'package:settings_ui/src/split/settings_page_header.dart';
+import 'package:settings_ui/src/split/sidebar_keyboard.dart';
 import 'package:settings_ui/src/tiles/platforms/adwaita_settings_switch.dart';
 import 'package:settings_ui/src/tiles/platforms/adwaita_settings_tile.dart';
 import 'package:settings_ui/src/tiles/settings_tile.dart';
@@ -100,6 +102,7 @@ class AdwaitaSidebarRow extends StatefulWidget {
     required this.activeSwitchColor,
     required this.enabled,
     required this.selected,
+    this.semanticsSelected,
   });
 
   final SettingsTileType tileType;
@@ -113,6 +116,10 @@ class AdwaitaSidebarRow extends StatefulWidget {
   final bool enabled;
   final bool selected;
 
+  /// Whether assistive technologies hear the row as selected: null for rows
+  /// that don't open a page, and in GNOME's one-pane sidebar.
+  final bool? semanticsSelected;
+
   @override
   State<AdwaitaSidebarRow> createState() => _AdwaitaSidebarRowState();
 }
@@ -121,6 +128,25 @@ class _AdwaitaSidebarRowState extends State<AdwaitaSidebarRow> {
   bool _hovered = false;
   bool _pressed = false;
   bool _focusHighlight = false;
+
+  /// The pointer that pressed the row, while it is down.
+  int? _pressPointer;
+  Offset _pressOrigin = Offset.zero;
+
+  late final SidebarRowFocus _focus = SidebarRowFocus(
+    debugLabel: 'AdwaitaSidebarRow',
+    onChanged: _rebuild,
+  );
+
+  void _rebuild() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _focus.dispose();
+    super.dispose();
+  }
 
   late final Map<Type, Action<Intent>> _actions = <Type, Action<Intent>>{
     ActivateIntent: CallbackAction<ActivateIntent>(
@@ -146,8 +172,44 @@ class _AdwaitaSidebarRowState extends State<AdwaitaSidebarRow> {
     }
   }
 
+  void _handleTap() {
+    _focus.focusFromPointer();
+    _activate();
+  }
+
   void _setPressed(bool value) {
     if (mounted && _pressed != value) setState(() => _pressed = value);
+  }
+
+  void _handlePointerDown(PointerDownEvent event) {
+    // GTK shows `:active` as soon as the button goes down.
+    if (event.buttons != kPrimaryButton) return;
+    _pressPointer = event.pointer;
+    _pressOrigin = event.position;
+    _setPressed(true);
+  }
+
+  void _handlePointerMove(PointerMoveEvent event) {
+    if (event.pointer != _pressPointer) return;
+    final box = context.findRenderObject()! as RenderBox;
+    final inside = box.size.contains(box.globalToLocal(event.position));
+    // A finger that moves past the slop is scrolling the sidebar, which
+    // takes the gesture (GTK drops `:active` then too). A mouse stays
+    // pressed until it leaves the row.
+    final scrolling =
+        event.kind != PointerDeviceKind.mouse &&
+        (event.position - _pressOrigin).distance >
+            computeHitSlop(event.kind, null);
+    if (!inside || scrolling) _release();
+  }
+
+  void _handlePointerEnd(PointerEvent event) {
+    if (event.pointer == _pressPointer) _release();
+  }
+
+  void _release() {
+    _pressPointer = null;
+    _setPressed(false);
   }
 
   @override
@@ -155,6 +217,7 @@ class _AdwaitaSidebarRowState extends State<AdwaitaSidebarRow> {
     super.didUpdateWidget(oldWidget);
     if (!_activatable) {
       _pressed = false;
+      _pressPointer = null;
       _hovered = false;
     }
   }
@@ -260,7 +323,7 @@ class _AdwaitaSidebarRowState extends State<AdwaitaSidebarRow> {
         color: background,
         borderRadius: BorderRadius.circular(_kRowRadius),
       ),
-      foregroundDecoration: _focusHighlight && _activatable
+      foregroundDecoration: _focus.showsRing(_focusHighlight) && _activatable
           ? BoxDecoration(
               borderRadius: BorderRadius.circular(_kRowRadius),
               border: Border.all(
@@ -282,11 +345,13 @@ class _AdwaitaSidebarRowState extends State<AdwaitaSidebarRow> {
         child: Semantics(
           button: !_isSwitch && widget.onPressed != null,
           enabled: enabled,
+          selected: widget.semanticsSelected,
           onTap: _activatable ? _activate : null,
           child: IgnorePointer(
             ignoring: !enabled,
             child: FocusableActionDetector(
               enabled: _activatable,
+              focusNode: _focus.node,
               actions: _actions,
               onShowFocusHighlight: (value) {
                 if (value != _focusHighlight) {
@@ -303,21 +368,15 @@ class _AdwaitaSidebarRowState extends State<AdwaitaSidebarRow> {
                   if (_hovered) setState(() => _hovered = false);
                 },
                 child: Listener(
-                  // GTK shows `:active` as soon as the button goes down.
-                  onPointerDown: _activatable
-                      ? (event) {
-                          if (event.buttons == kPrimaryButton) {
-                            _setPressed(true);
-                          }
-                        }
-                      : null,
-                  onPointerUp: (_) => _setPressed(false),
-                  onPointerCancel: (_) => _setPressed(false),
+                  onPointerDown: _activatable ? _handlePointerDown : null,
+                  onPointerMove: _handlePointerMove,
+                  onPointerUp: _handlePointerEnd,
+                  onPointerCancel: _handlePointerEnd,
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     excludeFromSemantics: true,
-                    onTap: _activatable ? _activate : null,
-                    onTapCancel: () => _setPressed(false),
+                    onTap: _activatable ? _handleTap : null,
+                    onTapCancel: _release,
                     child: box,
                   ),
                 ),

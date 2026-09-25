@@ -20,6 +20,15 @@ String settingsBackLabel(BuildContext context) =>
     )?.backButtonTooltip ??
     'Back';
 
+/// "Open navigation menu", from the app's localizations when it has them
+/// (a `CupertinoApp` or a `WidgetsApp` has no [MaterialLocalizations]).
+String settingsMenuLabel(BuildContext context) =>
+    Localizations.of<MaterialLocalizations>(
+      context,
+      MaterialLocalizations,
+    )?.openAppDrawerTooltip ??
+    'Open navigation menu';
+
 /// Whether the device is an iPad-size tablet or a desktop, where the
 /// Cupertino bars are taller and their buttons sit closer to the edge.
 bool _isRegularWidthDevice(BuildContext context) =>

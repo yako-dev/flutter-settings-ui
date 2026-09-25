@@ -34,14 +34,15 @@ class SettingsSplitController extends ChangeNotifier {
   /// panes show an empty detail pane.
   String? get selectedId => _view != null ? _view!._shownId : _pendingId;
 
-  /// Whether the view shows two panes.
+  /// Whether the view shows two panes. It stays false while a route that a
+  /// list tile pushed in one pane is open (see [SettingsSplitView]).
   bool get isSplit => _view?._isSplit ?? false;
 
   /// Shows the destination with [id], like a tap on its tile: in the detail
   /// pane with two panes, pushed over the list with one.
   ///
   /// [id] must belong to a tile in the view's sections (or to a tile in a
-  /// [CustomSettingsSection] that was already tapped). Called before the view
+  /// [CustomSettingsSection] that was already built). Called before the view
   /// is built, it picks the first page shown, also in one pane, which suits
   /// deep links. Selecting the page already shown pops the pages pushed
   /// inside the detail pane.
@@ -66,13 +67,31 @@ class SettingsSplitController extends ChangeNotifier {
     view._clearSelection();
   }
 
+  /// The newest view takes over: a view re-created with a new key (and the
+  /// same controller) attaches before the old one is disposed.
   void _attach(_SettingsSplitViewState view) {
-    assert(
-      _view == null || _view == view,
-      'A SettingsSplitController can only be used by one SettingsSplitView '
-      'at a time.',
-    );
+    final previous = _view;
     _view = view;
+    assert(() {
+      if (previous != null && previous != view) {
+        // The old view is gone by the end of the frame, unless two views
+        // really share the controller.
+        SchedulerBinding.instance.addPostFrameCallback((_) {
+          if (previous.mounted && _view == view && view.mounted) {
+            FlutterError.reportError(
+              FlutterErrorDetails(
+                exception: FlutterError(
+                  'A SettingsSplitController can only be used by one '
+                  'SettingsSplitView at a time.',
+                ),
+                library: 'settings_ui',
+              ),
+            );
+          }
+        }, debugLabel: 'SettingsSplitController.checkSharing');
+      }
+      return true;
+    }());
   }
 
   void _detach(_SettingsSplitViewState view) {

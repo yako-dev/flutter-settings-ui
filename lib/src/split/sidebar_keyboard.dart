@@ -22,11 +22,12 @@ class SidebarSelectIntent extends Intent {
 ///
 /// Tab and Shift+Tab move through the rows (each row takes the focus), and
 /// Enter or Space selects the focused one, as everywhere. Up and down move
-/// the focus to the row above or below; on the web, where the arrow keys
-/// scroll by default, too. With [selectionFollowsFocus] (the macOS sidebar,
-/// an `NSTableView`) they also select that row, like the arrow keys in
-/// System Settings.
-class SettingsSidebarKeyboard extends StatelessWidget {
+/// the focus to the row above or below, and stop at the first and last
+/// rows, like `NSTableView`, `NavigationView` and `GtkListBox`; on the web,
+/// where the arrow keys scroll by default, too. With
+/// [selectionFollowsFocus] (the macOS sidebar, an `NSTableView`) they also
+/// select that row, like the arrow keys in System Settings.
+class SettingsSidebarKeyboard extends StatefulWidget {
   const SettingsSidebarKeyboard({
     super.key,
     this.enabled = true,
@@ -40,6 +41,12 @@ class SettingsSidebarKeyboard extends StatelessWidget {
   final bool selectionFollowsFocus;
   final Widget child;
 
+  @override
+  State<SettingsSidebarKeyboard> createState() =>
+      _SettingsSidebarKeyboardState();
+}
+
+class _SettingsSidebarKeyboardState extends State<SettingsSidebarKeyboard> {
   static const Map<ShortcutActivator, Intent> _shortcuts =
       <ShortcutActivator, Intent>{
         SingleActivator(LogicalKeyboardKey.arrowUp): SidebarMoveFocusIntent(
@@ -50,31 +57,60 @@ class SettingsSidebarKeyboard extends StatelessWidget {
         ),
       };
 
+  /// Around the sidebar: the arrow keys only move between its rows.
+  final FocusNode _sidebar = FocusNode(
+    debugLabel: 'Sidebar',
+    skipTraversal: true,
+    canRequestFocus: false,
+  );
+
+  late final _MoveFocusAction _moveFocus = _MoveFocusAction(this);
+
+  @override
+  void dispose() {
+    _sidebar.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Shortcuts(
-      shortcuts: enabled ? _shortcuts : const <ShortcutActivator, Intent>{},
+      shortcuts: widget.enabled
+          ? _shortcuts
+          : const <ShortcutActivator, Intent>{},
       child: Actions(
-        actions: <Type, Action<Intent>>{
-          SidebarMoveFocusIntent: _MoveFocusAction(selectionFollowsFocus),
-        },
-        child: FocusTraversalGroup(child: child),
+        actions: <Type, Action<Intent>>{SidebarMoveFocusIntent: _moveFocus},
+        child: Focus(
+          focusNode: _sidebar,
+          skipTraversal: true,
+          canRequestFocus: false,
+          child: FocusTraversalGroup(child: widget.child),
+        ),
       ),
     );
   }
 }
 
 class _MoveFocusAction extends Action<SidebarMoveFocusIntent> {
-  _MoveFocusAction(this.selectionFollowsFocus);
+  _MoveFocusAction(this.sidebar);
 
-  final bool selectionFollowsFocus;
+  final _SettingsSidebarKeyboardState sidebar;
 
   @override
   Object? invoke(SidebarMoveFocusIntent intent) {
     final focus = FocusManager.instance.primaryFocus;
-    if (focus == null) return null;
-    final moved = focus.focusInDirection(intent.direction);
-    if (moved && selectionFollowsFocus) {
+    if (focus == null || focus.context == null) return null;
+    final down = intent.direction == TraversalDirection.down;
+    final target = _nearest(focus, down: down);
+    // Nothing above the first row or below the last: stay there.
+    if (target == null) return null;
+    FocusTraversalPolicy.defaultTraversalRequestFocusCallback(
+      target,
+      alignmentPolicy: down
+          ? ScrollPositionAlignmentPolicy.keepVisibleAtEnd
+          : ScrollPositionAlignmentPolicy.keepVisibleAtStart,
+    );
+    if (sidebar.widget.selectionFollowsFocus) {
       // The focus moves in a microtask; select once it has.
       scheduleMicrotask(() {
         final context = FocusManager.instance.primaryFocus?.context;
@@ -84,5 +120,90 @@ class _MoveFocusAction extends Action<SidebarMoveFocusIntent> {
       });
     }
     return null;
+  }
+
+  /// The sidebar's focusable node closest above or below [focus],
+  /// preferring the ones in the same column.
+  FocusNode? _nearest(FocusNode focus, {required bool down}) {
+    final from = focus.rect;
+    FocusNode? best;
+    var bestInColumn = false;
+    var bestDistance = double.infinity;
+    for (final node in sidebar._sidebar.traversalDescendants) {
+      final context = node.context;
+      if (node == focus ||
+          context == null ||
+          !context.mounted ||
+          !node.canRequestFocus ||
+          context.findRenderObject()?.attached != true) {
+        continue;
+      }
+      final rect = node.rect;
+      final beyond = down
+          ? rect.center.dy > from.center.dy + 0.5
+          : rect.center.dy < from.center.dy - 0.5;
+      if (!beyond) continue;
+      final inColumn = rect.left < from.right && rect.right > from.left;
+      final distance = (rect.center.dy - from.center.dy).abs();
+      if (best == null ||
+          (inColumn && !bestInColumn) ||
+          (inColumn == bestInColumn && distance < bestDistance)) {
+        best = node;
+        bestInColumn = inColumn;
+        bestDistance = distance;
+      }
+    }
+    return best;
+  }
+}
+
+/// The keyboard focus of a sidebar row. Internal.
+///
+/// A click gives the row the focus, as `NSTableView`, `NavigationView` and
+/// `GtkListBox` do, so the arrow keys and Tab go on from the clicked row.
+/// Its focus ring stays hidden until a key is pressed (the rings are for
+/// keyboard users), also when the focus comes back to the row, for
+/// example after going back from the page it opened in one pane.
+class SidebarRowFocus {
+  SidebarRowFocus({required String debugLabel, required this.onChanged})
+    : node = FocusNode(debugLabel: debugLabel);
+
+  /// Give it to the row's `FocusableActionDetector`.
+  final FocusNode node;
+
+  /// Rebuilds the row.
+  final VoidCallback onChanged;
+
+  bool _fromPointer = false;
+
+  /// Whether the row shows its focus ring, given the focus highlight of its
+  /// `FocusableActionDetector`.
+  bool showsRing(bool focusHighlight) => focusHighlight && !_fromPointer;
+
+  /// The row was clicked or tapped.
+  void focusFromPointer() {
+    if (!node.canRequestFocus) return;
+    if (!node.hasPrimaryFocus) node.requestFocus();
+    if (_fromPointer) return;
+    _fromPointer = true;
+    HardwareKeyboard.instance.addHandler(_handleKeyEvent);
+    onChanged();
+  }
+
+  bool _handleKeyEvent(KeyEvent event) {
+    _stopWaiting();
+    onChanged();
+    return false;
+  }
+
+  void _stopWaiting() {
+    if (!_fromPointer) return;
+    _fromPointer = false;
+    HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
+  }
+
+  void dispose() {
+    _stopWaiting();
+    node.dispose();
   }
 }
