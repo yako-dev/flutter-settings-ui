@@ -16,6 +16,14 @@ void main() {
     await tester.pump(settle);
   }
 
+  // Scrolls a target into view before tapping it, so the test also passes on
+  // short screens (iPhone, iPad landscape, the 800x600 macOS window).
+  Future<void> tapVisible(WidgetTester tester, Finder finder) async {
+    await tester.ensureVisible(finder);
+    await tester.pumpAndSettle();
+    await tester.tap(finder);
+  }
+
   // Helper: navigate back using the OS back button / back icon.
   Future<void> goBack(WidgetTester tester) async {
     final backButtonFinder = find.byTooltip('Back');
@@ -27,8 +35,9 @@ void main() {
       if (backIos.evaluate().isNotEmpty) {
         await tester.tap(backIos);
       } else {
-        final NavigatorState nav =
-            tester.state<NavigatorState>(find.byType(Navigator).last);
+        final NavigatorState nav = tester.state<NavigatorState>(
+          find.byType(Navigator).last,
+        );
         nav.pop(null);
       }
     }
@@ -40,19 +49,46 @@ void main() {
       app.main();
       await pumpSettled(tester);
 
-      // Gallery top-level tiles
-      expect(find.text('Abstract settings screen'), findsOneWidget);
-      expect(find.text('Material 3 Theme Demo'), findsOneWidget);
-      expect(find.text('iOS Developer Screen'), findsOneWidget);
-      expect(find.text('Android Settings Screen'), findsOneWidget);
-      expect(find.text('Web Settings'), findsOneWidget);
-      expect(find.text('iOS Native Settings Screen'), findsOneWidget);
-      expect(find.text('Android Native Settings Screen'), findsOneWidget);
+      // Scrolls to each entry: the list is lazy, and short windows don't
+      // build its end.
+      Future<void> expectEntry(String text) async {
+        await tester.scrollUntilVisible(
+          find.text(text),
+          100,
+          scrollable: find.byType(Scrollable).first,
+        );
+        expect(find.text(text), findsOneWidget);
+      }
 
-      // Section titles
-      expect(find.text('General'), findsOneWidget);
-      expect(find.text('New in v3'), findsOneWidget);
-      expect(find.text('Replications'), findsOneWidget);
+      for (final text in [
+        // Section titles and tiles, top to bottom
+        'General',
+        'Abstract settings screen',
+        'New in v3',
+        'Material 3 Theme Demo',
+        'New in v4',
+        'Split view',
+        'Showcase',
+        'Replications',
+        'iOS Developer Screen',
+        'Android Settings Screen',
+        'Web Settings',
+        'iOS Native Settings Screen',
+        'macOS System Settings',
+        'Android Native Settings Screen',
+        'GNOME Settings (Power)',
+        'Windows Display Settings',
+      ]) {
+        await expectEntry(text);
+      }
+
+      // The next tests start from this state: scroll back to the top.
+      await tester.scrollUntilVisible(
+        find.text('General'),
+        -100,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await pumpSettled(tester);
     });
   });
 
@@ -61,7 +97,7 @@ void main() {
       app.main();
       await pumpSettled(tester);
 
-      await tester.tap(find.text('Abstract settings screen'));
+      await tapVisible(tester, find.text('Abstract settings screen'));
       await pumpSettled(tester);
 
       // Screen title
@@ -82,8 +118,9 @@ void main() {
       expect(find.text('Use fingerprint'), findsOneWidget);
 
       // Platform value defaults to 'Default'
-      final platformTile = tester
-          .widget<SettingsTile>(find.widgetWithText(SettingsTile, 'Platform'));
+      final platformTile = tester.widget<SettingsTile>(
+        find.widgetWithText(SettingsTile, 'Platform'),
+      );
       expect((platformTile.value as Text).data, 'Default');
 
       await goBack(tester);
@@ -93,57 +130,39 @@ void main() {
       app.main();
       await pumpSettled(tester);
 
-      await tester.tap(find.text('Abstract settings screen'));
+      await tapVisible(tester, find.text('Abstract settings screen'));
       await pumpSettled(tester);
 
-      // Detect the switch type based on running platform
+      // The switch type depends on the platform the app runs on.
       final switchFinder = find.descendant(
         of: find.widgetWithText(SettingsTile, 'Enable custom theme'),
-        matching: find.byType(Switch),
+        matching: find.byWidgetPredicate(_isSettingsSwitch),
       );
-      final cupertinoSwitchFinder = find.descendant(
-        of: find.widgetWithText(SettingsTile, 'Enable custom theme'),
-        matching: find.byType(CupertinoSwitch),
+      expect(
+        switchFinder,
+        findsOneWidget,
+        reason: 'Enable custom theme tile should contain a Switch widget',
       );
 
-      final bool hasMaterialSwitch = switchFinder.evaluate().isNotEmpty;
-      final bool hasCupertinoSwitch =
-          cupertinoSwitchFinder.evaluate().isNotEmpty;
-
-      expect(hasMaterialSwitch || hasCupertinoSwitch, isTrue,
-          reason: 'Enable custom theme tile should contain a Switch widget');
-
-      if (hasMaterialSwitch) {
-        expect(tester.widget<Switch>(switchFinder).value, false);
-        await tester.tap(switchFinder);
-        await pumpSettled(tester);
-        expect(tester.widget<Switch>(switchFinder).value, true);
-        // Toggle back
-        await tester.tap(switchFinder);
-        await pumpSettled(tester);
-        expect(tester.widget<Switch>(switchFinder).value, false);
-      } else {
-        expect(
-            tester.widget<CupertinoSwitch>(cupertinoSwitchFinder).value, false);
-        await tester.tap(cupertinoSwitchFinder);
-        await pumpSettled(tester);
-        expect(
-            tester.widget<CupertinoSwitch>(cupertinoSwitchFinder).value, true);
-        await tester.tap(cupertinoSwitchFinder);
-        await pumpSettled(tester);
-        expect(
-            tester.widget<CupertinoSwitch>(cupertinoSwitchFinder).value, false);
-      }
+      expect(_switchValue(tester.widget(switchFinder)), false);
+      await tester.tap(switchFinder);
+      await pumpSettled(tester);
+      expect(_switchValue(tester.widget(switchFinder)), true);
+      // Toggle back
+      await tester.tap(switchFinder);
+      await pumpSettled(tester);
+      expect(_switchValue(tester.widget(switchFinder)), false);
 
       await goBack(tester);
     });
 
-    testWidgets('Platform picker navigates and changes platform',
-        (tester) async {
+    testWidgets('Platform picker navigates and changes platform', (
+      tester,
+    ) async {
       app.main();
       await pumpSettled(tester);
 
-      await tester.tap(find.text('Abstract settings screen'));
+      await tapVisible(tester, find.text('Abstract settings screen'));
       await pumpSettled(tester);
 
       // Open platform picker
@@ -156,11 +175,12 @@ void main() {
       expect(find.text('Web'), findsOneWidget);
 
       // Select Android
-      await tester.tap(find.text('Android'));
+      await tapVisible(tester, find.text('Android'));
       await pumpSettled(tester);
 
-      final androidTile = tester
-          .widget<SettingsTile>(find.widgetWithText(SettingsTile, 'Platform'));
+      final androidTile = tester.widget<SettingsTile>(
+        find.widgetWithText(SettingsTile, 'Platform'),
+      );
       expect((androidTile.value as Text).data, 'Android');
 
       // Android platform uses material Switch
@@ -175,11 +195,12 @@ void main() {
       await pumpSettled(tester);
 
       // Select Web
-      await tester.tap(find.text('Web'));
+      await tapVisible(tester, find.text('Web'));
       await pumpSettled(tester);
 
-      final webTile = tester
-          .widget<SettingsTile>(find.widgetWithText(SettingsTile, 'Platform'));
+      final webTile = tester.widget<SettingsTile>(
+        find.widgetWithText(SettingsTile, 'Platform'),
+      );
       expect((webTile.value as Text).data, 'Web');
 
       // Web uses material Switch
@@ -200,20 +221,24 @@ void main() {
       // Open platform picker and select iOS
       await tester.tap(find.widgetWithText(SettingsTile, 'Platform'));
       await pumpSettled(tester);
-      await tester.tap(find.text('iOS'));
+      await tapVisible(tester, find.text('iOS'));
       await pumpSettled(tester);
 
-      final iosTile = tester
-          .widget<SettingsTile>(find.widgetWithText(SettingsTile, 'Platform'));
+      final iosTile = tester.widget<SettingsTile>(
+        find.widgetWithText(SettingsTile, 'Platform'),
+      );
       expect((iosTile.value as Text).data, 'iOS');
 
-      // iOS uses CupertinoSwitch
+      // iOS uses CupertinoSettingsSwitch
       final iosSwitchFinder = find.descendant(
         of: find.widgetWithText(SettingsTile, 'Enable custom theme'),
-        matching: find.byType(CupertinoSwitch),
+        matching: find.byType(CupertinoSettingsSwitch),
       );
       expect(iosSwitchFinder, findsOneWidget);
-      expect(tester.widget<CupertinoSwitch>(iosSwitchFinder).value, false);
+      expect(
+        tester.widget<CupertinoSettingsSwitch>(iosSwitchFinder).value,
+        false,
+      );
 
       await goBack(tester);
     });
@@ -224,7 +249,7 @@ void main() {
       app.main();
       await pumpSettled(tester);
 
-      await tester.tap(find.text('Material 3 Theme Demo'));
+      await tapVisible(tester, find.text('Material 3 Theme Demo'));
       await pumpSettled(tester);
 
       expect(find.text('Material 3 Demo'), findsOneWidget);
@@ -237,12 +262,12 @@ void main() {
       expect(find.text('Red'), findsOneWidget);
 
       // Switch seed color
-      await tester.tap(find.text('Purple'));
+      await tapVisible(tester, find.text('Purple'));
       await pumpSettled(tester);
       // A checkmark should now appear next to Purple
       expect(find.byIcon(Icons.check), findsOneWidget);
 
-      await tester.tap(find.text('Green'));
+      await tapVisible(tester, find.text('Green'));
       await pumpSettled(tester);
       expect(find.byIcon(Icons.check), findsOneWidget);
 
@@ -253,47 +278,50 @@ void main() {
       app.main();
       await pumpSettled(tester);
 
-      await tester.tap(find.text('Material 3 Theme Demo'));
+      await tapVisible(tester, find.text('Material 3 Theme Demo'));
       await pumpSettled(tester);
 
-      // The tile shows a Switch on Android and a CupertinoSwitch on iOS.
+      // The tile shows a Switch on Android, a CupertinoSettingsSwitch on iOS,
+      // a MacosSettingsSwitch on macOS, an AdwaitaSettingsSwitch on Linux and
+      // a FluentSettingsSwitch on Windows.
       final darkModeSwitchFinder = find.descendant(
         of: find.widgetWithText(SettingsTile, 'Dark mode'),
-        matching: find.byWidgetPredicate(
-          (widget) => widget is Switch || widget is CupertinoSwitch,
-        ),
+        matching: find.byWidgetPredicate(_isSettingsSwitch),
       );
-      bool darkModeValue() {
-        final widget = tester.widget(darkModeSwitchFinder);
-        return widget is Switch
-            ? widget.value
-            : (widget as CupertinoSwitch).value;
-      }
+      bool darkModeValue() => _switchValue(tester.widget(darkModeSwitchFinder));
 
       expect(darkModeSwitchFinder, findsOneWidget);
-      expect(darkModeValue(), false);
+      // The demo starts in the app's mode (the system's, here).
+      final initial = darkModeValue();
 
       await tester.tap(darkModeSwitchFinder);
       await pumpSettled(tester);
-      expect(darkModeValue(), true);
+      expect(darkModeValue(), !initial);
 
       await tester.tap(darkModeSwitchFinder);
       await pumpSettled(tester);
-      expect(darkModeValue(), false);
+      expect(darkModeValue(), initial);
 
       await goBack(tester);
     });
 
-    testWidgets('Notifications and location access tiles visible',
-        (tester) async {
+    testWidgets('Notifications and location access tiles visible', (
+      tester,
+    ) async {
       app.main();
       await pumpSettled(tester);
 
-      await tester.tap(find.text('Material 3 Theme Demo'));
+      await tapVisible(tester, find.text('Material 3 Theme Demo'));
       await pumpSettled(tester);
 
       expect(find.text('Notifications'), findsOneWidget);
       expect(find.text('Location access'), findsOneWidget);
+      // Desktop windows can be short: scroll to the last section.
+      await tester.scrollUntilVisible(
+        find.text('Compact tiles'),
+        100,
+        scrollable: find.byType(Scrollable).last,
+      );
       expect(find.text('Compact tiles'), findsOneWidget);
 
       await goBack(tester);
@@ -305,7 +333,7 @@ void main() {
       app.main();
       await pumpSettled(tester);
 
-      await tester.tap(find.text('iOS Developer Screen'));
+      await tapVisible(tester, find.text('iOS Developer Screen'));
       await pumpSettled(tester);
 
       expect(find.text('Developer'), findsOneWidget);
@@ -317,16 +345,21 @@ void main() {
       // Toggle Dark Appearance
       final darkAppearanceSwitchFinder = find.descendant(
         of: find.widgetWithText(SettingsTile, 'Dark Appearance'),
-        matching: find.byType(CupertinoSwitch),
+        matching: find.byType(CupertinoSettingsSwitch),
       );
       expect(darkAppearanceSwitchFinder, findsOneWidget);
-      final initial =
-          tester.widget<CupertinoSwitch>(darkAppearanceSwitchFinder).value;
+      final initial = tester
+          .widget<CupertinoSettingsSwitch>(darkAppearanceSwitchFinder)
+          .value;
 
       await tester.tap(darkAppearanceSwitchFinder);
       await pumpSettled(tester);
-      expect(tester.widget<CupertinoSwitch>(darkAppearanceSwitchFinder).value,
-          !initial);
+      expect(
+        tester
+            .widget<CupertinoSettingsSwitch>(darkAppearanceSwitchFinder)
+            .value,
+        !initial,
+      );
 
       await goBack(tester);
     });
@@ -337,7 +370,7 @@ void main() {
       app.main();
       await pumpSettled(tester);
 
-      await tester.tap(find.text('Android Settings Screen'));
+      await tapVisible(tester, find.text('Android Settings Screen'));
       await pumpSettled(tester);
 
       expect(find.text('Network & internet'), findsOneWidget);
@@ -357,10 +390,10 @@ void main() {
       app.main();
       await pumpSettled(tester);
 
-      await tester.tap(find.text('Android Settings Screen'));
+      await tapVisible(tester, find.text('Android Settings Screen'));
       await pumpSettled(tester);
 
-      await tester.tap(find.text('Network & internet'));
+      await tapVisible(tester, find.text('Network & internet'));
       await pumpSettled(tester);
 
       // Should be on notifications screen
@@ -377,10 +410,10 @@ void main() {
       app.main();
       await pumpSettled(tester);
 
-      await tester.tap(find.text('Android Settings Screen'));
+      await tapVisible(tester, find.text('Android Settings Screen'));
       await pumpSettled(tester);
 
-      await tester.tap(find.text('Notifications'));
+      await tapVisible(tester, find.text('Notifications'));
       await pumpSettled(tester);
 
       expect(find.text('Manage'), findsOneWidget);
@@ -416,7 +449,7 @@ void main() {
       app.main();
       await pumpSettled(tester);
 
-      await tester.tap(find.text('Web Settings'));
+      await tapVisible(tester, find.text('Web Settings'));
       await pumpSettled(tester);
 
       expect(find.text('Auto-fill'), findsOneWidget);
@@ -433,10 +466,10 @@ void main() {
       app.main();
       await pumpSettled(tester);
 
-      await tester.tap(find.text('Web Settings'));
+      await tapVisible(tester, find.text('Web Settings'));
       await pumpSettled(tester);
 
-      await tester.tap(find.text('Addresses and more'));
+      await tapVisible(tester, find.text('Addresses and more'));
       await pumpSettled(tester);
 
       expect(find.text('Addresses and more'), findsWidgets);
@@ -464,7 +497,7 @@ void main() {
       app.main();
       await pumpSettled(tester);
 
-      await tester.tap(find.text('iOS Native Settings Screen'));
+      await tapVisible(tester, find.text('iOS Native Settings Screen'));
       await pumpSettled(tester);
 
       expect(find.text('Sign in to your iPhone'), findsOneWidget);
@@ -480,12 +513,51 @@ void main() {
     });
   });
 
+  group('macOS System Settings replica', () {
+    testWidgets('Renders the Notifications pane and toggles a switch', (
+      tester,
+    ) async {
+      app.main();
+      await pumpSettled(tester);
+
+      await tester.ensureVisible(find.text('macOS System Settings'));
+      await tester.pump();
+      await tapVisible(tester, find.text('macOS System Settings'));
+      await pumpSettled(tester);
+
+      expect(find.text('Notifications'), findsOneWidget);
+      expect(find.text('Notification Center'), findsOneWidget);
+      expect(find.text('Show previews'), findsOneWidget);
+      expect(find.text('Allow notifications'), findsOneWidget);
+      // A pop-up row is 37pt tall, as in System Settings.
+      expect(
+        tester
+            .getSize(find.widgetWithText(SettingsTile, 'Show previews'))
+            .height,
+        37,
+      );
+
+      final lockedSwitch = find.descendant(
+        of: find.widgetWithText(SettingsTile, 'When the screen is locked'),
+        matching: find.byType(MacosSettingsSwitch),
+      );
+      expect(tester.widget<MacosSettingsSwitch>(lockedSwitch).value, true);
+      await tester.tap(lockedSwitch);
+      await pumpSettled(tester);
+      expect(tester.widget<MacosSettingsSwitch>(lockedSwitch).value, false);
+
+      await goBack(tester);
+    });
+  });
+
   group('Android Native Settings Screen', () {
     testWidgets('Renders native settings layout', (tester) async {
       app.main();
       await pumpSettled(tester);
 
-      await tester.tap(find.text('Android Native Settings Screen'));
+      await tester.ensureVisible(find.text('Android Native Settings Screen'));
+      await tester.pump();
+      await tapVisible(tester, find.text('Android Native Settings Screen'));
       await pumpSettled(tester);
 
       expect(find.text('Search Settings'), findsOneWidget);
@@ -496,17 +568,80 @@ void main() {
     });
   });
 
+  group('GNOME Settings (Power) screen', () {
+    testWidgets('Renders the Linux style and toggles a switch row', (
+      tester,
+    ) async {
+      app.main();
+      await pumpSettled(tester);
+
+      await tapVisible(tester, find.text('GNOME Settings (Power)'));
+      await pumpSettled(tester);
+
+      // The General page.
+      expect(find.text('Battery Level'), findsOneWidget);
+      expect(find.text('Power Mode'), findsOneWidget);
+      expect(find.text('Balanced'), findsOneWidget);
+      expect(find.byType(AdwaitaPanDownIcon), findsOneWidget);
+
+      // The Power Saving page, from the view switcher.
+      await tapVisible(tester, find.text('Power Saving'));
+      await pumpSettled(tester);
+      expect(find.text('Automatic Suspend'), findsOneWidget);
+      expect(find.text('Delay'), findsNWidgets(3));
+
+      final dimScreen = find.descendant(
+        of: find.widgetWithText(SettingsTile, 'Dim Screen'),
+        matching: find.byType(AdwaitaSettingsSwitch),
+      );
+      expect(tester.widget<AdwaitaSettingsSwitch>(dimScreen).value, true);
+      // Like GNOME, a click anywhere on the row toggles the switch.
+      await tapVisible(tester, find.text('Dim Screen'));
+      await pumpSettled(tester);
+      expect(tester.widget<AdwaitaSettingsSwitch>(dimScreen).value, false);
+
+      await goBack(tester);
+    });
+  });
+
+  group('Windows Display Settings', () {
+    testWidgets('Renders the Windows style and toggles Night light', (
+      tester,
+    ) async {
+      app.main();
+      await pumpSettled(tester);
+
+      await tapVisible(tester, find.text('Windows Display Settings'));
+      await pumpSettled(tester);
+
+      expect(find.text('Brightness & color'), findsOneWidget);
+      expect(find.text('Scale & layout'), findsOneWidget);
+      expect(find.text('150% (Recommended)'), findsOneWidget);
+
+      final nightLight = find.byType(FluentSettingsSwitch);
+      expect(tester.widget<FluentSettingsSwitch>(nightLight).value, false);
+      expect(find.text('Off'), findsOneWidget);
+      await tester.tap(nightLight);
+      await pumpSettled(tester);
+      expect(tester.widget<FluentSettingsSwitch>(nightLight).value, true);
+      expect(find.text('On'), findsOneWidget);
+
+      await goBack(tester);
+    });
+  });
+
   group('SettingsTile states', () {
     testWidgets('Disabled tile is not interactive', (tester) async {
       app.main();
       await pumpSettled(tester);
 
-      await tester.tap(find.text('Abstract settings screen'));
+      await tapVisible(tester, find.text('Abstract settings screen'));
       await pumpSettled(tester);
 
       // Email tile is disabled
-      final emailTile = tester
-          .widget<SettingsTile>(find.widgetWithText(SettingsTile, 'Email'));
+      final emailTile = tester.widget<SettingsTile>(
+        find.widgetWithText(SettingsTile, 'Email'),
+      );
       expect(emailTile.enabled, false);
 
       await goBack(tester);
@@ -514,22 +649,76 @@ void main() {
   });
 
   group('SettingsList scroll controller', () {
-    testWidgets('Web settings can scroll via controller (tap triggers scroll)',
-        (tester) async {
+    testWidgets(
+      'Web settings can scroll via controller (tap triggers scroll)',
+      (tester) async {
+        app.main();
+        await pumpSettled(tester);
+
+        await tapVisible(tester, find.text('Web Settings'));
+        await pumpSettled(tester);
+
+        // Tap Passwords tile which animates the scroll controller
+        await tapVisible(tester, find.text('Passwords'));
+        await pumpSettled(tester);
+
+        // No crash — the scroll animation completed
+        expect(find.text('Auto-fill'), findsOneWidget);
+
+        await goBack(tester);
+      },
+    );
+  });
+
+  group('Split view', () {
+    testWidgets('Opens the demo, shows a page, and goes back', (tester) async {
       app.main();
       await pumpSettled(tester);
 
-      await tester.tap(find.text('Web Settings'));
+      await tapVisible(tester, find.text('Split view'));
       await pumpSettled(tester);
+      expect(find.byType(SettingsSplitView), findsOneWidget);
 
-      // Tap Passwords tile which animates the scroll controller
-      await tester.tap(find.text('Passwords'));
+      // Each style's tree has its own ids (the macOS, GNOME, Windows and
+      // Chrome trees have no 'display' page).
+      final listContext = tester.element(find.byType(SettingsList).first);
+      final controller = SettingsSplitView.of(listContext);
+      final id = switch (PlatformUtils.detectPlatform(listContext)) {
+        DevicePlatform.macOS || DevicePlatform.linux => 'displays',
+        DevicePlatform.windows => 'system',
+        DevicePlatform.web => 'appearance',
+        _ => 'display',
+      };
+      controller.select(id);
       await pumpSettled(tester);
+      expect(controller.selectedId, id);
 
-      // No crash — the scroll animation completed
-      expect(find.text('Auto-fill'), findsOneWidget);
-
-      await goBack(tester);
+      // System back: one pane closes the page first, then the screen.
+      if (!controller.isSplit) {
+        await tester.binding.handlePopRoute();
+        await pumpSettled(tester);
+        expect(controller.selectedId, isNull);
+      }
+      await tester.binding.handlePopRoute();
+      await pumpSettled(tester);
+      expect(find.text('Split view'), findsOneWidget);
     });
   });
 }
+
+/// The switch of a switch tile, in any style.
+bool _isSettingsSwitch(Widget widget) =>
+    widget is Switch ||
+    widget is CupertinoSettingsSwitch ||
+    widget is MacosSettingsSwitch ||
+    widget is AdwaitaSettingsSwitch ||
+    widget is FluentSettingsSwitch;
+
+bool _switchValue(Widget widget) => switch (widget) {
+  Switch(:final value) => value,
+  CupertinoSettingsSwitch(:final value) => value,
+  MacosSettingsSwitch(:final value) => value,
+  AdwaitaSettingsSwitch(:final value) => value,
+  FluentSettingsSwitch(:final value) => value,
+  _ => throw ArgumentError('$widget is not a settings switch'),
+};

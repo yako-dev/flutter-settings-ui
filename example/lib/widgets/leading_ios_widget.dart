@@ -21,10 +21,7 @@ class LeadingIosWidget extends StatelessWidget {
         color: backgroundColor,
         borderRadius: BorderRadius.all(Radius.circular(7)),
       ),
-      child: Icon(
-        iconData,
-        color: iconColor,
-      ),
+      child: Icon(iconData, color: iconColor),
     );
   }
 }

@@ -1,16 +1,18 @@
 name: example
-description: A new Flutter project.
+description: Example app for settings_ui, a gallery of settings screens in every style.
 version: 1.0.0+1
 publish_to: none
 
 environment:
-  sdk: ">=3.5.0 <4.0.0"
-  flutter: ">=3.16.0"
+  sdk: ">=3.12.0 <4.0.0"
+  flutter: ">=3.44.0"
 
 dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.8
+  cupertino_ui: ^1.0.2
+  material_ui: ^1.1.1
   settings_ui:
     path: ../
 

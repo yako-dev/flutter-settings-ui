@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:settings_ui/settings_ui.dart';
+import 'package:settings_ui/src/split/split_scopes.dart';
 import 'package:settings_ui/src/tiles/platforms/ios_settings_tile.dart';
 
 class IOSSettingsSection extends StatelessWidget {
@@ -19,22 +20,32 @@ class IOSSettingsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = SettingsTheme.of(context);
+    final lastTile = tiles.lastOrNull;
     final isLastNonDescriptive =
-        tiles.last is SettingsTile &&
-        (tiles.last as SettingsTile).description == null;
+        lastTile is SettingsTile && lastTile.description == null;
     final textScaler = MediaQuery.textScalerOf(context);
+    // In an iPad sidebar the rows are inset 16pt, have no card, and groups
+    // are 10pt apart.
+    final sidebar = SettingsSplitListScope.maybeOf(context)?.isSplit ?? false;
 
     return Padding(
       padding:
           margin ??
-          EdgeInsets.only(
-            top: textScaler.scale(14.0),
-            bottom: isLastNonDescriptive
-                ? textScaler.scale(27)
-                : textScaler.scale(10),
-            left: 16,
-            right: 16,
-          ),
+          (sidebar
+              ? EdgeInsets.only(
+                  top: title == null ? 0 : textScaler.scale(10),
+                  bottom: 10,
+                  left: 16,
+                  right: 16,
+                )
+              : EdgeInsets.only(
+                  top: textScaler.scale(14.0),
+                  bottom: isLastNonDescriptive
+                      ? textScaler.scale(27)
+                      : textScaler.scale(10),
+                  left: 20,
+                  right: 20,
+                )),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -43,24 +54,31 @@ class IOSSettingsSection extends StatelessWidget {
               padding:
                   titlePadding ??
                   EdgeInsetsDirectional.only(
-                    start: 18,
-                    bottom: textScaler.scale(5),
+                    start: sidebar ? 14 : 16,
+                    bottom: textScaler.scale(8),
                   ),
-              child: DefaultTextStyle(
-                style:
-                    (theme.themeData.titleTextStyle ??
-                            const TextStyle(fontSize: 13))
-                        .copyWith(color: theme.themeData.titleTextColor),
-                child: title!,
+              child: Semantics(
+                container: true,
+                header: true,
+                child: DefaultTextStyle(
+                  style:
+                      (theme.themeData.titleTextStyle ??
+                              const TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w600,
+                              ))
+                          .copyWith(color: theme.themeData.titleTextColor),
+                  child: title!,
+                ),
               ),
             ),
-          buildTileList(),
+          buildTileList(sidebar: sidebar),
         ],
       ),
     );
   }
 
-  Widget buildTileList() {
+  Widget buildTileList({bool sidebar = false}) {
     return ListView.builder(
       shrinkWrap: true,
       itemCount: tiles.length,
@@ -90,7 +108,7 @@ class IOSSettingsSection extends StatelessWidget {
         return IOSSettingsTileAdditionalInfo(
           enableTopBorderRadius: enableTop,
           enableBottomBorderRadius: enableBottom,
-          needToShowDivider: index != tiles.length - 1,
+          needToShowDivider: !sidebar && index != tiles.length - 1,
           child: tile,
         );
       },

@@ -1,10 +1,16 @@
 import 'package:example/screens/gallery/android_native_settings_screen.dart';
 import 'package:example/screens/gallery/android_settings_screen.dart';
 import 'package:example/screens/gallery/cross_platform_settings_screen.dart';
+import 'package:example/screens/gallery/gnome_power_settings_screen.dart';
 import 'package:example/screens/gallery/ios_developer_screen.dart';
 import 'package:example/screens/gallery/ios_native_settings_screen.dart';
+import 'package:example/screens/gallery/macos_notifications_screen.dart';
 import 'package:example/screens/gallery/material3_demo_screen.dart';
+import 'package:example/screens/gallery/showcase_screen.dart';
+import 'package:example/screens/gallery/split_view_screen.dart';
 import 'package:example/screens/gallery/web_chrome_settings.dart';
+import 'package:example/screens/gallery/windows_display_settings_screen.dart';
+import 'package:example/utils/launch_options.dart';
 import 'package:example/utils/navigation.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:material_ui/material_ui.dart';
@@ -18,6 +24,7 @@ class GalleryScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Gallery')),
       body: SettingsList(
+        platform: LaunchOptions.platform,
         sections: [
           SettingsSection(
             title: const Text('General'),
@@ -25,8 +32,9 @@ class GalleryScreen extends StatelessWidget {
               SettingsTile.navigation(
                 title: const Text('Abstract settings screen'),
                 leading: const Icon(CupertinoIcons.wrench),
-                description:
-                    const Text('UI created to show plugin\'s possibilities'),
+                description: const Text(
+                  'UI created to show plugin\'s possibilities',
+                ),
                 onPressed: (context) {
                   Navigation.navigateTo(
                     context: context,
@@ -48,6 +56,44 @@ class GalleryScreen extends StatelessWidget {
                   Navigation.navigateTo(
                     context: context,
                     screen: const Material3DemoScreen(),
+                    style: NavigationRouteStyle.material,
+                  );
+                },
+              ),
+            ],
+          ),
+          SettingsSection(
+            title: const Text('New in v4'),
+            tiles: [
+              SettingsTile.navigation(
+                leading: const Icon(Icons.vertical_split_outlined),
+                title: const Text('Split view'),
+                description: const Text(
+                  'List and page side by side on tablets, foldables, '
+                  'desktop and the web',
+                ),
+                onPressed: (context) {
+                  Navigation.navigateTo(
+                    context: context,
+                    screen: SplitViewScreen(
+                      platform: LaunchOptions.platform ?? DevicePlatform.device,
+                    ),
+                    style: NavigationRouteStyle.material,
+                  );
+                },
+              ),
+              SettingsTile.navigation(
+                leading: const Icon(Icons.auto_awesome_outlined),
+                title: const Text('Showcase'),
+                description: const Text(
+                  'A made-up app\'s settings, one code base in every style',
+                ),
+                onPressed: (context) {
+                  Navigation.navigateTo(
+                    context: context,
+                    screen: ShowcaseScreen(
+                      platform: LaunchOptions.platform ?? DevicePlatform.device,
+                    ),
                     style: NavigationRouteStyle.material,
                   );
                 },
@@ -102,6 +148,17 @@ class GalleryScreen extends StatelessWidget {
                 },
               ),
               SettingsTile.navigation(
+                leading: const Icon(Icons.laptop_mac),
+                title: const Text('macOS System Settings'),
+                onPressed: (context) {
+                  Navigation.navigateTo(
+                    context: context,
+                    screen: const MacosNotificationsScreen(),
+                    style: NavigationRouteStyle.material,
+                  );
+                },
+              ),
+              SettingsTile.navigation(
                 leading: const Icon(Icons.adb),
                 title: const Text('Android Native Settings Screen'),
                 onPressed: (context) {
@@ -109,6 +166,28 @@ class GalleryScreen extends StatelessWidget {
                     context: context,
                     screen: const AndroidNativeSettingsScreen(),
                     style: NavigationRouteStyle.cupertino,
+                  );
+                },
+              ),
+              SettingsTile.navigation(
+                leading: const Icon(Icons.computer),
+                title: const Text('GNOME Settings (Power)'),
+                onPressed: (context) {
+                  Navigation.navigateTo(
+                    context: context,
+                    screen: const GnomePowerSettingsScreen(),
+                    style: NavigationRouteStyle.material,
+                  );
+                },
+              ),
+              SettingsTile.navigation(
+                leading: const Icon(Icons.desktop_windows_outlined),
+                title: const Text('Windows Display Settings'),
+                onPressed: (context) {
+                  Navigation.navigateTo(
+                    context: context,
+                    screen: const WindowsDisplaySettingsScreen(),
+                    style: NavigationRouteStyle.material,
                   );
                 },
               ),

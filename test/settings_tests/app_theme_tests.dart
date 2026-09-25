@@ -48,19 +48,46 @@ void appThemeTests() {
       brightness: brightness,
     );
 
-    for (final platform in [DevicePlatform.android, DevicePlatform.web]) {
-      testWidgets('$platform, $brightness: colors follow the app ColorScheme', (
-        tester,
-      ) async {
-        await tester.pumpWidget(_materialApp(brightness, platform: platform));
+    final isLight = brightness == Brightness.light;
 
-        final data = _settingsTheme(tester).themeData;
-        expect(data.settingsListBackground, scheme.surfaceContainerLow);
-        expect(data.titleTextColor, scheme.primary);
-        expect(data.settingsTileTextColor, scheme.onSurface);
-        expect(data.leadingIconsColor, scheme.onSurfaceVariant);
-      });
-    }
+    testWidgets('Android, $brightness: colors follow the app ColorScheme', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _materialApp(brightness, platform: DevicePlatform.android),
+      );
+
+      final data = _settingsTheme(tester).themeData;
+      expect(data.settingsListBackground, scheme.surfaceContainer);
+      expect(
+        data.settingsSectionBackground,
+        isLight ? scheme.surfaceBright : scheme.surfaceContainerHighest,
+      );
+      expect(data.titleTextColor, scheme.primary);
+      expect(data.settingsTileTextColor, scheme.onSurface);
+      expect(data.leadingIconsColor, scheme.onSurfaceVariant);
+    });
+
+    testWidgets('Web, $brightness: colors follow the app ColorScheme', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _materialApp(brightness, platform: DevicePlatform.web),
+      );
+
+      final data = _settingsTheme(tester).themeData;
+      expect(
+        data.settingsListBackground,
+        isLight ? scheme.surfaceContainerLowest : scheme.surface,
+      );
+      expect(
+        data.settingsSectionBackground,
+        isLight ? scheme.surfaceContainerLowest : scheme.surfaceContainerLow,
+      );
+      expect(data.titleTextColor, scheme.onSurface);
+      expect(data.settingsTileTextColor, scheme.onSurface);
+      expect(data.leadingIconsColor, scheme.onSurfaceVariant);
+    });
   }
 
   testWidgets('ThemeData.platform picks the tile style', (tester) async {

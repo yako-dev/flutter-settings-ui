@@ -14,3 +14,6 @@ example/.flutter-plugins-dependencies
 doc/api/
 .idea
 *.iml
+
+# Created by `flutter test --coverage` (CI). .pubignore repeats these rules.
+coverage/

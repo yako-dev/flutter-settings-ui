@@ -1,6 +1,10 @@
+import 'dart:async';
+
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/settings_ui.dart';
+import 'package:settings_ui/src/tiles/tile_semantics.dart';
+import 'package:settings_ui/src/utils/settings_style.dart';
 
 class IOSSettingsTile extends StatefulWidget {
   const IOSSettingsTile({
@@ -19,7 +23,12 @@ class IOSSettingsTile extends StatefulWidget {
     this.compact = false,
     this.titlePadding,
     this.leadingPadding,
+    this.trailingPadding,
+    this.descriptionPadding,
     this.titleDescriptionPadding,
+    this.selected = false,
+    this.sidebar = false,
+    this.semanticsSelected,
     super.key,
   });
 
@@ -38,7 +47,20 @@ class IOSSettingsTile extends StatefulWidget {
   final Widget? trailing;
   final EdgeInsetsGeometry? titlePadding;
   final EdgeInsetsGeometry? leadingPadding;
+  final EdgeInsetsGeometry? trailingPadding;
+  final EdgeInsetsGeometry? descriptionPadding;
   final EdgeInsetsGeometry? titleDescriptionPadding;
+
+  /// Drawn as the selected row of an iPad sidebar: a filled capsule.
+  final bool selected;
+
+  /// In the list pane of a split view with two panes: an iPad sidebar row
+  /// (no card, separator or chevron; highlighted as a capsule).
+  final bool sidebar;
+
+  /// Whether assistive technologies hear the row as selected: null for rows
+  /// that don't open a page in a split view's list pane.
+  final bool? semanticsSelected;
 
   @override
   IOSSettingsTileState createState() => IOSSettingsTileState();
@@ -47,20 +69,59 @@ class IOSSettingsTile extends StatefulWidget {
 class IOSSettingsTileState extends State<IOSSettingsTile> {
   bool isPressed = false;
 
+  /// Clears the pressed tint shortly after a tap.
+  Timer? _releaseTimer;
+
+  /// Only an enabled row with `onPressed` reacts to taps, and only then does
+  /// it expose a tap action to screen readers.
+  bool get _canPress => widget.enabled && widget.onPressed != null;
+
+  @override
+  void didUpdateWidget(IOSSettingsTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!_canPress) {
+      _releaseTimer?.cancel();
+      isPressed = false;
+    }
+  }
+
+  @override
+  void dispose() {
+    _releaseTimer?.cancel();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final additionalInfo = IOSSettingsTileAdditionalInfo.of(context);
     final theme = SettingsTheme.of(context);
 
+    // The row is one node, so the rows of a section never merge into one. A
+    // row with onPressed is a button, dimmed when disabled. A switch row
+    // without onPressed reads as its switch: "title, switch, on" (with it,
+    // the switch is a node of its own, labelled with the title).
+    final isSwitch = widget.tileType == SettingsTileType.switchTile;
+    final isButton = widget.onPressed != null;
+    Widget row = Semantics(
+      container: true,
+      button: isButton,
+      enabled: isButton || (!isSwitch && !widget.enabled)
+          ? widget.enabled
+          : null,
+      selected: widget.semanticsSelected,
+      child: buildTitle(
+        context: context,
+        theme: theme,
+        additionalInfo: additionalInfo,
+      ),
+    );
+    if (isSwitch && !isButton) row = MergeSemantics(child: row);
+
     return IgnorePointer(
       ignoring: !widget.enabled,
       child: Column(
         children: [
-          buildTitle(
-            context: context,
-            theme: theme,
-            additionalInfo: additionalInfo,
-          ),
+          row,
           if (widget.description != null)
             buildDescription(
               context: context,
@@ -84,13 +145,20 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
       content = Material(color: Colors.transparent, child: content);
     }
 
-    return ClipRRect(
+    // iPad sidebar rows highlight as a 52pt capsule.
+    if (widget.sidebar) {
+      return ClipRRect(borderRadius: BorderRadius.circular(26), child: content);
+    }
+
+    // Continuous (superellipse) corners, like the grouped cards in iOS
+    // Settings.
+    return ClipRSuperellipse(
       borderRadius: BorderRadius.vertical(
         top: additionalInfo.enableTopBorderRadius
-            ? const Radius.circular(12)
+            ? const Radius.circular(26)
             : Radius.zero,
         bottom: additionalInfo.enableBottomBorderRadius
-            ? const Radius.circular(12)
+            ? const Radius.circular(26)
             : Radius.zero,
       ),
       child: content,
@@ -104,21 +172,38 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
   }) {
     final textScaler = MediaQuery.textScalerOf(context);
 
-    return Container(
-      width: MediaQuery.of(context).size.width,
-      padding: EdgeInsets.only(
-        left: 18,
-        right: 18,
-        top: textScaler.scale(8),
-        bottom: additionalInfo.needToShowDivider ? 24 : textScaler.scale(8),
-      ),
-      decoration: BoxDecoration(color: theme.themeData.settingsListBackground),
-      child: DefaultTextStyle(
-        style:
-            (theme.themeData.tileDescriptionTextStyle ??
-                    const TextStyle(fontSize: 13))
-                .copyWith(color: theme.themeData.titleTextColor),
-        child: widget.description!,
+    // Fill the width the tile gets (a pane of a split view can be much
+    // narrower than the screen), falling back to the screen width when it's
+    // unbounded. The footer is a semantics node of its own, read after the
+    // row.
+    return Semantics(
+      container: true,
+      child: LayoutBuilder(
+        builder: (context, constraints) => Container(
+          width: constraints.hasBoundedWidth
+              ? constraints.maxWidth
+              : MediaQuery.sizeOf(context).width,
+          padding:
+              widget.descriptionPadding ??
+              EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: textScaler.scale(8),
+                bottom: additionalInfo.needToShowDivider
+                    ? 24
+                    : textScaler.scale(8),
+              ),
+          decoration: BoxDecoration(
+            color: theme.themeData.settingsListBackground,
+          ),
+          child: DefaultTextStyle(
+            style:
+                (theme.themeData.tileDescriptionTextStyle ??
+                        const TextStyle(fontSize: 13))
+                    .copyWith(color: theme.themeData.titleTextColor),
+            child: widget.description!,
+          ),
+        ),
       ),
     );
   }
@@ -130,38 +215,58 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
   }) {
     final textScaler = MediaQuery.textScalerOf(context);
     final isRTL = Directionality.of(context) == TextDirection.rtl;
+    final iconColor = widget.selected
+        ? (theme.themeData.selectedTileIconColor ??
+              theme.themeData.leadingIconsColor)
+        : theme.themeData.leadingIconsColor;
 
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         if (widget.trailing != null)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding:
+                widget.trailingPadding ??
+                const EdgeInsets.symmetric(horizontal: 16),
             child: IconTheme(
               data: IconTheme.of(context).copyWith(
                 color: widget.enabled
-                    ? theme.themeData.leadingIconsColor
+                    ? iconColor
                     : theme.themeData.inactiveTitleColor,
               ),
               child: widget.trailing!,
             ),
           ),
+        // The switch's glass lens paints up to ~12.5pt past its end and ~6pt
+        // above and below it. The 16pt end padding and the 52pt row keep it
+        // inside the card.
         if (widget.tileType == SettingsTileType.switchTile)
-          CupertinoSwitch(
-            value: widget.initialValue ?? true,
-            onChanged: widget.onToggle,
-            activeTrackColor: widget.enabled
-                ? widget.activeSwitchColor
-                : (theme.themeData.inactiveSwitchColor ??
-                      theme.themeData.inactiveTitleColor),
+          _labelSwitchIfSeparate(
+            CupertinoTheme(
+              // The switch picks its light or dark colors from this: the
+              // list's, which `SettingsList.brightness` can set apart from the
+              // app's.
+              data: CupertinoTheme.of(
+                context,
+              ).copyWith(brightness: SettingsStyleScope.brightnessOf(context)),
+              child: CupertinoSettingsSwitch(
+                value: widget.initialValue ?? true,
+                // A disabled tile's switch takes no focus, keys or taps.
+                onChanged: widget.enabled ? widget.onToggle : null,
+                activeTrackColor: widget.enabled
+                    ? widget.activeSwitchColor
+                    : (theme.themeData.inactiveSwitchColor ??
+                          theme.themeData.inactiveTitleColor),
+              ),
+            ),
           ),
-        if (widget.tileType == SettingsTileType.navigationTile)
+        // iPad sidebar rows have no chevron.
+        if (widget.tileType == SettingsTileType.navigationTile &&
+            !widget.sidebar)
           Padding(
             padding: const EdgeInsetsDirectional.only(start: 6, end: 2),
             child: IconTheme(
-              data: IconTheme.of(
-                context,
-              ).copyWith(color: theme.themeData.leadingIconsColor),
+              data: IconTheme.of(context).copyWith(color: iconColor),
               child: Icon(
                 isRTL
                     ? CupertinoIcons.chevron_back
@@ -174,8 +279,16 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
     );
   }
 
+  /// A row with onPressed and a switch has two actions, so the switch is a
+  /// semantics node of its own. It gets the title as its label.
+  Widget _labelSwitchIfSeparate(Widget child) => widget.onPressed == null
+      ? child
+      : labelTileSwitch(title: widget.title, child: child);
+
   void changePressState({bool isPressed = false}) {
-    if (mounted) {
+    // A tap recognizer that is dropped mid-press (the tile was disabled)
+    // cancels during the build. didUpdateWidget has cleared the tint by then.
+    if (mounted && this.isPressed != isPressed) {
       setState(() {
         this.isPressed = isPressed;
       });
@@ -192,45 +305,74 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
         (widget.tileType == SettingsTileType.navigationTile ||
             widget.tileType == SettingsTileType.simpleTile) &&
         widget.value != null;
+    final themeData = theme.themeData;
+    final selected = widget.selected;
+    final Color? background;
+    if (widget.sidebar) {
+      background = selected
+          ? themeData.selectedTileColor
+          : isPressed
+          ? themeData.tileHighlightColor
+          : null;
+    } else {
+      background = isPressed
+          ? themeData.tileHighlightColor
+          : themeData.settingsSectionBackground;
+    }
+    final titleColor = !widget.enabled
+        ? themeData.inactiveTitleColor
+        : selected
+        ? (themeData.selectedTileTextColor ?? themeData.settingsTileTextColor)
+        : themeData.settingsTileTextColor;
+    final valueColor = !widget.enabled
+        ? themeData.inactiveTitleColor
+        : selected
+        ? (themeData.selectedTileTextColor ?? themeData.trailingTextColor)
+        : themeData.trailingTextColor;
+    final iconColor = !widget.enabled
+        ? themeData.inactiveTitleColor
+        : selected
+        ? (themeData.selectedTileIconColor ?? themeData.leadingIconsColor)
+        : themeData.leadingIconsColor;
 
+    // Without callbacks the detector has no tap recognizer, so a row that
+    // does nothing exposes no tap action, and a press that started before
+    // the tile was disabled does not fire.
+    final canPress = _canPress;
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
-      onTap: widget.onPressed == null
-          ? null
-          : () {
+      onTap: canPress
+          ? () {
               changePressState(isPressed: true);
 
               widget.onPressed!.call(context);
 
-              Future.delayed(
+              _releaseTimer?.cancel();
+              _releaseTimer = Timer(
                 const Duration(milliseconds: 100),
                 () => changePressState(isPressed: false),
               );
-            },
-      onTapDown: (_) =>
-          widget.onPressed == null ? null : changePressState(isPressed: true),
-      onTapUp: (_) =>
-          widget.onPressed == null ? null : changePressState(isPressed: false),
-      onTapCancel: () =>
-          widget.onPressed == null ? null : changePressState(isPressed: false),
+            }
+          : null,
+      onTapDown: canPress ? (_) => changePressState(isPressed: true) : null,
+      onTapUp: canPress ? (_) => changePressState(isPressed: false) : null,
+      onTapCancel: canPress ? () => changePressState(isPressed: false) : null,
       child: Container(
-        color: isPressed
-            ? theme.themeData.tileHighlightColor
-            : theme.themeData.settingsSectionBackground,
-        padding: const EdgeInsetsDirectional.only(start: 18),
+        color: background,
+        // iPad sidebar: icon 14pt into the row, label 8.5pt after a 28pt
+        // icon.
+        padding: EdgeInsetsDirectional.only(start: widget.sidebar ? 14 : 16),
         child: Row(
           children: [
             if (widget.leading != null)
               Padding(
                 padding:
                     widget.leadingPadding ??
-                    const EdgeInsetsDirectional.only(end: 12.0),
+                    EdgeInsetsDirectional.only(
+                      end: widget.sidebar ? 8.5 : 12.0,
+                    ),
                 child: IconTheme.merge(
-                  data: IconThemeData(
-                    color: widget.enabled
-                        ? theme.themeData.leadingIconsColor
-                        : theme.themeData.inactiveTitleColor,
-                  ),
+                  data: IconThemeData(color: iconColor),
                   child: widget.leading!,
                 ),
               ),
@@ -240,7 +382,9 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Padding(
-                    padding: const EdgeInsetsDirectional.only(end: 16),
+                    padding: EdgeInsetsDirectional.only(
+                      end: widget.sidebar ? 14 : 16,
+                    ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
@@ -260,39 +404,33 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
                                       Padding(
                                         padding:
                                             widget.titlePadding ??
+                                            // 16 + 17pt text + 16 gives the
+                                            // 52pt row of iOS Settings.
                                             EdgeInsetsDirectional.only(
                                               top: textScaler.scale(
-                                                widget.compact ? 6.0 : 12.5,
+                                                widget.compact ? 8.0 : 16.0,
                                               ),
                                               bottom:
                                                   widget.titleDescription ==
                                                       null
                                                   ? textScaler.scale(
                                                       widget.compact
-                                                          ? 6.0
-                                                          : 12.5,
+                                                          ? 8.0
+                                                          : 16.0,
                                                     )
                                                   : textScaler.scale(
                                                       widget.compact
                                                           ? 2.0
-                                                          : 3.5,
+                                                          : 4.0,
                                                     ),
                                             ),
                                         child: DefaultTextStyle(
                                           style:
                                               (theme.themeData.tileTextStyle ??
                                                       const TextStyle(
-                                                        fontSize: 16,
+                                                        fontSize: 17,
                                                       ))
-                                                  .copyWith(
-                                                    color: widget.enabled
-                                                        ? theme
-                                                              .themeData
-                                                              .settingsTileTextColor
-                                                        : theme
-                                                              .themeData
-                                                              .inactiveTitleColor,
-                                                  ),
+                                                  .copyWith(color: titleColor),
                                           child: widget.title!,
                                         ),
                                       ),
@@ -301,17 +439,19 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
                                           padding:
                                               widget.titleDescriptionPadding ??
                                               EdgeInsetsDirectional.only(
-                                                bottom: textScaler.scale(12.5),
+                                                bottom: textScaler.scale(
+                                                  widget.compact ? 8.0 : 16.0,
+                                                ),
                                               ),
                                           child: DefaultTextStyle(
                                             style: TextStyle(
-                                              color: widget.enabled
-                                                  ? theme
-                                                        .themeData
-                                                        .titleTextColor
-                                                  : theme
-                                                        .themeData
-                                                        .inactiveTitleColor,
+                                              color: !widget.enabled
+                                                  ? themeData.inactiveTitleColor
+                                                  : selected
+                                                  ? titleColor?.withValues(
+                                                      alpha: 0.8,
+                                                    )
+                                                  : themeData.titleTextColor,
                                               fontSize: 15,
                                             ),
                                             child: widget.titleDescription!,
@@ -331,13 +471,7 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
                                       ),
                                       child: DefaultTextStyle(
                                         style: TextStyle(
-                                          color: widget.enabled
-                                              ? theme
-                                                    .themeData
-                                                    .trailingTextColor
-                                              : theme
-                                                    .themeData
-                                                    .inactiveTitleColor,
+                                          color: valueColor,
                                           fontSize: 17,
                                         ),
                                         overflow: TextOverflow.ellipsis,
@@ -356,7 +490,8 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
                     ),
                   ),
                   if (widget.description == null &&
-                      additionalInfo.needToShowDivider)
+                      additionalInfo.needToShowDivider &&
+                      !widget.sidebar)
                     Divider(
                       height: 0,
                       thickness: 0.7,

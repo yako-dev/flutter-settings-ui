@@ -4,13 +4,26 @@ import 'package:settings_ui/settings_ui.dart';
 import 'package:settings_ui/src/sections/platforms/android_settings_section.dart';
 import 'package:settings_ui/src/tiles/platforms/android_settings_tile.dart';
 
+import 'settings_tests/adwaita_style_tests.dart';
 import 'settings_tests/app_theme_tests.dart';
 import 'settings_tests/bug_fix_tests.dart';
+import 'settings_tests/cupertino_switch_tests.dart';
+import 'settings_tests/desktop_split_view_tests.dart';
+import 'settings_tests/fluent_style_tests.dart';
+import 'settings_tests/fluent_switch_tests.dart';
 import 'settings_tests/ios_value_layout_tests.dart';
+import 'settings_tests/list_fix_tests.dart';
+import 'settings_tests/macos_style_tests.dart';
+import 'settings_tests/native_look_tests.dart';
+import 'settings_tests/section_semantics_tests.dart';
 import 'settings_tests/setting_tile_tests.dart';
 import 'settings_tests/settings_list_tests.dart';
 import 'settings_tests/settings_sections_tests.dart';
 import 'settings_tests/settings_tile_on_tap_tests.dart';
+import 'settings_tests/split_view_regression_tests.dart';
+import 'settings_tests/split_view_tests.dart';
+import 'settings_tests/tile_padding_tests.dart';
+import 'settings_tests/tile_regression_tests.dart';
 import 'utils_tests/device_platform_tests.dart';
 
 void main() {
@@ -56,7 +69,7 @@ void main() {
       );
 
       expect(titleWidget.style.color, colorScheme.onSurface);
-      expect(titleWidget.style.fontSize, 18);
+      expect(titleWidget.style.fontSize, 16);
       expect(titleWidget.style.fontWeight, FontWeight.w400);
     });
 
@@ -169,6 +182,58 @@ void main() {
 
   group('iOS tile value layout (Issues #201, #203)', () {
     iosValueLayoutTests();
+  });
+
+  group('Native look (2026)', () {
+    nativeLookTests();
+  });
+
+  group('CupertinoSettingsSwitch (iOS 26+ switch)', () {
+    cupertinoSwitchTests();
+  });
+
+  group('macOS System Settings style', () {
+    macosStyleTests();
+  });
+
+  group('GNOME (libadwaita) style for Linux', () {
+    adwaitaStyleTests();
+  });
+
+  group('Fluent style (Windows 11)', () {
+    fluentStyleTests();
+  });
+
+  group('FluentSettingsSwitch (Windows 11 switch)', () {
+    fluentSwitchTests();
+  });
+
+  group('SettingsList and SettingsSection fixes (v4.0.0)', () {
+    listFixTests();
+  });
+
+  group('SettingsTile paddings and switch colors (v4.0.0)', () {
+    tilePaddingTests();
+  });
+
+  group('Tile, switch and theme fixes (4.0.0 RC)', () {
+    tileRegressionTests();
+  });
+
+  group('Section semantics', () {
+    sectionSemanticsTests();
+  });
+
+  group('SettingsSplitView', () {
+    splitViewTests();
+  });
+
+  group('SettingsSplitView in the macOS, Windows and GNOME styles', () {
+    desktopSplitViewTests();
+  });
+
+  group('SettingsSplitView regressions (4.0.0 release candidate)', () {
+    splitViewRegressionTests();
   });
 
   group('Settings tile on Tap tests for different platforms', () {
