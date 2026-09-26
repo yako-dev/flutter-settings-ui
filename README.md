@@ -287,8 +287,8 @@ Other Flutter packages from the same team:
       <sub>Badges for any widget: counters, dots, shapes and animations.</sub>
     </td>
     <td align="center" valign="top" width="33%">
-      <a href="https://github.com/yako-dev/flutter-yako-celebrations"><img src="https://raw.githubusercontent.com/yako-dev/.github/main/tiles/yako_celebrations.webp" width="220" alt="Animated demo of the yako_celebrations Flutter package: an epic celebration fills a dark screen with fireworks, flames, spinning coins, confetti and popping Yako logos under a LEVEL UP! title."></a><br>
-      <a href="https://github.com/yako-dev/flutter-yako-celebrations"><b>yako_celebrations</b></a><br>
+      <a href="https://pub.dev/packages/yako_celebrations"><img src="https://raw.githubusercontent.com/yako-dev/.github/main/tiles/yako_celebrations.webp" width="220" alt="Animated demo of the yako_celebrations Flutter package: an epic celebration fills a dark screen with fireworks, flames, spinning coins, confetti and popping Yako logos under a LEVEL UP! title."></a><br>
+      <a href="https://pub.dev/packages/yako_celebrations"><b>yako_celebrations</b></a><br>
       <sub>Full-screen celebrations in one line: confetti, coins, fireworks, flames.</sub>
     </td>
     <td align="center" valign="top" width="33%">

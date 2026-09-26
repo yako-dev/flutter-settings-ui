@@ -1,3 +1,7 @@
+## [4.0.1] - [September 26, 2026]
+
+* README: a **More from Yako** grid with an animated preview of each of our other packages.
+
 ## [4.0.0] - [September 25, 2026]
 
 ### Breaking changes
