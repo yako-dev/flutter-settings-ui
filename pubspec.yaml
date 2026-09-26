@@ -1,6 +1,6 @@
 name: settings_ui
 description: Settings screens that look native on iOS, Android, macOS, Windows, Linux (GNOME) and the web, from one API, with sub-pages and a split view for tablets and desktop.
-version: 4.0.0
+version: 4.0.1
 homepage: https://github.com/yako-dev/flutter-settings-ui
 repository: https://github.com/yako-dev/flutter-settings-ui
 issue_tracker: https://github.com/yako-dev/flutter-settings-ui/issues
