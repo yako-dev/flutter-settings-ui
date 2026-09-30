@@ -10,3 +10,6 @@ build/
 pubspec.lock
 example/.flutter-plugins-dependencies
 
+# Nix
+.direnv
+
