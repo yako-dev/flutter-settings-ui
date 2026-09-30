@@ -22,26 +22,38 @@ class AndroidSettingsSection extends StatelessWidget {
   }
 
   Widget buildSectionBody(BuildContext context) {
-    final theme = SettingsTheme.of(context);
-    final textScaler = MediaQuery.textScalerOf(context);
     final tileList = buildTileList();
 
-    if (title == null) {
-      return tileList;
-    }
+    return title == null
+        ? tileList
+        : buildTitle(context: context, child: tileList);
+  }
+
+  Widget buildTileList() => ListView.builder(
+    shrinkWrap: true,
+    itemCount: tiles.length,
+    padding: .zero,
+    physics: const NeverScrollableScrollPhysics(),
+    itemBuilder: (_, index) => tiles[index],
+  );
+
+  Widget buildTitle({required BuildContext context, required Widget child}) {
+    final theme = SettingsTheme.of(context);
+    final textScaler = MediaQuery.textScalerOf(context);
 
     return Padding(
-      padding: margin ?? EdgeInsets.zero,
+      padding: margin ?? .zero,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: .start,
         children: [
           Padding(
-            padding: titlePadding ??
-                EdgeInsetsDirectional.only(
+            padding:
+                titlePadding ??
+                .only(
                   top: textScaler.scale(24),
                   bottom: textScaler.scale(10),
-                  start: 24,
-                  end: 24,
+                  left: 24,
+                  right: 24,
                 ),
             child: DefaultTextStyle(
               style: (theme.themeData.titleTextStyle ?? const TextStyle())
@@ -51,22 +63,10 @@ class AndroidSettingsSection extends StatelessWidget {
           ),
           Container(
             color: theme.themeData.settingsSectionBackground,
-            child: tileList,
+            child: child,
           ),
         ],
       ),
-    );
-  }
-
-  Widget buildTileList() {
-    return ListView.builder(
-      shrinkWrap: true,
-      itemCount: tiles.length,
-      padding: EdgeInsets.zero,
-      physics: const NeverScrollableScrollPhysics(),
-      itemBuilder: (BuildContext context, int index) {
-        return tiles[index];
-      },
     );
   }
 }

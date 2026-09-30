@@ -20,39 +20,38 @@ void main() {
     );
 
     testWidgets('Widget should render correctly', (tester) async {
-      await tester.pumpWidget(_wrapWithMaterialApp(
-        settingsTile,
-        DevicePlatform.android,
-      ));
+      await tester.pumpWidget(
+        _wrapWithMaterialApp(settingsTile, DevicePlatform.android),
+      );
 
       expect(find.byType(AndroidSettingsSection), findsOneWidget);
       expect(find.byType(AndroidSettingsTile), findsOneWidget);
     });
 
     testWidgets('Title content should match', (tester) async {
-      await tester.pumpWidget(_wrapWithMaterialApp(
-        settingsTile,
-        DevicePlatform.android,
-      ));
+      await tester.pumpWidget(
+        _wrapWithMaterialApp(settingsTile, DevicePlatform.android),
+      );
 
       expect(find.text('Network & internet'), findsOneWidget);
     });
 
     testWidgets('Title style should match', (tester) async {
-      await tester.pumpWidget(_wrapWithMaterialApp(
-        settingsTile,
-        DevicePlatform.android,
-      ));
+      await tester.pumpWidget(
+        _wrapWithMaterialApp(settingsTile, DevicePlatform.android),
+      );
 
       final context = tester.element(find.byType(SettingsList));
       final colorScheme = Theme.of(context).colorScheme;
 
       final defaultTextFinder = find.ancestor(
-          of: find.text('Network & internet'),
-          matching: find.byType(DefaultTextStyle));
+        of: find.text('Network & internet'),
+        matching: find.byType(DefaultTextStyle),
+      );
 
-      final DefaultTextStyle titleWidget =
-          tester.firstWidget(defaultTextFinder);
+      final DefaultTextStyle titleWidget = tester.firstWidget(
+        defaultTextFinder,
+      );
 
       expect(titleWidget.style.color, colorScheme.onSurface);
       expect(titleWidget.style.fontSize, 18);
@@ -60,29 +59,29 @@ void main() {
     });
 
     testWidgets('Description content should match', (tester) async {
-      await tester.pumpWidget(_wrapWithMaterialApp(
-        settingsTile,
-        DevicePlatform.android,
-      ));
+      await tester.pumpWidget(
+        _wrapWithMaterialApp(settingsTile, DevicePlatform.android),
+      );
 
       expect(find.text('Mobile, Wi-Fi, hotspot'), findsOneWidget);
     });
 
     testWidgets('Description style should match', (tester) async {
-      await tester.pumpWidget(_wrapWithMaterialApp(
-        settingsTile,
-        DevicePlatform.android,
-      ));
+      await tester.pumpWidget(
+        _wrapWithMaterialApp(settingsTile, DevicePlatform.android),
+      );
 
       final context = tester.element(find.byType(SettingsList));
       final colorScheme = Theme.of(context).colorScheme;
 
       final defaultTextFinder = find.ancestor(
-          of: find.text('Mobile, Wi-Fi, hotspot'),
-          matching: find.byType(DefaultTextStyle));
+        of: find.text('Mobile, Wi-Fi, hotspot'),
+        matching: find.byType(DefaultTextStyle),
+      );
 
-      final DefaultTextStyle descriptionWidget =
-          tester.firstWidget(defaultTextFinder);
+      final DefaultTextStyle descriptionWidget = tester.firstWidget(
+        defaultTextFinder,
+      );
 
       expect(descriptionWidget.style.color, colorScheme.onSurfaceVariant);
       expect(descriptionWidget.style.fontSize, null);
@@ -90,19 +89,17 @@ void main() {
     });
 
     testWidgets('Leading content should match', (tester) async {
-      await tester.pumpWidget(_wrapWithMaterialApp(
-        settingsTile,
-        DevicePlatform.android,
-      ));
+      await tester.pumpWidget(
+        _wrapWithMaterialApp(settingsTile, DevicePlatform.android),
+      );
 
       expect(find.byIcon(Icons.wifi), findsOneWidget);
     });
 
     testWidgets('Leading color should match', (tester) async {
-      await tester.pumpWidget(_wrapWithMaterialApp(
-        settingsTile,
-        DevicePlatform.android,
-      ));
+      await tester.pumpWidget(
+        _wrapWithMaterialApp(settingsTile, DevicePlatform.android),
+      );
 
       final context = tester.element(find.byType(SettingsList));
       final colorScheme = Theme.of(context).colorScheme;
@@ -123,7 +120,6 @@ void main() {
     settingsListTests(DevicePlatform.web);
     settingsListTests(DevicePlatform.macOS);
     settingsListTests(DevicePlatform.iOS);
-    settingsListTests(DevicePlatform.fuchsia);
     settingsListTests(DevicePlatform.linux);
     settingsListTests(DevicePlatform.windows);
     settingsListTests(DevicePlatform.device);
@@ -135,7 +131,6 @@ void main() {
     settingsSectionsTests(DevicePlatform.web);
     settingsSectionsTests(DevicePlatform.macOS);
     settingsSectionsTests(DevicePlatform.iOS);
-    settingsSectionsTests(DevicePlatform.fuchsia);
     settingsSectionsTests(DevicePlatform.linux);
     settingsSectionsTests(DevicePlatform.windows);
     settingsSectionsTests(DevicePlatform.device);
@@ -143,7 +138,6 @@ void main() {
 
   group('Device platform utils tests', () {
     devicePlatformTest(TargetPlatform.android);
-    devicePlatformTest(TargetPlatform.fuchsia);
     devicePlatformTest(TargetPlatform.linux);
     devicePlatformTest(TargetPlatform.iOS);
     devicePlatformTest(TargetPlatform.macOS);
@@ -152,7 +146,6 @@ void main() {
 
   group('Settings tile tests for different platforms', () {
     settingsTileTests(DevicePlatform.android);
-    settingsTileTests(DevicePlatform.fuchsia);
     settingsTileTests(DevicePlatform.linux);
     settingsTileTests(DevicePlatform.iOS);
     settingsTileTests(DevicePlatform.macOS);
@@ -166,7 +159,6 @@ void main() {
 
   group('Settings tile on Tap tests for different platforms', () {
     settingsTileOnTapTests(DevicePlatform.android);
-    settingsTileOnTapTests(DevicePlatform.fuchsia);
     settingsTileOnTapTests(DevicePlatform.linux);
     settingsTileOnTapTests(DevicePlatform.iOS);
     settingsTileOnTapTests(DevicePlatform.macOS);
@@ -178,18 +170,14 @@ void main() {
 Widget _wrapWithMaterialApp(
   AbstractSettingsTile testWidget,
   DevicePlatform platform,
-) {
-  return MaterialApp(
-    theme: ThemeData.light(),
-    home: Scaffold(
-      body: SettingsList(
-        platform: platform,
-        sections: [
-          SettingsSection(
-            tiles: [testWidget],
-          )
-        ],
-      ),
+) => MaterialApp(
+  theme: ThemeData.light(),
+  home: Scaffold(
+    body: SettingsList(
+      platform: platform,
+      sections: [
+        SettingsSection(tiles: [testWidget]),
+      ],
     ),
-  );
-}
+  ),
+);

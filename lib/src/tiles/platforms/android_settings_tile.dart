@@ -44,7 +44,7 @@ class AndroidSettingsTile extends StatelessWidget {
     final theme = SettingsTheme.of(context);
     final textScaler = MediaQuery.textScalerOf(context);
 
-    final cantShowAnimation = tileType == SettingsTileType.switchTile
+    final cantShowAnimation = tileType == .switchTile
         ? onToggle == null && onPressed == null
         : onPressed == null;
 
@@ -56,7 +56,7 @@ class AndroidSettingsTile extends StatelessWidget {
           onTap: cantShowAnimation
               ? null
               : () {
-                  if (tileType == SettingsTileType.switchTile) {
+                  if (tileType == .switchTile) {
                     onToggle?.call(!initialValue);
                   } else {
                     onPressed?.call(context);
@@ -67,8 +67,7 @@ class AndroidSettingsTile extends StatelessWidget {
             children: [
               if (leading != null)
                 Padding(
-                  padding: leadingPadding ??
-                      const EdgeInsetsDirectional.only(start: 24),
+                  padding: leadingPadding ?? const .only(left: 24),
                   child: IconTheme(
                     data: IconTheme.of(context).copyWith(
                       color: enabled
@@ -80,54 +79,64 @@ class AndroidSettingsTile extends StatelessWidget {
                 ),
               Expanded(
                 child: Padding(
-                  padding: EdgeInsetsDirectional.only(
-                    start: 24,
-                    end: 24,
+                  padding: .only(
+                    left: 24,
+                    right: 24,
                     bottom: textScaler.scale(compact ? 9 : 19),
                     top: textScaler.scale(compact ? 9 : 19),
                   ),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: .start,
                     children: [
                       DefaultTextStyle(
-                        style: (theme.themeData.tileTextStyle ??
-                                const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w400,
-                                ))
-                            .copyWith(
-                          color: enabled
-                              ? theme.themeData.settingsTileTextColor
-                              : theme.themeData.inactiveTitleColor,
-                        ),
+                        style:
+                            (theme.themeData.tileTextStyle ??
+                                    const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: .w400,
+                                    ))
+                                .copyWith(
+                                  color: enabled
+                                      ? theme.themeData.settingsTileTextColor
+                                      : theme.themeData.inactiveTitleColor,
+                                ),
                         child: title ?? Container(),
                       ),
                       if (value != null)
                         Padding(
-                          padding: const EdgeInsets.only(top: 4.0),
+                          padding: const .only(top: 4.0),
                           child: DefaultTextStyle(
-                            style: (theme.themeData.tileDescriptionTextStyle ??
-                                    const TextStyle())
-                                .copyWith(
-                              color: enabled
-                                  ? theme.themeData.tileDescriptionTextColor
-                                  : theme.themeData.inactiveSubtitleColor,
-                            ),
+                            style:
+                                (theme.themeData.tileDescriptionTextStyle ??
+                                        const TextStyle())
+                                    .copyWith(
+                                      color: enabled
+                                          ? theme
+                                                .themeData
+                                                .tileDescriptionTextColor
+                                          : theme
+                                                .themeData
+                                                .inactiveSubtitleColor,
+                                    ),
                             child: value!,
                           ),
                         )
                       else if (description != null)
                         Padding(
-                          padding: descriptionPadding ??
-                              const EdgeInsets.only(top: 4.0),
+                          padding: descriptionPadding ?? const .only(top: 4.0),
                           child: DefaultTextStyle(
-                            style: (theme.themeData.tileDescriptionTextStyle ??
-                                    const TextStyle())
-                                .copyWith(
-                              color: enabled
-                                  ? theme.themeData.tileDescriptionTextColor
-                                  : theme.themeData.inactiveSubtitleColor,
-                            ),
+                            style:
+                                (theme.themeData.tileDescriptionTextStyle ??
+                                        const TextStyle())
+                                    .copyWith(
+                                      color: enabled
+                                          ? theme
+                                                .themeData
+                                                .tileDescriptionTextColor
+                                          : theme
+                                                .themeData
+                                                .inactiveSubtitleColor,
+                                    ),
                             child: description!,
                           ),
                         ),
@@ -135,26 +144,26 @@ class AndroidSettingsTile extends StatelessWidget {
                   ),
                 ),
               ),
-              if (trailing != null && tileType == SettingsTileType.switchTile)
+              if (trailing != null && tileType == .switchTile)
                 Row(
                   children: [
                     trailing!,
                     Padding(
-                      padding: const EdgeInsetsDirectional.only(end: 8),
+                      padding: const .only(right: 8),
                       child: Switch(
                         value: initialValue,
                         onChanged: onToggle,
                         activeThumbColor: enabled
                             ? activeSwitchColor
                             : (theme.themeData.inactiveSwitchColor ??
-                                theme.themeData.inactiveTitleColor),
+                                  theme.themeData.inactiveTitleColor),
                       ),
                     ),
                   ],
                 )
-              else if (tileType == SettingsTileType.switchTile)
+              else if (tileType == .switchTile)
                 Padding(
-                  padding: const EdgeInsetsDirectional.only(start: 16, end: 8),
+                  padding: const .only(left: 16, right: 8),
                   child: Switch(
                     value: initialValue,
                     onChanged: onToggle,
@@ -165,8 +174,7 @@ class AndroidSettingsTile extends StatelessWidget {
                 )
               else if (trailing != null)
                 Padding(
-                  padding: trailingPadding ??
-                      const EdgeInsets.symmetric(horizontal: 16),
+                  padding: trailingPadding ?? const .symmetric(horizontal: 16),
                   child: IconTheme(
                     data: IconTheme.of(context).copyWith(
                       color: enabled
@@ -175,7 +183,7 @@ class AndroidSettingsTile extends StatelessWidget {
                     ),
                     child: trailing!,
                   ),
-                )
+                ),
             ],
           ),
         ),

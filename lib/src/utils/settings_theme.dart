@@ -15,11 +15,8 @@ class SettingsTheme extends InheritedWidget {
   @override
   bool updateShouldNotify(SettingsTheme oldWidget) => true;
 
-  static SettingsTheme of(BuildContext context) {
-    final SettingsTheme? result =
-        context.dependOnInheritedWidgetOfExactType<SettingsTheme>();
-    return result!;
-  }
+  static SettingsTheme of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<SettingsTheme>()!;
 }
 
 class SettingsThemeData {
@@ -67,29 +64,25 @@ class SettingsThemeData {
   /// Override the text style for tile descriptions/values.
   final TextStyle? tileDescriptionTextStyle;
 
-  SettingsThemeData merge({
-    SettingsThemeData? theme,
-  }) {
-    if (theme == null) return this;
-
-    return copyWith(
-      leadingIconsColor: theme.leadingIconsColor,
-      tileDescriptionTextColor: theme.tileDescriptionTextColor,
-      dividerColor: theme.dividerColor,
-      trailingTextColor: theme.trailingTextColor,
-      settingsListBackground: theme.settingsListBackground,
-      settingsSectionBackground: theme.settingsSectionBackground,
-      settingsTileTextColor: theme.settingsTileTextColor,
-      tileHighlightColor: theme.tileHighlightColor,
-      titleTextColor: theme.titleTextColor,
-      inactiveTitleColor: theme.inactiveTitleColor,
-      inactiveSubtitleColor: theme.inactiveSubtitleColor,
-      inactiveSwitchColor: theme.inactiveSwitchColor,
-      titleTextStyle: theme.titleTextStyle,
-      tileTextStyle: theme.tileTextStyle,
-      tileDescriptionTextStyle: theme.tileDescriptionTextStyle,
-    );
-  }
+  SettingsThemeData merge({SettingsThemeData? theme}) => (theme == null)
+      ? this
+      : copyWith(
+          leadingIconsColor: theme.leadingIconsColor,
+          tileDescriptionTextColor: theme.tileDescriptionTextColor,
+          dividerColor: theme.dividerColor,
+          trailingTextColor: theme.trailingTextColor,
+          settingsListBackground: theme.settingsListBackground,
+          settingsSectionBackground: theme.settingsSectionBackground,
+          settingsTileTextColor: theme.settingsTileTextColor,
+          tileHighlightColor: theme.tileHighlightColor,
+          titleTextColor: theme.titleTextColor,
+          inactiveTitleColor: theme.inactiveTitleColor,
+          inactiveSubtitleColor: theme.inactiveSubtitleColor,
+          inactiveSwitchColor: theme.inactiveSwitchColor,
+          titleTextStyle: theme.titleTextStyle,
+          tileTextStyle: theme.tileTextStyle,
+          tileDescriptionTextStyle: theme.tileDescriptionTextStyle,
+        );
 
   SettingsThemeData copyWith({
     Color? settingsListBackground,
@@ -107,29 +100,25 @@ class SettingsThemeData {
     TextStyle? titleTextStyle,
     TextStyle? tileTextStyle,
     TextStyle? tileDescriptionTextStyle,
-  }) {
-    return SettingsThemeData(
-      settingsListBackground:
-          settingsListBackground ?? this.settingsListBackground,
-      trailingTextColor: trailingTextColor ?? this.trailingTextColor,
-      leadingIconsColor: leadingIconsColor ?? this.leadingIconsColor,
-      settingsSectionBackground:
-          settingsSectionBackground ?? this.settingsSectionBackground,
-      dividerColor: dividerColor ?? this.dividerColor,
-      tileDescriptionTextColor:
-          tileDescriptionTextColor ?? this.tileDescriptionTextColor,
-      tileHighlightColor: tileHighlightColor ?? this.tileHighlightColor,
-      titleTextColor: titleTextColor ?? this.titleTextColor,
-      inactiveTitleColor: inactiveTitleColor ?? this.inactiveTitleColor,
-      inactiveSubtitleColor:
-          inactiveSubtitleColor ?? this.inactiveSubtitleColor,
-      settingsTileTextColor:
-          settingsTileTextColor ?? this.settingsTileTextColor,
-      inactiveSwitchColor: inactiveSwitchColor ?? this.inactiveSwitchColor,
-      titleTextStyle: titleTextStyle ?? this.titleTextStyle,
-      tileTextStyle: tileTextStyle ?? this.tileTextStyle,
-      tileDescriptionTextStyle:
-          tileDescriptionTextStyle ?? this.tileDescriptionTextStyle,
-    );
-  }
+  }) => SettingsThemeData(
+    settingsListBackground:
+        settingsListBackground ?? this.settingsListBackground,
+    trailingTextColor: trailingTextColor ?? this.trailingTextColor,
+    leadingIconsColor: leadingIconsColor ?? this.leadingIconsColor,
+    settingsSectionBackground:
+        settingsSectionBackground ?? this.settingsSectionBackground,
+    dividerColor: dividerColor ?? this.dividerColor,
+    tileDescriptionTextColor:
+        tileDescriptionTextColor ?? this.tileDescriptionTextColor,
+    tileHighlightColor: tileHighlightColor ?? this.tileHighlightColor,
+    titleTextColor: titleTextColor ?? this.titleTextColor,
+    inactiveTitleColor: inactiveTitleColor ?? this.inactiveTitleColor,
+    inactiveSubtitleColor: inactiveSubtitleColor ?? this.inactiveSubtitleColor,
+    settingsTileTextColor: settingsTileTextColor ?? this.settingsTileTextColor,
+    inactiveSwitchColor: inactiveSwitchColor ?? this.inactiveSwitchColor,
+    titleTextStyle: titleTextStyle ?? this.titleTextStyle,
+    tileTextStyle: tileTextStyle ?? this.tileTextStyle,
+    tileDescriptionTextStyle:
+        tileDescriptionTextStyle ?? this.tileDescriptionTextStyle,
+  );
 }

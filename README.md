@@ -4,7 +4,11 @@
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-android%20%7C%20ios%20%7C%20web-lightgrey)](https://pub.dev/packages/settings_ui)
 
-A Flutter package for building settings screens that look native on **Android**, **iOS**, and **Web** — all from a single API. The UI automatically adapts to each platform's visual style: Material for Android, Cupertino for iOS, and a card-based Web layout. Also runs on macOS, Windows, Linux, and Fuchsia (macOS/Windows use the Cupertino style; Linux uses Material).
+A Flutter package for building settings screens that look native on **Android**,
+**iOS**, and **Web** — all from a single API. The UI automatically adapts to
+each platform's visual style: Material for Android, Cupertino for iOS, and a
+card-based Web layout. Also runs on macOS, Windows, Linux, and Fuchsia
+(macOS/Windows use the Cupertino style; Linux uses Material).
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master/assets/v2/settings_ui_cover.png" height="560px">
@@ -30,7 +34,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  settings_ui: ^3.0.1
+    settings_ui: ^3.0.1
 ```
 
 Then import:
@@ -117,7 +121,8 @@ SettingsTile(
 
 ### `SettingsTile.navigation` — navigation tile
 
-Adds a platform-appropriate trailing chevron. Right arrow in LTR, left arrow in RTL.
+Adds a platform-appropriate trailing chevron. Right arrow in LTR, left arrow in
+RTL.
 
 ```dart
 SettingsTile.navigation(
@@ -192,12 +197,12 @@ SettingsList(
 </p>
 <p align="center"><em>Android (Material) &nbsp;•&nbsp; iOS (Cupertino) &nbsp;•&nbsp; Web</em></p>
 
-| `DevicePlatform` | Style |
-|---|---|
-| `device` *(default)* | Auto-detected at runtime |
-| `android`, `fuchsia`, `linux` | Material |
-| `iOS`, `macOS`, `windows` | Cupertino |
-| `web` | Web (card layout) |
+| `DevicePlatform`          | Style                    |
+| ------------------------- | ------------------------ |
+| `device` _(default)_      | Auto-detected at runtime |
+| `android`, `linux`        | Material                 |
+| `iOS`, `macOS`, `windows` | Cupertino                |
+| `web`                     | Web (card layout)        |
 
 ---
 
@@ -205,7 +210,9 @@ SettingsList(
 
 ### Material 3 (v3.0.0+)
 
-On Android and Web, colors are automatically derived from your app's `ColorScheme`. No extra configuration needed — seed colors, light/dark mode, and custom `ColorScheme` all work out of the box.
+On Android and Web, colors are automatically derived from your app's
+`ColorScheme`. No extra configuration needed — seed colors, light/dark mode, and
+custom `ColorScheme` all work out of the box.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/yako-dev/flutter-settings-ui/master/assets/v3/android_material3.png" width="45%">
@@ -223,7 +230,8 @@ MaterialApp(
 
 ### Custom theme overrides
 
-Any field left `null` falls back to the platform default derived from your `ColorScheme`.
+Any field left `null` falls back to the platform default derived from your
+`ColorScheme`.
 
 ```dart
 SettingsList(
@@ -357,64 +365,64 @@ SettingsList(
 
 ### `SettingsList`
 
-| Parameter | Type | Default | Description |
-|---|---|---|---|
-| `sections` | `List<AbstractSettingsSection>` | required | Sections to display |
-| `platform` | `DevicePlatform?` | `device` | Force a specific platform style |
-| `lightTheme` | `SettingsThemeData?` | — | Overrides for light mode |
-| `darkTheme` | `SettingsThemeData?` | — | Overrides for dark mode |
-| `brightness` | `Brightness?` | — | Override brightness detection |
-| `applicationType` | `ApplicationType` | `material` | `material`, `cupertino`, or `both` |
-| `scrollController` | `ScrollController?` | — | Programmatic scroll control |
-| `shrinkWrap` | `bool` | `false` | Shrink-wrap to content height |
-| `physics` | `ScrollPhysics?` | — | Custom scroll physics |
-| `contentPadding` | `EdgeInsetsGeometry?` | — | Override list padding |
-| `crossAxisAlignment` | `CrossAxisAlignment` | `center` | Horizontal alignment on wide screens |
+| Parameter            | Type                            | Default    | Description                          |
+| -------------------- | ------------------------------- | ---------- | ------------------------------------ |
+| `sections`           | `List<AbstractSettingsSection>` | required   | Sections to display                  |
+| `platform`           | `DevicePlatform?`               | `device`   | Force a specific platform style      |
+| `lightTheme`         | `SettingsThemeData?`            | —          | Overrides for light mode             |
+| `darkTheme`          | `SettingsThemeData?`            | —          | Overrides for dark mode              |
+| `brightness`         | `Brightness?`                   | —          | Override brightness detection        |
+| `applicationType`    | `ApplicationType`               | `material` | `material`, `cupertino`, or `both`   |
+| `scrollController`   | `ScrollController?`             | —          | Programmatic scroll control          |
+| `shrinkWrap`         | `bool`                          | `false`    | Shrink-wrap to content height        |
+| `physics`            | `ScrollPhysics?`                | —          | Custom scroll physics                |
+| `contentPadding`     | `EdgeInsetsGeometry?`           | —          | Override list padding                |
+| `crossAxisAlignment` | `CrossAxisAlignment`            | `center`   | Horizontal alignment on wide screens |
 
 ### `SettingsSection`
 
-| Parameter | Type | Description |
-|---|---|---|
-| `tiles` | `List<AbstractSettingsTile>` | The tiles in this section |
-| `title` | `Widget?` | Section header |
-| `margin` | `EdgeInsetsDirectional?` | Override section margin |
+| Parameter | Type                         | Description               |
+| --------- | ---------------------------- | ------------------------- |
+| `tiles`   | `List<AbstractSettingsTile>` | The tiles in this section |
+| `title`   | `Widget?`                    | Section header            |
+| `margin`  | `EdgeInsetsDirectional?`     | Override section margin   |
 
 ### `SettingsTile`
 
-| Parameter | Type | Applies to | Description |
-|---|---|---|---|
-| `title` | `Widget` | all | Tile label |
-| `description` | `Widget?` | all | Secondary text below the title |
-| `leading` | `Widget?` | all | Icon or widget at the start |
-| `trailing` | `Widget?` | all | Widget at the end |
-| `enabled` | `bool` | all | Grays out and disables interaction |
-| `compact` | `bool` | all | Halves the vertical padding |
-| `onPressed` | `Function(BuildContext)?` | all | Tap callback |
-| `value` | `Widget?` | simple, navigation | Widget shown before the chevron |
-| `titleDescription` | `Widget?` | navigation | Text below title (iOS/macOS/Windows) |
-| `initialValue` | `bool?` | switchTile | Initial switch state |
-| `onToggle` | `Function(bool)?` | switchTile | Toggle callback; `null` disables the switch |
-| `activeSwitchColor` | `Color?` | switchTile | Active switch color override |
+| Parameter           | Type                      | Applies to         | Description                                 |
+| ------------------- | ------------------------- | ------------------ | ------------------------------------------- |
+| `title`             | `Widget`                  | all                | Tile label                                  |
+| `description`       | `Widget?`                 | all                | Secondary text below the title              |
+| `leading`           | `Widget?`                 | all                | Icon or widget at the start                 |
+| `trailing`          | `Widget?`                 | all                | Widget at the end                           |
+| `enabled`           | `bool`                    | all                | Grays out and disables interaction          |
+| `compact`           | `bool`                    | all                | Halves the vertical padding                 |
+| `onPressed`         | `Function(BuildContext)?` | all                | Tap callback                                |
+| `value`             | `Widget?`                 | simple, navigation | Widget shown before the chevron             |
+| `titleDescription`  | `Widget?`                 | navigation         | Text below title (iOS/macOS/Windows)        |
+| `initialValue`      | `bool?`                   | switchTile         | Initial switch state                        |
+| `onToggle`          | `Function(bool)?`         | switchTile         | Toggle callback; `null` disables the switch |
+| `activeSwitchColor` | `Color?`                  | switchTile         | Active switch color override                |
 
 ### `SettingsThemeData`
 
-| Field | Type | Description |
-|---|---|---|
-| `settingsListBackground` | `Color?` | Background of the whole list |
-| `settingsSectionBackground` | `Color?` | Background of each section card |
-| `dividerColor` | `Color?` | Divider color between tiles |
-| `tileHighlightColor` | `Color?` | Tile press highlight color |
-| `titleTextColor` | `Color?` | Section header text color |
-| `titleTextStyle` | `TextStyle?` | Section header text style |
-| `settingsTileTextColor` | `Color?` | Tile title text color |
-| `tileTextStyle` | `TextStyle?` | Tile title text style |
-| `tileDescriptionTextColor` | `Color?` | Description/value text color |
-| `tileDescriptionTextStyle` | `TextStyle?` | Description/value text style |
-| `leadingIconsColor` | `Color?` | Leading icon color |
-| `trailingTextColor` | `Color?` | Trailing text color |
-| `inactiveTitleColor` | `Color?` | Tile title color when disabled |
-| `inactiveSubtitleColor` | `Color?` | Description color when disabled |
-| `inactiveSwitchColor` | `Color?` | Switch color when disabled |
+| Field                       | Type         | Description                     |
+| --------------------------- | ------------ | ------------------------------- |
+| `settingsListBackground`    | `Color?`     | Background of the whole list    |
+| `settingsSectionBackground` | `Color?`     | Background of each section card |
+| `dividerColor`              | `Color?`     | Divider color between tiles     |
+| `tileHighlightColor`        | `Color?`     | Tile press highlight color      |
+| `titleTextColor`            | `Color?`     | Section header text color       |
+| `titleTextStyle`            | `TextStyle?` | Section header text style       |
+| `settingsTileTextColor`     | `Color?`     | Tile title text color           |
+| `tileTextStyle`             | `TextStyle?` | Tile title text style           |
+| `tileDescriptionTextColor`  | `Color?`     | Description/value text color    |
+| `tileDescriptionTextStyle`  | `TextStyle?` | Description/value text style    |
+| `leadingIconsColor`         | `Color?`     | Leading icon color              |
+| `trailingTextColor`         | `Color?`     | Trailing text color             |
+| `inactiveTitleColor`        | `Color?`     | Tile title color when disabled  |
+| `inactiveSubtitleColor`     | `Color?`     | Description color when disabled |
+| `inactiveSwitchColor`       | `Color?`     | Switch color when disabled      |
 
 ---
 

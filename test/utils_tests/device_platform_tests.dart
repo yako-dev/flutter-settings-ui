@@ -20,15 +20,17 @@ void devicePlatformTest(TargetPlatform targetPlatform) {
             SettingsTile.navigation(
               title: const Text('Abstract settings screen'),
               leading: const Icon(CupertinoIcons.wrench),
-              description:
-                  const Text('UI created to show plugin\'s possibilities'),
+              description: const Text(
+                'UI created to show plugin\'s possibilities',
+              ),
               onPressed: (context) {},
             ),
             SettingsTile.navigation(
               title: const Text('Abstract settings screen'),
               leading: const Icon(CupertinoIcons.wrench),
-              description:
-                  const Text('UI created to show plugin\'s possibilities'),
+              description: const Text(
+                'UI created to show plugin\'s possibilities',
+              ),
               onPressed: (context) {},
             ),
           ],
@@ -37,7 +39,6 @@ void devicePlatformTest(TargetPlatform targetPlatform) {
     );
     expect(find.text('General'), findsOneWidget);
     if (targetPlatform == TargetPlatform.android ||
-        targetPlatform == TargetPlatform.fuchsia ||
         targetPlatform == TargetPlatform.linux) {
       expect(find.byType(AndroidSettingsSection), findsOneWidget);
       expect(find.byType(IOSSettingsSection), findsNothing);

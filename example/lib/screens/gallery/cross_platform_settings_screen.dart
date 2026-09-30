@@ -19,7 +19,6 @@ class _CrossPlatformSettingsScreenState
     DevicePlatform.android: 'Android',
     DevicePlatform.iOS: 'iOS',
     DevicePlatform.web: 'Web',
-    DevicePlatform.fuchsia: 'Fuchsia',
     DevicePlatform.linux: 'Linux',
     DevicePlatform.macOS: 'MacOS',
     DevicePlatform.windows: 'Windows',

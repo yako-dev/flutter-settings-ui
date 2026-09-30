@@ -1,4 +1,3 @@
-
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/src/sections/abstract_settings_section.dart';
@@ -29,8 +28,8 @@ class SettingsList extends StatelessWidget {
     this.brightness,
     this.contentPadding,
     this.scrollController,
-    this.applicationType = ApplicationType.material,
-    this.crossAxisAlignment = CrossAxisAlignment.center,
+    this.applicationType = .material,
+    this.crossAxisAlignment = .center,
     super.key,
   });
 
@@ -52,27 +51,21 @@ class SettingsList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    DevicePlatform platform;
-    if (this.platform == null || this.platform == DevicePlatform.device) {
-      platform = PlatformUtils.detectPlatform(context);
-    } else {
-      platform = this.platform!;
-    }
+    DevicePlatform platform = this.platform == null || this.platform == .device
+        ? PlatformUtils.detectPlatform(context)
+        : this.platform!;
 
     final brightness = calculateBrightness(context);
-
     final themeData = ThemeProvider.getTheme(
       context: context,
       platform: platform,
       brightness: brightness,
-    ).merge(theme: brightness == Brightness.dark ? darkTheme : lightTheme);
+    ).merge(theme: brightness == .dark ? darkTheme : lightTheme);
 
     return Container(
       color: themeData.settingsListBackground,
       width: MediaQuery.of(context).size.width,
-      alignment: crossAxisAlignment == CrossAxisAlignment.start
-          ? Alignment.topLeft
-          : Alignment.center,
+      alignment: crossAxisAlignment == .start ? .topLeft : .center,
       child: SettingsTheme(
         themeData: themeData,
         platform: platform,
@@ -82,7 +75,7 @@ class SettingsList extends StatelessWidget {
           shrinkWrap: shrinkWrap,
           itemCount: sections.length,
           padding: contentPadding ?? calculateDefaultPadding(platform, context),
-          itemBuilder: (BuildContext context, int index) {
+          itemBuilder: (context, index) {
             return sections[index];
           },
         ),
@@ -91,58 +84,49 @@ class SettingsList extends StatelessWidget {
   }
 
   EdgeInsets calculateDefaultPadding(
-      DevicePlatform platform, BuildContext context) {
+    DevicePlatform platform,
+    BuildContext context,
+  ) {
     if (MediaQuery.of(context).size.width > 810) {
       double padding = (MediaQuery.of(context).size.width - 810) / 2;
-      switch (platform) {
-        case DevicePlatform.android:
-        case DevicePlatform.fuchsia:
-        case DevicePlatform.linux:
-        case DevicePlatform.iOS:
-        case DevicePlatform.macOS:
-        case DevicePlatform.windows:
-          return EdgeInsets.symmetric(horizontal: padding);
-        case DevicePlatform.web:
-          return EdgeInsets.symmetric(vertical: 20, horizontal: padding);
-        case DevicePlatform.device:
-          throw Exception(
-            'You can\'t use the DevicePlatform.device in this context. '
-            'Incorrect platform: SettingsList.calculateDefaultPadding',
-          );
-      }
-    }
-    switch (platform) {
-      case DevicePlatform.android:
-      case DevicePlatform.fuchsia:
-      case DevicePlatform.linux:
-      case DevicePlatform.iOS:
-      case DevicePlatform.macOS:
-      case DevicePlatform.windows:
-        return const EdgeInsets.symmetric(vertical: 0);
-      case DevicePlatform.web:
-        return const EdgeInsets.symmetric(vertical: 20);
-      case DevicePlatform.device:
-        throw Exception(
+      return switch (platform) {
+        .android ||
+        .linux ||
+        .iOS ||
+        .macOS ||
+        .windows => .symmetric(horizontal: padding),
+        .web => .symmetric(vertical: 20, horizontal: padding),
+        .device => throw Exception(
           'You can\'t use the DevicePlatform.device in this context. '
           'Incorrect platform: SettingsList.calculateDefaultPadding',
-        );
+        ),
+      };
+    } else {
+      return switch (platform) {
+        .android ||
+        .linux ||
+        .iOS ||
+        .macOS ||
+        .windows => const .symmetric(vertical: 0),
+        .web => const .symmetric(vertical: 20),
+        .device => throw Exception(
+          'You can\'t use the DevicePlatform.device in this context. '
+          'Incorrect platform: SettingsList.calculateDefaultPadding',
+        ),
+      };
     }
   }
 
   Brightness calculateBrightness(BuildContext context) {
     final materialBrightness = Theme.of(context).brightness;
-    final cupertinoBrightness = CupertinoTheme.of(context).brightness ??
+    final cupertinoBrightness =
+        CupertinoTheme.of(context).brightness ??
         MediaQuery.of(context).platformBrightness;
 
-    switch (applicationType) {
-      case ApplicationType.material:
-        return materialBrightness;
-      case ApplicationType.cupertino:
-        return cupertinoBrightness;
-      case ApplicationType.both:
-        return platform != DevicePlatform.iOS
-            ? materialBrightness
-            : cupertinoBrightness;
-    }
+    return switch (applicationType) {
+      .material => materialBrightness,
+      .cupertino => cupertinoBrightness,
+      .both => platform != .iOS ? materialBrightness : cupertinoBrightness,
+    };
   }
 }

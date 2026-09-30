@@ -15,39 +15,35 @@ class WebSettingsSection extends StatelessWidget {
   final Widget? title;
   final EdgeInsetsGeometry? titlePadding;
 
-  @override
-  Widget build(BuildContext context) {
-    return buildSectionBody(context);
-  }
-
   Widget buildSectionBody(BuildContext context) {
     final theme = SettingsTheme.of(context);
     final textScaler = MediaQuery.textScalerOf(context);
 
     return Padding(
-      padding: margin ?? EdgeInsets.zero,
+      padding: margin ?? .zero,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: .start,
         children: [
           if (title != null)
             Container(
               height: textScaler.scale(65),
-              padding: titlePadding ??
-                  EdgeInsetsDirectional.only(
+              padding:
+                  titlePadding ??
+                  .only(
                     bottom: textScaler.scale(5),
-                    start: 6,
+                    left: 6,
                     top: textScaler.scale(40),
                   ),
               child: DefaultTextStyle(
-                style: (theme.themeData.titleTextStyle ??
-                        const TextStyle(fontSize: 15))
-                    .copyWith(color: theme.themeData.titleTextColor),
+                style:
+                    (theme.themeData.titleTextStyle ??
+                            const TextStyle(fontSize: 15))
+                        .copyWith(color: theme.themeData.titleTextColor),
                 child: title!,
               ),
             ),
           Card(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape: RoundedRectangleBorder(borderRadius: .circular(10)),
             elevation: 4,
             color: theme.themeData.settingsSectionBackground,
             child: buildTileList(),
@@ -57,21 +53,15 @@ class WebSettingsSection extends StatelessWidget {
     );
   }
 
-  Widget buildTileList() {
-    return ListView.separated(
-      shrinkWrap: true,
-      itemCount: tiles.length,
-      padding: EdgeInsets.zero,
-      physics: const NeverScrollableScrollPhysics(),
-      itemBuilder: (BuildContext context, int index) {
-        return tiles[index];
-      },
-      separatorBuilder: (BuildContext context, int index) {
-        return const Divider(
-          height: 0,
-          thickness: 1,
-        );
-      },
-    );
-  }
+  Widget buildTileList() => ListView.separated(
+    shrinkWrap: true,
+    itemCount: tiles.length,
+    padding: .zero,
+    physics: const NeverScrollableScrollPhysics(),
+    itemBuilder: (_, index) => tiles[index],
+    separatorBuilder: (_, _) => const Divider(height: 0, thickness: 1),
+  );
+
+  @override
+  Widget build(BuildContext context) => buildSectionBody(context);
 }
