@@ -13,15 +13,9 @@ class _AndroidNativeSettingsScreenState
     extends State<AndroidNativeSettingsScreen> {
   @override
   Widget build(BuildContext context) {
-    // Colors from the theme, so the header matches the list in dark mode.
-    final colors = Theme.of(context).colorScheme;
     return Scaffold(
-      // The Android style's page color, so the header and the list match.
-      backgroundColor: colors.surfaceContainer,
-      appBar: AppBar(
-        title: Text('Settings'),
-        backgroundColor: colors.surfaceContainer,
-      ),
+      backgroundColor: Color.fromRGBO(240, 240, 240, 1),
+      appBar: AppBar(title: Text('Settings')),
       body: ListView(
         shrinkWrap: false,
         children: [
@@ -29,7 +23,11 @@ class _AndroidNativeSettingsScreenState
             alignment: Alignment.centerRight,
             child: Padding(
               padding: const EdgeInsets.only(top: 24.0, right: 24),
-              child: Icon(Icons.person_pin, size: 40, color: colors.primary),
+              child: Icon(
+                Icons.person_pin,
+                size: 40,
+                color: Colors.blue.shade900,
+              ),
             ),
           ),
           Padding(
@@ -39,7 +37,7 @@ class _AndroidNativeSettingsScreenState
               style: TextStyle(
                 fontSize: 30,
                 fontWeight: FontWeight.w400,
-                color: colors.onSurface,
+                color: Colors.black,
               ),
             ),
           ),
@@ -47,22 +45,26 @@ class _AndroidNativeSettingsScreenState
             padding: EdgeInsets.symmetric(horizontal: 24),
             child: TextField(
               autofocus: false,
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w400,
+              ),
               decoration: InputDecoration(
-                prefixIcon: Icon(Icons.search, color: colors.onSurfaceVariant),
+                prefixIcon: Icon(
+                  Icons.search,
+                  color: Colors.black,
+                ),
                 filled: true,
-                fillColor: colors.surfaceContainerHighest,
+                fillColor: Colors.white,
                 hintText: 'Search Settings',
                 contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 14.0,
-                  vertical: 13.0,
-                ),
+                    horizontal: 14.0, vertical: 13.0),
                 focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: colors.primary),
+                  borderSide: BorderSide(color: Colors.white),
                   borderRadius: BorderRadius.circular(25.7),
                 ),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide.none,
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white),
                   borderRadius: BorderRadius.circular(25.7),
                 ),
               ),

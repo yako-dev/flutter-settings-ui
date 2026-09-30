@@ -7,4 +7,3 @@ analyzer:
     - web/**
     - windows/**
     - linux/**
-    - macos/**

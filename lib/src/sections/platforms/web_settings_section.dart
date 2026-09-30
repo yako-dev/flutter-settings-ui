@@ -1,8 +1,5 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/settings_ui.dart';
-import 'package:settings_ui/src/split/split_scopes.dart';
-import 'package:settings_ui/src/tiles/tile_semantics.dart';
-import 'package:settings_ui/src/utils/theme_provider.dart';
 
 class WebSettingsSection extends StatelessWidget {
   const WebSettingsSection({
@@ -20,55 +17,12 @@ class WebSettingsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ThemeProvider.withListColorScheme(
-      context,
-      buildSectionBody(context),
-    );
+    return buildSectionBody(context);
   }
 
   Widget buildSectionBody(BuildContext context) {
     final theme = SettingsTheme.of(context);
     final textScaler = MediaQuery.textScalerOf(context);
-
-    // The list pane of a split view is Chrome's menu: no cards.
-    if (SettingsSplitListScope.maybeOf(context)?.isSplit ?? false) {
-      return Padding(
-        padding: margin ?? EdgeInsets.zero,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (title != null)
-              Padding(
-                padding:
-                    titlePadding ??
-                    EdgeInsetsDirectional.only(
-                      start: 24,
-                      end: 16,
-                      top: textScaler.scale(8),
-                      bottom: textScaler.scale(4),
-                    ),
-                child: Semantics(
-                  container: true,
-                  header: true,
-                  child: DefaultTextStyle(
-                    style:
-                        (theme.themeData.titleTextStyle ??
-                                const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w500,
-                                ))
-                            .copyWith(
-                              color: theme.themeData.tileDescriptionTextColor,
-                            ),
-                    child: title!,
-                  ),
-                ),
-              ),
-            for (final tile in tiles) tileSemanticsNode(tile),
-          ],
-        ),
-      );
-    }
 
     return Padding(
       padding: margin ?? EdgeInsets.zero,
@@ -76,38 +30,25 @@ class WebSettingsSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (title != null)
-            Padding(
-              padding:
-                  titlePadding ??
+            Container(
+              height: textScaler.scale(65),
+              padding: titlePadding ??
                   EdgeInsetsDirectional.only(
-                    top: textScaler.scale(24),
-                    bottom: textScaler.scale(12),
+                    bottom: textScaler.scale(5),
+                    start: 6,
+                    top: textScaler.scale(40),
                   ),
-              child: Semantics(
-                container: true,
-                header: true,
-                child: DefaultTextStyle(
-                  style:
-                      (theme.themeData.titleTextStyle ??
-                              const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                              ))
-                          .copyWith(color: theme.themeData.titleTextColor),
-                  child: title!,
-                ),
+              child: DefaultTextStyle(
+                style: (theme.themeData.titleTextStyle ??
+                        const TextStyle(fontSize: 15))
+                    .copyWith(color: theme.themeData.titleTextColor),
+                child: title!,
               ),
-            )
-          else
-            // Card no longer has a margin, so keep untitled sections apart.
-            SizedBox(height: textScaler.scale(8)),
-          Card(
-            // No margin, so the card's left edge lines up with the title.
-            margin: EdgeInsets.zero,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
             ),
-            elevation: 2,
+          Card(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            elevation: 4,
             color: theme.themeData.settingsSectionBackground,
             child: buildTileList(),
           ),
@@ -126,10 +67,9 @@ class WebSettingsSection extends StatelessWidget {
         return tiles[index];
       },
       separatorBuilder: (BuildContext context, int index) {
-        return Divider(
+        return const Divider(
           height: 0,
           thickness: 1,
-          color: SettingsTheme.of(context).themeData.dividerColor,
         );
       },
     );

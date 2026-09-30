@@ -1,11 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 
-/// The style of a `SettingsList`, named after the platform whose settings
-/// app it follows.
-///
-/// [device] (auto-detect) is only valid as the `platform` of a `SettingsList`
-/// or `SettingsSplitView`.
 enum DevicePlatform {
   /// Android: <https://www.android.com/>
   android,
@@ -32,11 +27,7 @@ enum DevicePlatform {
   device,
 }
 
-/// Detects the style of a `SettingsList` whose platform is not set.
 class PlatformUtils {
-  /// Returns [DevicePlatform.web] in a browser, otherwise the style for
-  /// `Theme.of(context).platform`. Platforms that only exist in forks of
-  /// Flutter (such as OpenHarmony) get [DevicePlatform.iOS].
   static DevicePlatform detectPlatform(BuildContext context) {
     if (kIsWeb) return DevicePlatform.web;
 
@@ -55,11 +46,6 @@ class PlatformUtils {
         return DevicePlatform.macOS;
       case TargetPlatform.windows:
         return DevicePlatform.windows;
-      // Forks of Flutter can add platforms, e.g. TargetPlatform.ohos on
-      // OpenHarmony, which would not compile without a default (#205).
-      // ignore: unreachable_switch_default
-      default:
-        return DevicePlatform.iOS;
     }
   }
 }

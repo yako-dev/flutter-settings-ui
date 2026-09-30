@@ -51,7 +51,10 @@ class _IosNativeSettingsScreenState extends State<IosNativeSettingsScreen> {
                   ),
                   titleDescription: Text(
                     'Set up iCloud, the App Store, and more.',
-                    style: TextStyle(color: Colors.grey, fontSize: 12),
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 12,
+                    ),
                   ),
                 ),
               ],
@@ -67,7 +70,7 @@ class _IosNativeSettingsScreenState extends State<IosNativeSettingsScreen> {
                     iconData: CupertinoIcons.hourglass,
                   ),
                   title: Text('Screen time'),
-                ),
+                )
               ],
             ),
 
@@ -109,7 +112,7 @@ class _IosNativeSettingsScreenState extends State<IosNativeSettingsScreen> {
                     iconData: Icons.key,
                   ),
                   title: Text('Passwords'),
-                ),
+                )
               ],
             ),
             SettingsSection(
@@ -129,7 +132,7 @@ class _IosNativeSettingsScreenState extends State<IosNativeSettingsScreen> {
                     iconData: CupertinoIcons.paperplane,
                   ),
                   title: Text('Maps'),
-                ),
+                )
               ],
             ),
           ],

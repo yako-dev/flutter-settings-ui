@@ -12,19 +12,14 @@ class AndroidNotificationsScreen extends StatefulWidget {
 class _AndroidNotificationsScreenState
     extends State<AndroidNotificationsScreen> {
   bool useNotificationDotOnAppIcon = true;
-
-  /// The other switches' values, by title, so that they toggle.
-  final _switches = <String, bool>{
-    'Hide silent notifications in status bar': false,
-    'Allow notification snoozing': false,
-    'Enable notifications': false,
-  };
   final ScrollController settingsListController = ScrollController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Notifications')),
+      appBar: AppBar(
+        title: Text('Notifications'),
+      ),
       body: SettingsList(
         scrollController: settingsListController,
         platform: DevicePlatform.android,
@@ -86,21 +81,17 @@ class _AndroidNotificationsScreenState
                 title: Text('Do Not Disturb'),
                 description: Text('Off / 1 schedule can turn on automatically'),
               ),
-              SettingsTile(title: Text('Wireless emergency alerts')),
+              SettingsTile(
+                title: Text('Wireless emergency alerts'),
+              ),
               SettingsTile.switchTile(
-                initialValue:
-                    _switches['Hide silent notifications in status bar']!,
-                onToggle: (value) => setState(
-                  () => _switches['Hide silent notifications in status bar'] =
-                      value,
-                ),
+                initialValue: false,
+                onToggle: (_) {},
                 title: Text('Hide silent notifications in status bar'),
               ),
               SettingsTile.switchTile(
-                initialValue: _switches['Allow notification snoozing']!,
-                onToggle: (value) => setState(
-                  () => _switches['Allow notification snoozing'] = value,
-                ),
+                initialValue: false,
+                onToggle: (_) {},
                 title: Text('Allow notification snoozing'),
               ),
               SettingsTile.switchTile(
@@ -113,9 +104,8 @@ class _AndroidNotificationsScreenState
                 title: Text('Notification dot on app icon'),
               ),
               SettingsTile.switchTile(
-                initialValue: _switches['Enable notifications']!,
-                onToggle: (value) =>
-                    setState(() => _switches['Enable notifications'] = value),
+                initialValue: false,
+                onToggle: (_) {},
                 title: Text('Enable notifications'),
                 description: Text('Get suggested actions, replies and more'),
               ),

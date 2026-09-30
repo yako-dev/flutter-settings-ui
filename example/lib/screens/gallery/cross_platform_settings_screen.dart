@@ -1,4 +1,3 @@
-import 'package:example/utils/launch_options.dart';
 import 'package:example/utils/navigation.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/settings_ui.dart';
@@ -15,14 +14,6 @@ class _CrossPlatformSettingsScreenState
     extends State<CrossPlatformSettingsScreen> {
   bool useCustomTheme = false;
 
-  /// The other switches' values, by title, so that they toggle.
-  final _switches = <String, bool>{
-    'Lock app in background': true,
-    'Use fingerprint': true,
-    'Change password': true,
-    'Enable notifications': true,
-  };
-
   final platformsMap = <DevicePlatform, String>{
     DevicePlatform.device: 'Default',
     DevicePlatform.android: 'Android',
@@ -33,13 +24,14 @@ class _CrossPlatformSettingsScreenState
     DevicePlatform.macOS: 'MacOS',
     DevicePlatform.windows: 'Windows',
   };
-  DevicePlatform selectedPlatform =
-      LaunchOptions.platform ?? DevicePlatform.device;
+  DevicePlatform selectedPlatform = DevicePlatform.device;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Settings')),
+      appBar: AppBar(
+        title: Text('Settings'),
+      ),
       body: SettingsList(
         platform: selectedPlatform,
         lightTheme: !useCustomTheme
@@ -118,15 +110,13 @@ class _CrossPlatformSettingsScreenState
           SettingsSection(
             title: Text('Account'),
             tiles: <SettingsTile>[
-              SettingsTile(
+              SettingsTile.navigation(
                 leading: Icon(Icons.phone),
                 title: Text('Phone number'),
-                value: Text('+1 123 456 789'),
               ),
               SettingsTile.navigation(
                 leading: Icon(Icons.mail),
                 title: Text('Email'),
-                value: Text('user@example.com'),
                 enabled: false,
               ),
               SettingsTile.navigation(
@@ -139,16 +129,14 @@ class _CrossPlatformSettingsScreenState
             title: Text('Security'),
             tiles: <SettingsTile>[
               SettingsTile.switchTile(
-                onToggle: (value) =>
-                    setState(() => _switches['Lock app in background'] = value),
-                initialValue: _switches['Lock app in background']!,
+                onToggle: (_) {},
+                initialValue: true,
                 leading: Icon(Icons.phonelink_lock),
                 title: Text('Lock app in background'),
               ),
               SettingsTile.switchTile(
-                onToggle: (value) =>
-                    setState(() => _switches['Use fingerprint'] = value),
-                initialValue: _switches['Use fingerprint']!,
+                onToggle: (_) {},
+                initialValue: true,
                 leading: Icon(Icons.fingerprint),
                 title: Text('Use fingerprint'),
                 description: Text(
@@ -156,16 +144,14 @@ class _CrossPlatformSettingsScreenState
                 ),
               ),
               SettingsTile.switchTile(
-                onToggle: (value) =>
-                    setState(() => _switches['Change password'] = value),
-                initialValue: _switches['Change password']!,
+                onToggle: (_) {},
+                initialValue: true,
                 leading: Icon(Icons.lock),
                 title: Text('Change password'),
               ),
               SettingsTile.switchTile(
-                onToggle: (value) =>
-                    setState(() => _switches['Enable notifications'] = value),
-                initialValue: _switches['Enable notifications']!,
+                onToggle: (_) {},
+                initialValue: true,
                 leading: Icon(Icons.notifications_active),
                 title: Text('Enable notifications'),
               ),

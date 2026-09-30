@@ -1,3 +1,4 @@
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:settings_ui/settings_ui.dart';
@@ -18,7 +19,10 @@ void settingsTileOnTapTests(DevicePlatform platform) {
               onPressed: (context) {
                 isPressed = true;
               },
-              trailing: const Icon(Icons.ac_unit, size: 24),
+              trailing: const Icon(
+                Icons.ac_unit,
+                size: 24,
+              ),
             ),
           ],
         ),
@@ -48,14 +52,10 @@ void settingsTileOnTapTests(DevicePlatform platform) {
         ),
       ),
     );
-    if (platform == DevicePlatform.iOS) {
-      await tester.tap(find.byType(CupertinoSettingsSwitch));
-    } else if (platform == DevicePlatform.macOS) {
-      await tester.tap(find.byType(MacosSettingsSwitch));
-    } else if (platform == DevicePlatform.linux) {
-      await tester.tap(find.byType(AdwaitaSettingsSwitch));
-    } else if (platform == DevicePlatform.windows) {
-      await tester.tap(find.byType(FluentSettingsSwitch));
+    if (platform == DevicePlatform.iOS ||
+        platform == DevicePlatform.macOS ||
+        platform == DevicePlatform.windows) {
+      await tester.tap(find.byType(CupertinoSwitch));
     } else {
       await tester.tap(find.byType(Switch));
     }

@@ -1,12 +1,5 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/settings_ui.dart';
-import 'package:settings_ui/src/utils/theme_provider.dart';
-
-/// Pixel settings switches show a check when on and a cross when off.
-final _thumbIcon = WidgetStateProperty.resolveWith<Icon>(
-  (states) =>
-      Icon(states.contains(WidgetState.selected) ? Icons.check : Icons.close),
-);
 
 class AndroidSettingsTile extends StatelessWidget {
   const AndroidSettingsTile({
@@ -26,8 +19,6 @@ class AndroidSettingsTile extends StatelessWidget {
     this.leadingPadding,
     this.trailingPadding,
     this.descriptionPadding,
-    this.selected = false,
-    this.semanticsSelected,
     super.key,
   });
 
@@ -48,56 +39,19 @@ class AndroidSettingsTile extends StatelessWidget {
   final EdgeInsetsGeometry? trailingPadding;
   final EdgeInsetsGeometry? descriptionPadding;
 
-  /// Drawn as the selected item of a split view's list pane.
-  final bool selected;
-
-  /// Whether assistive technologies hear the tile as selected: null for
-  /// tiles that don't open a page in a split view's list pane.
-  final bool? semanticsSelected;
-
   @override
-  Widget build(BuildContext context) =>
-      ThemeProvider.withListColorScheme(context, Builder(builder: _buildTile));
-
-  Widget _buildTile(BuildContext context) {
+  Widget build(BuildContext context) {
     final theme = SettingsTheme.of(context);
     final textScaler = MediaQuery.textScalerOf(context);
-    final themeData = theme.themeData;
 
-    // AOSP two-pane Settings fills the selected homepage card with the
-    // detail pane's color, so it looks joined to it.
-    final titleColor = !enabled
-        ? themeData.inactiveTitleColor
-        : selected
-        ? (themeData.selectedTileTextColor ?? themeData.settingsTileTextColor)
-        : themeData.settingsTileTextColor;
-    final subtitleColor = !enabled
-        ? themeData.inactiveSubtitleColor
-        : selected
-        ? (themeData.selectedTileTextColor?.withValues(alpha: 0.78) ??
-              themeData.tileDescriptionTextColor)
-        : themeData.tileDescriptionTextColor;
-    final iconColor = !enabled
-        ? themeData.inactiveTitleColor
-        : selected
-        ? (themeData.selectedTileIconColor ?? themeData.leadingIconsColor)
-        : themeData.leadingIconsColor;
+    final cantShowAnimation = tileType == SettingsTileType.switchTile
+        ? onToggle == null && onPressed == null
+        : onPressed == null;
 
-    // A disabled tile takes no focus, keys or taps (the IgnorePointer below
-    // only blocks new pointers).
-    final cantShowAnimation =
-        !enabled ||
-        (tileType == SettingsTileType.switchTile
-            ? onToggle == null && onPressed == null
-            : onPressed == null);
-    final onChanged = enabled ? onToggle : null;
-
-    final tile = IgnorePointer(
+    return IgnorePointer(
       ignoring: !enabled,
       child: Material(
-        color: selected
-            ? (themeData.selectedTileColor ?? Colors.transparent)
-            : Colors.transparent,
+        color: Colors.transparent,
         child: InkWell(
           onTap: cantShowAnimation
               ? null
@@ -113,59 +67,67 @@ class AndroidSettingsTile extends StatelessWidget {
             children: [
               if (leading != null)
                 Padding(
-                  padding:
-                      leadingPadding ??
-                      const EdgeInsetsDirectional.only(start: 16),
+                  padding: leadingPadding ??
+                      const EdgeInsetsDirectional.only(start: 24),
                   child: IconTheme(
-                    data: IconTheme.of(context).copyWith(color: iconColor),
+                    data: IconTheme.of(context).copyWith(
+                      color: enabled
+                          ? theme.themeData.leadingIconsColor
+                          : theme.themeData.inactiveTitleColor,
+                    ),
                     child: leading!,
                   ),
                 ),
               Expanded(
                 child: Padding(
                   padding: EdgeInsetsDirectional.only(
-                    start: 16,
-                    end: 16,
-                    bottom: textScaler.scale(compact ? 6 : 12),
-                    top: textScaler.scale(compact ? 6 : 12),
+                    start: 24,
+                    end: 24,
+                    bottom: textScaler.scale(compact ? 9 : 19),
+                    top: textScaler.scale(compact ? 9 : 19),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Padding(
-                        padding: titlePadding ?? EdgeInsets.zero,
-                        child: DefaultTextStyle(
-                          style:
-                              (theme.themeData.tileTextStyle ??
-                                      const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w400,
-                                      ))
-                                  .copyWith(color: titleColor),
-                          child: title ?? Container(),
+                      DefaultTextStyle(
+                        style: (theme.themeData.tileTextStyle ??
+                                const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w400,
+                                ))
+                            .copyWith(
+                          color: enabled
+                              ? theme.themeData.settingsTileTextColor
+                              : theme.themeData.inactiveTitleColor,
                         ),
+                        child: title ?? Container(),
                       ),
                       if (value != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 4.0),
                           child: DefaultTextStyle(
-                            style:
-                                (theme.themeData.tileDescriptionTextStyle ??
-                                        const TextStyle())
-                                    .copyWith(color: subtitleColor),
+                            style: (theme.themeData.tileDescriptionTextStyle ??
+                                    const TextStyle())
+                                .copyWith(
+                              color: enabled
+                                  ? theme.themeData.tileDescriptionTextColor
+                                  : theme.themeData.inactiveSubtitleColor,
+                            ),
                             child: value!,
                           ),
                         )
                       else if (description != null)
                         Padding(
-                          padding:
-                              descriptionPadding ??
+                          padding: descriptionPadding ??
                               const EdgeInsets.only(top: 4.0),
                           child: DefaultTextStyle(
-                            style:
-                                (theme.themeData.tileDescriptionTextStyle ??
-                                        const TextStyle())
-                                    .copyWith(color: subtitleColor),
+                            style: (theme.themeData.tileDescriptionTextStyle ??
+                                    const TextStyle())
+                                .copyWith(
+                              color: enabled
+                                  ? theme.themeData.tileDescriptionTextColor
+                                  : theme.themeData.inactiveSubtitleColor,
+                            ),
                             child: description!,
                           ),
                         ),
@@ -178,36 +140,32 @@ class AndroidSettingsTile extends StatelessWidget {
                   children: [
                     trailing!,
                     Padding(
-                      padding: const EdgeInsetsDirectional.only(end: 12),
+                      padding: const EdgeInsetsDirectional.only(end: 8),
                       child: Switch(
                         value: initialValue,
-                        onChanged: onChanged,
-                        thumbIcon: _thumbIcon,
+                        onChanged: onToggle,
                         activeThumbColor: enabled
                             ? activeSwitchColor
                             : (theme.themeData.inactiveSwitchColor ??
-                                  theme.themeData.inactiveTitleColor),
+                                theme.themeData.inactiveTitleColor),
                       ),
                     ),
                   ],
                 )
               else if (tileType == SettingsTileType.switchTile)
                 Padding(
-                  padding: const EdgeInsetsDirectional.only(start: 16, end: 12),
+                  padding: const EdgeInsetsDirectional.only(start: 16, end: 8),
                   child: Switch(
                     value: initialValue,
-                    onChanged: onChanged,
-                    thumbIcon: _thumbIcon,
+                    onChanged: onToggle,
                     activeThumbColor: enabled
                         ? activeSwitchColor
-                        : (theme.themeData.inactiveSwitchColor ??
-                              theme.themeData.inactiveTitleColor),
+                        : theme.themeData.inactiveTitleColor,
                   ),
                 )
               else if (trailing != null)
                 Padding(
-                  padding:
-                      trailingPadding ??
+                  padding: trailingPadding ??
                       const EdgeInsets.symmetric(horizontal: 16),
                   child: IconTheme(
                     data: IconTheme.of(context).copyWith(
@@ -217,25 +175,11 @@ class AndroidSettingsTile extends StatelessWidget {
                     ),
                     child: trailing!,
                   ),
-                ),
+                )
             ],
           ),
         ),
       ),
     );
-    // Each tile is one node, or a section's rows would merge into one (a
-    // lone tappable row took the text of all the others). The row and the
-    // switch both toggle, so a switch tile reads as "title, switch, on"; a
-    // tile with onPressed is a button, dimmed when disabled.
-    final isSwitch = tileType == SettingsTileType.switchTile;
-    final isButton = !isSwitch && onPressed != null;
-    final node = Semantics(
-      container: true,
-      button: isButton,
-      enabled: isButton || (!isSwitch && !enabled) ? enabled : null,
-      selected: semanticsSelected,
-      child: tile,
-    );
-    return isSwitch ? MergeSemantics(child: node) : node;
   }
 }

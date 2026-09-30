@@ -11,14 +11,6 @@ class IosDeveloperScreen extends StatefulWidget {
 
 class _IosDeveloperScreenState extends State<IosDeveloperScreen> {
   bool darkTheme = true;
-
-  /// The other switches' values, by title, so that they toggle.
-  final _switches = <String, bool>{
-    'Enable UI Automation': true,
-    'HTTP/3': false,
-    'Fast App Termination': false,
-    'Unlimited Ad Presentation': false,
-  };
   final ScrollController settingsListController = ScrollController();
 
   @override
@@ -33,7 +25,7 @@ class _IosDeveloperScreenState extends State<IosDeveloperScreen> {
           platform: DevicePlatform.iOS,
           sections: [
             SettingsSection(
-              title: Text('Appearance'),
+              title: Text('APPEARANCE'),
               tiles: [
                 SettingsTile.switchTile(
                   onToggle: (value) {
@@ -47,7 +39,7 @@ class _IosDeveloperScreenState extends State<IosDeveloperScreen> {
               ],
             ),
             SettingsSection(
-              title: Text('Display zoom'),
+              title: Text('DISPLAY ZOOM'),
               tiles: [
                 SettingsTile.navigation(
                   onPressed: (_) {
@@ -68,31 +60,32 @@ class _IosDeveloperScreenState extends State<IosDeveloperScreen> {
               ],
             ),
             SettingsSection(
-              title: Text('UI automation'),
+              title: Text('UI AUTOMATION'),
               tiles: [
                 SettingsTile.switchTile(
-                  onToggle: (value) =>
-                      setState(() => _switches['Enable UI Automation'] = value),
-                  initialValue: _switches['Enable UI Automation']!,
+                  onToggle: (_) {},
+                  initialValue: true,
                   title: Text('Enable UI Automation'),
                 ),
-                SettingsTile.navigation(title: Text('Multipath Networking')),
+                SettingsTile.navigation(
+                  title: Text('Multipath Networking'),
+                ),
                 SettingsTile.switchTile(
-                  onToggle: (value) =>
-                      setState(() => _switches['HTTP/3'] = value),
-                  initialValue: _switches['HTTP/3']!,
+                  onToggle: (_) {},
+                  initialValue: false,
                   title: Text('HTTP/3'),
                 ),
               ],
             ),
             SettingsSection(
-              title: Text('State restoration testing'),
+              title: Text('STATE RESTORATION TESTING'),
               tiles: [
                 SettingsTile.switchTile(
-                  onToggle: (value) =>
-                      setState(() => _switches['Fast App Termination'] = value),
-                  initialValue: _switches['Fast App Termination']!,
-                  title: Text('Fast App Termination'),
+                  onToggle: (_) {},
+                  initialValue: false,
+                  title: Text(
+                    'Fast App Termination',
+                  ),
                   description: Text(
                     'Terminate instead of suspending apps when backgrounded to '
                     'force apps to be relaunched when tray '
@@ -102,7 +95,7 @@ class _IosDeveloperScreenState extends State<IosDeveloperScreen> {
               ],
             ),
             SettingsSection(
-              title: Text('iAd developer app testing'),
+              title: Text('IAD DEVELOPER APP TESTING'),
               tiles: [
                 SettingsTile.navigation(
                   title: Text('Downtime'),
@@ -121,12 +114,12 @@ class _IosDeveloperScreenState extends State<IosDeveloperScreen> {
                     ),
                   ),
                 ),
-                SettingsTile.navigation(title: Text('Add Refresh Rate')),
+                SettingsTile.navigation(
+                  title: Text('Add Refresh Rate'),
+                ),
                 SettingsTile.switchTile(
-                  onToggle: (value) => setState(
-                    () => _switches['Unlimited Ad Presentation'] = value,
-                  ),
-                  initialValue: _switches['Unlimited Ad Presentation']!,
+                  onToggle: (_) {},
+                  initialValue: false,
                   title: Text('Unlimited Ad Presentation'),
                 ),
               ],

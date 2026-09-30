@@ -15,9 +15,7 @@ class Material3DemoScreen extends StatefulWidget {
 class _Material3DemoScreenState extends State<Material3DemoScreen> {
   bool _notifications = true;
   bool _locationAccess = false;
-
-  /// Null follows the app's light or dark mode until the switch is used.
-  bool? _darkMode;
+  bool _darkMode = false;
   final String _selectedLanguage = 'English';
 
   static const _seedColors = <String, Color>{
@@ -33,18 +31,16 @@ class _Material3DemoScreenState extends State<Material3DemoScreen> {
   @override
   Widget build(BuildContext context) {
     final seedColor = _seedColors[_selectedSeed]!;
-    final darkMode =
-        _darkMode ?? Theme.of(context).brightness == Brightness.dark;
     final colorScheme = ColorScheme.fromSeed(
       seedColor: seedColor,
-      brightness: darkMode ? Brightness.dark : Brightness.light,
+      brightness: _darkMode ? Brightness.dark : Brightness.light,
     );
 
     return Theme(
       data: ThemeData(
         useMaterial3: true,
         colorScheme: colorScheme,
-        brightness: darkMode ? Brightness.dark : Brightness.light,
+        brightness: _darkMode ? Brightness.dark : Brightness.light,
       ),
       child: Builder(
         builder: (context) => Scaffold(
@@ -53,7 +49,7 @@ class _Material3DemoScreenState extends State<Material3DemoScreen> {
             backgroundColor: colorScheme.surface,
           ),
           body: SettingsList(
-            brightness: darkMode ? Brightness.dark : Brightness.light,
+            brightness: _darkMode ? Brightness.dark : Brightness.light,
             sections: [
               SettingsSection(
                 title: const Text('Seed color'),
@@ -77,7 +73,7 @@ class _Material3DemoScreenState extends State<Material3DemoScreen> {
                 title: const Text('Appearance'),
                 tiles: [
                   SettingsTile.switchTile(
-                    initialValue: darkMode,
+                    initialValue: _darkMode,
                     onToggle: (v) => setState(() => _darkMode = v),
                     leading: const Icon(Icons.dark_mode),
                     title: const Text('Dark mode'),
@@ -131,16 +127,14 @@ class _Material3DemoScreenState extends State<Material3DemoScreen> {
               ),
               CustomSettingsSection(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: Text(
                     'Colors automatically adapt to the selected ColorScheme seed. '
                     'Try switching seeds or toggling dark mode above.',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                   ),
                 ),
               ),
