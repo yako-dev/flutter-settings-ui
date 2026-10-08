@@ -10,6 +10,7 @@ import 'package:settings_ui/src/split/sidebar_keyboard.dart';
 import 'package:settings_ui/src/split/sidebar_row.dart';
 import 'package:settings_ui/src/split/sidebar_section.dart';
 import 'package:settings_ui/src/tiles/platforms/fluent_settings_switch.dart';
+import 'package:settings_ui/src/tiles/tile_press.dart';
 import 'package:settings_ui/src/tiles/tile_semantics.dart';
 import 'package:settings_ui/src/utils/fluent_tokens.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
@@ -183,13 +184,11 @@ class FluentNavigationItem extends SidebarRow {
 }
 
 class _FluentNavigationItemState extends State<FluentNavigationItem>
-    with SingleTickerProviderStateMixin, SidebarRowState<FluentNavigationItem> {
+    with
+        SingleTickerProviderStateMixin,
+        SidebarRowState<FluentNavigationItem>,
+        TilePressTracking {
   bool _hovered = false;
-
-  late final SidebarRowPress _press = SidebarRowPress(
-    this,
-    onChanged: () => setState(() {}),
-  );
 
   /// Slides the pill in when the item becomes selected.
   late final AnimationController _pill;
@@ -263,7 +262,7 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
       if (oldWidget.id != null) _indicator?.unregister(oldWidget.id!, this);
       if (widget.id != null) _indicator?.register(widget.id!, this);
     }
-    if (!widget.enabled) _press.reset();
+    if (!widget.enabled) resetPress();
     if (widget.selected && !oldWidget.selected) {
       // Find the old pill once every item has rebuilt.
       WidgetsBinding.instance.addPostFrameCallback((_) => _slidePillIn());
@@ -315,12 +314,12 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
   }
 
   void _handlePointerDown(PointerDownEvent event) {
-    if (_press.hasPointer) return;
+    if (pressed) return;
     if (event.kind == PointerDeviceKind.mouse &&
         event.buttons != kPrimaryMouseButton) {
       return;
     }
-    _press.start(event);
+    startPress(event);
   }
 
   /// The item's fill, label color and icon color in its current state.
@@ -381,7 +380,7 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
     final (:fill, :foreground, :iconColor) = _colors(
       theme,
       tokens,
-      pressed: clickable && _press.pressed,
+      pressed: clickable && pressed,
       hovered: clickable && _hovered,
     );
 
@@ -536,9 +535,9 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
         },
         child: Listener(
           onPointerDown: clickable ? _handlePointerDown : null,
-          onPointerMove: _press.handlePointerMove,
-          onPointerUp: _press.handlePointerEnd,
-          onPointerCancel: _press.handlePointerEnd,
+          onPointerMove: handlePressMove,
+          onPointerUp: handlePressEnd,
+          onPointerCancel: handlePressEnd,
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             excludeFromSemantics: true,

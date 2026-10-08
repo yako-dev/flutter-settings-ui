@@ -1,7 +1,7 @@
-import 'package:flutter/gestures.dart' show PointerDeviceKind, computeHitSlop;
 import 'package:flutter/widgets.dart';
 import 'package:settings_ui/src/split/sidebar_keyboard.dart';
 import 'package:settings_ui/src/tiles/settings_tile.dart';
+import 'package:settings_ui/src/tiles/tile_press.dart';
 
 /// A row of a desktop sidebar: a tile in the list pane of a macOS, Windows
 /// or GNOME style split view. Each style draws its own. Internal.
@@ -49,14 +49,9 @@ mixin SidebarRowState<T extends SidebarRow> on State<T> {
 
   /// Enter and Space activate the row. For the row's
   /// `FocusableActionDetector`, with [focus]'s node.
-  late final Map<Type, Action<Intent>> actions = <Type, Action<Intent>>{
-    ActivateIntent: CallbackAction<ActivateIntent>(
-      onInvoke: (_) => activateRow(),
-    ),
-    ButtonActivateIntent: CallbackAction<ButtonActivateIntent>(
-      onInvoke: (_) => activateRow(),
-    ),
-  };
+  late final Map<Type, Action<Intent>> actions = tileActivateActions(
+    activateRow,
+  );
 
   /// Names the row's focus node.
   String get debugLabel;
@@ -128,71 +123,5 @@ mixin SidebarRowState<T extends SidebarRow> on State<T> {
   void dispose() {
     focus.dispose();
     super.dispose();
-  }
-}
-
-/// The pressed state of a sidebar row, from raw pointer events: it starts as
-/// soon as a pointer goes down, and ends when the pointer goes up, leaves
-/// the row or starts to scroll the sidebar. Internal.
-///
-/// The row decides which pointers press it and calls [start]; a `Listener`
-/// around the row sends the pointer's later events here.
-class SidebarRowPress {
-  SidebarRowPress(this._row, {required this.onChanged});
-
-  final State _row;
-
-  /// Rebuilds the row.
-  final VoidCallback onChanged;
-
-  bool get pressed => _pressed;
-  bool _pressed = false;
-
-  /// The pointer that pressed the row, while it is down.
-  int? _pointer;
-  Offset _origin = Offset.zero;
-
-  /// Whether a pointer is pressing the row.
-  bool get hasPointer => _pointer != null;
-
-  /// [event] presses the row.
-  void start(PointerDownEvent event) {
-    _pointer = event.pointer;
-    _origin = event.position;
-    _setPressed(true);
-  }
-
-  void handlePointerMove(PointerMoveEvent event) {
-    if (event.pointer != _pointer) return;
-    final box = _row.context.findRenderObject()! as RenderBox;
-    final inside = box.size.contains(box.globalToLocal(event.position));
-    // A finger that moves past the slop is scrolling the sidebar, which
-    // takes the gesture (GTK drops `:active` then too). A mouse stays
-    // pressed until it leaves the row.
-    final scrolling =
-        event.kind != PointerDeviceKind.mouse &&
-        (event.position - _origin).distance > computeHitSlop(event.kind, null);
-    if (!inside || scrolling) release();
-  }
-
-  void handlePointerEnd(PointerEvent event) {
-    if (event.pointer == _pointer) release();
-  }
-
-  void release() {
-    _pointer = null;
-    _setPressed(false);
-  }
-
-  /// Forgets the press without [onChanged], for a row that is rebuilding.
-  void reset() {
-    _pointer = null;
-    _pressed = false;
-  }
-
-  void _setPressed(bool value) {
-    if (_pressed == value) return;
-    _pressed = value;
-    onChanged();
   }
 }

@@ -1,8 +1,8 @@
 import 'package:flutter/gestures.dart' show PointerDeviceKind, computeHitSlop;
 import 'package:flutter/widgets.dart';
 
-/// The actions of a row that the keyboard activates: Space or Enter on the
-/// focused row calls [activate]. Internal.
+/// The actions of a row or a switch that the keyboard activates: Space or
+/// Enter on the focused one calls [activate]. Internal.
 Map<Type, Action<Intent>> tileActivateActions(
   VoidCallback activate,
 ) => <Type, Action<Intent>>{
@@ -12,10 +12,12 @@ Map<Type, Action<Intent>> tileActivateActions(
   ),
 };
 
-/// Tracks the pointer that presses a tile, for the styles that show the
-/// pressed state as soon as a pointer goes down (GTK's `:active`, WinUI's
-/// `Pressed`). The tile wires the handlers to a [Listener] and calls
-/// [startPress] for the pointers it accepts. Internal.
+/// Tracks the pointer that presses a tile or a sidebar row, for the styles
+/// that show the pressed state as soon as a pointer goes down (GTK's
+/// `:active`, WinUI's `Pressed`). The press ends when the pointer goes up,
+/// leaves the row or starts to scroll the list. The row wires the handlers
+/// to a [Listener] and calls [startPress] for the pointers it accepts.
+/// Internal.
 mixin TilePressTracking<T extends StatefulWidget> on State<T> {
   /// Whether a pointer is pressing the tile.
   bool pressed = false;

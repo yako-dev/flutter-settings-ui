@@ -1,5 +1,6 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/foundation.dart';
+import 'package:settings_ui/src/tiles/tile_press.dart';
 
 // What the four painted switches (`CupertinoSettingsSwitch`,
 // `MacosSettingsSwitch`, `FluentSettingsSwitch` and `AdwaitaSettingsSwitch`)
@@ -42,14 +43,9 @@ Brightness switchBrightnessOf(BuildContext context) =>
 /// highlight, remembers where a drag went down, and builds the semantics,
 /// focus and gesture widgets around the painter ([buildSwitch]).
 abstract class SettingsSwitchState<T extends StatefulWidget> extends State<T> {
-  late final Map<Type, Action<Intent>> _actions = <Type, Action<Intent>>{
-    ActivateIntent: CallbackAction<ActivateIntent>(
-      onInvoke: (_) => handleTap(),
-    ),
-    ButtonActivateIntent: CallbackAction<ButtonActivateIntent>(
-      onInvoke: (_) => handleTap(),
-    ),
-  };
+  late final Map<Type, Action<Intent>> _actions = tileActivateActions(
+    handleTap,
+  );
 
   /// The platform asks for less motion, so values jump instead of animating.
   bool reduceMotion = false;

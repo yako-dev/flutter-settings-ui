@@ -6,6 +6,7 @@ import 'package:settings_ui/src/split/sidebar_row.dart';
 import 'package:settings_ui/src/split/sidebar_section.dart';
 import 'package:settings_ui/src/tiles/platforms/adwaita_settings_switch.dart';
 import 'package:settings_ui/src/tiles/platforms/adwaita_settings_tile.dart';
+import 'package:settings_ui/src/tiles/tile_press.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 
 // GNOME Settings 51 (libadwaita 1.10 `AdwNavigationSplitView` with a
@@ -119,10 +120,8 @@ class AdwaitaSidebarRow extends SidebarRow {
 }
 
 class _AdwaitaSidebarRowState extends State<AdwaitaSidebarRow>
-    with SidebarRowState<AdwaitaSidebarRow> {
+    with SidebarRowState<AdwaitaSidebarRow>, TilePressTracking {
   bool _hovered = false;
-
-  late final SidebarRowPress _press = SidebarRowPress(this, onChanged: rebuild);
 
   @override
   String get debugLabel => 'AdwaitaSidebarRow';
@@ -143,14 +142,14 @@ class _AdwaitaSidebarRowState extends State<AdwaitaSidebarRow>
 
   void _handlePointerDown(PointerDownEvent event) {
     // GTK shows `:active` as soon as the button goes down.
-    if (event.buttons == kPrimaryButton) _press.start(event);
+    if (event.buttons == kPrimaryButton) startPress(event);
   }
 
   @override
   void didUpdateWidget(AdwaitaSidebarRow oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (!_activatable) {
-      _press.reset();
+      resetPress();
       _hovered = false;
     }
   }
@@ -163,7 +162,7 @@ class _AdwaitaSidebarRowState extends State<AdwaitaSidebarRow>
     final isDark = adwaitaIsDark(theme);
     final enabled = widget.enabled;
     final selected = widget.selected;
-    final pressed = _activatable && _press.pressed;
+    final pressed = _activatable && this.pressed;
     final hovered = _activatable && _hovered;
 
     final Color background;
@@ -274,14 +273,14 @@ class _AdwaitaSidebarRowState extends State<AdwaitaSidebarRow>
                 },
                 child: Listener(
                   onPointerDown: _activatable ? _handlePointerDown : null,
-                  onPointerMove: _press.handlePointerMove,
-                  onPointerUp: _press.handlePointerEnd,
-                  onPointerCancel: _press.handlePointerEnd,
+                  onPointerMove: handlePressMove,
+                  onPointerUp: handlePressEnd,
+                  onPointerCancel: handlePressEnd,
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     excludeFromSemantics: true,
                     onTap: _activatable ? handleTap : null,
-                    onTapCancel: _press.release,
+                    onTapCancel: releasePress,
                     child: box,
                   ),
                 ),
