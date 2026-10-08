@@ -51,8 +51,14 @@ class SettingsTileData {
 
   bool get isNavigation => tileType == SettingsTileType.navigationTile;
 
-  /// A row with [onPressed] and a switch has two actions, so the switch is a
-  /// semantics node of its own. It gets the title as its label.
-  Widget labelSwitchIfSeparate(Widget child) =>
-      onPressed == null ? child : labelTileSwitch(title: title, child: child);
+  /// The switch ([child]) of a row with an action of its own ([onPressed] on
+  /// iOS, macOS and Windows, in lists and in sidebars): the row and the
+  /// switch are then separate semantics nodes, and the switch would read as
+  /// just "switch, on". It becomes one node that says what it switches: the
+  /// title (see [tileTitleLabel]), then the switch state.
+  Widget labelSwitchIfSeparate(Widget child) => onPressed == null
+      ? child
+      : MergeSemantics(
+          child: Semantics(label: tileTitleLabel(title), child: child),
+        );
 }
