@@ -270,7 +270,11 @@ class _MacosSidebarItemState extends State<MacosSidebarItem>
                   MacosSettingsSwitch(
                     value: tile.initialValue,
                     onChanged: enabled ? tile.onToggle : null,
-                    activeTrackColor: tile.activeSwitchColor,
+                    // As in a list: inactiveSwitchColor replaces the color
+                    // of a disabled switch.
+                    activeTrackColor: enabled
+                        ? tile.activeSwitchColor
+                        : (theme.inactiveSwitchColor ?? tile.activeSwitchColor),
                   ),
                 ),
               ),

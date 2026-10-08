@@ -620,4 +620,97 @@ void splitFixTests() {
       });
     }
   });
+
+  group('sidebar: a disabled switch takes inactiveSwitchColor', () {
+    const inactive = Color(0xFF8E24AA);
+    const active = Color(0xFF00897B);
+
+    List<AbstractSettingsTile> tiles() => [
+      _page('Network'),
+      SettingsTile.switchTile(
+        title: const Text('Off limits'),
+        enabled: false,
+        initialValue: true,
+        activeSwitchColor: active,
+        onToggle: (_) {},
+      ),
+      SettingsTile.switchTile(
+        title: const Text('Wi-Fi'),
+        initialValue: true,
+        activeSwitchColor: active,
+        onToggle: (_) {},
+      ),
+    ];
+
+    /// The track color the switch of the row [title] is given.
+    Color? trackColorOf(WidgetTester tester, String title) {
+      final toggle = tester.widget(
+        find.descendant(
+          of: find.ancestor(
+            of: find.text(title),
+            matching: find.byType(SettingsTile),
+          ),
+          matching: find.byWidgetPredicate(
+            (widget) =>
+                widget is MacosSettingsSwitch ||
+                widget is AdwaitaSettingsSwitch,
+          ),
+        ),
+      );
+      return switch (toggle) {
+        MacosSettingsSwitch() => toggle.activeTrackColor,
+        AdwaitaSettingsSwitch() => toggle.activeTrackColor,
+        _ => null,
+      };
+    }
+
+    for (final platform in [DevicePlatform.macOS, DevicePlatform.linux]) {
+      for (final themed in [true, false]) {
+        final what = themed ? 'with the theme color' : 'without one';
+        testWidgets('$platform, $what: like in a list', (tester) async {
+          const theme = SettingsThemeData(inactiveSwitchColor: inactive);
+          await _setSize(tester, const Size(1280, 800));
+
+          // What the switches of a list are given.
+          await tester.pumpWidget(
+            _app(
+              Scaffold(
+                body: SettingsList(
+                  platform: platform,
+                  lightTheme: themed ? theme : null,
+                  sections: [SettingsSection(tiles: tiles())],
+                ),
+              ),
+              platform: _targetOf(platform),
+            ),
+          );
+          final inList = {
+            for (final title in ['Off limits', 'Wi-Fi'])
+              title: trackColorOf(tester, title),
+          };
+          expect(inList, {
+            'Off limits': themed ? inactive : active,
+            'Wi-Fi': active,
+          });
+
+          await tester.pumpWidget(
+            _app(
+              SettingsSplitView(
+                platform: platform,
+                lightTheme: themed ? theme : null,
+                sections: [SettingsSection(tiles: tiles())],
+              ),
+              platform: _targetOf(platform),
+            ),
+          );
+          await tester.pumpAndSettle();
+          expect(_inList(find.text('Off limits')), findsOneWidget);
+          expect({
+            for (final title in ['Off limits', 'Wi-Fi'])
+              title: trackColorOf(tester, title),
+          }, inList);
+        });
+      }
+    }
+  });
 }
