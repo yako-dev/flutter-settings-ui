@@ -1,4 +1,4 @@
-## [Unreleased]
+## [4.0.2] - [October 8, 2026]
 
 ### Internal
 * Reorganized `lib/` so the styles share more code: the four switches, the tiles, the desktop sidebars and the split view. The public API, the look and the behavior are unchanged.
