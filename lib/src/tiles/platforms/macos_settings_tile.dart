@@ -60,6 +60,10 @@ const double _kChevronOpacityDark = 0.247 / 0.549;
 const Color _kFocusLight = Color(0x800067F4);
 const Color _kFocusDark = Color(0x801AA9FF);
 
+/// The color of the keyboard focus ring of a row or a toolbar button.
+Color macosFocusColor({required bool isDark}) =>
+    isDark ? _kFocusDark : _kFocusLight;
+
 /// Whether the macOS style should draw its dark variant, judged by the card
 /// color (so a list forced to dark with `SettingsList.brightness` gets dark
 /// switches, whatever the app theme says).
@@ -443,10 +447,7 @@ class _MacosSettingsTileState extends State<MacosSettingsTile> {
       position: DecorationPosition.foreground,
       decoration: ShapeDecoration(
         shape: RoundedSuperellipseBorder(
-          side: BorderSide(
-            color: isDark ? _kFocusDark : _kFocusLight,
-            width: 3,
-          ),
+          side: BorderSide(color: macosFocusColor(isDark: isDark), width: 3),
           borderRadius: BorderRadius.vertical(
             top: scope?.isFirst ?? true ? cardCorner : innerCorner,
             bottom: scope?.isLast ?? true ? cardCorner : innerCorner,

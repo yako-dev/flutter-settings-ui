@@ -60,11 +60,9 @@ const Color _kHeaderDark = Color(0xFF5A5A5A);
 const Color _kToolbarTitleLight = Color(0xFF4C4C4C);
 const Color _kToolbarTitleDark = Color(0xFFE9E9E9);
 
-/// The focus ring, `keyboardFocusIndicatorColor`, 3pt outside the row's
-/// selection shape.
+/// The focus ring ([macosFocusColor]), 3pt outside the row's selection
+/// shape.
 const double kMacosFocusRingWidth = 3;
-const Color _kFocusLight = Color(0x800067F4);
-const Color _kFocusDark = Color(0x801AA9FF);
 
 /// 13pt body text, semibold when selected.
 const TextStyle _kLabelStyle = kMacosBodyStyle;
@@ -279,7 +277,6 @@ class _MacosSidebarItemState extends State<MacosSidebarItem>
             ),
     );
 
-    final focusColor = isDark ? _kFocusDark : _kFocusLight;
     final Widget item = Padding(
       padding: const EdgeInsets.symmetric(horizontal: _kSelectionInset),
       child: DecoratedBox(
@@ -294,7 +291,7 @@ class _MacosSidebarItemState extends State<MacosSidebarItem>
               ? BoxDecoration(
                   borderRadius: BorderRadius.circular(_kSelectionRadius),
                   border: Border.all(
-                    color: focusColor,
+                    color: macosFocusColor(isDark: isDark),
                     width: kMacosFocusRingWidth,
                     strokeAlign: BorderSide.strokeAlignOutside,
                   ),
@@ -586,7 +583,7 @@ class _CapsuleButton extends SidebarButton {
             : null,
         borderRadius: BorderRadius.circular(18),
         border: states.focused
-            ? Border.all(color: isDark ? _kFocusDark : _kFocusLight, width: 3)
+            ? Border.all(color: macosFocusColor(isDark: isDark), width: 3)
             : null,
       ),
       alignment: Alignment.center,
