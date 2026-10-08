@@ -2,7 +2,7 @@ import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/src/tiles/platforms/macos_settings_switch.dart';
 import 'package:settings_ui/src/tiles/settings_tile.dart';
-import 'package:settings_ui/src/tiles/tile_semantics.dart';
+import 'package:settings_ui/src/tiles/tile_data.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 
 // Metrics of a macOS 26/27 System Settings grouped form (SwiftUI
@@ -150,52 +150,17 @@ Widget buildMacosFooter({
 /// macOS focus ring. On switch rows only the switch toggles; the rest of the
 /// row calls `onPressed`.
 class MacosSettingsTile extends StatefulWidget {
-  const MacosSettingsTile({
-    required this.tileType,
-    required this.leading,
-    required this.title,
-    required this.titleDescription,
-    required this.description,
-    required this.onPressed,
-    required this.onToggle,
-    required this.value,
-    required this.initialValue,
-    required this.activeSwitchColor,
-    required this.enabled,
-    required this.trailing,
-    this.compact = false,
-    this.titlePadding,
-    this.leadingPadding,
-    this.trailingPadding,
-    this.descriptionPadding,
-    this.titleDescriptionPadding,
-    super.key,
-  });
+  const MacosSettingsTile(this.tile, {super.key});
 
-  final SettingsTileType tileType;
-  final Widget? leading;
-  final Widget? title;
-  final Widget? titleDescription;
-  final Widget? description;
-  final Function(BuildContext context)? onPressed;
-  final Function(bool value)? onToggle;
-  final Widget? value;
-  final bool initialValue;
-  final bool enabled;
-  final bool compact;
-  final Color? activeSwitchColor;
-  final Widget? trailing;
-  final EdgeInsetsGeometry? titlePadding;
-  final EdgeInsetsGeometry? leadingPadding;
-  final EdgeInsetsGeometry? trailingPadding;
-  final EdgeInsetsGeometry? descriptionPadding;
-  final EdgeInsetsGeometry? titleDescriptionPadding;
+  final SettingsTileData tile;
 
   @override
   State<MacosSettingsTile> createState() => _MacosSettingsTileState();
 }
 
 class _MacosSettingsTileState extends State<MacosSettingsTile> {
+  SettingsTileData get tile => widget.tile;
+
   bool _pressed = false;
   bool _showFocusHighlight = false;
 
@@ -212,10 +177,10 @@ class _MacosSettingsTileState extends State<MacosSettingsTile> {
     ),
   };
 
-  bool get _canPress => widget.enabled && widget.onPressed != null;
+  bool get _canPress => tile.enabled && tile.onPressed != null;
 
   void _activate() {
-    if (_canPress) widget.onPressed!(context);
+    if (_canPress) tile.onPressed!(context);
   }
 
   void _setPressed(bool pressed) {
@@ -243,7 +208,7 @@ class _MacosSettingsTileState extends State<MacosSettingsTile> {
           child: row,
         ),
       );
-      if (widget.description != null) {
+      if (tile.description != null) {
         row = Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -251,8 +216,8 @@ class _MacosSettingsTileState extends State<MacosSettingsTile> {
             row,
             buildMacosFooter(
               context: context,
-              description: widget.description!,
-              padding: widget.descriptionPadding,
+              description: tile.description!,
+              padding: tile.descriptionPadding,
             ),
           ],
         );
@@ -269,8 +234,8 @@ class _MacosSettingsTileState extends State<MacosSettingsTile> {
     final textScaler = MediaQuery.textScalerOf(context);
     final isRtl = Directionality.of(context) == TextDirection.rtl;
     final isDark = macosIsDark(context, theme);
-    final enabled = widget.enabled;
-    final hasSubtitle = widget.titleDescription != null;
+    final enabled = tile.enabled;
+    final hasSubtitle = tile.titleDescription != null;
 
     final baseTitleStyle = theme.tileTextStyle ?? kMacosBodyStyle;
     final titleStyle = baseTitleStyle.copyWith(
@@ -305,47 +270,44 @@ class _MacosSettingsTileState extends State<MacosSettingsTile> {
     );
 
     final showValue =
-        widget.value != null && widget.tileType != SettingsTileType.switchTile;
+        tile.value != null && tile.tileType != SettingsTileType.switchTile;
 
     final titleColumn = Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: widget.titlePadding ?? EdgeInsets.zero,
-          child: DefaultTextStyle(
-            style: titleStyle,
-            child: widget.title ?? const SizedBox.shrink(),
-          ),
+          padding: tile.titlePadding ?? EdgeInsets.zero,
+          child: DefaultTextStyle(style: titleStyle, child: tile.title),
         ),
         if (hasSubtitle)
           Padding(
             padding:
-                widget.titleDescriptionPadding ??
+                tile.titleDescriptionPadding ??
                 EdgeInsetsDirectional.only(top: textScaler.scale(2)),
             child: DefaultTextStyle(
               style: subtitleStyle,
-              child: widget.titleDescription!,
+              child: tile.titleDescription!,
             ),
           ),
       ],
     );
 
     final trailingParts = <Widget>[
-      if (widget.trailing != null)
+      if (tile.trailing != null)
         Padding(
           padding:
-              widget.trailingPadding ??
+              tile.trailingPadding ??
               const EdgeInsetsDirectional.only(start: 8),
           child: IconTheme.merge(
             data: IconThemeData(color: iconColor, size: 16),
             child: DefaultTextStyle(
               style: kMacosBodyStyle.copyWith(color: titleStyle.color),
-              child: widget.trailing!,
+              child: tile.trailing!,
             ),
           ),
         ),
-      if (widget.tileType == SettingsTileType.switchTile)
+      if (tile.tileType == SettingsTileType.switchTile)
         Padding(
           padding: const EdgeInsetsDirectional.only(start: 12),
           child: onTitleLine(
@@ -357,13 +319,13 @@ class _MacosSettingsTileState extends State<MacosSettingsTile> {
               // A disabled switch draws its own paler track, as in System
               // Settings, instead of the grey inactiveTitleColor the other
               // styles fall back to. inactiveSwitchColor still replaces it.
-              child: _labelSwitchIfSeparate(
+              child: tile.labelSwitchIfSeparate(
                 MacosSettingsSwitch(
-                  value: widget.initialValue,
-                  onChanged: enabled ? widget.onToggle : null,
+                  value: tile.initialValue,
+                  onChanged: enabled ? tile.onToggle : null,
                   activeTrackColor: enabled
-                      ? widget.activeSwitchColor
-                      : (theme.inactiveSwitchColor ?? widget.activeSwitchColor),
+                      ? tile.activeSwitchColor
+                      : (theme.inactiveSwitchColor ?? tile.activeSwitchColor),
                 ),
               ),
             ),
@@ -373,14 +335,14 @@ class _MacosSettingsTileState extends State<MacosSettingsTile> {
 
     Widget content = Row(
       children: [
-        if (widget.leading != null)
+        if (tile.leading != null)
           Padding(
             padding:
-                widget.leadingPadding ??
+                tile.leadingPadding ??
                 const EdgeInsetsDirectional.only(start: 2, end: 11),
             child: IconTheme.merge(
               data: IconThemeData(color: iconColor, size: 20),
-              child: widget.leading!,
+              child: tile.leading!,
             ),
           ),
         Expanded(
@@ -405,7 +367,7 @@ class _MacosSettingsTileState extends State<MacosSettingsTile> {
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
                         textAlign: TextAlign.end,
-                        child: widget.value!,
+                        child: tile.value!,
                       ),
                     ),
                   ),
@@ -430,7 +392,7 @@ class _MacosSettingsTileState extends State<MacosSettingsTile> {
           ),
         ),
         // The chevron stays centered in rows with a subtitle.
-        if (widget.tileType == SettingsTileType.navigationTile)
+        if (tile.tileType == SettingsTileType.navigationTile)
           Padding(
             padding: const EdgeInsetsDirectional.only(start: 8),
             child: onTitleLine(
@@ -445,13 +407,13 @@ class _MacosSettingsTileState extends State<MacosSettingsTile> {
     );
 
     final verticalPadding = textScaler.scale(
-      kMacosRowVerticalPadding / (widget.compact ? 2 : 1),
+      kMacosRowVerticalPadding / (tile.compact ? 2 : 1),
     );
     content = ConstrainedBox(
       constraints: BoxConstraints(
-        minHeight: widget.leading == null
+        minHeight: tile.leading == null
             ? 0
-            : kMacosIconRowMinHeight - (widget.compact ? 12 : 0),
+            : kMacosIconRowMinHeight - (tile.compact ? 12 : 0),
       ),
       child: Padding(
         padding: EdgeInsetsDirectional.symmetric(
@@ -500,7 +462,7 @@ class _MacosSettingsTileState extends State<MacosSettingsTile> {
       child: Semantics(
         container: true,
         // A disabled row that would open something is a dimmed button.
-        button: widget.onPressed != null,
+        button: tile.onPressed != null,
         enabled: enabled,
         child: FocusableActionDetector(
           enabled: _canPress,
@@ -526,12 +488,6 @@ class _MacosSettingsTileState extends State<MacosSettingsTile> {
       ),
     );
   }
-
-  /// A row with onPressed keeps its switch as a node of its own (both have a
-  /// tap action). The switch then gets the title as its label.
-  Widget _labelSwitchIfSeparate(Widget child) => widget.onPressed == null
-      ? child
-      : labelTileSwitch(title: widget.title, child: child);
 
   static Color? _chevronColor(Color? iconColor, bool isDark) {
     if (iconColor == null) return null;

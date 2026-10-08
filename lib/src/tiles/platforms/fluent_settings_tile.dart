@@ -5,7 +5,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 import 'package:settings_ui/src/tiles/platforms/fluent_settings_switch.dart';
 import 'package:settings_ui/src/tiles/settings_tile.dart';
-import 'package:settings_ui/src/tiles/tile_semantics.dart';
+import 'package:settings_ui/src/tiles/tile_data.dart';
 import 'package:settings_ui/src/utils/fluent_tokens.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 
@@ -54,52 +54,17 @@ Color _blend(Color foreground, Color background) =>
 /// A setting on its own card, like a Windows 11 Settings row (a Windows
 /// Community Toolkit `SettingsCard`).
 class FluentSettingsTile extends StatefulWidget {
-  const FluentSettingsTile({
-    required this.tileType,
-    required this.leading,
-    required this.title,
-    required this.titleDescription,
-    required this.description,
-    required this.onPressed,
-    required this.onToggle,
-    required this.value,
-    required this.initialValue,
-    required this.activeSwitchColor,
-    required this.enabled,
-    required this.trailing,
-    this.compact = false,
-    this.titlePadding,
-    this.leadingPadding,
-    this.trailingPadding,
-    this.descriptionPadding,
-    this.titleDescriptionPadding,
-    super.key,
-  });
+  const FluentSettingsTile(this.tile, {super.key});
 
-  final SettingsTileType tileType;
-  final Widget? leading;
-  final Widget? title;
-  final Widget? titleDescription;
-  final Widget? description;
-  final Function(BuildContext context)? onPressed;
-  final Function(bool value)? onToggle;
-  final Widget? value;
-  final bool initialValue;
-  final bool enabled;
-  final bool compact;
-  final Color? activeSwitchColor;
-  final Widget? trailing;
-  final EdgeInsetsGeometry? titlePadding;
-  final EdgeInsetsGeometry? leadingPadding;
-  final EdgeInsetsGeometry? trailingPadding;
-  final EdgeInsetsGeometry? descriptionPadding;
-  final EdgeInsetsGeometry? titleDescriptionPadding;
+  final SettingsTileData tile;
 
   @override
   State<FluentSettingsTile> createState() => _FluentSettingsTileState();
 }
 
 class _FluentSettingsTileState extends State<FluentSettingsTile> {
+  SettingsTileData get tile => widget.tile;
+
   late final Map<Type, Action<Intent>> _actions = <Type, Action<Intent>>{
     ActivateIntent: CallbackAction<ActivateIntent>(
       onInvoke: (_) => _activate(),
@@ -123,11 +88,11 @@ class _FluentSettingsTileState extends State<FluentSettingsTile> {
 
   /// A clickable card (WinUI `IsClickEnabled`): hover, press and keyboard
   /// focus only apply to these.
-  bool get _clickable => widget.enabled && widget.onPressed != null;
+  bool get _clickable => tile.enabled && tile.onPressed != null;
 
-  bool get _isSwitch => widget.tileType == SettingsTileType.switchTile;
+  bool get _isSwitch => tile.tileType == SettingsTileType.switchTile;
 
-  bool get _isNavigation => widget.tileType == SettingsTileType.navigationTile;
+  bool get _isNavigation => tile.tileType == SettingsTileType.navigationTile;
 
   @override
   void didUpdateWidget(FluentSettingsTile oldWidget) {
@@ -139,7 +104,7 @@ class _FluentSettingsTileState extends State<FluentSettingsTile> {
   }
 
   void _activate() {
-    if (_clickable) widget.onPressed!.call(context);
+    if (_clickable) tile.onPressed!.call(context);
   }
 
   void _handlePointerDown(PointerDownEvent event) {
@@ -186,7 +151,7 @@ class _FluentSettingsTileState extends State<FluentSettingsTile> {
     final FluentTokens tokens = FluentTokens.of(
       FluentTokens.brightnessOf(context),
     );
-    final bool enabled = widget.enabled;
+    final bool enabled = tile.enabled;
     final bool clickable = _clickable;
     final bool pressed = clickable && _pressed;
     final bool hovered = clickable && _hovered;
@@ -224,10 +189,10 @@ class _FluentSettingsTileState extends State<FluentSettingsTile> {
     final Color iconColor = theme.leadingIconsColor ?? primary;
 
     final _TileParts parts = _TileParts(
-      leading: widget.leading == null
+      leading: tile.leading == null
           ? null
           : Padding(
-              padding: widget.leadingPadding ?? _kIconMargin,
+              padding: tile.leadingPadding ?? _kIconMargin,
               child: IconTheme.merge(
                 data: IconThemeData(
                   size: _kIconSize,
@@ -237,7 +202,7 @@ class _FluentSettingsTileState extends State<FluentSettingsTile> {
                       ? secondary
                       : iconColor,
                 ),
-                child: widget.leading!,
+                child: tile.leading!,
               ),
             ),
       header: _buildHeader(
@@ -249,7 +214,7 @@ class _FluentSettingsTileState extends State<FluentSettingsTile> {
             : primary,
         descriptionColor: enabled ? secondary : disabledSubtitle,
       ),
-      value: widget.value == null || _isSwitch
+      value: tile.value == null || _isSwitch
           ? null
           : DefaultTextStyle(
               style: FluentTypography.body.copyWith(
@@ -259,15 +224,15 @@ class _FluentSettingsTileState extends State<FluentSettingsTile> {
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              child: widget.value!,
+              child: tile.value!,
             ),
-      trailing: widget.trailing == null
+      trailing: tile.trailing == null
           ? null
           : Padding(
               padding:
-                  widget.trailingPadding ??
+                  tile.trailingPadding ??
                   EdgeInsetsDirectional.only(
-                    start: widget.value != null && !_isSwitch
+                    start: tile.value != null && !_isSwitch
                         ? _kValueTrailingGap
                         : 0,
                     end: _isSwitch ? _kTrailingSwitchGap : 0,
@@ -281,7 +246,7 @@ class _FluentSettingsTileState extends State<FluentSettingsTile> {
                   style: FluentTypography.body.copyWith(
                     color: enabled ? primary : disabledTitle,
                   ),
-                  child: widget.trailing!,
+                  child: tile.trailing!,
                 ),
               ),
             ),
@@ -289,11 +254,11 @@ class _FluentSettingsTileState extends State<FluentSettingsTile> {
           ? null
           : Listener(
               onPointerDown: (event) => _controlPointers.add(event.pointer),
-              child: _labelSwitchIfSeparate(
+              child: tile.labelSwitchIfSeparate(
                 FluentSettingsSwitch(
-                  value: widget.initialValue,
-                  onChanged: enabled ? widget.onToggle : null,
-                  activeTrackColor: widget.activeSwitchColor,
+                  value: tile.initialValue,
+                  onChanged: enabled ? tile.onToggle : null,
+                  activeTrackColor: tile.activeSwitchColor,
                 ),
               ),
             ),
@@ -313,9 +278,9 @@ class _FluentSettingsTileState extends State<FluentSettingsTile> {
 
     final bool reduceMotion =
         MediaQuery.maybeDisableAnimationsOf(context) ?? false;
-    final double verticalPadding = widget.compact ? _kPadding / 2 : _kPadding;
+    final double verticalPadding = tile.compact ? _kPadding / 2 : _kPadding;
 
-    Widget tile = TweenAnimationBuilder<Color?>(
+    Widget content = TweenAnimationBuilder<Color?>(
       // Background changes fade in 83 ms (BrushTransition).
       tween: ColorTween(end: background),
       duration: reduceMotion ? Duration.zero : kFluentFasterDuration,
@@ -331,7 +296,7 @@ class _FluentSettingsTileState extends State<FluentSettingsTile> {
       ),
       child: ConstrainedBox(
         constraints: BoxConstraints(
-          minHeight: widget.compact ? _kCompactMinHeight : _kMinHeight,
+          minHeight: tile.compact ? _kCompactMinHeight : _kMinHeight,
         ),
         child: Padding(
           padding: EdgeInsets.symmetric(
@@ -349,7 +314,7 @@ class _FluentSettingsTileState extends State<FluentSettingsTile> {
       ),
     );
 
-    tile = FocusableActionDetector(
+    content = FocusableActionDetector(
       enabled: clickable,
       actions: _actions,
       onShowFocusHighlight: (bool value) {
@@ -374,7 +339,7 @@ class _FluentSettingsTileState extends State<FluentSettingsTile> {
             excludeFromSemantics: true,
             behavior: HitTestBehavior.opaque,
             onTap: clickable ? _activate : null,
-            child: tile,
+            child: content,
           ),
         ),
       ),
@@ -382,25 +347,19 @@ class _FluentSettingsTileState extends State<FluentSettingsTile> {
 
     // A switch tile reads as the switch ("Wi-Fi, switch, on"). A switch tile
     // that also opens a page keeps its switch as a separate node.
-    final bool isButton = widget.onPressed != null;
-    final bool mergeAll = !_isSwitch || widget.onPressed == null;
+    final bool isButton = tile.onPressed != null;
+    final bool mergeAll = !_isSwitch || tile.onPressed == null;
     Widget semantics = Semantics(
       container: !mergeAll,
       button: isButton,
       enabled: isButton || !enabled ? enabled : null,
       onTap: clickable ? _activate : null,
-      child: tile,
+      child: content,
     );
     if (mergeAll) semantics = MergeSemantics(child: semantics);
 
     return IgnorePointer(ignoring: !enabled, child: semantics);
   }
-
-  /// A switch tile that also opens a page keeps its switch as a node of its
-  /// own. The switch then gets the title as its label.
-  Widget _labelSwitchIfSeparate(Widget child) => widget.onPressed == null
-      ? child
-      : labelTileSwitch(title: widget.title, child: child);
 
   Widget _buildHeader({
     required SettingsThemeData theme,
@@ -416,28 +375,28 @@ class _FluentSettingsTileState extends State<FluentSettingsTile> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: widget.titlePadding ?? EdgeInsets.zero,
+          padding: tile.titlePadding ?? EdgeInsets.zero,
           child: DefaultTextStyle(
             style: (theme.tileTextStyle ?? FluentTypography.body).copyWith(
               color: titleColor,
             ),
-            child: widget.title ?? const SizedBox.shrink(),
+            child: tile.title,
           ),
         ),
-        if (widget.titleDescription != null)
+        if (tile.titleDescription != null)
           Padding(
-            padding: widget.titleDescriptionPadding ?? EdgeInsets.zero,
+            padding: tile.titleDescriptionPadding ?? EdgeInsets.zero,
             child: DefaultTextStyle(
               style: descriptionStyle,
-              child: widget.titleDescription!,
+              child: tile.titleDescription!,
             ),
           ),
-        if (widget.description != null)
+        if (tile.description != null)
           Padding(
-            padding: widget.descriptionPadding ?? EdgeInsets.zero,
+            padding: tile.descriptionPadding ?? EdgeInsets.zero,
             child: DefaultTextStyle(
               style: descriptionStyle,
-              child: widget.description!,
+              child: tile.description!,
             ),
           ),
       ],
