@@ -1,12 +1,11 @@
-import 'package:flutter/gestures.dart'
-    show PointerDeviceKind, computeHitSlop, kPrimaryButton;
+import 'package:flutter/gestures.dart' show kPrimaryButton;
 import 'package:flutter/widgets.dart';
 import 'package:settings_ui/src/split/settings_page_header.dart';
 import 'package:settings_ui/src/split/sidebar_button.dart';
-import 'package:settings_ui/src/split/sidebar_keyboard.dart';
+import 'package:settings_ui/src/split/sidebar_row.dart';
+import 'package:settings_ui/src/split/sidebar_section.dart';
 import 'package:settings_ui/src/tiles/platforms/adwaita_settings_switch.dart';
 import 'package:settings_ui/src/tiles/platforms/adwaita_settings_tile.dart';
-import 'package:settings_ui/src/tiles/settings_tile.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 
 // GNOME Settings 51 (libadwaita 1.10 `AdwNavigationSplitView` with a
@@ -99,135 +98,59 @@ Color adwaitaSidebarBorderColor(SettingsThemeData theme) => adwaitaIsDark(theme)
 /// hovered 13%, pressed 16% of the foreground; a 2px accent focus ring.
 /// Like GNOME rows, a switch row toggles when the row is clicked.
 /// Descriptions and values are not shown.
-class AdwaitaSidebarRow extends StatefulWidget {
+class AdwaitaSidebarRow extends SidebarRow {
   const AdwaitaSidebarRow({
     super.key,
-    required this.tileType,
-    required this.leading,
-    required this.title,
-    required this.trailing,
-    required this.onPressed,
-    required this.onToggle,
-    required this.initialValue,
-    required this.activeSwitchColor,
-    required this.enabled,
-    required this.selected,
-    this.semanticsSelected,
+    required super.tileType,
+    required super.leading,
+    required super.title,
+    required super.trailing,
+    required super.onPressed,
+    required super.onToggle,
+    required super.initialValue,
+    required super.activeSwitchColor,
+    required super.enabled,
+    required super.selected,
+    super.semanticsSelected,
   });
-
-  final SettingsTileType tileType;
-  final Widget? leading;
-  final Widget title;
-  final Widget? trailing;
-  final Function(BuildContext context)? onPressed;
-  final Function(bool value)? onToggle;
-  final bool initialValue;
-  final Color? activeSwitchColor;
-  final bool enabled;
-  final bool selected;
-
-  /// Whether assistive technologies hear the row as selected: null for rows
-  /// that don't open a page, and in GNOME's one-pane sidebar.
-  final bool? semanticsSelected;
 
   @override
   State<AdwaitaSidebarRow> createState() => _AdwaitaSidebarRowState();
 }
 
-class _AdwaitaSidebarRowState extends State<AdwaitaSidebarRow> {
+class _AdwaitaSidebarRowState extends State<AdwaitaSidebarRow>
+    with SidebarRowState<AdwaitaSidebarRow> {
   bool _hovered = false;
-  bool _pressed = false;
-  bool _focusHighlight = false;
 
-  /// The pointer that pressed the row, while it is down.
-  int? _pressPointer;
-  Offset _pressOrigin = Offset.zero;
-
-  late final SidebarRowFocus _focus = SidebarRowFocus(
-    debugLabel: 'AdwaitaSidebarRow',
-    onChanged: _rebuild,
-  );
-
-  void _rebuild() {
-    if (mounted) setState(() {});
-  }
+  late final SidebarRowPress _press = SidebarRowPress(this, onChanged: rebuild);
 
   @override
-  void dispose() {
-    _focus.dispose();
-    super.dispose();
-  }
-
-  late final Map<Type, Action<Intent>> _actions = <Type, Action<Intent>>{
-    ActivateIntent: CallbackAction<ActivateIntent>(
-      onInvoke: (_) => _activate(),
-    ),
-    ButtonActivateIntent: CallbackAction<ButtonActivateIntent>(
-      onInvoke: (_) => _activate(),
-    ),
-  };
-
-  bool get _isSwitch => widget.tileType == SettingsTileType.switchTile;
+  String get debugLabel => 'AdwaitaSidebarRow';
 
   bool get _activatable =>
       widget.enabled &&
-      (_isSwitch ? widget.onToggle != null : widget.onPressed != null);
+      (isSwitch ? widget.onToggle != null : widget.onPressed != null);
 
-  void _activate() {
+  @override
+  void activateRow() {
     if (!_activatable) return;
-    if (_isSwitch) {
+    if (isSwitch) {
       widget.onToggle!(!widget.initialValue);
     } else {
       widget.onPressed!(context);
     }
   }
 
-  void _handleTap() {
-    _focus.focusFromPointer();
-    _activate();
-  }
-
-  void _setPressed(bool value) {
-    if (mounted && _pressed != value) setState(() => _pressed = value);
-  }
-
   void _handlePointerDown(PointerDownEvent event) {
     // GTK shows `:active` as soon as the button goes down.
-    if (event.buttons != kPrimaryButton) return;
-    _pressPointer = event.pointer;
-    _pressOrigin = event.position;
-    _setPressed(true);
-  }
-
-  void _handlePointerMove(PointerMoveEvent event) {
-    if (event.pointer != _pressPointer) return;
-    final box = context.findRenderObject()! as RenderBox;
-    final inside = box.size.contains(box.globalToLocal(event.position));
-    // A finger that moves past the slop is scrolling the sidebar, which
-    // takes the gesture (GTK drops `:active` then too). A mouse stays
-    // pressed until it leaves the row.
-    final scrolling =
-        event.kind != PointerDeviceKind.mouse &&
-        (event.position - _pressOrigin).distance >
-            computeHitSlop(event.kind, null);
-    if (!inside || scrolling) _release();
-  }
-
-  void _handlePointerEnd(PointerEvent event) {
-    if (event.pointer == _pressPointer) _release();
-  }
-
-  void _release() {
-    _pressPointer = null;
-    _setPressed(false);
+    if (event.buttons == kPrimaryButton) _press.start(event);
   }
 
   @override
   void didUpdateWidget(AdwaitaSidebarRow oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (!_activatable) {
-      _pressed = false;
-      _pressPointer = null;
+      _press.reset();
       _hovered = false;
     }
   }
@@ -240,7 +163,7 @@ class _AdwaitaSidebarRowState extends State<AdwaitaSidebarRow> {
     final isDark = adwaitaIsDark(theme);
     final enabled = widget.enabled;
     final selected = widget.selected;
-    final pressed = _activatable && _pressed;
+    final pressed = _activatable && _press.pressed;
     final hovered = _activatable && _hovered;
 
     final Color background;
@@ -269,7 +192,91 @@ class _AdwaitaSidebarRowState extends State<AdwaitaSidebarRow> {
         ? (theme.selectedTileIconColor ?? foreground)
         : (theme.leadingIconsColor ?? foreground);
 
-    final row = Row(
+    final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    final box = AnimatedContainer(
+      // Rows fade their hover and pressed backgrounds in 200 ms.
+      duration: reduceMotion
+          ? Duration.zero
+          : const Duration(milliseconds: 200),
+      curve: const Cubic(0.25, 0.46, 0.45, 0.94),
+      constraints: const BoxConstraints(minHeight: kAdwaitaSidebarRowHeight),
+      padding: EdgeInsets.symmetric(
+        horizontal: _kRowPadding,
+        vertical: textScaler.scale(4),
+      ),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(_kRowRadius),
+      ),
+      foregroundDecoration: showsFocusRing && _activatable
+          ? _focusRing(isDark)
+          : null,
+      child: _content(
+        theme,
+        isDark: isDark,
+        textColor: textColor,
+        iconColor: iconColor,
+      ),
+    );
+
+    return Padding(
+      padding: const EdgeInsetsDirectional.only(
+        start: _kRowMarginH,
+        end: _kRowMarginH,
+        bottom: _kRowMarginBottom,
+      ),
+      child: MergeSemantics(
+        child: Semantics(
+          button: !isSwitch && widget.onPressed != null,
+          enabled: enabled,
+          selected: widget.semanticsSelected,
+          onTap: _activatable ? activateRow : null,
+          child: IgnorePointer(
+            ignoring: !enabled,
+            child: FocusableActionDetector(
+              enabled: _activatable,
+              focusNode: focus.node,
+              actions: actions,
+              onShowFocusHighlight: handleFocusHighlight,
+              child: MouseRegion(
+                onEnter: (_) {
+                  if (_activatable && !_hovered) {
+                    setState(() => _hovered = true);
+                  }
+                },
+                onExit: (_) {
+                  if (_hovered) setState(() => _hovered = false);
+                },
+                child: Listener(
+                  onPointerDown: _activatable ? _handlePointerDown : null,
+                  onPointerMove: _press.handlePointerMove,
+                  onPointerUp: _press.handlePointerEnd,
+                  onPointerCancel: _press.handlePointerEnd,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    excludeFromSemantics: true,
+                    onTap: _activatable ? handleTap : null,
+                    onTapCancel: _press.release,
+                    child: box,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// The row's line: the icon, the label, then the trailing widget and the
+  /// switch.
+  Widget _content(
+    SettingsThemeData theme, {
+    required bool isDark,
+    required Color textColor,
+    required Color iconColor,
+  }) {
+    return Row(
       children: [
         if (widget.leading != null)
           Padding(
@@ -300,14 +307,14 @@ class _AdwaitaSidebarRowState extends State<AdwaitaSidebarRow> {
               ),
             ),
           ),
-        if (_isSwitch)
+        if (isSwitch)
           Padding(
             padding: const EdgeInsetsDirectional.only(start: 6),
             // The row takes the focus and the clicks, like `AdwSwitchRow`.
             child: ExcludeFocus(
               child: AdwaitaSettingsSwitch(
                 value: widget.initialValue,
-                onChanged: enabled ? widget.onToggle : null,
+                onChanged: widget.enabled ? widget.onToggle : null,
                 activeTrackColor: widget.activeSwitchColor,
                 brightness: isDark ? Brightness.dark : Brightness.light,
               ),
@@ -315,133 +322,42 @@ class _AdwaitaSidebarRowState extends State<AdwaitaSidebarRow> {
           ),
       ],
     );
-
-    final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
-    final box = AnimatedContainer(
-      // Rows fade their hover and pressed backgrounds in 200 ms.
-      duration: reduceMotion
-          ? Duration.zero
-          : const Duration(milliseconds: 200),
-      curve: const Cubic(0.25, 0.46, 0.45, 0.94),
-      constraints: const BoxConstraints(minHeight: kAdwaitaSidebarRowHeight),
-      padding: EdgeInsets.symmetric(
-        horizontal: _kRowPadding,
-        vertical: textScaler.scale(4),
-      ),
-      decoration: BoxDecoration(
-        color: background,
-        borderRadius: BorderRadius.circular(_kRowRadius),
-      ),
-      foregroundDecoration: _focus.showsRing(_focusHighlight) && _activatable
-          ? _focusRing(isDark)
-          : null,
-      child: row,
-    );
-
-    return Padding(
-      padding: const EdgeInsetsDirectional.only(
-        start: _kRowMarginH,
-        end: _kRowMarginH,
-        bottom: _kRowMarginBottom,
-      ),
-      child: MergeSemantics(
-        child: Semantics(
-          button: !_isSwitch && widget.onPressed != null,
-          enabled: enabled,
-          selected: widget.semanticsSelected,
-          onTap: _activatable ? _activate : null,
-          child: IgnorePointer(
-            ignoring: !enabled,
-            child: FocusableActionDetector(
-              enabled: _activatable,
-              focusNode: _focus.node,
-              actions: _actions,
-              onShowFocusHighlight: (value) {
-                if (value != _focusHighlight) {
-                  setState(() => _focusHighlight = value);
-                }
-              },
-              child: MouseRegion(
-                onEnter: (_) {
-                  if (_activatable && !_hovered) {
-                    setState(() => _hovered = true);
-                  }
-                },
-                onExit: (_) {
-                  if (_hovered) setState(() => _hovered = false);
-                },
-                child: Listener(
-                  onPointerDown: _activatable ? _handlePointerDown : null,
-                  onPointerMove: _handlePointerMove,
-                  onPointerUp: _handlePointerEnd,
-                  onPointerCancel: _handlePointerEnd,
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    excludeFromSemantics: true,
-                    onTap: _activatable ? _handleTap : null,
-                    onTapCancel: _release,
-                    child: box,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
   }
 }
 
 /// A group of the GNOME sidebar: its rows, under a bold heading when it has
 /// a title (as `AdwSidebar` sections do). GNOME Settings separates its
 /// groups with lines ([AdwaitaSidebarSeparator]). Internal.
-class AdwaitaSidebarSection extends StatelessWidget {
+class AdwaitaSidebarSection extends SidebarSection {
   const AdwaitaSidebarSection({
     super.key,
-    required this.title,
-    required this.tiles,
-    this.titlePadding,
+    required super.title,
+    required super.tiles,
+    super.titlePadding,
   });
 
-  final Widget? title;
-  final List<Widget> tiles;
-  final EdgeInsetsGeometry? titlePadding;
-
   @override
-  Widget build(BuildContext context) {
-    final theme = SettingsTheme.of(context).themeData;
-    final title = this.title;
+  Widget buildHeader(
+    BuildContext context,
+    SettingsThemeData theme,
+    Widget title,
+  ) {
     final style = theme.titleTextStyle ?? _kTitleStyle;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (title != null)
-          Semantics(
-            container: true,
-            header: true,
-            child: Padding(
-              padding:
-                  titlePadding ??
-                  const EdgeInsetsDirectional.only(
-                    start: _kRowMarginH + _kRowPadding,
-                    end: _kRowMarginH + _kRowPadding,
-                    top: 6,
-                    bottom: 6,
-                  ),
-              child: DefaultTextStyle(
-                style: style.copyWith(
-                  color:
-                      style.color ??
-                      theme.titleTextColor ??
-                      _foregroundOf(theme),
-                ),
-                child: title,
-              ),
-            ),
+    return Padding(
+      padding:
+          titlePadding ??
+          const EdgeInsetsDirectional.only(
+            start: _kRowMarginH + _kRowPadding,
+            end: _kRowMarginH + _kRowPadding,
+            top: 6,
+            bottom: 6,
           ),
-        ...tiles,
-      ],
+      child: DefaultTextStyle(
+        style: style.copyWith(
+          color: style.color ?? theme.titleTextColor ?? _foregroundOf(theme),
+        ),
+        child: title,
+      ),
     );
   }
 }

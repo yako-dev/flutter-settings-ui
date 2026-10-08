@@ -7,8 +7,9 @@ import 'package:settings_ui/src/split/fluent_compact_pane.dart';
 import 'package:settings_ui/src/split/fluent_controls.dart';
 import 'package:settings_ui/src/split/settings_page_header.dart';
 import 'package:settings_ui/src/split/sidebar_keyboard.dart';
+import 'package:settings_ui/src/split/sidebar_row.dart';
+import 'package:settings_ui/src/split/sidebar_section.dart';
 import 'package:settings_ui/src/tiles/platforms/fluent_settings_switch.dart';
-import 'package:settings_ui/src/tiles/settings_tile.dart';
 import 'package:settings_ui/src/tiles/tile_semantics.dart';
 import 'package:settings_ui/src/utils/fluent_tokens.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
@@ -156,52 +157,39 @@ class _FluentIndicatorScope extends InheritedWidget {
 /// a secondary label while pressed, and the Fluent focus ring. In the
 /// compact rail the item is 40 wide and shows only its icon, with the label
 /// in a tooltip. Descriptions and values are not shown.
-class FluentNavigationItem extends StatefulWidget {
+class FluentNavigationItem extends SidebarRow {
   const FluentNavigationItem({
     super.key,
     required this.id,
-    required this.tileType,
-    required this.leading,
-    required this.title,
-    required this.trailing,
-    required this.onPressed,
-    required this.onToggle,
-    required this.initialValue,
-    required this.activeSwitchColor,
-    required this.enabled,
-    required this.selected,
-    this.semanticsSelected,
+    required super.tileType,
+    required super.leading,
+    required super.title,
+    required super.trailing,
+    required super.onPressed,
+    required super.onToggle,
+    required super.initialValue,
+    required super.activeSwitchColor,
+    required super.enabled,
+    required super.selected,
+    super.semanticsSelected,
   });
 
   /// The id of the page the item opens, if any: the selection indicator
   /// finds the item by it.
   final String? id;
-  final SettingsTileType tileType;
-  final Widget? leading;
-  final Widget title;
-  final Widget? trailing;
-  final Function(BuildContext context)? onPressed;
-  final Function(bool value)? onToggle;
-  final bool initialValue;
-  final Color? activeSwitchColor;
-  final bool enabled;
-  final bool selected;
-
-  /// Whether assistive technologies hear the row as selected: null for rows
-  /// that don't open a page.
-  final bool? semanticsSelected;
 
   @override
   State<FluentNavigationItem> createState() => _FluentNavigationItemState();
 }
 
 class _FluentNavigationItemState extends State<FluentNavigationItem>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, SidebarRowState<FluentNavigationItem> {
   bool _hovered = false;
-  bool _pressed = false;
-  bool _focusHighlight = false;
-  int? _pressPointer;
-  Offset _pressOrigin = Offset.zero;
+
+  late final SidebarRowPress _press = SidebarRowPress(
+    this,
+    onChanged: () => setState(() {}),
+  );
 
   /// Slides the pill in when the item becomes selected.
   late final AnimationController _pill;
@@ -211,37 +199,21 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
 
   _FluentSelectionIndicator? _indicator;
 
-  late final SidebarRowFocus _focus = SidebarRowFocus(
-    debugLabel: 'FluentNavigationItem',
-    onChanged: _rebuild,
-  );
-
-  void _rebuild() {
-    if (mounted) setState(() {});
-  }
-
-  late final Map<Type, Action<Intent>> _actions = <Type, Action<Intent>>{
-    ActivateIntent: CallbackAction<ActivateIntent>(
-      onInvoke: (_) => _activate(),
-    ),
-    ButtonActivateIntent: CallbackAction<ButtonActivateIntent>(
-      onInvoke: (_) => _activate(),
-    ),
-  };
-
-  bool get _isSwitch => widget.tileType == SettingsTileType.switchTile;
+  @override
+  String get debugLabel => 'FluentNavigationItem';
 
   /// A switch item in the rail has no room for its switch: a tap toggles.
   bool _togglesOnTap(bool compact) =>
       compact &&
-      _isSwitch &&
+      isSwitch &&
       widget.onPressed == null &&
       widget.onToggle != null;
 
   bool _clickable(bool compact) =>
       widget.enabled && (widget.onPressed != null || _togglesOnTap(compact));
 
-  void _activate() {
+  @override
+  void activateRow() {
     if (!widget.enabled) return;
     if (widget.onPressed != null) {
       widget.onPressed!(context);
@@ -250,15 +222,10 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
     }
   }
 
-  void _handleTap() {
-    _focus.focusFromPointer();
-    _activate();
-  }
-
   /// A switch item without onPressed reads as one node: "Title, switch,
   /// on" (in the rail too, where a tap toggles). One with onPressed keeps
   /// its switch apart (both have a tap action), labelled with the title.
-  bool get _mergesSwitch => _isSwitch && widget.onPressed == null;
+  bool get _mergesSwitch => isSwitch && widget.onPressed == null;
 
   Widget _labelSwitchIfSeparate(Widget child) => _mergesSwitch
       ? child
@@ -296,10 +263,7 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
       if (oldWidget.id != null) _indicator?.unregister(oldWidget.id!, this);
       if (widget.id != null) _indicator?.register(widget.id!, this);
     }
-    if (!widget.enabled) {
-      _pressed = false;
-      _pressPointer = null;
-    }
+    if (!widget.enabled) _press.reset();
     if (widget.selected && !oldWidget.selected) {
       // Find the old pill once every item has rebuilt.
       WidgetsBinding.instance.addPostFrameCallback((_) => _slidePillIn());
@@ -311,7 +275,6 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
     final id = widget.id;
     if (id != null) _indicator?.unregister(id, this);
     _pill.dispose();
-    _focus.dispose();
     super.dispose();
   }
 
@@ -352,33 +315,12 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
   }
 
   void _handlePointerDown(PointerDownEvent event) {
-    if (_pressPointer != null) return;
+    if (_press.hasPointer) return;
     if (event.kind == PointerDeviceKind.mouse &&
         event.buttons != kPrimaryMouseButton) {
       return;
     }
-    _pressPointer = event.pointer;
-    _pressOrigin = event.position;
-    setState(() => _pressed = true);
-  }
-
-  void _handlePointerMove(PointerMoveEvent event) {
-    if (event.pointer != _pressPointer) return;
-    final box = context.findRenderObject()! as RenderBox;
-    final inside = box.size.contains(box.globalToLocal(event.position));
-    // A finger that moves past the slop is scrolling the pane. A mouse
-    // stays pressed until it leaves the item.
-    final scrolling =
-        event.kind != PointerDeviceKind.mouse &&
-        (event.position - _pressOrigin).distance >
-            computeHitSlop(event.kind, null);
-    if (!inside || scrolling) _handlePointerEnd(event);
-  }
-
-  void _handlePointerEnd(PointerEvent event) {
-    if (event.pointer != _pressPointer) return;
-    _pressPointer = null;
-    if (_pressed) setState(() => _pressed = false);
+    _press.start(event);
   }
 
   @override
@@ -389,7 +331,7 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
     final enabled = widget.enabled;
     final clickable = _clickable(compact);
     final selected = widget.selected;
-    final pressed = clickable && _pressed;
+    final pressed = clickable && _press.pressed;
     final hovered = clickable && _hovered;
 
     final selectedFill = theme.selectedTileColor ?? tokens.navItemSelected;
@@ -450,70 +392,17 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
     }
 
     final textScaler = MediaQuery.textScalerOf(context);
-    Widget content = Row(
-      children: [
-        SizedBox(
-          width: _kIconColumn,
-          child: icon == null
-              ? null
-              : Center(
-                  child: IconTheme.merge(
-                    data: IconThemeData(color: iconColor, size: _kIconSize),
-                    child: icon,
-                  ),
-                ),
-        ),
-        if (!compact) ...[
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsetsDirectional.only(
-                start: _kLabelStart,
-                end: _kLabelEnd,
-              ),
-              child: DefaultTextStyle(
-                style: labelStyle,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                child: title,
-              ),
-            ),
-          ),
-          if (widget.trailing != null)
-            Padding(
-              padding: const EdgeInsetsDirectional.only(end: _kLabelEnd),
-              child: IconTheme.merge(
-                data: IconThemeData(color: iconColor, size: _kIconSize),
-                child: DefaultTextStyle(
-                  style: labelStyle,
-                  child: widget.trailing!,
-                ),
-              ),
-            ),
-          if (_isSwitch)
-            Padding(
-              padding: const EdgeInsetsDirectional.only(end: _kLabelEnd),
-              // The item takes the focus when it can be clicked;
-              // otherwise the switch does, so the keyboard can reach it.
-              child: ExcludeFocus(
-                excluding: clickable,
-                child: _labelSwitchIfSeparate(
-                  FluentSettingsSwitch(
-                    value: widget.initialValue,
-                    onChanged: enabled ? widget.onToggle : null,
-                    activeTrackColor: widget.activeSwitchColor,
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ],
-    );
-
-    content = ConstrainedBox(
+    final content = ConstrainedBox(
       constraints: const BoxConstraints(minHeight: kFluentPaneItemMinHeight),
       child: Padding(
         padding: EdgeInsets.symmetric(vertical: textScaler.scale(2)),
-        child: content,
+        child: _content(
+          icon: icon,
+          iconColor: iconColor,
+          labelStyle: labelStyle,
+          compact: compact,
+          clickable: clickable,
+        ),
       ),
     );
 
@@ -534,9 +423,7 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
       child: content,
     );
 
-    if (_focus.showsRing(_focusHighlight) && clickable) {
-      item = fluentFocusRing(tokens, item);
-    }
+    if (showsFocusRing && clickable) item = fluentFocusRing(tokens, item);
 
     item = Padding(
       padding: const EdgeInsets.symmetric(
@@ -562,11 +449,9 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
 
     item = FocusableActionDetector(
       enabled: clickable,
-      focusNode: _focus.node,
-      actions: _actions,
-      onShowFocusHighlight: (value) {
-        if (value != _focusHighlight) setState(() => _focusHighlight = value);
-      },
+      focusNode: focus.node,
+      actions: actions,
+      onShowFocusHighlight: handleFocusHighlight,
       mouseCursor: clickable && kIsWeb
           ? SystemMouseCursors.click
           : MouseCursor.defer,
@@ -579,44 +464,20 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
         },
         child: Listener(
           onPointerDown: clickable ? _handlePointerDown : null,
-          onPointerMove: _handlePointerMove,
-          onPointerUp: _handlePointerEnd,
-          onPointerCancel: _handlePointerEnd,
+          onPointerMove: _press.handlePointerMove,
+          onPointerUp: _press.handlePointerEnd,
+          onPointerCancel: _press.handlePointerEnd,
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             excludeFromSemantics: true,
-            onTap: clickable ? _handleTap : null,
+            onTap: clickable ? handleTap : null,
             child: item,
           ),
         ),
       ),
     );
 
-    if (compact && tooltip != null) {
-      item = Tooltip(
-        message: tooltip,
-        excludeFromSemantics: true,
-        waitDuration: const Duration(milliseconds: 400),
-        preferBelow: false,
-        verticalOffset: 0,
-        margin: const EdgeInsetsDirectional.only(start: _kIconColumn + 12),
-        decoration: BoxDecoration(
-          color: tokens.overlayPane,
-          borderRadius: BorderRadius.circular(kFluentControlRadius),
-          border: Border.all(color: tokens.overlayStroke),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x24000000),
-              blurRadius: 8,
-              offset: Offset(0, 4),
-            ),
-          ],
-        ),
-        textStyle: FluentTypography.caption.copyWith(color: tokens.textPrimary),
-        padding: const EdgeInsets.fromLTRB(9, 6, 9, 8),
-        child: item,
-      );
-    }
+    if (compact && tooltip != null) item = _railTooltip(tooltip, tokens, item);
 
     // A rail item that toggles on a tap has no switch to show, so it says
     // what the switch would.
@@ -627,13 +488,109 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
       enabled: enabled,
       selected: widget.semanticsSelected,
       toggled: togglesOnTap ? widget.initialValue : null,
-      onTap: clickable ? _activate : null,
+      onTap: clickable ? activateRow : null,
       label: compact ? tooltip : null,
       child: item,
     );
     if (_mergesSwitch) semantics = MergeSemantics(child: semantics);
 
     return IgnorePointer(ignoring: !enabled, child: semantics);
+  }
+
+  /// The item's line: the icon in its column and, in the open pane, the
+  /// label, the trailing widget and the switch.
+  Widget _content({
+    required Widget? icon,
+    required Color iconColor,
+    required TextStyle labelStyle,
+    required bool compact,
+    required bool clickable,
+  }) {
+    return Row(
+      children: [
+        SizedBox(
+          width: _kIconColumn,
+          child: icon == null
+              ? null
+              : Center(
+                  child: IconTheme.merge(
+                    data: IconThemeData(color: iconColor, size: _kIconSize),
+                    child: icon,
+                  ),
+                ),
+        ),
+        if (!compact) ...[
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsetsDirectional.only(
+                start: _kLabelStart,
+                end: _kLabelEnd,
+              ),
+              child: DefaultTextStyle(
+                style: labelStyle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                child: widget.title,
+              ),
+            ),
+          ),
+          if (widget.trailing != null)
+            Padding(
+              padding: const EdgeInsetsDirectional.only(end: _kLabelEnd),
+              child: IconTheme.merge(
+                data: IconThemeData(color: iconColor, size: _kIconSize),
+                child: DefaultTextStyle(
+                  style: labelStyle,
+                  child: widget.trailing!,
+                ),
+              ),
+            ),
+          if (isSwitch)
+            Padding(
+              padding: const EdgeInsetsDirectional.only(end: _kLabelEnd),
+              // The item takes the focus when it can be clicked;
+              // otherwise the switch does, so the keyboard can reach it.
+              child: ExcludeFocus(
+                excluding: clickable,
+                child: _labelSwitchIfSeparate(
+                  FluentSettingsSwitch(
+                    value: widget.initialValue,
+                    onChanged: widget.enabled ? widget.onToggle : null,
+                    activeTrackColor: widget.activeSwitchColor,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ],
+    );
+  }
+
+  /// The rail shows an item's label in a tooltip next to it.
+  Widget _railTooltip(String message, FluentTokens tokens, Widget child) {
+    return Tooltip(
+      message: message,
+      excludeFromSemantics: true,
+      waitDuration: const Duration(milliseconds: 400),
+      preferBelow: false,
+      verticalOffset: 0,
+      margin: const EdgeInsetsDirectional.only(start: _kIconColumn + 12),
+      decoration: BoxDecoration(
+        color: tokens.overlayPane,
+        borderRadius: BorderRadius.circular(kFluentControlRadius),
+        border: Border.all(color: tokens.overlayStroke),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x24000000),
+            blurRadius: 8,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      textStyle: FluentTypography.caption.copyWith(color: tokens.textPrimary),
+      padding: const EdgeInsets.fromLTRB(9, 6, 9, 8),
+      child: child,
+    );
   }
 }
 
@@ -692,61 +649,46 @@ class _PillPainter extends CustomPainter {
 
 /// A group of the Windows pane: a NavigationViewItemHeader (hidden in the
 /// compact rail) over its items. Internal.
-class FluentNavigationSection extends StatelessWidget {
+class FluentNavigationSection extends SidebarSection {
   const FluentNavigationSection({
     super.key,
-    required this.title,
-    required this.tiles,
-    this.titlePadding,
+    required super.title,
+    required super.tiles,
+    super.titlePadding,
   });
 
-  final Widget? title;
-  final List<Widget> tiles;
-  final EdgeInsetsGeometry? titlePadding;
-
   @override
-  Widget build(BuildContext context) {
-    final theme = SettingsTheme.of(context).themeData;
-    final tokens = fluentTokensOf(context);
-    final compact = FluentPaneModeScope.compactOf(context);
-    final title = this.title;
+  Widget? buildHeader(
+    BuildContext context,
+    SettingsThemeData theme,
+    Widget title,
+  ) {
+    if (FluentPaneModeScope.compactOf(context)) return null;
     final style = theme.titleTextStyle ?? FluentTypography.bodyStrong;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (title != null && !compact)
-          Semantics(
-            container: true,
-            header: true,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: _kHeaderHeight),
-              child: Padding(
-                padding:
-                    titlePadding ??
-                    const EdgeInsetsDirectional.only(
-                      start: _kHeaderStart,
-                      end: _kHeaderStart,
-                    ),
-                child: Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: DefaultTextStyle(
-                    style: style.copyWith(
-                      color:
-                          style.color ??
-                          theme.tileDescriptionTextColor ??
-                          tokens.textSecondary,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    child: title,
-                  ),
-                ),
-              ),
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: _kHeaderHeight),
+      child: Padding(
+        padding:
+            titlePadding ??
+            const EdgeInsetsDirectional.only(
+              start: _kHeaderStart,
+              end: _kHeaderStart,
             ),
+        child: Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: DefaultTextStyle(
+            style: style.copyWith(
+              color:
+                  style.color ??
+                  theme.tileDescriptionTextColor ??
+                  fluentTokensOf(context).textSecondary,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            child: title,
           ),
-        ...tiles,
-      ],
+        ),
+      ),
     );
   }
 }
