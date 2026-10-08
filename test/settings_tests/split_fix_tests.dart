@@ -167,4 +167,110 @@ void splitFixTests() {
       expect(log, ['sign out', 'sign out', 'sign out']);
     });
   });
+
+  group('iOS page header: the back button', () {
+    Finder back() => find.bySemanticsLabel('Back');
+
+    /// The 3.5pt ring of a Cupertino control with the keyboard focus.
+    final focusRing = paints
+      ..something((method, arguments) {
+        if (method != #drawCircle) return false;
+        final paint = arguments[2] as Paint;
+        return paint.style == PaintingStyle.stroke && paint.strokeWidth == 3.5;
+      });
+
+    Future<void> openPage(WidgetTester tester) async {
+      await tester.tap(find.text('Display'));
+      await tester.pumpAndSettle();
+      expect(find.text('Display body'), findsOneWidget);
+    }
+
+    testWidgets('takes the keyboard focus; Enter and Space go back', (
+      tester,
+    ) async {
+      final handle = tester.ensureSemantics();
+      await tester.pumpWidget(
+        _app(
+          Scaffold(
+            body: SettingsList(
+              platform: DevicePlatform.iOS,
+              sections: [
+                SettingsSection(tiles: [_page('Display')]),
+              ],
+            ),
+          ),
+          platform: TargetPlatform.iOS,
+        ),
+      );
+      await openPage(tester);
+
+      // At rest it is what it was: a button to tap, without a ring.
+      expect(
+        tester.getSemantics(back()),
+        matchesSemantics(label: 'Back', isButton: true, hasTapAction: true),
+      );
+      expect(back(), isNot(focusRing));
+
+      await _tabTo(tester, back());
+      await tester.pumpAndSettle();
+      expect(back(), focusRing);
+      expect(
+        tester.getSemantics(back()),
+        matchesSemantics(label: 'Back', isButton: true, hasTapAction: true),
+      );
+
+      // The ring is for the keyboard: a touch hides it, a key shows it.
+      await tester.tap(find.text('Display body'));
+      await tester.pumpAndSettle();
+      expect(_focusIn(back()), isTrue);
+      expect(back(), isNot(focusRing));
+      await tester.sendKeyEvent(LogicalKeyboardKey.shift);
+      await tester.pumpAndSettle();
+      expect(back(), focusRing);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pumpAndSettle();
+      expect(find.text('Display body'), findsNothing);
+
+      await openPage(tester);
+      await _tabTo(tester, back());
+      await tester.sendKeyEvent(LogicalKeyboardKey.space);
+      await tester.pumpAndSettle();
+      expect(find.text('Display body'), findsNothing);
+
+      // A tap still goes back.
+      await openPage(tester);
+      await tester.tap(back());
+      await tester.pumpAndSettle();
+      expect(find.text('Display body'), findsNothing);
+      handle.dispose();
+    });
+
+    testWidgets('in a split view with one pane too', (tester) async {
+      await _setSize(tester, const Size(400, 800));
+      await tester.pumpWidget(
+        _app(
+          SettingsSplitView(
+            platform: DevicePlatform.iOS,
+            title: const Text('Settings'),
+            sections: [
+              SettingsSection(tiles: [_page('Display')]),
+            ],
+          ),
+          platform: TargetPlatform.iOS,
+        ),
+      );
+      await tester.pumpAndSettle();
+      await openPage(tester);
+      expect(_controllerOf(tester).selectedId, 'display');
+
+      await _tabTo(tester, back());
+      await tester.pumpAndSettle();
+      expect(back(), focusRing);
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pumpAndSettle();
+      expect(find.text('Display body'), findsNothing);
+      expect(_controllerOf(tester).selectedId, isNull);
+    });
+  });
 }

@@ -7,6 +7,7 @@ import 'package:settings_ui/src/split/fluent_split.dart';
 import 'package:settings_ui/src/split/macos_split.dart';
 import 'package:settings_ui/src/split/settings_page_trail.dart';
 import 'package:settings_ui/src/split/split_geometry.dart';
+import 'package:settings_ui/src/tiles/tile_press.dart';
 import 'package:settings_ui/src/utils/content_column.dart';
 import 'package:settings_ui/src/utils/platform_utils.dart';
 import 'package:settings_ui/src/utils/settings_style.dart';
@@ -331,7 +332,20 @@ class _MaterialToolbarRow extends StatelessWidget {
       : (left: side, right: side + reserve);
 }
 
-/// The iOS 26+ round back button: a 44pt glass circle with a chevron.
+/// The keyboard focus ring of a Cupertino control, as `CupertinoButton`
+/// makes it from the system blue.
+final Color _cupertinoFocusColor =
+    HSLColor.fromColor(
+          CupertinoColors.activeBlue.withValues(
+            alpha: kCupertinoFocusColorOpacity,
+          ),
+        )
+        .withLightness(kCupertinoFocusColorBrightness)
+        .withSaturation(kCupertinoFocusColorSaturation)
+        .toColor();
+
+/// The iOS 26+ round back button: a 44pt glass circle with a chevron. Tab
+/// reaches it, and Enter or Space press it.
 class SettingsGlassBackButton extends StatefulWidget {
   const SettingsGlassBackButton({super.key, required this.onPressed});
 
@@ -344,6 +358,12 @@ class SettingsGlassBackButton extends StatefulWidget {
 
 class _SettingsGlassBackButtonState extends State<SettingsGlassBackButton> {
   bool _pressed = false;
+  bool _focusHighlight = false;
+
+  /// Enter and Space on the focused button go back.
+  late final Map<Type, Action<Intent>> _actions = tileActivateActions(
+    () => widget.onPressed(),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -359,40 +379,61 @@ class _SettingsGlassBackButtonState extends State<SettingsGlassBackButton> {
       container: true,
       button: true,
       label: settingsBackLabel(context),
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTapDown: (_) => setState(() => _pressed = true),
-        onTapCancel: () => setState(() => _pressed = false),
-        onTapUp: (_) => setState(() => _pressed = false),
-        onTap: widget.onPressed,
-        child: AnimatedScale(
-          scale: _pressed ? 1.08 : 1,
-          duration: const Duration(milliseconds: 120),
-          child: Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: fill,
-              shape: BoxShape.circle,
-              border: Border.all(color: rim, width: 0.5),
-              boxShadow: [
-                BoxShadow(
-                  color: Color(isDark ? 0x40000000 : 0x0F000000),
-                  blurRadius: 6,
-                  offset: const Offset(0, 1),
+      child: FocusableActionDetector(
+        actions: _actions,
+        // The node stays as it is: a button with a tap action.
+        includeFocusSemantics: false,
+        onShowFocusHighlight: (value) {
+          if (value != _focusHighlight) {
+            setState(() => _focusHighlight = value);
+          }
+        },
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTapDown: (_) => setState(() => _pressed = true),
+          onTapCancel: () => setState(() => _pressed = false),
+          onTapUp: (_) => setState(() => _pressed = false),
+          onTap: widget.onPressed,
+          child: AnimatedScale(
+            scale: _pressed ? 1.08 : 1,
+            duration: const Duration(milliseconds: 120),
+            child: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: fill,
+                shape: BoxShape.circle,
+                border: Border.all(color: rim, width: 0.5),
+                boxShadow: [
+                  BoxShadow(
+                    color: Color(isDark ? 0x40000000 : 0x0F000000),
+                    blurRadius: 6,
+                    offset: const Offset(0, 1),
+                  ),
+                ],
+              ),
+              // The keyboard focus ring of a Cupertino button, inside the
+              // circle: the 44pt bar of a phone has no room around it.
+              foregroundDecoration: _focusHighlight
+                  ? BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: _cupertinoFocusColor,
+                        width: 3.5,
+                      ),
+                    )
+                  : null,
+              alignment: Alignment.center,
+              child: Padding(
+                // The chevron's ink sits left of the glyph center.
+                padding: EdgeInsetsDirectional.only(end: isRtl ? 0 : 2),
+                child: Icon(
+                  isRtl
+                      ? CupertinoIcons.chevron_forward
+                      : CupertinoIcons.chevron_back,
+                  size: 22,
+                  color: theme.settingsTileTextColor,
                 ),
-              ],
-            ),
-            alignment: Alignment.center,
-            child: Padding(
-              // The chevron's ink sits left of the glyph center.
-              padding: EdgeInsetsDirectional.only(end: isRtl ? 0 : 2),
-              child: Icon(
-                isRtl
-                    ? CupertinoIcons.chevron_forward
-                    : CupertinoIcons.chevron_back,
-                size: 22,
-                color: theme.settingsTileTextColor,
               ),
             ),
           ),
