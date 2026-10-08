@@ -491,7 +491,31 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
       child: item,
     );
 
-    item = FocusableActionDetector(
+    item = _interactive(item, clickable: clickable);
+
+    if (compact && tooltip != null) item = _railTooltip(tooltip, tokens, item);
+
+    // A rail item that toggles on a tap has no switch to show, so it says
+    // what the switch would.
+    final togglesOnTap = _togglesOnTap(compact);
+    Widget semantics = Semantics(
+      container: true,
+      button: clickable && !togglesOnTap,
+      enabled: enabled,
+      selected: widget.semanticsSelected,
+      toggled: togglesOnTap ? widget.initialValue : null,
+      onTap: clickable ? activateRow : null,
+      label: compact ? tooltip : null,
+      child: item,
+    );
+    if (_mergesSwitch) semantics = MergeSemantics(child: semantics);
+
+    return IgnorePointer(ignoring: !enabled, child: semantics);
+  }
+
+  /// [child] with the item's keyboard focus, hover, press and click.
+  Widget _interactive(Widget child, {required bool clickable}) {
+    return FocusableActionDetector(
       enabled: clickable,
       focusNode: focus.node,
       actions: actions,
@@ -515,30 +539,11 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
             behavior: HitTestBehavior.opaque,
             excludeFromSemantics: true,
             onTap: clickable ? handleTap : null,
-            child: item,
+            child: child,
           ),
         ),
       ),
     );
-
-    if (compact && tooltip != null) item = _railTooltip(tooltip, tokens, item);
-
-    // A rail item that toggles on a tap has no switch to show, so it says
-    // what the switch would.
-    final togglesOnTap = _togglesOnTap(compact);
-    Widget semantics = Semantics(
-      container: true,
-      button: clickable && !togglesOnTap,
-      enabled: enabled,
-      selected: widget.semanticsSelected,
-      toggled: togglesOnTap ? widget.initialValue : null,
-      onTap: clickable ? activateRow : null,
-      label: compact ? tooltip : null,
-      child: item,
-    );
-    if (_mergesSwitch) semantics = MergeSemantics(child: semantics);
-
-    return IgnorePointer(ignoring: !enabled, child: semantics);
   }
 
   /// The rail shows an item's label in a tooltip next to it.
