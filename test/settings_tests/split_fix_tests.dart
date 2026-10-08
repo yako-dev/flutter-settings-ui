@@ -17,8 +17,13 @@ TargetPlatform _targetOf(DevicePlatform platform) => switch (platform) {
   _ => TargetPlatform.android,
 };
 
-Widget _app(Widget home, {TargetPlatform? platform}) => MaterialApp(
+Widget _app(
+  Widget home, {
+  TargetPlatform? platform,
+  Map<ShortcutActivator, Intent>? shortcuts,
+}) => MaterialApp(
   theme: ThemeData(platform: platform),
+  shortcuts: shortcuts,
   home: home,
 );
 
@@ -82,6 +87,27 @@ SettingsTile _page(String name, {void Function(BuildContext)? onPressed}) =>
         builder: (_) => Center(child: Text('$name body')),
       ),
     );
+
+/// A list pane whose "Display" page opens a "Text size" page.
+List<AbstractSettingsSection> _nestedSections() => [
+  SettingsSection(
+    tiles: [
+      SettingsTile.navigation(
+        leading: const Icon(Icons.brightness_6),
+        title: const Text('Display'),
+        destination: SettingsDestination(
+          id: 'display',
+          builder: (_) => SettingsList(
+            sections: [
+              SettingsSection(tiles: [_page('Text size')]),
+            ],
+          ),
+        ),
+      ),
+      _page('Sound'),
+    ],
+  ),
+];
 
 /// Tests for the split view, page header and sidebar bugs fixed after 4.0.1.
 void splitFixTests() {
@@ -271,6 +297,94 @@ void splitFixTests() {
       await tester.pumpAndSettle();
       expect(find.text('Display body'), findsNothing);
       expect(_controllerOf(tester).selectedId, isNull);
+    });
+  });
+
+  group('bar buttons: Enter on the web', () {
+    // On the web Enter is ButtonActivateIntent, not ActivateIntent
+    // (WidgetsApp.defaultShortcuts).
+    final webShortcuts = <ShortcutActivator, Intent>{
+      ...WidgetsApp.defaultShortcuts,
+      const SingleActivator(LogicalKeyboardKey.enter):
+          const ButtonActivateIntent(),
+    };
+
+    Future<void> pump(
+      WidgetTester tester,
+      DevicePlatform platform, {
+      Size size = const Size(1280, 800),
+    }) async {
+      await _setSize(tester, size);
+      await tester.pumpWidget(
+        _app(
+          SettingsSplitView(
+            platform: platform,
+            title: const Text('Settings'),
+            sections: _nestedSections(),
+          ),
+          platform: _targetOf(platform),
+          shortcuts: webShortcuts,
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    Future<void> openNestedPage(WidgetTester tester) async {
+      await tester.tap(find.text('Text size'));
+      await tester.pumpAndSettle();
+      expect(find.text('Text size body'), findsOneWidget);
+    }
+
+    for (final (platform, button) in [
+      (DevicePlatform.macOS, 'toolbar back button'),
+      (DevicePlatform.linux, 'header bar back button'),
+    ]) {
+      testWidgets('$platform: the $button', (tester) async {
+        await pump(tester, platform);
+        await openNestedPage(tester);
+        await _tabTo(tester, find.bySemanticsLabel('Back'));
+        await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+        await tester.pumpAndSettle();
+        expect(find.text('Text size body'), findsNothing);
+        expect(find.text('Text size'), findsOneWidget);
+      });
+    }
+
+    testWidgets('Windows: a breadcrumb crumb', (tester) async {
+      await pump(tester, DevicePlatform.windows);
+      await openNestedPage(tester);
+      // "Display" in the page title, "Display > Text size".
+      final crumb = find.ancestor(
+        of: find.text('Display').last,
+        matching: find.bySemanticsLabel('Display'),
+      );
+      expect(_inList(crumb), findsNothing);
+      await _tabTo(tester, crumb);
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pumpAndSettle();
+      expect(find.text('Text size body'), findsNothing);
+      expect(find.text('Text size'), findsOneWidget);
+    });
+
+    testWidgets('Windows: the compact rail\'s menu button', (tester) async {
+      await pump(tester, DevicePlatform.windows, size: const Size(800, 700));
+      // The rail shows the icons only.
+      expect(_inList(find.text('Sound')), findsNothing);
+      await _tabTo(tester, find.bySemanticsLabel('Open navigation menu'));
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pumpAndSettle();
+      expect(_inList(find.text('Sound')), findsOneWidget);
+    });
+
+    testWidgets('Windows: the back button of one pane', (tester) async {
+      await pump(tester, DevicePlatform.windows, size: const Size(500, 800));
+      await tester.tap(find.text('Sound'));
+      await tester.pumpAndSettle();
+      expect(find.text('Sound body'), findsOneWidget);
+      await _tabTo(tester, find.bySemanticsLabel('Back'));
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pumpAndSettle();
+      expect(find.text('Sound body'), findsNothing);
     });
   });
 }

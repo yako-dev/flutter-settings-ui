@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:settings_ui/src/tiles/tile_press.dart';
 
 /// What a [SidebarButton] is doing, for [SidebarButton.buildButton] to draw.
 typedef SidebarButtonStates = ({bool hovered, bool pressed, bool focused});
@@ -47,11 +48,10 @@ class _SidebarButtonState extends State<SidebarButton> {
   bool _pressed = false;
   bool _focusHighlight = false;
 
-  late final Map<Type, Action<Intent>> _actions = <Type, Action<Intent>>{
-    ActivateIntent: CallbackAction<ActivateIntent>(
-      onInvoke: (_) => widget.onPressed?.call(),
-    ),
-  };
+  /// Enter is `ButtonActivateIntent` on the web, `ActivateIntent` elsewhere.
+  late final Map<Type, Action<Intent>> _actions = tileActivateActions(
+    () => widget.onPressed?.call(),
+  );
 
   void _setPressed(bool value) {
     if (_pressed != value) setState(() => _pressed = value);
