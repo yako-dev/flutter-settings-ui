@@ -13,8 +13,10 @@ import 'package:settings_ui/src/tiles/platforms/ios_settings_tile.dart';
 import 'package:settings_ui/src/tiles/platforms/macos_settings_tile.dart';
 import 'package:settings_ui/src/tiles/platforms/web_settings_menu_item.dart';
 import 'package:settings_ui/src/tiles/platforms/web_settings_tile.dart';
+import 'package:settings_ui/src/tiles/tile_data.dart';
 import 'package:settings_ui/src/utils/platform_utils.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
+import 'package:settings_ui/src/utils/unresolved_platform.dart';
 
 enum SettingsTileType { simpleTile, switchTile, navigationTile }
 
@@ -174,246 +176,102 @@ class SettingsTile extends AbstractSettingsTile {
     if (listPane != null && destination != null) {
       listPane.onTileBuilt?.call(destination, title);
     }
+    final inSplitListPane = listPane != null && listPane.isSplit;
+    final selected = listPane?.isSelected(destination) ?? false;
     // Tiles and sidebar rows are semantics containers that say themselves
     // whether they are selected: an annotation around them would land on
     // their section's node.
-    final semanticsSelected =
-        listPane != null && listPane.isSplit && destination != null
-        ? listPane.isSelected(destination)
+    final semanticsSelected = inSplitListPane && destination != null
+        ? selected
         : null;
+    final platform = SettingsTheme.of(context).platform;
+    final tile = SettingsTileData(
+      tileType: tileType,
+      leading: leading,
+      title: title,
+      titleDescription: titleDescription,
+      description: description,
+      onPressed: _effectiveOnPressed,
+      onToggle: onToggle,
+      value: value,
+      initialValue: initialValue ?? false,
+      activeSwitchColor: activeSwitchColor,
+      enabled: enabled,
+      trailing: trailing,
+      compact: compact,
+      titlePadding: titlePadding,
+      leadingPadding: leadingPadding,
+      trailingPadding: trailingPadding,
+      descriptionPadding: descriptionPadding,
+      titleDescriptionPadding: titleDescriptionPadding,
+    );
+
     if (listPane != null && listPane.sidebar) {
-      final sidebarItem = _buildSidebarItem(
-        SettingsTheme.of(context).platform,
-        onPressed: _effectiveOnPressed,
-        selected: listPane.isSelected(destination),
-        semanticsSelected: semanticsSelected,
-      );
-      if (sidebarItem != null) return sidebarItem;
+      // The row of a macOS, Windows or GNOME sidebar. The other styles
+      // draw their usual tiles in the list pane.
+      switch (platform) {
+        case DevicePlatform.macOS:
+          return MacosSidebarItem(
+            tile,
+            selected: selected,
+            semanticsSelected: semanticsSelected,
+            opensPage: destination != null,
+          );
+        case DevicePlatform.windows:
+          return FluentNavigationItem(
+            tile,
+            id: destination?.id,
+            selected: selected,
+            semanticsSelected: semanticsSelected,
+          );
+        case DevicePlatform.linux:
+          return AdwaitaSidebarRow(
+            tile,
+            selected: selected,
+            semanticsSelected: semanticsSelected,
+          );
+        case DevicePlatform.iOS:
+        case DevicePlatform.android:
+        case DevicePlatform.fuchsia:
+        case DevicePlatform.web:
+        case DevicePlatform.device:
+          break;
+      }
     }
-    return _buildTile(context, listPane, semanticsSelected);
-  }
 
-  Widget _buildTile(
-    BuildContext context,
-    SettingsSplitListScope? listPane,
-    bool? semanticsSelected,
-  ) {
-    final theme = SettingsTheme.of(context);
-    final inSplitListPane = listPane != null && listPane.isSplit;
-    final selected = listPane?.isSelected(destination) ?? false;
-    final onPressed = _effectiveOnPressed;
-
-    switch (theme.platform) {
+    switch (platform) {
       case DevicePlatform.android:
       case DevicePlatform.fuchsia:
         return AndroidSettingsTile(
-          description: description,
-          onPressed: onPressed,
-          onToggle: onToggle,
-          tileType: tileType,
-          value: value,
-          leading: inSplitListPane && listPane.hideLeading ? null : leading,
-          title: title,
-          enabled: enabled,
-          compact: compact,
-          activeSwitchColor: activeSwitchColor,
-          initialValue: initialValue ?? false,
-          trailing: trailing,
-          titlePadding: titlePadding,
-          leadingPadding: leadingPadding,
-          trailingPadding: trailingPadding,
-          descriptionPadding: descriptionPadding,
+          tile,
+          hideLeading: inSplitListPane && listPane.hideLeading,
           selected: selected,
           semanticsSelected: semanticsSelected,
         );
       case DevicePlatform.linux:
-        return AdwaitaSettingsTile(
-          description: description,
-          onPressed: onPressed,
-          onToggle: onToggle,
-          tileType: tileType,
-          value: value,
-          leading: leading,
-          title: title,
-          titleDescription: titleDescription,
-          trailing: trailing,
-          enabled: enabled,
-          compact: compact,
-          activeSwitchColor: activeSwitchColor,
-          initialValue: initialValue ?? false,
-          titlePadding: titlePadding,
-          leadingPadding: leadingPadding,
-          trailingPadding: trailingPadding,
-          descriptionPadding: descriptionPadding,
-          titleDescriptionPadding: titleDescriptionPadding,
-        );
+        return AdwaitaSettingsTile(tile);
       case DevicePlatform.macOS:
-        return MacosSettingsTile(
-          description: description,
-          onPressed: onPressed,
-          onToggle: onToggle,
-          tileType: tileType,
-          value: value,
-          leading: leading,
-          title: title,
-          titleDescription: titleDescription,
-          trailing: trailing,
-          enabled: enabled,
-          compact: compact,
-          activeSwitchColor: activeSwitchColor,
-          initialValue: initialValue ?? false,
-          titlePadding: titlePadding,
-          leadingPadding: leadingPadding,
-          trailingPadding: trailingPadding,
-          descriptionPadding: descriptionPadding,
-          titleDescriptionPadding: titleDescriptionPadding,
-        );
+        return MacosSettingsTile(tile);
       case DevicePlatform.iOS:
         return IOSSettingsTile(
-          description: description,
-          onPressed: onPressed,
-          onToggle: onToggle,
-          tileType: tileType,
-          value: value,
-          leading: leading,
-          title: title,
-          titleDescription: titleDescription,
-          trailing: trailing,
-          enabled: enabled,
-          compact: compact,
-          activeSwitchColor: activeSwitchColor,
-          initialValue: initialValue ?? false,
-          titlePadding: titlePadding,
-          leadingPadding: leadingPadding,
-          trailingPadding: trailingPadding,
-          descriptionPadding: descriptionPadding,
-          titleDescriptionPadding: titleDescriptionPadding,
+          tile,
           selected: selected,
           sidebar: inSplitListPane,
           semanticsSelected: semanticsSelected,
         );
       case DevicePlatform.windows:
-        return FluentSettingsTile(
-          description: description,
-          onPressed: onPressed,
-          onToggle: onToggle,
-          tileType: tileType,
-          value: value,
-          leading: leading,
-          title: title,
-          titleDescription: titleDescription,
-          trailing: trailing,
-          enabled: enabled,
-          compact: compact,
-          activeSwitchColor: activeSwitchColor,
-          initialValue: initialValue ?? false,
-          titlePadding: titlePadding,
-          leadingPadding: leadingPadding,
-          trailingPadding: trailingPadding,
-          descriptionPadding: descriptionPadding,
-          titleDescriptionPadding: titleDescriptionPadding,
-        );
+        return FluentSettingsTile(tile);
       case DevicePlatform.web:
         if (inSplitListPane) {
           return WebSettingsMenuItem(
-            onPressed: onPressed,
-            onToggle: onToggle,
-            tileType: tileType,
-            leading: leading,
-            title: title,
-            enabled: enabled,
-            initialValue: initialValue ?? false,
-            activeSwitchColor: activeSwitchColor,
+            tile,
             selected: selected,
             semanticsSelected: semanticsSelected,
-            trailing: trailing,
           );
         }
-        return WebSettingsTile(
-          description: description,
-          onPressed: onPressed,
-          onToggle: onToggle,
-          tileType: tileType,
-          value: value,
-          leading: leading,
-          title: title,
-          enabled: enabled,
-          compact: compact,
-          trailing: trailing,
-          activeSwitchColor: activeSwitchColor,
-          initialValue: initialValue ?? false,
-          titlePadding: titlePadding,
-          leadingPadding: leadingPadding,
-          trailingPadding: trailingPadding,
-          descriptionPadding: descriptionPadding,
-        );
+        return WebSettingsTile(tile);
       case DevicePlatform.device:
-        throw Exception(
-          'You can\'t use the DevicePlatform.device in this context. '
-          'Incorrect platform: SettingsTile.build',
-        );
-    }
-  }
-
-  /// The row of a macOS, Windows or GNOME sidebar, or null for the other
-  /// styles.
-  Widget? _buildSidebarItem(
-    DevicePlatform platform, {
-    required Function(BuildContext context)? onPressed,
-    required bool selected,
-    required bool? semanticsSelected,
-  }) {
-    switch (platform) {
-      case DevicePlatform.macOS:
-        return MacosSidebarItem(
-          tileType: tileType,
-          leading: leading,
-          title: title,
-          trailing: trailing,
-          onPressed: onPressed,
-          onToggle: onToggle,
-          initialValue: initialValue ?? false,
-          activeSwitchColor: activeSwitchColor,
-          enabled: enabled,
-          selected: selected,
-          semanticsSelected: semanticsSelected,
-          opensPage: destination != null,
-        );
-      case DevicePlatform.windows:
-        return FluentNavigationItem(
-          id: destination?.id,
-          tileType: tileType,
-          leading: leading,
-          title: title,
-          trailing: trailing,
-          onPressed: onPressed,
-          onToggle: onToggle,
-          initialValue: initialValue ?? false,
-          activeSwitchColor: activeSwitchColor,
-          enabled: enabled,
-          selected: selected,
-          semanticsSelected: semanticsSelected,
-        );
-      case DevicePlatform.linux:
-        return AdwaitaSidebarRow(
-          tileType: tileType,
-          leading: leading,
-          title: title,
-          trailing: trailing,
-          onPressed: onPressed,
-          onToggle: onToggle,
-          initialValue: initialValue ?? false,
-          activeSwitchColor: activeSwitchColor,
-          enabled: enabled,
-          selected: selected,
-          semanticsSelected: semanticsSelected,
-        );
-      case DevicePlatform.iOS:
-      case DevicePlatform.android:
-      case DevicePlatform.fuchsia:
-      case DevicePlatform.web:
-      case DevicePlatform.device:
-        return null;
+        throwUnresolvedPlatform('SettingsTile.build');
     }
   }
 }

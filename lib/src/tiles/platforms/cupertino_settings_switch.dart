@@ -4,6 +4,7 @@ import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/physics.dart';
 import 'package:flutter/services.dart';
+import 'package:settings_ui/src/tiles/platforms/settings_switch_base.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 
 // Measured on iOS 27 (iPhone 17 Pro simulator). All sizes are in points.
@@ -136,22 +137,18 @@ class CupertinoSettingsSwitch extends StatefulWidget {
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
-    properties.add(
-      FlagProperty('value', value: value, ifTrue: 'on', ifFalse: 'off'),
+    debugFillSwitchProperties(
+      properties,
+      value: value,
+      onChanged: onChanged,
+      activeTrackColor: activeTrackColor,
+      inactiveTrackColor: inactiveTrackColor,
     );
-    properties.add(
-      ObjectFlagProperty<ValueChanged<bool>>(
-        'onChanged',
-        onChanged,
-        ifNull: 'disabled',
-      ),
-    );
-    properties.add(ColorProperty('activeTrackColor', activeTrackColor));
-    properties.add(ColorProperty('inactiveTrackColor', inactiveTrackColor));
   }
 }
 
-class _CupertinoSettingsSwitchState extends State<CupertinoSettingsSwitch>
+class _CupertinoSettingsSwitchState
+    extends SettingsSwitchState<CupertinoSettingsSwitch>
     with TickerProviderStateMixin {
   /// Thumb offset from the OFF rest position, in points (0 = OFF, 22 = ON).
   late final AnimationController _position = AnimationController.unbounded(
@@ -181,44 +178,24 @@ class _CupertinoSettingsSwitchState extends State<CupertinoSettingsSwitch>
     value: 1,
   )..addListener(_handleCatchUpTick);
 
-  late final Map<Type, Action<Intent>> _actions = <Type, Action<Intent>>{
-    ActivateIntent: CallbackAction<ActivateIntent>(
-      onInvoke: (_) => _handleTap(),
-    ),
-    ButtonActivateIntent: CallbackAction<ButtonActivateIntent>(
-      onInvoke: (_) => _handleTap(),
-    ),
-  };
-
-  bool _reduceMotion = false;
-  bool _showFocusHighlight = false;
-
   /// The lens is shown (a finger is down, or a tap is still moving the thumb).
   bool _pressed = false;
 
   /// A tap toggled the switch: shrink the lens when the thumb is almost there.
   bool _releaseWhenArrived = false;
 
-  bool _dragging = false;
   bool _dragValue = false;
-  double _dragDownX = 0;
   double _dragStartPosition = 0;
   double _dragFingerDelta = 0;
   double _dragCatchUpOffset = 0;
 
-  bool get _enabled => widget.onChanged != null;
-
-  /// +1 in left-to-right layouts, -1 in right-to-left ones.
-  double get _direction =>
-      Directionality.maybeOf(context) == TextDirection.rtl ? -1 : 1;
-
-  static double _restFor(bool value) => value ? _kTravel : 0;
+  @override
+  bool get value => widget.value;
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
-  }
+  ValueChanged<bool>? get onChanged => widget.onChanged;
+
+  static double _restFor(bool value) => value ? _kTravel : 0;
 
   @override
   void didUpdateWidget(CupertinoSettingsSwitch oldWidget) {
@@ -226,10 +203,10 @@ class _CupertinoSettingsSwitchState extends State<CupertinoSettingsSwitch>
     if (oldWidget.value != widget.value) {
       _animateTrack(widget.value);
       // While dragging, the finger owns the thumb. It snaps on release.
-      if (!_dragging) _animatePosition(_restFor(widget.value));
+      if (!dragging) _animatePosition(_restFor(widget.value));
     }
-    if (!_enabled && (_dragging || _pressed)) {
-      _dragging = false;
+    if (!enabled && (dragging || _pressed)) {
+      dragging = false;
       _releaseWhenArrived = false;
       _releaseLens();
       _animatePosition(_restFor(widget.value));
@@ -248,25 +225,36 @@ class _CupertinoSettingsSwitchState extends State<CupertinoSettingsSwitch>
 
   // Animations.
 
-  void _pressLens() {
-    if (_reduceMotion) return;
-    _pressed = true;
-    _press.animateWith(
+  /// Runs [spring] on [controller], from where it is to [target].
+  static void _spring(
+    AnimationController controller,
+    SpringDescription spring,
+    double target,
+    double velocity,
+    Tolerance tolerance,
+  ) {
+    controller.animateWith(
       SpringSimulation(
-        _kPressSpring,
-        _press.value,
-        1,
-        _press.velocity,
-        tolerance: _kPressTolerance,
+        spring,
+        controller.value,
+        target,
+        velocity,
+        tolerance: tolerance,
         snapToEnd: true,
       ),
     );
   }
 
+  void _pressLens() {
+    if (reduceMotion) return;
+    _pressed = true;
+    _spring(_press, _kPressSpring, 1, _press.velocity, _kPressTolerance);
+  }
+
   void _releaseLens() {
     if (!_pressed) return;
     _pressed = false;
-    if (_reduceMotion) {
+    if (reduceMotion) {
       _press.value = 0;
       return;
     }
@@ -274,49 +262,26 @@ class _CupertinoSettingsSwitchState extends State<CupertinoSettingsSwitch>
     // too short to grow the lens leaves little tint.
     _tint.value = (_press.value / 0.5).clamp(0.0, 1.0);
     _tint.animateTo(0, duration: _kTintDuration, curve: Curves.easeInOut);
-    _press.animateWith(
-      SpringSimulation(
-        _kReleaseSpring,
-        _press.value,
-        0,
-        _press.velocity,
-        tolerance: _kPressTolerance,
-        snapToEnd: true,
-      ),
-    );
+    _spring(_press, _kReleaseSpring, 0, _press.velocity, _kPressTolerance);
   }
 
   void _animatePosition(double target, {double velocity = 0}) {
-    if (_reduceMotion) {
+    if (reduceMotion) {
       _position.value = target;
       return;
     }
-    _position.animateWith(
-      SpringSimulation(
-        _kPositionSpring,
-        _position.value,
-        target,
-        velocity,
-        tolerance: _kPositionTolerance,
-        snapToEnd: true,
-      ),
-    );
+    _spring(_position, _kPositionSpring, target, velocity, _kPositionTolerance);
   }
 
-  void _animateTrack(bool on) {
-    if (_reduceMotion) {
-      _trackOn.value = on ? 1 : 0;
-      return;
-    }
-    _trackOn.animateTo(
-      on ? 1 : 0,
-      duration: on ? _kTrackOnDuration : _kTrackOffDuration,
-      curve: Curves.easeOut,
-    );
-  }
+  void _animateTrack(bool on) => animate(
+    _trackOn,
+    on ? 1 : 0,
+    duration: on ? _kTrackOnDuration : _kTrackOffDuration,
+    curve: Curves.easeOut,
+  );
 
   void _maybeReleaseAfterTap() {
-    if (!_releaseWhenArrived || _dragging) return;
+    if (!_releaseWhenArrived || dragging) return;
     final double distance = (_position.value - _restFor(widget.value)).abs();
     if (distance <= _kReleaseDistance) {
       _releaseWhenArrived = false;
@@ -340,8 +305,9 @@ class _CupertinoSettingsSwitchState extends State<CupertinoSettingsSwitch>
     _pressLens();
   }
 
-  void _handleTap() {
-    if (!_enabled) return;
+  @override
+  void handleTap() {
+    if (!enabled) return;
     _pressLens();
     _releaseWhenArrived = true;
     _commit(!widget.value);
@@ -357,26 +323,23 @@ class _CupertinoSettingsSwitchState extends State<CupertinoSettingsSwitch>
   void _handleTapCancel() {
     // A scroll or a drag took over. A drag keeps the lens (it presses again
     // right after this).
-    if (!_dragging) _releaseLens();
+    if (!dragging) _releaseLens();
   }
 
   // Dragging.
 
-  void _handleDragDown(DragDownDetails details) {
-    _dragDownX = details.localPosition.dx;
-  }
-
-  void _handleDragStart(DragStartDetails details) {
-    _dragging = true;
+  @override
+  void handleDragStart(DragStartDetails details) {
+    dragging = true;
     _releaseWhenArrived = false;
     _dragValue = widget.value;
     _dragStartPosition = _position.value;
-    _dragFingerDelta = _direction * (details.localPosition.dx - _dragDownX);
+    _dragFingerDelta = dragDelta(details.localPosition.dx);
     // The finger has already moved by the touch slop. Follow it from the
     // point where it touched down, but ease into that instead of jumping.
     _dragCatchUpOffset =
         _dragStartPosition - _rubberBand(_dragStartPosition + _dragFingerDelta);
-    if (_reduceMotion) {
+    if (reduceMotion) {
       _catchUp.value = 1;
     } else {
       _catchUp.forward(from: 0);
@@ -385,14 +348,15 @@ class _CupertinoSettingsSwitchState extends State<CupertinoSettingsSwitch>
     _updateDragPosition();
   }
 
-  void _handleDragUpdate(DragUpdateDetails details) {
-    if (!_dragging) return;
-    _dragFingerDelta = _direction * (details.localPosition.dx - _dragDownX);
+  @override
+  void handleDragUpdate(DragUpdateDetails details) {
+    if (!dragging) return;
+    _dragFingerDelta = dragDelta(details.localPosition.dx);
     _updateDragPosition();
   }
 
   void _handleCatchUpTick() {
-    if (_dragging) _updateDragPosition();
+    if (dragging) _updateDragPosition();
   }
 
   void _updateDragPosition() {
@@ -409,15 +373,17 @@ class _CupertinoSettingsSwitchState extends State<CupertinoSettingsSwitch>
     }
   }
 
-  void _handleDragEnd(DragEndDetails details) {
-    _finishDrag(_direction * (details.primaryVelocity ?? 0));
+  @override
+  void handleDragEnd(DragEndDetails details) {
+    _finishDrag(direction * (details.primaryVelocity ?? 0));
   }
 
-  void _handleDragCancel() => _finishDrag(0);
+  @override
+  void handleDragCancel() => _finishDrag(0);
 
   void _finishDrag(double velocity) {
-    if (!_dragging) return;
-    _dragging = false;
+    if (!dragging) return;
+    dragging = false;
     _catchUp.value = 1;
     _releaseLens();
     _animatePosition(
@@ -446,11 +412,7 @@ class _CupertinoSettingsSwitchState extends State<CupertinoSettingsSwitch>
 
   @override
   Widget build(BuildContext context) {
-    final Brightness brightness =
-        CupertinoTheme.of(context).brightness ??
-        MediaQuery.maybePlatformBrightnessOf(context) ??
-        Brightness.light;
-    final bool isDark = brightness == Brightness.dark;
+    final bool isDark = switchBrightnessOf(context) == Brightness.dark;
     final bool highContrast = MediaQuery.maybeHighContrastOf(context) ?? false;
 
     const CupertinoDynamicColor green = CupertinoColors.systemGreen;
@@ -470,70 +432,37 @@ class _CupertinoSettingsSwitchState extends State<CupertinoSettingsSwitch>
             ?.themeData
             .settingsSectionBackground ??
         (isDark ? _kCellDark : _kCellLight);
-    final Color focusColor =
-        HSLColor.fromColor(
-              activeColor.withValues(alpha: kCupertinoFocusColorOpacity),
-            )
-            .withLightness(kCupertinoFocusColorBrightness)
-            .withSaturation(kCupertinoFocusColorSaturation)
-            .toColor();
+    final Color? focusColor = showFocusRing
+        ? HSLColor.fromColor(
+                activeColor.withValues(alpha: kCupertinoFocusColorOpacity),
+              )
+              .withLightness(kCupertinoFocusColorBrightness)
+              .withSaturation(kCupertinoFocusColorSaturation)
+              .toColor()
+        : null;
 
-    return Semantics(
-      toggled: widget.value,
-      enabled: _enabled,
-      onTap: _enabled ? _handleTap : null,
-      child: FocusableActionDetector(
-        enabled: _enabled,
-        actions: _actions,
-        onShowFocusHighlight: (bool value) {
-          if (value != _showFocusHighlight) {
-            setState(() => _showFocusHighlight = value);
-          }
-        },
-        mouseCursor: _enabled && kIsWeb
-            ? SystemMouseCursors.click
-            : MouseCursor.defer,
-        child: GestureDetector(
-          excludeFromSemantics: true,
-          behavior: HitTestBehavior.opaque,
-          onTapDown: _enabled ? _handleTapDown : null,
-          onTap: _enabled ? _handleTap : null,
-          onTapCancel: _enabled ? _handleTapCancel : null,
-          onHorizontalDragDown: _enabled ? _handleDragDown : null,
-          onHorizontalDragStart: _enabled ? _handleDragStart : null,
-          onHorizontalDragUpdate: _enabled ? _handleDragUpdate : null,
-          onHorizontalDragEnd: _enabled ? _handleDragEnd : null,
-          onHorizontalDragCancel: _enabled ? _handleDragCancel : null,
-          child: Opacity(
-            opacity: _enabled ? 1 : 0.5,
-            child: RepaintBoundary(
-              child: CustomPaint(
-                size: const Size(_kTrackWidth, _kTrackHeight),
-                painter: _SwitchPainter(
-                  position: _position,
-                  press: _press,
-                  trackOn: _trackOn,
-                  tint: _tint,
-                  activeColor: activeColor,
-                  inactiveColor: inactiveColor,
-                  backdropColor: backdropColor,
-                  isDark: isDark,
-                  textDirection:
-                      Directionality.maybeOf(context) ?? TextDirection.ltr,
-                  focusColor: _showFocusHighlight && _enabled
-                      ? focusColor
-                      : null,
-                ),
-              ),
-            ),
-          ),
-        ),
+    return buildSwitch(
+      onTapDown: _handleTapDown,
+      onTapCancel: _handleTapCancel,
+      disabledOpacity: 0.5,
+      size: const Size(_kTrackWidth, _kTrackHeight),
+      painter: _SwitchPainter(
+        position: _position,
+        press: _press,
+        trackOn: _trackOn,
+        tint: _tint,
+        activeColor: activeColor,
+        inactiveColor: inactiveColor,
+        backdropColor: backdropColor,
+        isDark: isDark,
+        textDirection: textDirection,
+        focusColor: focusColor,
       ),
     );
   }
 }
 
-class _SwitchPainter extends CustomPainter {
+class _SwitchPainter extends SettingsSwitchPainter {
   _SwitchPainter({
     required this.position,
     required this.press,
@@ -543,7 +472,7 @@ class _SwitchPainter extends CustomPainter {
     required this.inactiveColor,
     required this.backdropColor,
     required this.isDark,
-    required this.textDirection,
+    required super.textDirection,
     required this.focusColor,
   }) : super(repaint: Listenable.merge([position, press, trackOn, tint]));
 
@@ -555,24 +484,11 @@ class _SwitchPainter extends CustomPainter {
   final Color inactiveColor;
   final Color backdropColor;
   final bool isDark;
-  final TextDirection textDirection;
   final Color? focusColor;
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final Rect track = Rect.fromCenter(
-      center: size.center(Offset.zero),
-      width: _kTrackWidth,
-      height: _kTrackHeight,
-    );
-
-    canvas.save();
-    // The look is symmetric left to right, so right-to-left layouts just
-    // mirror the canvas.
-    if (textDirection == TextDirection.rtl) {
-      canvas.translate(size.width, 0);
-      canvas.scale(-1, 1);
-    }
+  void paintSwitch(Canvas canvas, Size size) {
+    final Rect track = centerTrack(size, _kTrackWidth, _kTrackHeight);
 
     final Color trackColor = Color.lerp(
       inactiveColor,
@@ -608,7 +524,7 @@ class _SwitchPainter extends CustomPainter {
     final double frost = 1 - _smoothstep(0.6, 1.0, p);
 
     if (glass > 0) {
-      _paintLens(canvas, track, thumb, trackColor, p, glass, frost);
+      _paintLens(canvas, track, thumb, trackColor, glass, frost);
     }
     if (thumbOpacity > 0) {
       final Color fill = Color.lerp(
@@ -621,7 +537,6 @@ class _SwitchPainter extends CustomPainter {
         Paint()..color = fill.withValues(alpha: fill.a * thumbOpacity),
       );
     }
-    canvas.restore();
   }
 
   void _paintLens(
@@ -629,7 +544,6 @@ class _SwitchPainter extends CustomPainter {
     Rect track,
     Rect lens,
     Color trackColor,
-    double p,
     double glass,
     double frost,
   ) {

@@ -16,21 +16,23 @@ class SettingsSplitListScope extends InheritedWidget {
   const SettingsSplitListScope({
     super.key,
     required this.isSplit,
+    required this.sidebar,
     required this.selectedId,
     required this.onOpen,
     this.onTileBuilt,
     this.hideLeading = false,
-    bool? sidebar,
     required super.child,
-  }) : sidebar = sidebar ?? isSplit;
+  });
 
   /// Whether the list is the list pane of two panes (not the root page of
   /// one pane).
   final bool isSplit;
 
   /// Whether the macOS, Windows and GNOME styles draw their sidebar rows
-  /// (instead of their cards). True with two panes, and for GNOME also with
-  /// one pane, where GNOME Settings shows its sidebar as the first page.
+  /// (instead of their cards). True with two panes in every style (the iOS,
+  /// Android and web styles have no sidebar rows, so they draw their usual
+  /// tiles), and for GNOME also with one pane, where GNOME Settings shows
+  /// its sidebar as the first page.
   final bool sidebar;
 
   /// The destination shown in the detail pane.
@@ -84,6 +86,10 @@ class SettingsSplitScope extends InheritedWidget {
 
   final SettingsSplitController controller;
   final bool isSplit;
+
+  /// The id of the destination shown. Nothing reads it here: it is in the
+  /// scope so that widgets that got the controller from
+  /// `SettingsSplitView.of` in their build rebuild when the page changes.
   final String? shownId;
 
   /// Counts the pages pushed over the list in one pane, so a page that is

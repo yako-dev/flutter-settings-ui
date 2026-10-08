@@ -13,6 +13,7 @@ import 'package:settings_ui/src/split/split_scopes.dart';
 import 'package:settings_ui/src/tiles/abstract_settings_tile.dart';
 import 'package:settings_ui/src/utils/platform_utils.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
+import 'package:settings_ui/src/utils/unresolved_platform.dart';
 
 /// A group of tiles with an optional [title].
 ///
@@ -132,10 +133,7 @@ class SettingsSection extends AbstractSettingsSection {
           titlePadding: titlePadding,
         );
       case DevicePlatform.device:
-        throw Exception(
-          'You can\'t use the DevicePlatform.device in this context. '
-          'Incorrect platform: SettingsSection.build',
-        );
+        throwUnresolvedPlatform('SettingsSection.build');
     }
   }
 }

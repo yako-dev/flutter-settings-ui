@@ -1,5 +1,8 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:settings_ui/settings_ui.dart';
+import 'package:settings_ui/src/tiles/tile_colors.dart';
+import 'package:settings_ui/src/tiles/tile_data.dart';
+import 'package:settings_ui/src/tiles/tile_semantics.dart';
+import 'package:settings_ui/src/utils/settings_theme.dart';
 import 'package:settings_ui/src/utils/theme_provider.dart';
 
 /// A tile in the list pane of a web-style split view, drawn as an item of
@@ -7,38 +10,21 @@ import 'package:settings_ui/src/utils/theme_provider.dart';
 /// pill rounded on the end side when selected. Descriptions and values are
 /// not shown, as in Chrome's menu. Internal.
 class WebSettingsMenuItem extends StatelessWidget {
-  const WebSettingsMenuItem({
-    required this.tileType,
-    required this.leading,
-    required this.title,
-    required this.onPressed,
-    required this.onToggle,
-    required this.initialValue,
-    required this.activeSwitchColor,
-    required this.enabled,
+  const WebSettingsMenuItem(
+    this.tile, {
     required this.selected,
     this.semanticsSelected,
-    this.trailing,
     super.key,
   });
 
-  final SettingsTileType tileType;
-  final Widget? leading;
-  final Widget title;
-  final Function(BuildContext context)? onPressed;
-  final Function(bool value)? onToggle;
-  final bool initialValue;
-  final Color? activeSwitchColor;
-  final bool enabled;
+  /// Its `trailing` is drawn right after the title, like the external-link
+  /// icon of Chrome's "Extensions" item.
+  final SettingsTileData tile;
   final bool selected;
 
   /// Whether assistive technologies hear the item as selected: null for
   /// items that don't open a page.
   final bool? semanticsSelected;
-
-  /// Drawn right after the title, like the external-link icon of Chrome's
-  /// "Extensions" item.
-  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) =>
@@ -49,26 +35,19 @@ class WebSettingsMenuItem extends StatelessWidget {
     final textScaler = MediaQuery.textScalerOf(context);
     final textDirection = Directionality.of(context);
 
-    final foreground = !enabled
-        ? theme.inactiveTitleColor
-        : selected
-        ? (theme.selectedTileTextColor ?? theme.settingsTileTextColor)
-        : theme.settingsTileTextColor;
-    final iconColor = !enabled
-        ? theme.inactiveTitleColor
-        : selected
-        ? (theme.selectedTileIconColor ?? theme.leadingIconsColor)
-        : theme.leadingIconsColor;
+    final enabled = tile.enabled;
+    final iconTheme = IconTheme.of(context).copyWith(
+      color: theme.iconColorFor(enabled: enabled, selected: selected),
+      size: 20,
+    );
 
-    final isSwitch = tileType == SettingsTileType.switchTile;
     // A disabled item takes no focus, keys or taps (the IgnorePointer below
     // only blocks new pointers).
-    final onChanged = enabled ? onToggle : null;
-    final VoidCallback? onTap = !enabled
-        ? null
-        : isSwitch
-        ? (onToggle == null ? null : () => onToggle!(!initialValue))
-        : (onPressed == null ? null : () => onPressed!(context));
+    final onToggle = enabled ? tile.onToggle : null;
+    final onPressed = enabled ? tile.onPressed : null;
+    final VoidCallback? onTap = tile.isSwitch
+        ? (onToggle == null ? null : () => onToggle(!tile.initialValue))
+        : (onPressed == null ? null : () => onPressed(context));
 
     final item = IgnorePointer(
       ignoring: !enabled,
@@ -100,15 +79,10 @@ class WebSettingsMenuItem extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    if (leading != null)
+                    if (tile.leading != null)
                       Padding(
                         padding: const EdgeInsetsDirectional.only(end: 20),
-                        child: IconTheme(
-                          data: IconTheme.of(
-                            context,
-                          ).copyWith(color: iconColor, size: 20),
-                          child: leading!,
-                        ),
+                        child: IconTheme(data: iconTheme, child: tile.leading!),
                       ),
                     Expanded(
                       child: Row(
@@ -121,37 +95,40 @@ class WebSettingsMenuItem extends StatelessWidget {
                                             fontSize: 14,
                                             fontWeight: FontWeight.w500,
                                           ))
-                                      .copyWith(color: foreground),
+                                      .copyWith(
+                                        color: theme.titleColorFor(
+                                          enabled: enabled,
+                                          selected: selected,
+                                        ),
+                                      ),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
-                              child: title,
+                              child: tile.title,
                             ),
                           ),
-                          if (trailing != null)
+                          if (tile.trailing != null)
                             Padding(
                               padding: const EdgeInsetsDirectional.only(
                                 start: 16,
                               ),
                               child: IconTheme(
-                                data: IconTheme.of(
-                                  context,
-                                ).copyWith(color: iconColor, size: 20),
-                                child: trailing!,
+                                data: iconTheme,
+                                child: tile.trailing!,
                               ),
                             ),
                         ],
                       ),
                     ),
-                    if (isSwitch)
+                    if (tile.isSwitch)
                       Padding(
                         padding: const EdgeInsetsDirectional.only(start: 8),
                         child: SizedBox(
                           height: 20,
                           child: FittedBox(
                             child: Switch(
-                              value: initialValue,
-                              onChanged: onChanged,
-                              activeThumbColor: activeSwitchColor,
+                              value: tile.initialValue,
+                              onChanged: onToggle,
+                              activeThumbColor: tile.activeSwitchColor,
                             ),
                           ),
                         ),
@@ -164,17 +141,10 @@ class WebSettingsMenuItem extends StatelessWidget {
         ),
       ),
     );
-    // Each item is one node, so a section's items never merge into one.
-    // The row and the switch both toggle: "title, switch, on". An item with
-    // onPressed is a button, dimmed when disabled.
-    final isButton = !isSwitch && onPressed != null;
-    final node = Semantics(
-      container: true,
-      button: isButton,
-      enabled: isButton || (!isSwitch && !enabled) ? enabled : null,
+    return toggleRowSemantics(
+      tile: tile,
       selected: semanticsSelected,
       child: item,
     );
-    return isSwitch ? MergeSemantics(child: node) : node;
   }
 }

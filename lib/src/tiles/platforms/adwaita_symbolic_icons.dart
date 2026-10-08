@@ -70,6 +70,24 @@ class AdwaitaGoNextIcon extends StatelessWidget {
   }
 }
 
+/// The `go-previous-symbolic` arrow of a GNOME back button:
+/// [AdwaitaGoNextIcon] pointing the other way.
+class AdwaitaGoPreviousIcon extends StatelessWidget {
+  const AdwaitaGoPreviousIcon({super.key, required this.color});
+
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return _SymbolicChevron(
+      points: const [Offset(11, 2), Offset(5, 8), Offset(11, 14)],
+      color: color,
+      size: 16,
+      mirrored: Directionality.of(context) == TextDirection.rtl,
+    );
+  }
+}
+
 /// A chevron through [points] in a 16x16 icon, like the Adwaita symbolic
 /// arrows.
 class _SymbolicChevron extends StatelessWidget {

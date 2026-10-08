@@ -716,6 +716,41 @@ void splitViewRegressionTests() {
       ),
     );
 
+    // The list pane's list is lazy: it must keep the sections it was built
+    // with when the app changes its own list in place without a rebuild.
+    for (final platform in const [
+      DevicePlatform.iOS,
+      DevicePlatform.android,
+      DevicePlatform.web,
+      DevicePlatform.macOS,
+      DevicePlatform.windows,
+      DevicePlatform.linux,
+    ]) {
+      for (final width in const [420.0, 1280.0]) {
+        testWidgets('${platform.name}, $width wide: sections removed in place '
+            'without a rebuild', (tester) async {
+          final sections = <AbstractSettingsSection>[
+            for (var i = 0; i < 40; i++)
+              SettingsSection(tiles: [SettingsTile(title: Text('Row $i'))]),
+          ];
+          await _setSize(tester, Size(width, 600));
+          await tester.pumpWidget(
+            _app(SettingsSplitView(platform: platform, sections: sections)),
+          );
+          await tester.pumpAndSettle();
+
+          sections.removeRange(20, 40);
+          await tester.drag(
+            find.byType(Scrollable).first,
+            const Offset(0, -5000),
+          );
+          await tester.pumpAndSettle();
+
+          expect(tester.takeException(), isNull);
+        });
+      }
+    }
+
     testWidgets('two panes: a removed page does not come back with its tile', (
       tester,
     ) async {

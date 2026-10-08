@@ -1,11 +1,12 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/src/split/settings_page_header.dart';
+import 'package:settings_ui/src/split/sidebar_button.dart';
 import 'package:settings_ui/src/split/sidebar_keyboard.dart';
+import 'package:settings_ui/src/split/sidebar_row.dart';
+import 'package:settings_ui/src/split/sidebar_section.dart';
 import 'package:settings_ui/src/tiles/platforms/macos_settings_switch.dart';
 import 'package:settings_ui/src/tiles/platforms/macos_settings_tile.dart';
-import 'package:settings_ui/src/tiles/settings_tile.dart';
-import 'package:settings_ui/src/tiles/tile_semantics.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 
 // The macOS 26/27 System Settings split view (a SwiftUI
@@ -59,11 +60,9 @@ const Color _kHeaderDark = Color(0xFF5A5A5A);
 const Color _kToolbarTitleLight = Color(0xFF4C4C4C);
 const Color _kToolbarTitleDark = Color(0xFFE9E9E9);
 
-/// The focus ring, `keyboardFocusIndicatorColor`, 3pt outside the row's
-/// selection shape.
+/// The focus ring ([macosFocusColor]), 3pt outside the row's selection
+/// shape.
 const double kMacosFocusRingWidth = 3;
-const Color _kFocusLight = Color(0x800067F4);
-const Color _kFocusDark = Color(0x801AA9FF);
 
 /// 13pt body text, semibold when selected.
 const TextStyle _kLabelStyle = kMacosBodyStyle;
@@ -167,37 +166,14 @@ class _MacosWindowActiveScope extends InheritedWidget {
 /// while the window is active, grey otherwise. A plain [Icon] takes the
 /// accent color (white on the accent). No hover highlight, like AppKit
 /// sidebars. Descriptions and values are not shown.
-class MacosSidebarItem extends StatefulWidget {
-  const MacosSidebarItem({
+class MacosSidebarItem extends SidebarRow {
+  const MacosSidebarItem(
+    super.tile, {
     super.key,
-    required this.tileType,
-    required this.leading,
-    required this.title,
-    required this.trailing,
-    required this.onPressed,
-    required this.onToggle,
-    required this.initialValue,
-    required this.activeSwitchColor,
-    required this.enabled,
-    required this.selected,
-    this.semanticsSelected,
+    required super.selected,
+    super.semanticsSelected,
     required this.opensPage,
   });
-
-  final SettingsTileType tileType;
-  final Widget? leading;
-  final Widget title;
-  final Widget? trailing;
-  final Function(BuildContext context)? onPressed;
-  final Function(bool value)? onToggle;
-  final bool initialValue;
-  final Color? activeSwitchColor;
-  final bool enabled;
-  final bool selected;
-
-  /// Whether assistive technologies hear the row as selected: null for rows
-  /// that don't open a page.
-  final bool? semanticsSelected;
 
   /// The tile opens a page, so the arrow keys select it.
   final bool opensPage;
@@ -206,56 +182,27 @@ class MacosSidebarItem extends StatefulWidget {
   State<MacosSidebarItem> createState() => _MacosSidebarItemState();
 }
 
-class _MacosSidebarItemState extends State<MacosSidebarItem> {
-  bool _focusHighlight = false;
-
-  late final SidebarRowFocus _focus = SidebarRowFocus(
-    debugLabel: 'MacosSidebarItem',
-    onChanged: _rebuild,
-  );
-
-  void _rebuild() {
-    if (mounted) setState(() {});
-  }
-
-  @override
-  void dispose() {
-    _focus.dispose();
-    super.dispose();
-  }
-
+class _MacosSidebarItemState extends State<MacosSidebarItem>
+    with SidebarRowState<MacosSidebarItem> {
   late final Map<Type, Action<Intent>> _actions = <Type, Action<Intent>>{
-    ActivateIntent: CallbackAction<ActivateIntent>(
-      onInvoke: (_) => _activate(),
-    ),
-    ButtonActivateIntent: CallbackAction<ButtonActivateIntent>(
-      onInvoke: (_) => _activate(),
-    ),
+    ...actions,
     SidebarSelectIntent: CallbackAction<SidebarSelectIntent>(
       onInvoke: (_) {
-        if (widget.opensPage && !widget.selected) _activate();
+        if (widget.opensPage && !widget.selected) activateRow();
         return null;
       },
     ),
   };
 
-  bool get _canPress => widget.enabled && widget.onPressed != null;
+  @override
+  String get debugLabel => 'MacosSidebarItem';
 
-  void _activate() {
-    if (_canPress) widget.onPressed!(context);
+  bool get _canPress => tile.enabled && tile.onPressed != null;
+
+  @override
+  void activateRow() {
+    if (_canPress) tile.onPressed!(context);
   }
-
-  void _handleTap() {
-    _focus.focusFromPointer();
-    _activate();
-  }
-
-  /// A row with onPressed keeps its switch as a node of its own (both have a
-  /// tap action), which then gets the title as its label. Otherwise the
-  /// switch merges into the row: "Title, switch, on".
-  Widget _labelSwitchIfSeparate(Widget child) => widget.onPressed == null
-      ? child
-      : labelTileSwitch(title: widget.title, child: child);
 
   @override
   Widget build(BuildContext context) {
@@ -265,7 +212,7 @@ class _MacosSidebarItemState extends State<MacosSidebarItem> {
     final active = MacosWindowActivity.isActiveOf(context);
     final selected = widget.selected;
     final emphasized = selected && active;
-    final enabled = widget.enabled;
+    final enabled = tile.enabled;
 
     final Color? fill = !selected
         ? null
@@ -285,69 +232,55 @@ class _MacosSidebarItemState extends State<MacosSidebarItem> {
         ? (theme.selectedTileIconColor ?? textColor)
         : (isDark ? _kSymbolTintDark : _kSymbolTintLight);
 
-    final labelStyle = (theme.tileTextStyle ?? _kLabelStyle).copyWith(
-      color: textColor,
-      fontWeight: selected ? FontWeight.w600 : null,
-    );
-
-    final isSwitch = widget.tileType == SettingsTileType.switchTile;
-    final row = Row(
-      children: [
-        if (widget.leading != null)
-          Padding(
-            padding: const EdgeInsetsDirectional.only(
-              start: _kIconStart,
-              end: _kIconGap,
-            ),
-            child: IconTheme.merge(
-              data: IconThemeData(color: iconColor, size: _kIconSize),
-              child: widget.leading!,
-            ),
-          ),
-        Expanded(
-          child: DefaultTextStyle(
-            style: labelStyle,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            child: widget.title,
-          ),
-        ),
-        if (widget.trailing != null)
-          Padding(
-            padding: const EdgeInsetsDirectional.only(start: 6),
-            child: IconTheme.merge(
-              data: IconThemeData(color: textColor, size: 16),
-              child: DefaultTextStyle(
-                style: _kLabelStyle.copyWith(color: textColor),
-                child: widget.trailing!,
+    final leading = tile.leading;
+    final line = buildLine(
+      leading: leading == null
+          ? null
+          : Padding(
+              padding: const EdgeInsetsDirectional.only(
+                start: _kIconStart,
+                end: _kIconGap,
+              ),
+              child: IconTheme.merge(
+                data: IconThemeData(color: iconColor, size: _kIconSize),
+                child: leading,
               ),
             ),
-          ),
-        if (isSwitch)
-          Padding(
-            padding: const EdgeInsetsDirectional.only(start: 6),
-            child: CupertinoTheme(
+      titleStyle: (theme.tileTextStyle ?? _kLabelStyle).copyWith(
+        color: textColor,
+        fontWeight: selected ? FontWeight.w600 : null,
+      ),
+      trailingStyle: _kLabelStyle.copyWith(color: textColor),
+      trailingIconColor: textColor,
+      endPadding: const EdgeInsetsDirectional.only(start: 6),
+      toggle: !tile.isSwitch
+          ? null
+          : CupertinoTheme(
               data: CupertinoTheme.of(context).copyWith(
                 brightness: isDark ? Brightness.dark : Brightness.light,
               ),
               // The row takes the focus when it can be pressed; otherwise
-              // the switch does, so the keyboard can reach it.
+              // the switch does, so the keyboard can reach it. A row with
+              // onPressed keeps its switch as a node of its own (both have
+              // a tap action), labelled with the title; otherwise the
+              // switch merges into the row: "Title, switch, on".
               child: ExcludeFocus(
                 excluding: _canPress,
-                child: _labelSwitchIfSeparate(
+                child: tile.labelSwitchIfSeparate(
                   MacosSettingsSwitch(
-                    value: widget.initialValue,
-                    onChanged: enabled ? widget.onToggle : null,
-                    activeTrackColor: widget.activeSwitchColor,
+                    value: tile.initialValue,
+                    onChanged: enabled ? tile.onToggle : null,
+                    // As in a list: inactiveSwitchColor replaces the color
+                    // of a disabled switch.
+                    activeTrackColor: enabled
+                        ? tile.activeSwitchColor
+                        : (theme.inactiveSwitchColor ?? tile.activeSwitchColor),
                   ),
                 ),
               ),
             ),
-          ),
-      ],
     );
 
-    final focusColor = isDark ? _kFocusDark : _kFocusLight;
     final Widget item = Padding(
       padding: const EdgeInsets.symmetric(horizontal: _kSelectionInset),
       child: DecoratedBox(
@@ -358,11 +291,11 @@ class _MacosSidebarItemState extends State<MacosSidebarItem> {
         position: DecorationPosition.background,
         child: DecoratedBox(
           position: DecorationPosition.foreground,
-          decoration: _focus.showsRing(_focusHighlight) && _canPress
+          decoration: showsFocusRing && _canPress
               ? BoxDecoration(
                   borderRadius: BorderRadius.circular(_kSelectionRadius),
                   border: Border.all(
-                    color: focusColor,
+                    color: macosFocusColor(isDark: isDark),
                     width: kMacosFocusRingWidth,
                     strokeAlign: BorderSide.strokeAlignOutside,
                   ),
@@ -377,7 +310,7 @@ class _MacosSidebarItemState extends State<MacosSidebarItem> {
                 horizontal: _kContentInset,
                 vertical: textScaler.scale(4),
               ),
-              child: row,
+              child: line,
             ),
           ),
         ),
@@ -393,17 +326,13 @@ class _MacosSidebarItemState extends State<MacosSidebarItem> {
         selected: widget.semanticsSelected,
         child: FocusableActionDetector(
           enabled: _canPress,
-          focusNode: _focus.node,
+          focusNode: focusNode,
           actions: _actions,
-          onShowFocusHighlight: (value) {
-            if (value != _focusHighlight) {
-              setState(() => _focusHighlight = value);
-            }
-          },
+          onShowFocusHighlight: handleFocusHighlight,
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             excludeFromSemantics: !_canPress,
-            onTap: _canPress ? _handleTap : null,
+            onTap: _canPress ? handleTap : null,
             child: item,
           ),
         ),
@@ -414,58 +343,44 @@ class _MacosSidebarItemState extends State<MacosSidebarItem> {
 
 /// A group of the macOS sidebar: an optional 11pt bold header over its
 /// rows. Sections are 13pt apart ([MacosSidebarSectionGap]). Internal.
-class MacosSidebarSection extends StatelessWidget {
+class MacosSidebarSection extends SidebarSection {
   const MacosSidebarSection({
     super.key,
-    required this.title,
-    required this.tiles,
-    this.titlePadding,
+    required super.title,
+    required super.tiles,
+    super.titlePadding,
   });
 
-  final Widget? title;
-  final List<Widget> tiles;
-  final EdgeInsetsGeometry? titlePadding;
-
   @override
-  Widget build(BuildContext context) {
-    final theme = SettingsTheme.of(context).themeData;
+  Widget buildHeader(
+    BuildContext context,
+    SettingsThemeData theme,
+    Widget title,
+  ) {
     final textScaler = MediaQuery.textScalerOf(context);
-    final isDark = _isDark(context);
-    final title = this.title;
     final style = theme.titleTextStyle ?? _kHeaderStyle;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (title != null)
-          Semantics(
-            container: true,
-            header: true,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: _kHeaderRowHeight),
-              child: Padding(
-                padding:
-                    titlePadding ??
-                    EdgeInsetsDirectional.only(
-                      start: _kHeaderStart,
-                      end: _kHeaderStart,
-                      top: textScaler.scale(3),
-                      bottom: textScaler.scale(2),
-                    ),
-                child: DefaultTextStyle(
-                  style: style.copyWith(
-                    color:
-                        style.color ?? (isDark ? _kHeaderDark : _kHeaderLight),
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  child: title,
-                ),
-              ),
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: _kHeaderRowHeight),
+      child: Padding(
+        padding:
+            titlePadding ??
+            EdgeInsetsDirectional.only(
+              start: _kHeaderStart,
+              end: _kHeaderStart,
+              top: textScaler.scale(3),
+              bottom: textScaler.scale(2),
             ),
+        child: DefaultTextStyle(
+          style: style.copyWith(
+            color:
+                style.color ??
+                (_isDark(context) ? _kHeaderDark : _kHeaderLight),
           ),
-        ...tiles,
-      ],
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          child: title,
+        ),
+      ),
     );
   }
 }
@@ -650,80 +565,33 @@ class MacosNavigationCapsule extends StatelessWidget {
   }
 }
 
-class _CapsuleButton extends StatefulWidget {
+/// One half of the capsule: it tints while pressed and has no hover state.
+class _CapsuleButton extends SidebarButton {
   const _CapsuleButton({
-    required this.label,
-    required this.onPressed,
+    required String label,
+    required super.onPressed,
     required this.isDark,
     required this.child,
-  });
+  }) : super(semanticLabel: label, hasEnabledState: true, tracksHover: false);
 
-  final String label;
-  final VoidCallback? onPressed;
   final bool isDark;
   final Widget child;
 
   @override
-  State<_CapsuleButton> createState() => _CapsuleButtonState();
-}
-
-class _CapsuleButtonState extends State<_CapsuleButton> {
-  bool _pressed = false;
-  bool _focusHighlight = false;
-
-  void _setPressed(bool value) {
-    if (_pressed != value) setState(() => _pressed = value);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final onPressed = widget.onPressed;
-    return Semantics(
-      container: true,
-      button: true,
-      enabled: onPressed != null,
-      label: widget.label,
-      onTap: onPressed,
-      child: FocusableActionDetector(
-        enabled: onPressed != null,
-        actions: <Type, Action<Intent>>{
-          ActivateIntent: CallbackAction<ActivateIntent>(
-            onInvoke: (_) => onPressed?.call(),
-          ),
-        },
-        onShowFocusHighlight: (value) {
-          if (value != _focusHighlight) {
-            setState(() => _focusHighlight = value);
-          }
-        },
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          excludeFromSemantics: true,
-          onTapDown: onPressed == null ? null : (_) => _setPressed(true),
-          onTapUp: onPressed == null ? null : (_) => _setPressed(false),
-          onTapCancel: onPressed == null ? null : () => _setPressed(false),
-          onTap: onPressed,
-          child: Container(
-            height: 36,
-            decoration: BoxDecoration(
-              color: _pressed
-                  ? (widget.isDark
-                        ? const Color(0x1FFFFFFF)
-                        : const Color(0x14000000))
-                  : null,
-              borderRadius: BorderRadius.circular(18),
-              border: _focusHighlight
-                  ? Border.all(
-                      color: widget.isDark ? _kFocusDark : _kFocusLight,
-                      width: 3,
-                    )
-                  : null,
-            ),
-            alignment: Alignment.center,
-            child: ExcludeSemantics(child: widget.child),
-          ),
-        ),
+  Widget buildButton(BuildContext context, SidebarButtonStates states) {
+    return Container(
+      height: 36,
+      decoration: BoxDecoration(
+        color: states.pressed
+            ? (isDark ? const Color(0x1FFFFFFF) : const Color(0x14000000))
+            : null,
+        borderRadius: BorderRadius.circular(18),
+        border: states.focused
+            ? Border.all(color: macosFocusColor(isDark: isDark), width: 3)
+            : null,
       ),
+      alignment: Alignment.center,
+      child: ExcludeSemantics(child: child),
     );
   }
 }

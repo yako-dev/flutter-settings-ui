@@ -1,7 +1,10 @@
 import 'package:flutter/widgets.dart';
-import 'package:settings_ui/settings_ui.dart';
+import 'package:settings_ui/src/sections/section_header.dart';
 import 'package:settings_ui/src/split/split_scopes.dart';
+import 'package:settings_ui/src/tiles/abstract_settings_tile.dart';
 import 'package:settings_ui/src/tiles/platforms/ios_settings_tile.dart';
+import 'package:settings_ui/src/tiles/settings_tile.dart';
+import 'package:settings_ui/src/utils/settings_theme.dart';
 
 class IOSSettingsSection extends StatelessWidget {
   const IOSSettingsSection({
@@ -50,33 +53,32 @@ class IOSSettingsSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (title != null)
-            Padding(
+            sectionHeader(
+              title: title!,
               padding:
                   titlePadding ??
                   EdgeInsetsDirectional.only(
                     start: sidebar ? 14 : 16,
                     bottom: textScaler.scale(8),
                   ),
-              child: Semantics(
-                container: true,
-                header: true,
-                child: DefaultTextStyle(
-                  style:
-                      (theme.themeData.titleTextStyle ??
-                              const TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w600,
-                              ))
-                          .copyWith(color: theme.themeData.titleTextColor),
-                  child: title!,
-                ),
-              ),
+              style:
+                  (theme.themeData.titleTextStyle ??
+                          const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w600,
+                          ))
+                      .copyWith(color: theme.themeData.titleTextColor),
             ),
           buildTileList(sidebar: sidebar),
         ],
       ),
     );
   }
+
+  /// A tile's `description` is a footer under its card, so the tile ends a
+  /// card and the next one starts a new card.
+  static bool _hasFooter(AbstractSettingsTile tile) =>
+      tile is SettingsTile && tile.description != null;
 
   Widget buildTileList({bool sidebar = false}) {
     return ListView.builder(
@@ -85,31 +87,12 @@ class IOSSettingsSection extends StatelessWidget {
       padding: EdgeInsets.zero,
       physics: const NeverScrollableScrollPhysics(),
       itemBuilder: (BuildContext context, int index) {
-        final tile = tiles[index];
-
-        var enableTop = false;
-
-        if (index == 0 ||
-            (index > 0 &&
-                tiles[index - 1] is SettingsTile &&
-                (tiles[index - 1] as SettingsTile).description != null)) {
-          enableTop = true;
-        }
-
-        var enableBottom = false;
-
-        if (index == tiles.length - 1 ||
-            (index < tiles.length &&
-                tile is SettingsTile &&
-                (tile).description != null)) {
-          enableBottom = true;
-        }
-
+        final isLast = index == tiles.length - 1;
         return IOSSettingsTileAdditionalInfo(
-          enableTopBorderRadius: enableTop,
-          enableBottomBorderRadius: enableBottom,
-          needToShowDivider: !sidebar && index != tiles.length - 1,
-          child: tile,
+          enableTopBorderRadius: index == 0 || _hasFooter(tiles[index - 1]),
+          enableBottomBorderRadius: isLast || _hasFooter(tiles[index]),
+          needToShowDivider: !sidebar && !isLast,
+          child: tiles[index],
         );
       },
     );

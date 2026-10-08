@@ -7,6 +7,7 @@ import 'package:settings_ui/src/split/fluent_split.dart';
 import 'package:settings_ui/src/split/macos_split.dart';
 import 'package:settings_ui/src/split/settings_page_trail.dart';
 import 'package:settings_ui/src/split/split_geometry.dart';
+import 'package:settings_ui/src/tiles/tile_press.dart';
 import 'package:settings_ui/src/utils/content_column.dart';
 import 'package:settings_ui/src/utils/platform_utils.dart';
 import 'package:settings_ui/src/utils/settings_style.dart';
@@ -70,7 +71,8 @@ class SettingsPageBar extends StatelessWidget {
   final VoidCallback? onBack;
 
   /// False hides the title but keeps the bar (a list page whose large title
-  /// is still on screen).
+  /// is still on screen). Only the iOS style has such a page; the other
+  /// styles don't read it.
   final bool showTitle;
 
   @override
@@ -80,28 +82,20 @@ class SettingsPageBar extends StatelessWidget {
       case SettingsStyleFamily.cupertino:
         return _buildCupertino(context, theme);
       case SettingsStyleFamily.material:
-        return _buildMaterial(context, theme);
+        return _buildMaterial(theme);
       case SettingsStyleFamily.web:
-        return _buildWeb(context, theme);
+        return _buildWeb(theme);
       case SettingsStyleFamily.macos:
-        return MacosToolbar(
-          title: showTitle ? title : null,
-          onBack: onBack,
-          actions: actions,
-        );
+        return MacosToolbar(title: title, onBack: onBack, actions: actions);
       case SettingsStyleFamily.fluent:
         return FluentPageHeader(
-          title: showTitle ? title : null,
+          title: title,
           parents: parents,
           onBack: onBack,
           actions: actions,
         );
       case SettingsStyleFamily.adwaita:
-        return AdwaitaHeaderBar(
-          title: showTitle ? title : null,
-          onBack: onBack,
-          actions: actions,
-        );
+        return AdwaitaHeaderBar(title: title, onBack: onBack, actions: actions);
     }
   }
 
@@ -137,64 +131,32 @@ class SettingsPageBar extends StatelessWidget {
                     child: Semantics(header: true, child: title),
                   ),
                 ),
-          trailing: _actions(edge),
+          trailing: _actionsRow(actions, end: edge),
           middleSpacing: 8,
         ),
       ),
     );
   }
 
-  Widget _buildMaterial(BuildContext context, SettingsThemeData theme) {
-    final tablet = MediaQuery.sizeOf(context).shortestSide >= 600;
-    final backStart = tablet ? 12.0 : 4.0;
+  Widget _buildMaterial(SettingsThemeData theme) {
     final title = this.title;
     return SafeArea(
       bottom: false,
       child: SizedBox(
         height: 64,
-        child: Row(
-          children: [
-            if (onBack != null)
-              Padding(
-                padding: EdgeInsetsDirectional.only(start: backStart, end: 8),
-                child: IconButton(
-                  onPressed: onBack,
-                  tooltip: null,
-                  icon: Icon(
-                    Icons.arrow_back,
-                    semanticLabel: settingsBackLabel(context),
-                  ),
-                  color: theme.settingsTileTextColor,
-                ),
-              )
-            else
-              const SizedBox(width: 24),
-            Expanded(
-              child: title == null
-                  ? const SizedBox.shrink()
-                  : AnimatedOpacity(
-                      opacity: showTitle ? 1 : 0,
-                      duration: const Duration(milliseconds: 150),
-                      child: DefaultTextStyle(
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w400,
-                          color: theme.settingsTileTextColor,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        child: Semantics(header: true, child: title),
-                      ),
-                    ),
-            ),
-            ?_actions(4),
-          ],
+        child: _MaterialToolbarRow(
+          onBack: onBack,
+          color: theme.settingsTileTextColor,
+          title: title == null
+              ? const SizedBox.shrink()
+              : SettingsHeaderTitle(title: title),
+          actions: actions,
         ),
       ),
     );
   }
 
-  Widget _buildWeb(BuildContext context, SettingsThemeData theme) {
+  Widget _buildWeb(SettingsThemeData theme) {
     final title = this.title;
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -218,13 +180,9 @@ class SettingsPageBar extends StatelessWidget {
                       child: Transform.translate(
                         // Line the arrow up with the column edge.
                         offset: Offset(isRtl ? 8 : -8, 0),
-                        child: IconButton(
+                        child: SettingsArrowBackButton(
                           onPressed: onBack,
                           iconSize: 20,
-                          icon: Icon(
-                            Icons.arrow_back,
-                            semanticLabel: settingsBackLabel(context),
-                          ),
                           color: theme.leadingIconsColor,
                         ),
                       ),
@@ -232,18 +190,9 @@ class SettingsPageBar extends StatelessWidget {
                   Expanded(
                     child: title == null
                         ? const SizedBox.shrink()
-                        : DefaultTextStyle(
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w400,
-                              color: theme.settingsTileTextColor,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            child: Semantics(header: true, child: title),
-                          ),
+                        : SettingsHeaderTitle(title: title),
                   ),
-                  ?_actions(0),
+                  ?_actionsRow(actions, end: 0),
                 ],
               ),
             ),
@@ -252,13 +201,116 @@ class SettingsPageBar extends StatelessWidget {
       },
     );
   }
+}
 
-  Widget? _actions(double end) {
-    final actions = this.actions;
-    if (actions == null || actions.isEmpty) return null;
-    return Padding(
-      padding: EdgeInsetsDirectional.only(end: end),
-      child: Row(mainAxisSize: MainAxisSize.min, children: actions),
+/// [actions] in a row that ends [end] before the header's end edge. Null
+/// when there are none.
+Widget? _actionsRow(List<Widget>? actions, {required double end}) {
+  if (actions == null || actions.isEmpty) return null;
+  return Padding(
+    padding: EdgeInsetsDirectional.only(end: end),
+    child: Row(mainAxisSize: MainAxisSize.min, children: actions),
+  );
+}
+
+/// A page: [header] over [body], which fills the rest of it. The header
+/// covers the top safe area, so the body gets the `MediaQuery` at [context]
+/// without the top padding.
+Widget settingsHeaderOverBody(
+  BuildContext context, {
+  required Widget header,
+  required Widget body,
+}) => Column(
+  crossAxisAlignment: CrossAxisAlignment.stretch,
+  children: [
+    header,
+    Expanded(
+      child: MediaQuery.removePadding(
+        context: context,
+        removeTop: true,
+        child: body,
+      ),
+    ),
+  ],
+);
+
+/// The arrow back button of the Android and web headers.
+class SettingsArrowBackButton extends StatelessWidget {
+  const SettingsArrowBackButton({
+    super.key,
+    required this.onPressed,
+    required this.color,
+    this.iconSize,
+  });
+
+  final VoidCallback? onPressed;
+  final Color? color;
+
+  /// Defaults to the icon button's own size.
+  final double? iconSize;
+
+  @override
+  Widget build(BuildContext context) => IconButton(
+    onPressed: onPressed,
+    iconSize: iconSize,
+    icon: Icon(Icons.arrow_back, semanticLabel: settingsBackLabel(context)),
+    color: color,
+  );
+}
+
+/// The title of the Android and web headers: 22px on one line, a header to
+/// screen readers.
+class SettingsHeaderTitle extends StatelessWidget {
+  const SettingsHeaderTitle({super.key, required this.title});
+
+  final Widget title;
+
+  @override
+  Widget build(BuildContext context) => DefaultTextStyle(
+    style: TextStyle(
+      fontSize: 22,
+      fontWeight: FontWeight.w400,
+      color: SettingsTheme.of(context).themeData.settingsTileTextColor,
+    ),
+    maxLines: 1,
+    overflow: TextOverflow.ellipsis,
+    child: Semantics(header: true, child: title),
+  );
+}
+
+/// The row of Android's 64dp action bar: an arrow back button (further in
+/// on tablets), the title and the actions.
+class _MaterialToolbarRow extends StatelessWidget {
+  const _MaterialToolbarRow({
+    required this.onBack,
+    required this.color,
+    required this.title,
+    required this.actions,
+  });
+
+  final VoidCallback? onBack;
+  final Color? color;
+
+  /// The title as the bar draws it. It gets the space between the back
+  /// button and the actions.
+  final Widget title;
+  final List<Widget>? actions;
+
+  @override
+  Widget build(BuildContext context) {
+    final tablet = MediaQuery.sizeOf(context).shortestSide >= 600;
+    return Row(
+      children: [
+        if (onBack != null)
+          Padding(
+            padding: EdgeInsetsDirectional.only(start: tablet ? 12 : 4, end: 8),
+            child: SettingsArrowBackButton(onPressed: onBack, color: color),
+          )
+        else
+          const SizedBox(width: 24),
+        Expanded(child: title),
+        ?_actionsRow(actions, end: 4),
+      ],
     );
   }
 }
@@ -280,7 +332,20 @@ class SettingsPageBar extends StatelessWidget {
       : (left: side, right: side + reserve);
 }
 
-/// The iOS 26+ round back button: a 44pt glass circle with a chevron.
+/// The keyboard focus ring of a Cupertino control, as `CupertinoButton`
+/// makes it from the system blue.
+final Color _cupertinoFocusColor =
+    HSLColor.fromColor(
+          CupertinoColors.activeBlue.withValues(
+            alpha: kCupertinoFocusColorOpacity,
+          ),
+        )
+        .withLightness(kCupertinoFocusColorBrightness)
+        .withSaturation(kCupertinoFocusColorSaturation)
+        .toColor();
+
+/// The iOS 26+ round back button: a 44pt glass circle with a chevron. Tab
+/// reaches it, and Enter or Space press it.
 class SettingsGlassBackButton extends StatefulWidget {
   const SettingsGlassBackButton({super.key, required this.onPressed});
 
@@ -293,6 +358,12 @@ class SettingsGlassBackButton extends StatefulWidget {
 
 class _SettingsGlassBackButtonState extends State<SettingsGlassBackButton> {
   bool _pressed = false;
+  bool _focusHighlight = false;
+
+  /// Enter and Space on the focused button go back.
+  late final Map<Type, Action<Intent>> _actions = tileActivateActions(
+    () => widget.onPressed(),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -308,40 +379,61 @@ class _SettingsGlassBackButtonState extends State<SettingsGlassBackButton> {
       container: true,
       button: true,
       label: settingsBackLabel(context),
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTapDown: (_) => setState(() => _pressed = true),
-        onTapCancel: () => setState(() => _pressed = false),
-        onTapUp: (_) => setState(() => _pressed = false),
-        onTap: widget.onPressed,
-        child: AnimatedScale(
-          scale: _pressed ? 1.08 : 1,
-          duration: const Duration(milliseconds: 120),
-          child: Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: fill,
-              shape: BoxShape.circle,
-              border: Border.all(color: rim, width: 0.5),
-              boxShadow: [
-                BoxShadow(
-                  color: Color(isDark ? 0x40000000 : 0x0F000000),
-                  blurRadius: 6,
-                  offset: const Offset(0, 1),
+      child: FocusableActionDetector(
+        actions: _actions,
+        // The node stays as it is: a button with a tap action.
+        includeFocusSemantics: false,
+        onShowFocusHighlight: (value) {
+          if (value != _focusHighlight) {
+            setState(() => _focusHighlight = value);
+          }
+        },
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTapDown: (_) => setState(() => _pressed = true),
+          onTapCancel: () => setState(() => _pressed = false),
+          onTapUp: (_) => setState(() => _pressed = false),
+          onTap: widget.onPressed,
+          child: AnimatedScale(
+            scale: _pressed ? 1.08 : 1,
+            duration: const Duration(milliseconds: 120),
+            child: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: fill,
+                shape: BoxShape.circle,
+                border: Border.all(color: rim, width: 0.5),
+                boxShadow: [
+                  BoxShadow(
+                    color: Color(isDark ? 0x40000000 : 0x0F000000),
+                    blurRadius: 6,
+                    offset: const Offset(0, 1),
+                  ),
+                ],
+              ),
+              // The keyboard focus ring of a Cupertino button, inside the
+              // circle: the 44pt bar of a phone has no room around it.
+              foregroundDecoration: _focusHighlight
+                  ? BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: _cupertinoFocusColor,
+                        width: 3.5,
+                      ),
+                    )
+                  : null,
+              alignment: Alignment.center,
+              child: Padding(
+                // The chevron's ink sits left of the glyph center.
+                padding: EdgeInsetsDirectional.only(end: isRtl ? 0 : 2),
+                child: Icon(
+                  isRtl
+                      ? CupertinoIcons.chevron_forward
+                      : CupertinoIcons.chevron_back,
+                  size: 22,
+                  color: theme.settingsTileTextColor,
                 ),
-              ],
-            ),
-            alignment: Alignment.center,
-            child: Padding(
-              // The chevron's ink sits left of the glyph center.
-              padding: EdgeInsetsDirectional.only(end: isRtl ? 0 : 2),
-              child: Icon(
-                isRtl
-                    ? CupertinoIcons.chevron_forward
-                    : CupertinoIcons.chevron_back,
-                size: 22,
-                color: theme.settingsTileTextColor,
               ),
             ),
           ),
@@ -413,11 +505,9 @@ class SettingsCollapsingTitleView extends StatelessWidget {
     final theme = SettingsTheme.of(context).themeData;
     final delegate = _CollapsingTitleDelegate(
       topPadding: MediaQuery.paddingOf(context).top,
-      tablet: MediaQuery.sizeOf(context).shortestSide >= 600,
       title: title,
       actions: actions,
       onBack: onBack,
-      backLabel: settingsBackLabel(context),
       background:
           background ?? theme.settingsListBackground ?? const Color(0x00000000),
       foreground: theme.settingsTileTextColor,
@@ -438,11 +528,9 @@ class SettingsCollapsingTitleView extends StatelessWidget {
 class _CollapsingTitleDelegate extends SliverPersistentHeaderDelegate {
   _CollapsingTitleDelegate({
     required this.topPadding,
-    required this.tablet,
     required this.title,
     required this.actions,
     required this.onBack,
-    required this.backLabel,
     required this.background,
     required this.foreground,
   });
@@ -452,11 +540,9 @@ class _CollapsingTitleDelegate extends SliverPersistentHeaderDelegate {
   static const double _titleAreaHeight = 115;
 
   final double topPadding;
-  final bool tablet;
   final Widget title;
   final List<Widget>? actions;
   final VoidCallback? onBack;
-  final String backLabel;
   final Color background;
   final Color? foreground;
 
@@ -473,7 +559,6 @@ class _CollapsingTitleDelegate extends SliverPersistentHeaderDelegate {
     bool overlapsContent,
   ) {
     final t = (shrinkOffset / _titleAreaHeight).clamp(0.0, 1.0);
-    final actions = this.actions;
     return ColoredBox(
       color: background,
       child: ClipRect(
@@ -507,48 +592,25 @@ class _CollapsingTitleDelegate extends SliverPersistentHeaderDelegate {
               left: 0,
               right: 0,
               height: _toolbarHeight,
-              child: Row(
-                children: [
-                  if (onBack != null)
-                    Padding(
-                      padding: EdgeInsetsDirectional.only(
-                        start: tablet ? 12 : 4,
-                        end: 8,
-                      ),
-                      child: IconButton(
-                        onPressed: onBack,
-                        icon: Icon(Icons.arrow_back, semanticLabel: backLabel),
+              child: _MaterialToolbarRow(
+                onBack: onBack,
+                color: foreground,
+                title: ExcludeSemantics(
+                  child: Opacity(
+                    opacity: ((t - 0.7) / 0.3).clamp(0.0, 1.0),
+                    child: DefaultTextStyle(
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w400,
                         color: foreground,
                       ),
-                    )
-                  else
-                    const SizedBox(width: 24),
-                  Expanded(
-                    child: ExcludeSemantics(
-                      child: Opacity(
-                        opacity: ((t - 0.7) / 0.3).clamp(0.0, 1.0),
-                        child: DefaultTextStyle(
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w400,
-                            color: foreground,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          child: title,
-                        ),
-                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      child: title,
                     ),
                   ),
-                  if (actions != null && actions.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsetsDirectional.only(end: 4),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: actions,
-                      ),
-                    ),
-                ],
+                ),
+                actions: actions,
               ),
             ),
           ],
@@ -560,11 +622,9 @@ class _CollapsingTitleDelegate extends SliverPersistentHeaderDelegate {
   @override
   bool shouldRebuild(_CollapsingTitleDelegate oldDelegate) =>
       topPadding != oldDelegate.topPadding ||
-      tablet != oldDelegate.tablet ||
       title != oldDelegate.title ||
       actions != oldDelegate.actions ||
       onBack != oldDelegate.onBack ||
-      backLabel != oldDelegate.backLabel ||
       background != oldDelegate.background ||
       foreground != oldDelegate.foreground;
 }

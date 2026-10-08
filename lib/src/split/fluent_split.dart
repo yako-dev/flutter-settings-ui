@@ -2,21 +2,31 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:settings_ui/src/split/fluent_compact_pane.dart';
+import 'package:settings_ui/src/split/fluent_controls.dart';
 import 'package:settings_ui/src/split/settings_page_header.dart';
-import 'package:settings_ui/src/split/settings_page_trail.dart';
 import 'package:settings_ui/src/split/sidebar_keyboard.dart';
+import 'package:settings_ui/src/split/sidebar_row.dart';
+import 'package:settings_ui/src/split/sidebar_section.dart';
 import 'package:settings_ui/src/tiles/platforms/fluent_settings_switch.dart';
-import 'package:settings_ui/src/tiles/settings_tile.dart';
+import 'package:settings_ui/src/tiles/tile_press.dart';
 import 'package:settings_ui/src/tiles/tile_semantics.dart';
 import 'package:settings_ui/src/utils/fluent_tokens.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 
+export 'package:settings_ui/src/split/fluent_compact_pane.dart'
+    show FluentCompactPaneLayout;
+export 'package:settings_ui/src/split/fluent_controls.dart'
+    show FluentSubtleButton;
+export 'package:settings_ui/src/split/fluent_page_header.dart'
+    show FluentPageHeader;
+
 // The WinUI 3 `NavigationView` of Windows 11 Settings (left pane), from
 // microsoft-ui-xaml's NavigationView_themeresources.xaml, measured against
-// real Settings captures. All sizes are effective pixels.
+// real Settings captures. All sizes are effective pixels. The page header
+// is in `fluent_page_header.dart`, the compact rail's overlay in
+// `fluent_compact_pane.dart`.
 
 /// NavigationViewItemOnLeftMinHeight.
 const double kFluentPaneItemMinHeight = 36;
@@ -25,9 +35,6 @@ const double kFluentPaneItemMinHeight = 36;
 /// and 4 apart.
 const double _kItemMarginH = 4;
 const double _kItemMarginV = 2;
-
-/// ControlCornerRadius.
-const double _kItemRadius = 4;
 
 /// The icon is 16 (NavigationViewItemOnLeftIconBoxHeight), centered in a 40
 /// column (NavigationViewIconBoxWidth): 24 from the pane edge.
@@ -64,40 +71,6 @@ const double kFluentOverlayPaneWidth = 320;
 /// (NavigationViewItemInnerHeaderMargin), on a 40 row.
 const double _kHeaderHeight = 40;
 const double _kHeaderStart = 16;
-
-/// Page titles: Title, 28/36 semibold.
-const TextStyle kFluentTitleStyle = TextStyle(
-  fontSize: 28,
-  height: 36 / 28,
-  fontWeight: FontWeight.w600,
-  letterSpacing: 0,
-  leadingDistribution: TextLeadingDistribution.even,
-);
-
-FluentTokens _tokensOf(BuildContext context) =>
-    FluentTokens.of(FluentTokens.brightnessOf(context));
-
-/// Tells the items of a Windows pane whether it is the compact icon rail.
-/// Internal.
-class FluentPaneModeScope extends InheritedWidget {
-  const FluentPaneModeScope({
-    super.key,
-    required this.compact,
-    required super.child,
-  });
-
-  final bool compact;
-
-  static bool compactOf(BuildContext context) =>
-      context
-          .dependOnInheritedWidgetOfExactType<FluentPaneModeScope>()
-          ?.compact ??
-      false;
-
-  @override
-  bool updateShouldNotify(FluentPaneModeScope oldWidget) =>
-      compact != oldWidget.compact;
-}
 
 /// The list pane of a Windows style split view: the keyboard navigation
 /// and the selection indicator that the items share, so it can slide from
@@ -185,52 +158,29 @@ class _FluentIndicatorScope extends InheritedWidget {
 /// a secondary label while pressed, and the Fluent focus ring. In the
 /// compact rail the item is 40 wide and shows only its icon, with the label
 /// in a tooltip. Descriptions and values are not shown.
-class FluentNavigationItem extends StatefulWidget {
-  const FluentNavigationItem({
+class FluentNavigationItem extends SidebarRow {
+  const FluentNavigationItem(
+    super.tile, {
     super.key,
     required this.id,
-    required this.tileType,
-    required this.leading,
-    required this.title,
-    required this.trailing,
-    required this.onPressed,
-    required this.onToggle,
-    required this.initialValue,
-    required this.activeSwitchColor,
-    required this.enabled,
-    required this.selected,
-    this.semanticsSelected,
+    required super.selected,
+    super.semanticsSelected,
   });
 
   /// The id of the page the item opens, if any: the selection indicator
   /// finds the item by it.
   final String? id;
-  final SettingsTileType tileType;
-  final Widget? leading;
-  final Widget title;
-  final Widget? trailing;
-  final Function(BuildContext context)? onPressed;
-  final Function(bool value)? onToggle;
-  final bool initialValue;
-  final Color? activeSwitchColor;
-  final bool enabled;
-  final bool selected;
-
-  /// Whether assistive technologies hear the row as selected: null for rows
-  /// that don't open a page.
-  final bool? semanticsSelected;
 
   @override
   State<FluentNavigationItem> createState() => _FluentNavigationItemState();
 }
 
 class _FluentNavigationItemState extends State<FluentNavigationItem>
-    with SingleTickerProviderStateMixin {
+    with
+        SingleTickerProviderStateMixin,
+        SidebarRowState<FluentNavigationItem>,
+        TilePressTracking {
   bool _hovered = false;
-  bool _pressed = false;
-  bool _focusHighlight = false;
-  int? _pressPointer;
-  Offset _pressOrigin = Offset.zero;
 
   /// Slides the pill in when the item becomes selected.
   late final AnimationController _pill;
@@ -238,60 +188,44 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
   /// Where the pill slides in from, in this item's coordinates.
   Rect? _pillFrom;
 
+  /// The text direction, as the last build read it: [pillRect] is also
+  /// called after a frame, for another item.
+  late TextDirection _textDirection;
+
   _FluentSelectionIndicator? _indicator;
 
-  late final SidebarRowFocus _focus = SidebarRowFocus(
-    debugLabel: 'FluentNavigationItem',
-    onChanged: _rebuild,
+  /// The item under its tooltip; see [build].
+  final GlobalKey _contentKey = GlobalKey(
+    debugLabel: 'FluentNavigationItem content',
   );
 
-  void _rebuild() {
-    if (mounted) setState(() {});
-  }
-
-  late final Map<Type, Action<Intent>> _actions = <Type, Action<Intent>>{
-    ActivateIntent: CallbackAction<ActivateIntent>(
-      onInvoke: (_) => _activate(),
-    ),
-    ButtonActivateIntent: CallbackAction<ButtonActivateIntent>(
-      onInvoke: (_) => _activate(),
-    ),
-  };
-
-  bool get _isSwitch => widget.tileType == SettingsTileType.switchTile;
+  @override
+  String get debugLabel => 'FluentNavigationItem';
 
   /// A switch item in the rail has no room for its switch: a tap toggles.
   bool _togglesOnTap(bool compact) =>
       compact &&
-      _isSwitch &&
-      widget.onPressed == null &&
-      widget.onToggle != null;
+      tile.isSwitch &&
+      tile.onPressed == null &&
+      tile.onToggle != null;
 
   bool _clickable(bool compact) =>
-      widget.enabled && (widget.onPressed != null || _togglesOnTap(compact));
+      tile.enabled && (tile.onPressed != null || _togglesOnTap(compact));
 
-  void _activate() {
-    if (!widget.enabled) return;
-    if (widget.onPressed != null) {
-      widget.onPressed!(context);
+  @override
+  void activateRow() {
+    if (!tile.enabled) return;
+    if (tile.onPressed != null) {
+      tile.onPressed!(context);
     } else if (_togglesOnTap(FluentPaneModeScope.compactOf(context))) {
-      widget.onToggle!(!widget.initialValue);
+      tile.onToggle!(!tile.initialValue);
     }
-  }
-
-  void _handleTap() {
-    _focus.focusFromPointer();
-    _activate();
   }
 
   /// A switch item without onPressed reads as one node: "Title, switch,
   /// on" (in the rail too, where a tap toggles). One with onPressed keeps
   /// its switch apart (both have a tap action), labelled with the title.
-  bool get _mergesSwitch => _isSwitch && widget.onPressed == null;
-
-  Widget _labelSwitchIfSeparate(Widget child) => _mergesSwitch
-      ? child
-      : labelTileSwitch(title: widget.title, child: child);
+  bool get _mergesSwitch => tile.isSwitch && tile.onPressed == null;
 
   @override
   void initState() {
@@ -325,10 +259,7 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
       if (oldWidget.id != null) _indicator?.unregister(oldWidget.id!, this);
       if (widget.id != null) _indicator?.register(widget.id!, this);
     }
-    if (!widget.enabled) {
-      _pressed = false;
-      _pressPointer = null;
-    }
+    if (!tile.enabled) resetPress();
     if (widget.selected && !oldWidget.selected) {
       // Find the old pill once every item has rebuilt.
       WidgetsBinding.instance.addPostFrameCallback((_) => _slidePillIn());
@@ -340,7 +271,6 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
     final id = widget.id;
     if (id != null) _indicator?.unregister(id, this);
     _pill.dispose();
-    _focus.dispose();
     super.dispose();
   }
 
@@ -367,60 +297,26 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
   }
 
   /// The pill's rectangle in an item of [size] (margins included).
-  Rect pillRect(Size size) {
-    final isRtl = Directionality.of(context) == TextDirection.rtl;
-    final left = isRtl
-        ? size.width - _kItemMarginH - _kPillWidth
-        : _kItemMarginH;
-    return Rect.fromLTWH(
-      left,
-      (size.height - _kPillHeight) / 2,
-      _kPillWidth,
-      _kPillHeight,
-    );
-  }
+  Rect pillRect(Size size) => _pillRectIn(size, _textDirection);
 
   void _handlePointerDown(PointerDownEvent event) {
-    if (_pressPointer != null) return;
+    if (pressed) return;
     if (event.kind == PointerDeviceKind.mouse &&
         event.buttons != kPrimaryMouseButton) {
       return;
     }
-    _pressPointer = event.pointer;
-    _pressOrigin = event.position;
-    setState(() => _pressed = true);
+    startPress(event);
   }
 
-  void _handlePointerMove(PointerMoveEvent event) {
-    if (event.pointer != _pressPointer) return;
-    final box = context.findRenderObject()! as RenderBox;
-    final inside = box.size.contains(box.globalToLocal(event.position));
-    // A finger that moves past the slop is scrolling the pane. A mouse
-    // stays pressed until it leaves the item.
-    final scrolling =
-        event.kind != PointerDeviceKind.mouse &&
-        (event.position - _pressOrigin).distance >
-            computeHitSlop(event.kind, null);
-    if (!inside || scrolling) _handlePointerEnd(event);
-  }
-
-  void _handlePointerEnd(PointerEvent event) {
-    if (event.pointer != _pressPointer) return;
-    _pressPointer = null;
-    if (_pressed) setState(() => _pressed = false);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = SettingsTheme.of(context).themeData;
-    final tokens = _tokensOf(context);
-    final compact = FluentPaneModeScope.compactOf(context);
-    final enabled = widget.enabled;
-    final clickable = _clickable(compact);
+  /// The item's fill, label color and icon color in its current state.
+  ({Color? fill, Color foreground, Color iconColor}) _colors(
+    SettingsThemeData theme,
+    FluentTokens tokens, {
+    required bool pressed,
+    required bool hovered,
+  }) {
+    final enabled = tile.enabled;
     final selected = widget.selected;
-    final pressed = clickable && _pressed;
-    final hovered = clickable && _hovered;
-
     final selectedFill = theme.selectedTileColor ?? tokens.navItemSelected;
     final Color? fill;
     if (!enabled) {
@@ -457,17 +353,34 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
         : selected
         ? (theme.selectedTileIconColor ?? primary)
         : (theme.leadingIconsColor ?? primary);
+    return (fill: fill, foreground: foreground, iconColor: iconColor);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = SettingsTheme.of(context).themeData;
+    final tokens = fluentTokensOf(context);
+    final compact = FluentPaneModeScope.compactOf(context);
+    final textDirection = _textDirection = Directionality.of(context);
+    final enabled = tile.enabled;
+    final clickable = _clickable(compact);
+    final (:fill, :foreground, :iconColor) = _colors(
+      theme,
+      tokens,
+      pressed: clickable && pressed,
+      hovered: clickable && _hovered,
+    );
 
     final labelStyle = (theme.tileTextStyle ?? FluentTypography.body).copyWith(
       color: foreground,
     );
 
-    final title = widget.title;
+    final title = tile.title;
     final String? tooltip = title is Text
         ? (title.data ?? title.textSpan?.toPlainText())
         : null;
 
-    Widget? icon = widget.leading;
+    Widget? icon = tile.leading;
     if (icon == null && compact && tooltip != null && tooltip.isNotEmpty) {
       // The rail needs something to click: the label's first letter.
       icon = ExcludeSemantics(
@@ -478,71 +391,52 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
       );
     }
 
-    final textScaler = MediaQuery.textScalerOf(context);
-    Widget content = Row(
-      children: [
-        SizedBox(
-          width: _kIconColumn,
-          child: icon == null
-              ? null
-              : Center(
-                  child: IconTheme.merge(
-                    data: IconThemeData(color: iconColor, size: _kIconSize),
-                    child: icon,
-                  ),
-                ),
-        ),
-        if (!compact) ...[
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsetsDirectional.only(
-                start: _kLabelStart,
-                end: _kLabelEnd,
-              ),
-              child: DefaultTextStyle(
-                style: labelStyle,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                child: title,
-              ),
-            ),
-          ),
-          if (widget.trailing != null)
-            Padding(
-              padding: const EdgeInsetsDirectional.only(end: _kLabelEnd),
+    final iconColumn = SizedBox(
+      width: _kIconColumn,
+      child: icon == null
+          ? null
+          : Center(
               child: IconTheme.merge(
                 data: IconThemeData(color: iconColor, size: _kIconSize),
-                child: DefaultTextStyle(
-                  style: labelStyle,
-                  child: widget.trailing!,
-                ),
+                child: icon,
               ),
             ),
-          if (_isSwitch)
-            Padding(
-              padding: const EdgeInsetsDirectional.only(end: _kLabelEnd),
-              // The item takes the focus when it can be clicked;
-              // otherwise the switch does, so the keyboard can reach it.
-              child: ExcludeFocus(
-                excluding: clickable,
-                child: _labelSwitchIfSeparate(
-                  FluentSettingsSwitch(
-                    value: widget.initialValue,
-                    onChanged: enabled ? widget.onToggle : null,
-                    activeTrackColor: widget.activeSwitchColor,
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ],
     );
-
-    content = ConstrainedBox(
+    final textScaler = MediaQuery.textScalerOf(context);
+    final content = ConstrainedBox(
       constraints: const BoxConstraints(minHeight: kFluentPaneItemMinHeight),
       child: Padding(
         padding: EdgeInsets.symmetric(vertical: textScaler.scale(2)),
-        child: content,
+        // The rail shows only the icon. Its line is a Row like the open
+        // pane's, so an item without a tooltip is updated in place when the
+        // pane opens.
+        child: compact
+            ? Row(children: [iconColumn])
+            : buildLine(
+                leading: iconColumn,
+                titleStyle: labelStyle,
+                titlePadding: const EdgeInsetsDirectional.only(
+                  start: _kLabelStart,
+                  end: _kLabelEnd,
+                ),
+                trailingStyle: labelStyle,
+                trailingIconColor: iconColor,
+                endPadding: const EdgeInsetsDirectional.only(end: _kLabelEnd),
+                // The item takes the focus when it can be clicked;
+                // otherwise the switch does, so the keyboard can reach it.
+                toggle: !tile.isSwitch
+                    ? null
+                    : ExcludeFocus(
+                        excluding: clickable,
+                        child: tile.labelSwitchIfSeparate(
+                          FluentSettingsSwitch(
+                            value: tile.initialValue,
+                            onChanged: enabled ? tile.onToggle : null,
+                            activeTrackColor: tile.activeSwitchColor,
+                          ),
+                        ),
+                      ),
+              ),
       ),
     );
 
@@ -556,19 +450,16 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
       builder: (context, color, child) => DecoratedBox(
         decoration: BoxDecoration(
           color: color,
-          borderRadius: BorderRadius.circular(_kItemRadius),
+          borderRadius: BorderRadius.circular(kFluentControlRadius),
         ),
         child: child,
       ),
       child: content,
     );
 
-    if (_focus.showsRing(_focusHighlight) && clickable) {
-      item = CustomPaint(
-        foregroundPainter: _FocusRingPainter(tokens),
-        child: item,
-      );
-    }
+    // Always there, so what the item shows keeps its State when the ring
+    // comes and goes.
+    item = fluentFocusRing(tokens, item, show: showsFocusRing && clickable);
 
     item = Padding(
       padding: const EdgeInsets.symmetric(
@@ -581,24 +472,53 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
     // The pill paints over the item (and, while it slides, over its
     // neighbors), in the accent color.
     item = CustomPaint(
-      foregroundPainter: selected
+      foregroundPainter: widget.selected
           ? _PillPainter(
               animation: _pill,
               from: _pillFrom,
-              rectFor: pillRect,
+              textDirection: textDirection,
               color: tokens.accent,
             )
           : null,
       child: item,
     );
 
-    item = FocusableActionDetector(
+    // Under a GlobalKey, so the item moves with its State when the rail's
+    // tooltip comes or goes around it.
+    item = KeyedSubtree(
+      key: _contentKey,
+      child: _interactive(item, clickable: clickable),
+    );
+
+    if (compact && tooltip != null) item = _railTooltip(tooltip, tokens, item);
+
+    // A rail item that toggles on a tap has no switch to show, so it says
+    // what the switch would.
+    final togglesOnTap = _togglesOnTap(compact);
+    Widget semantics = Semantics(
+      container: true,
+      button: clickable && !togglesOnTap,
+      enabled: enabled,
+      selected: widget.semanticsSelected,
+      toggled: togglesOnTap ? tile.initialValue : null,
+      onTap: clickable ? activateRow : null,
+      // The rail doesn't draw the title: the item reads as the title
+      // would, so its semantics label wins over its text.
+      label: compact ? tileTitleLabel(title) : null,
+      child: item,
+    );
+    if (_mergesSwitch) semantics = MergeSemantics(child: semantics);
+
+    return IgnorePointer(ignoring: !enabled, child: semantics);
+  }
+
+  /// [child] with the item's keyboard focus, hover, press and click.
+  Widget _interactive(Widget child, {required bool clickable}) {
+    return FocusableActionDetector(
       enabled: clickable,
-      focusNode: _focus.node,
-      actions: _actions,
-      onShowFocusHighlight: (value) {
-        if (value != _focusHighlight) setState(() => _focusHighlight = value);
-      },
+      focusNode: focusNode,
+      actions: actions,
+      onShowFocusHighlight: handleFocusHighlight,
       mouseCursor: clickable && kIsWeb
           ? SystemMouseCursors.click
           : MouseCursor.defer,
@@ -611,62 +531,60 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
         },
         child: Listener(
           onPointerDown: clickable ? _handlePointerDown : null,
-          onPointerMove: _handlePointerMove,
-          onPointerUp: _handlePointerEnd,
-          onPointerCancel: _handlePointerEnd,
+          onPointerMove: handlePressMove,
+          onPointerUp: handlePressEnd,
+          onPointerCancel: handlePressEnd,
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             excludeFromSemantics: true,
-            onTap: clickable ? _handleTap : null,
-            child: item,
+            onTap: clickable ? handleTap : null,
+            child: child,
           ),
         ),
       ),
     );
-
-    if (compact && tooltip != null) {
-      item = Tooltip(
-        message: tooltip,
-        excludeFromSemantics: true,
-        waitDuration: const Duration(milliseconds: 400),
-        preferBelow: false,
-        verticalOffset: 0,
-        margin: const EdgeInsetsDirectional.only(start: _kIconColumn + 12),
-        decoration: BoxDecoration(
-          color: tokens.overlayPane,
-          borderRadius: BorderRadius.circular(_kItemRadius),
-          border: Border.all(color: tokens.overlayStroke),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x24000000),
-              blurRadius: 8,
-              offset: Offset(0, 4),
-            ),
-          ],
-        ),
-        textStyle: FluentTypography.caption.copyWith(color: tokens.textPrimary),
-        padding: const EdgeInsets.fromLTRB(9, 6, 9, 8),
-        child: item,
-      );
-    }
-
-    // A rail item that toggles on a tap has no switch to show, so it says
-    // what the switch would.
-    final togglesOnTap = _togglesOnTap(compact);
-    Widget semantics = Semantics(
-      container: true,
-      button: clickable && !togglesOnTap,
-      enabled: enabled,
-      selected: widget.semanticsSelected,
-      toggled: togglesOnTap ? widget.initialValue : null,
-      onTap: clickable ? _activate : null,
-      label: compact ? tooltip : null,
-      child: item,
-    );
-    if (_mergesSwitch) semantics = MergeSemantics(child: semantics);
-
-    return IgnorePointer(ignoring: !enabled, child: semantics);
   }
+
+  /// The rail shows an item's label in a tooltip next to it.
+  Widget _railTooltip(String message, FluentTokens tokens, Widget child) {
+    return Tooltip(
+      message: message,
+      excludeFromSemantics: true,
+      waitDuration: const Duration(milliseconds: 400),
+      preferBelow: false,
+      verticalOffset: 0,
+      margin: const EdgeInsetsDirectional.only(start: _kIconColumn + 12),
+      decoration: BoxDecoration(
+        color: tokens.overlayPane,
+        borderRadius: BorderRadius.circular(kFluentControlRadius),
+        border: Border.all(color: tokens.overlayStroke),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x24000000),
+            blurRadius: 8,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      textStyle: FluentTypography.caption.copyWith(color: tokens.textPrimary),
+      padding: const EdgeInsets.fromLTRB(9, 6, 9, 8),
+      child: child,
+    );
+  }
+}
+
+/// The selection pill's rectangle in an item of [size] (margins included):
+/// at the item's start edge, in the middle of its height.
+Rect _pillRectIn(Size size, TextDirection textDirection) {
+  final left = textDirection == TextDirection.rtl
+      ? size.width - _kItemMarginH - _kPillWidth
+      : _kItemMarginH;
+  return Rect.fromLTWH(
+    left,
+    (size.height - _kPillHeight) / 2,
+    _kPillWidth,
+    _kPillHeight,
+  );
 }
 
 /// Paints the selection pill at its place in the item, or on its way there
@@ -676,20 +594,20 @@ class _PillPainter extends CustomPainter {
   _PillPainter({
     required this.animation,
     required this.from,
-    required this.rectFor,
+    required this.textDirection,
     required this.color,
   }) : super(repaint: animation);
 
   final Animation<double> animation;
   final Rect? from;
-  final Rect Function(Size size) rectFor;
+  final TextDirection textDirection;
   final Color color;
 
   static double _lerp(double a, double b, double t) => a + (b - a) * t;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final to = rectFor(size);
+    final to = _pillRectIn(size, textDirection);
     final from = this.from;
     final t = animation.value;
     var rect = to;
@@ -718,81 +636,53 @@ class _PillPainter extends CustomPainter {
   @override
   bool shouldRepaint(_PillPainter oldDelegate) =>
       oldDelegate.from != from ||
+      oldDelegate.textDirection != textDirection ||
       oldDelegate.color != color ||
       oldDelegate.animation != animation;
 }
 
-class _FocusRingPainter extends CustomPainter {
-  const _FocusRingPainter(this.tokens);
-
-  final FluentTokens tokens;
-
-  @override
-  void paint(Canvas canvas, Size size) =>
-      paintFluentFocusRing(canvas, Offset.zero & size, _kItemRadius, tokens);
-
-  @override
-  bool shouldRepaint(_FocusRingPainter oldDelegate) =>
-      oldDelegate.tokens != tokens;
-}
-
 /// A group of the Windows pane: a NavigationViewItemHeader (hidden in the
 /// compact rail) over its items. Internal.
-class FluentNavigationSection extends StatelessWidget {
+class FluentNavigationSection extends SidebarSection {
   const FluentNavigationSection({
     super.key,
-    required this.title,
-    required this.tiles,
-    this.titlePadding,
+    required super.title,
+    required super.tiles,
+    super.titlePadding,
   });
 
-  final Widget? title;
-  final List<Widget> tiles;
-  final EdgeInsetsGeometry? titlePadding;
-
   @override
-  Widget build(BuildContext context) {
-    final theme = SettingsTheme.of(context).themeData;
-    final tokens = _tokensOf(context);
-    final compact = FluentPaneModeScope.compactOf(context);
-    final title = this.title;
+  Widget? buildHeader(
+    BuildContext context,
+    SettingsThemeData theme,
+    Widget title,
+  ) {
+    if (FluentPaneModeScope.compactOf(context)) return null;
     final style = theme.titleTextStyle ?? FluentTypography.bodyStrong;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (title != null && !compact)
-          Semantics(
-            container: true,
-            header: true,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: _kHeaderHeight),
-              child: Padding(
-                padding:
-                    titlePadding ??
-                    const EdgeInsetsDirectional.only(
-                      start: _kHeaderStart,
-                      end: _kHeaderStart,
-                    ),
-                child: Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: DefaultTextStyle(
-                    style: style.copyWith(
-                      color:
-                          style.color ??
-                          theme.tileDescriptionTextColor ??
-                          tokens.textSecondary,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    child: title,
-                  ),
-                ),
-              ),
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: _kHeaderHeight),
+      child: Padding(
+        padding:
+            titlePadding ??
+            const EdgeInsetsDirectional.only(
+              start: _kHeaderStart,
+              end: _kHeaderStart,
             ),
+        child: Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: DefaultTextStyle(
+            style: style.copyWith(
+              color:
+                  style.color ??
+                  theme.tileDescriptionTextColor ??
+                  fluentTokensOf(context).textSecondary,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            child: title,
           ),
-        ...tiles,
-      ],
+        ),
+      ),
     );
   }
 }
@@ -816,7 +706,7 @@ class FluentPaneSeparator extends StatelessWidget {
       padding: const EdgeInsets.only(top: 3, bottom: 4),
       child: SizedBox(
         height: 1,
-        child: ColoredBox(color: _tokensOf(context).divider),
+        child: ColoredBox(color: fluentTokensOf(context).divider),
       ),
     );
   }
@@ -844,7 +734,7 @@ class FluentPaneHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = SettingsTheme.of(context).themeData;
-    final tokens = _tokensOf(context);
+    final tokens = fluentTokensOf(context);
     final compact = FluentPaneModeScope.compactOf(context);
     final title = this.title;
     final onBack = this.onBack;
@@ -859,80 +749,18 @@ class FluentPaneHeader extends StatelessWidget {
       child: Semantics(header: true, child: title!),
     );
 
-    final rows = <Widget>[];
-    if (onTogglePane == null) {
-      // The open pane of a wide window.
-      rows.add(
-        SizedBox(
-          height: kFluentPaneHeaderHeight,
-          child: Row(
-            children: [
-              if (onBack != null)
-                Padding(
-                  padding: const EdgeInsetsDirectional.only(
-                    start: _kItemMarginH,
-                    end: _kItemMarginH,
-                  ),
-                  child: FluentSubtleButton(
-                    semanticLabel: settingsBackLabel(context),
-                    onPressed: onBack,
-                    glyph: FluentGlyph.back,
-                  ),
-                )
-              else
-                const SizedBox(width: 16),
-              if (title != null) Expanded(child: titleText()),
-            ],
-          ),
-        ),
-      );
-    } else {
-      if (onBack != null) {
-        rows.add(
-          SizedBox(
-            height: kFluentPaneHeaderHeight,
-            child: Align(
-              alignment: AlignmentDirectional.centerStart,
-              child: Padding(
-                padding: const EdgeInsetsDirectional.only(start: _kItemMarginH),
-                child: FluentSubtleButton(
-                  semanticLabel: settingsBackLabel(context),
-                  onPressed: onBack,
-                  glyph: FluentGlyph.back,
-                ),
-              ),
-            ),
-          ),
-        );
-      }
-      rows.add(
-        Padding(
-          padding: EdgeInsets.only(
-            top: onBack == null ? 6 : 0,
-            bottom: _kItemMarginV,
-          ),
-          child: SizedBox(
-            height: 40,
-            child: Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsetsDirectional.only(
-                    start: _kItemMarginH,
-                    end: _kItemMarginH,
-                  ),
-                  child: FluentSubtleButton(
-                    semanticLabel: settingsMenuLabel(context),
-                    onPressed: onTogglePane,
-                    glyph: FluentGlyph.menu,
-                  ),
-                ),
-                if (!compact && title != null) Expanded(child: titleText()),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
+    final Widget? back = onBack == null
+        ? null
+        : FluentSubtleButton(
+            semanticLabel: settingsBackLabel(context),
+            onPressed: onBack,
+            glyph: FluentGlyph.back,
+          );
+    const margins = EdgeInsetsDirectional.only(
+      start: _kItemMarginH,
+      end: _kItemMarginH,
+    );
+
     // Only the top inset: the pane's items don't move away from a side
     // inset (a display cutout in landscape) either, and the 48 wide rail
     // has no room for one, which would push the buttons out of it.
@@ -943,836 +771,58 @@ class FluentPaneHeader extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: rows,
-      ),
-    );
-  }
-}
-
-/// The glyphs of the Windows pane buttons (Segoe Fluent Icons), drawn.
-enum FluentGlyph {
-  /// E72B Back.
-  back,
-
-  /// E700 GlobalNavigationButton.
-  menu,
-}
-
-/// A 40x36 subtle button of the Windows pane and title bar (back, pane
-/// toggle): transparent at rest, SubtleFillSecondary on hover,
-/// SubtleFillTertiary with a secondary glyph while pressed. Internal.
-class FluentSubtleButton extends StatefulWidget {
-  const FluentSubtleButton({
-    super.key,
-    required this.semanticLabel,
-    required this.onPressed,
-    required this.glyph,
-  });
-
-  final String semanticLabel;
-  final VoidCallback onPressed;
-  final FluentGlyph glyph;
-
-  @override
-  State<FluentSubtleButton> createState() => _FluentSubtleButtonState();
-}
-
-class _FluentSubtleButtonState extends State<FluentSubtleButton> {
-  bool _hovered = false;
-  bool _pressed = false;
-  bool _focusHighlight = false;
-
-  void _setPressed(bool value) {
-    if (_pressed != value) setState(() => _pressed = value);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = SettingsTheme.of(context).themeData;
-    final tokens = _tokensOf(context);
-    final primary = theme.settingsTileTextColor ?? tokens.textPrimary;
-    final secondary = theme.tileDescriptionTextColor ?? tokens.textSecondary;
-    final fill = _pressed
-        ? tokens.navItemPressed
-        : _hovered
-        ? tokens.navItemSelected
-        : null;
-    Widget button = Container(
-      width: 40,
-      height: 36,
-      decoration: BoxDecoration(
-        color: fill,
-        borderRadius: BorderRadius.circular(_kItemRadius),
-      ),
-      alignment: Alignment.center,
-      child: CustomPaint(
-        size: const Size.square(16),
-        painter: _GlyphPainter(
-          glyph: widget.glyph,
-          color: _pressed ? secondary : primary,
-          textDirection: Directionality.of(context),
-        ),
-      ),
-    );
-    if (_focusHighlight) {
-      button = CustomPaint(
-        foregroundPainter: _FocusRingPainter(tokens),
-        child: button,
-      );
-    }
-    return Semantics(
-      container: true,
-      button: true,
-      label: widget.semanticLabel,
-      onTap: widget.onPressed,
-      child: FocusableActionDetector(
-        actions: <Type, Action<Intent>>{
-          ActivateIntent: CallbackAction<ActivateIntent>(
-            onInvoke: (_) => widget.onPressed(),
-          ),
-        },
-        onShowFocusHighlight: (value) {
-          if (value != _focusHighlight) {
-            setState(() => _focusHighlight = value);
-          }
-        },
-        child: MouseRegion(
-          onEnter: (_) => setState(() => _hovered = true),
-          onExit: (_) => setState(() => _hovered = false),
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            excludeFromSemantics: true,
-            onTapDown: (_) => _setPressed(true),
-            onTapUp: (_) => _setPressed(false),
-            onTapCancel: () => _setPressed(false),
-            onTap: widget.onPressed,
-            child: button,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _GlyphPainter extends CustomPainter {
-  const _GlyphPainter({
-    required this.glyph,
-    required this.color,
-    required this.textDirection,
-  });
-
-  final FluentGlyph glyph;
-  final Color color;
-  final TextDirection textDirection;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-    final scale = size.shortestSide / 16;
-    canvas.scale(scale);
-    switch (glyph) {
-      case FluentGlyph.back:
-        if (textDirection == TextDirection.rtl) {
-          canvas.translate(16, 0);
-          canvas.scale(-1, 1);
-        }
-        canvas.drawPath(
-          Path()
-            ..moveTo(14.5, 8)
-            ..lineTo(1.5, 8)
-            ..moveTo(7.5, 2)
-            ..lineTo(1.5, 8)
-            ..lineTo(7.5, 14),
-          paint,
-        );
-      case FluentGlyph.menu:
-        for (final y in [3.5, 8.0, 12.5]) {
-          canvas.drawLine(Offset(1.5, y), Offset(14.5, y), paint);
-        }
-    }
-  }
-
-  @override
-  bool shouldRepaint(_GlyphPainter oldDelegate) =>
-      oldDelegate.glyph != glyph ||
-      oldDelegate.color != color ||
-      oldDelegate.textDirection != textDirection;
-}
-
-/// The side margins of a Windows page's content in a page [width] wide:
-/// the Fluent `SettingsList` column (at most 1000, 24 margins, 16 below
-/// 641).
-double fluentPageSideMargin(double width) =>
-    math.max(width < 641 ? 16.0 : 24.0, (width - 1000) / 2);
-
-/// The title of a Windows Settings page: Title (28/36 semibold) over the
-/// content column, 24 from the top. A page opened from another page shows
-/// a breadcrumb ("System › Display") whose parent crumbs are in the
-/// secondary color and go back to their page when clicked. A first page
-/// with somewhere to go back to gets a back button before its title.
-/// Internal.
-class FluentPageHeader extends StatelessWidget {
-  const FluentPageHeader({
-    super.key,
-    required this.title,
-    this.parents = const <SettingsPageTrailEntry>[],
-    this.onBack,
-    this.actions,
-  });
-
-  final Widget? title;
-  final List<SettingsPageTrailEntry> parents;
-  final VoidCallback? onBack;
-  final List<Widget>? actions;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = SettingsTheme.of(context).themeData;
-    final tokens = _tokensOf(context);
-    final primary = theme.settingsTileTextColor ?? tokens.textPrimary;
-    final secondary = theme.tileDescriptionTextColor ?? tokens.textSecondary;
-    final onBack = parents.isEmpty ? this.onBack : null;
-    final actions = this.actions;
-    final title = this.title;
-
-    return SafeArea(
-      bottom: false,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final side = fluentPageSideMargin(constraints.maxWidth);
-          return Padding(
-            padding: EdgeInsetsDirectional.only(
-              start: onBack == null ? side : math.max(0, side - 8),
-              end: side,
-              top: 24,
-            ),
-            child: Row(
-              children: [
-                if (onBack != null)
-                  Padding(
-                    padding: const EdgeInsetsDirectional.only(end: 8),
-                    child: FluentSubtleButton(
-                      semanticLabel: settingsBackLabel(context),
-                      onPressed: onBack,
-                      glyph: FluentGlyph.back,
-                    ),
-                  ),
-                Expanded(
-                  child: Semantics(
-                    header: true,
-                    child: _FluentBreadcrumb(
-                      parents: parents,
-                      title: title,
-                      primary: primary,
-                      secondary: secondary,
-                    ),
-                  ),
-                ),
-                if (actions != null && actions.isNotEmpty)
-                  Row(mainAxisSize: MainAxisSize.min, children: actions),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-/// The page title of a Windows page on one line: the crumbs of the pages
-/// above it, then its title, like WinUI's `BreadcrumbBar` in Windows
-/// Settings. When they don't fit, the crumbs nearest the start collapse
-/// into a "…" crumb (which goes back to the last collapsed page), and a
-/// title too long for the line ends in an ellipsis.
-class _FluentBreadcrumb extends StatefulWidget {
-  const _FluentBreadcrumb({
-    required this.parents,
-    required this.title,
-    required this.primary,
-    required this.secondary,
-  });
-
-  final List<SettingsPageTrailEntry> parents;
-  final Widget? title;
-  final Color primary;
-  final Color secondary;
-
-  @override
-  State<_FluentBreadcrumb> createState() => _FluentBreadcrumbState();
-}
-
-class _FluentBreadcrumbState extends State<_FluentBreadcrumb> {
-  /// How many crumbs (from the first) the last layout collapsed. Only for
-  /// the keyboard focus and the "…" crumb's target: the layout decides.
-  int _collapsed = 0;
-
-  void _handleCollapsed(int count) {
-    if (count == _collapsed) return;
-    // Called during layout.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted && count != _collapsed) setState(() => _collapsed = count);
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final parents = widget.parents;
-    final title = widget.title;
-    final collapsed = math.min(_collapsed, parents.length);
-    Widget line(Widget child, Color color) => DefaultTextStyle(
-      style: kFluentTitleStyle.copyWith(color: color),
-      maxLines: 1,
-      softWrap: false,
-      overflow: TextOverflow.ellipsis,
-      child: child,
-    );
-    final titleWidget = title == null
-        ? const SizedBox.shrink()
-        : line(title, widget.primary);
-    if (parents.isEmpty) return titleWidget;
-
-    final last = parents[math.max(0, collapsed - 1)];
-    final lastTitle = last.title;
-    return _BreadcrumbLayout(
-      crumbCount: parents.length,
-      textDirection: Directionality.of(context),
-      onCollapsed: _handleCollapsed,
-      children: [
-        ExcludeFocus(
-          excluding: collapsed == 0,
-          child: _Crumb(
-            entry: last,
-            color: widget.secondary,
-            hoverColor: widget.primary,
-            label: Text(
-              '…',
-              semanticsLabel: lastTitle is Text ? lastTitle.data : null,
-            ),
-          ),
-        ),
-        _BreadcrumbChevron(color: widget.secondary),
-        for (final (index, parent) in parents.indexed) ...[
-          ExcludeFocus(
-            excluding: index < collapsed,
-            child: _Crumb(
-              entry: parent,
-              color: widget.secondary,
-              hoverColor: widget.primary,
-            ),
-          ),
-          _BreadcrumbChevron(color: widget.secondary),
-        ],
-        titleWidget,
-      ],
-    );
-  }
-}
-
-/// Lays out the "…" crumb and its chevron, [crumbCount] crumbs with their
-/// chevrons, and the title (in that order) on one line; see
-/// [_FluentBreadcrumb].
-class _BreadcrumbLayout extends MultiChildRenderObjectWidget {
-  const _BreadcrumbLayout({
-    required this.crumbCount,
-    required this.textDirection,
-    required this.onCollapsed,
-    required super.children,
-  });
-
-  final int crumbCount;
-  final TextDirection textDirection;
-  final ValueChanged<int> onCollapsed;
-
-  @override
-  RenderObject createRenderObject(BuildContext context) =>
-      _RenderBreadcrumb(crumbCount, textDirection, onCollapsed);
-
-  @override
-  void updateRenderObject(
-    BuildContext context,
-    _RenderBreadcrumb renderObject,
-  ) {
-    renderObject
-      ..crumbCount = crumbCount
-      ..textDirection = textDirection
-      ..onCollapsed = onCollapsed;
-  }
-}
-
-class _BreadcrumbParentData extends ContainerBoxParentData<RenderBox> {
-  bool shown = true;
-}
-
-class _RenderBreadcrumb extends RenderBox
-    with
-        ContainerRenderObjectMixin<RenderBox, _BreadcrumbParentData>,
-        RenderBoxContainerDefaultsMixin<RenderBox, _BreadcrumbParentData> {
-  _RenderBreadcrumb(this._crumbCount, this._textDirection, this.onCollapsed);
-
-  int get crumbCount => _crumbCount;
-  int _crumbCount;
-  set crumbCount(int value) {
-    if (value == _crumbCount) return;
-    _crumbCount = value;
-    markNeedsLayout();
-  }
-
-  TextDirection get textDirection => _textDirection;
-  TextDirection _textDirection;
-  set textDirection(TextDirection value) {
-    if (value == _textDirection) return;
-    _textDirection = value;
-    markNeedsLayout();
-  }
-
-  ValueChanged<int> onCollapsed;
-
-  @override
-  void setupParentData(RenderBox child) {
-    if (child.parentData is! _BreadcrumbParentData) {
-      child.parentData = _BreadcrumbParentData();
-    }
-  }
-
-  /// How many crumbs collapse into the "…" crumb, from the natural widths
-  /// of the children, when the line is [maxWidth] wide; and the width the
-  /// title gets.
-  (int, double) _fit(List<double> widths, double maxWidth) {
-    final count = crumbCount;
-    final title = widths.last;
-    double pair(int index) => widths[2 + 2 * index] + widths[3 + 2 * index];
-    var crumbs = 0.0;
-    for (var i = 0; i < count; i++) {
-      crumbs += pair(i);
-    }
-    if (!maxWidth.isFinite || crumbs + title <= maxWidth) return (0, title);
-    // The title stays whole when it leaves room for the "…" crumb; the
-    // crumbs nearest it show while they fit.
-    final ellipsis = widths[0] + widths[1];
-    final titleWidth = math.min(title, math.max(0.0, maxWidth - ellipsis));
-    var room = maxWidth - ellipsis - titleWidth;
-    var collapsed = count;
-    for (var i = count - 1; i >= 0 && pair(i) <= room; i--) {
-      room -= pair(i);
-      collapsed = i;
-    }
-    // Everything that fits (a collapse of 0 would have fit whole).
-    return (math.max(1, collapsed), titleWidth);
-  }
-
-  bool get _valid => childCount == 2 * crumbCount + 3;
-
-  @override
-  void performLayout() {
-    final children = getChildrenAsList();
-    final loose = BoxConstraints(maxHeight: constraints.maxHeight);
-    for (final child in children) {
-      child.layout(loose, parentUsesSize: true);
-    }
-    if (!_valid) {
-      size = constraints.constrain(Size.zero);
-      return;
-    }
-    final maxWidth = constraints.maxWidth;
-    final (collapsed, titleWidth) = _fit([
-      for (final child in children) child.size.width,
-    ], maxWidth);
-    onCollapsed(collapsed);
-    final title = children.last;
-    if (title.size.width > titleWidth) {
-      title.layout(loose.copyWith(maxWidth: titleWidth), parentUsesSize: true);
-    }
-
-    bool isShown(int index) {
-      if (index == children.length - 1) return true;
-      if (index < 2) return collapsed > 0;
-      return (index - 2) ~/ 2 >= collapsed;
-    }
-
-    var height = 0.0;
-    var width = 0.0;
-    for (final (index, child) in children.indexed) {
-      final shown = isShown(index);
-      (child.parentData! as _BreadcrumbParentData).shown = shown;
-      if (!shown) continue;
-      height = math.max(height, child.size.height);
-      width += child.size.width;
-    }
-    size = constraints.constrain(Size(width, height));
-    var x = 0.0;
-    for (final child in children) {
-      final data = child.parentData! as _BreadcrumbParentData;
-      if (!data.shown) {
-        data.offset = Offset.zero;
-        continue;
-      }
-      final dx = textDirection == TextDirection.rtl
-          ? size.width - x - child.size.width
-          : x;
-      data.offset = Offset(dx, (size.height - child.size.height) / 2);
-      x += child.size.width;
-    }
-  }
-
-  @override
-  Size computeDryLayout(covariant BoxConstraints constraints) {
-    final loose = BoxConstraints(maxHeight: constraints.maxHeight);
-    final sizes = [
-      for (final child in getChildrenAsList()) child.getDryLayout(loose),
-    ];
-    if (!_valid) return constraints.constrain(Size.zero);
-    final (collapsed, titleWidth) = _fit([
-      for (final size in sizes) size.width,
-    ], constraints.maxWidth);
-    var width = titleWidth;
-    var height = sizes.last.height;
-    for (var i = 0; i < sizes.length - 1; i++) {
-      final shown = i < 2 ? collapsed > 0 : (i - 2) ~/ 2 >= collapsed;
-      if (!shown) continue;
-      width += sizes[i].width;
-      height = math.max(height, sizes[i].height);
-    }
-    return constraints.constrain(Size(width, height));
-  }
-
-  @override
-  double computeMinIntrinsicWidth(double height) => 0;
-
-  @override
-  double computeMaxIntrinsicWidth(double height) {
-    var width = 0.0;
-    for (final (index, child) in getChildrenAsList().indexed) {
-      if (index < 2) continue;
-      width += child.getMaxIntrinsicWidth(height);
-    }
-    return width;
-  }
-
-  @override
-  double computeMinIntrinsicHeight(double width) =>
-      computeMaxIntrinsicHeight(width);
-
-  @override
-  double computeMaxIntrinsicHeight(double width) {
-    var height = 0.0;
-    for (final child in getChildrenAsList()) {
-      height = math.max(height, child.getMaxIntrinsicHeight(double.infinity));
-    }
-    return height;
-  }
-
-  @override
-  void paint(PaintingContext context, Offset offset) {
-    for (final child in getChildrenAsList()) {
-      final data = child.parentData! as _BreadcrumbParentData;
-      if (data.shown) context.paintChild(child, offset + data.offset);
-    }
-  }
-
-  @override
-  bool hitTestChildren(BoxHitTestResult result, {required Offset position}) {
-    for (final child in getChildrenAsList().reversed) {
-      final data = child.parentData! as _BreadcrumbParentData;
-      if (!data.shown) continue;
-      final hit = result.addWithPaintOffset(
-        offset: data.offset,
-        position: position,
-        hitTest: (result, transformed) =>
-            child.hitTest(result, position: transformed),
-      );
-      if (hit) return true;
-    }
-    return false;
-  }
-
-  @override
-  void visitChildrenForSemantics(RenderObjectVisitor visitor) {
-    for (final child in getChildrenAsList()) {
-      if ((child.parentData! as _BreadcrumbParentData).shown) visitor(child);
-    }
-  }
-}
-
-/// A parent page in the breadcrumb: secondary text that turns primary on
-/// hover and goes back to its page when clicked.
-class _Crumb extends StatefulWidget {
-  const _Crumb({
-    required this.entry,
-    required this.color,
-    required this.hoverColor,
-    this.label,
-  });
-
-  final SettingsPageTrailEntry entry;
-  final Color color;
-  final Color hoverColor;
-
-  /// Shown instead of the page's title (the "…" crumb).
-  final Widget? label;
-
-  @override
-  State<_Crumb> createState() => _CrumbState();
-}
-
-class _CrumbState extends State<_Crumb> {
-  bool _hovered = false;
-  bool _focusHighlight = false;
-
-  void _activate() => popToSettingsPage(context, widget.entry);
-
-  @override
-  Widget build(BuildContext context) {
-    Widget crumb = DefaultTextStyle(
-      style: kFluentTitleStyle.copyWith(
-        color: _hovered || _focusHighlight ? widget.hoverColor : widget.color,
-      ),
-      maxLines: 1,
-      softWrap: false,
-      overflow: TextOverflow.ellipsis,
-      child: widget.label ?? widget.entry.title,
-    );
-    if (_focusHighlight) {
-      crumb = CustomPaint(
-        foregroundPainter: _FocusRingPainter(_tokensOf(context)),
-        child: crumb,
-      );
-    }
-    return Semantics(
-      container: true,
-      button: true,
-      onTap: _activate,
-      child: FocusableActionDetector(
-        actions: <Type, Action<Intent>>{
-          ActivateIntent: CallbackAction<ActivateIntent>(
-            onInvoke: (_) => _activate(),
-          ),
-        },
-        mouseCursor: SystemMouseCursors.click,
-        onShowFocusHighlight: (value) {
-          if (value != _focusHighlight) {
-            setState(() => _focusHighlight = value);
-          }
-        },
-        child: MouseRegion(
-          onEnter: (_) => setState(() => _hovered = true),
-          onExit: (_) => setState(() => _hovered = false),
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            excludeFromSemantics: true,
-            onTap: _activate,
-            child: crumb,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// The breadcrumb separator: a thin chevron, 7 wide and 12 tall, mirrored
-/// in right-to-left layouts, with the spacing Windows Settings leaves
-/// around it.
-class _BreadcrumbChevron extends StatelessWidget {
-  const _BreadcrumbChevron({required this.color});
-
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsetsDirectional.only(start: 19, end: 17),
-      child: CustomPaint(
-        size: const Size(7, 36),
-        painter: _BreadcrumbChevronPainter(
-          color: color,
-          textDirection: Directionality.of(context),
-        ),
-      ),
-    );
-  }
-}
-
-class _BreadcrumbChevronPainter extends CustomPainter {
-  const _BreadcrumbChevronPainter({
-    required this.color,
-    required this.textDirection,
-  });
-
-  final Color color;
-  final TextDirection textDirection;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    // Centered on the capitals, which sit a little above the line's middle.
-    final top = (size.height - 12) / 2 + 1;
-    if (textDirection == TextDirection.rtl) {
-      canvas.translate(size.width, 0);
-      canvas.scale(-1, 1);
-    }
-    canvas.drawPath(
-      Path()
-        ..moveTo(0.75, top + 0.75)
-        ..lineTo(6.25, top + 6)
-        ..lineTo(0.75, top + 11.25),
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.6
-        ..strokeCap = StrokeCap.round
-        ..strokeJoin = StrokeJoin.round
-        ..color = color,
-    );
-  }
-
-  @override
-  bool shouldRepaint(_BreadcrumbChevronPainter oldDelegate) =>
-      oldDelegate.color != color || oldDelegate.textDirection != textDirection;
-}
-
-/// The two panes of a Windows style split view between 641 and 1007 wide:
-/// the compact icon rail next to the content, which opens over the content
-/// (the NavigationView "LeftCompact" mode). Internal.
-///
-/// While open, the pane is [openWidth] wide on the acrylic fallback color
-/// with a shadow and rounded end corners; a click outside it or Escape
-/// closes it ([onDismiss]).
-class FluentCompactPaneLayout extends StatefulWidget {
-  const FluentCompactPaneLayout({
-    super.key,
-    required this.open,
-    required this.railWidth,
-    required this.openWidth,
-    required this.onDismiss,
-    required this.pane,
-    required this.detail,
-  });
-
-  final bool open;
-  final double railWidth;
-  final double openWidth;
-  final VoidCallback onDismiss;
-  final Widget pane;
-  final Widget detail;
-
-  @override
-  State<FluentCompactPaneLayout> createState() =>
-      _FluentCompactPaneLayoutState();
-}
-
-class _FluentCompactPaneLayoutState extends State<FluentCompactPaneLayout>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 200),
-    value: widget.open ? 1 : 0,
-  )..addStatusListener((_) => setState(() {}));
-
-  @override
-  void didUpdateWidget(FluentCompactPaneLayout oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.open != oldWidget.open) {
-      final reduceMotion =
-          MediaQuery.maybeDisableAnimationsOf(context) ?? false;
-      if (reduceMotion) {
-        _controller.value = widget.open ? 1 : 0;
-      } else if (widget.open) {
-        _controller.forward();
-      } else {
-        _controller.reverse();
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final tokens = _tokensOf(context);
-    final closed = _controller.status == AnimationStatus.dismissed;
-    final openWidth = math.max(widget.railWidth, widget.openWidth);
-    final isRtl = Directionality.of(context) == TextDirection.rtl;
-    final endCorner = BorderRadiusDirectional.horizontal(
-      end: const Radius.circular(8),
-    ).resolve(Directionality.of(context));
-
-    return CallbackShortcuts(
-      bindings: <ShortcutActivator, VoidCallback>{
-        const SingleActivator(LogicalKeyboardKey.escape): () {
-          if (widget.open) widget.onDismiss();
-        },
-      },
-      child: Stack(
         children: [
-          Positioned.fill(
-            child: Row(
-              children: [
-                SizedBox(width: widget.railWidth),
-                Expanded(child: widget.detail),
-              ],
-            ),
-          ),
-          // A click outside the open pane closes it (light dismiss).
-          Positioned.fill(
-            child: IgnorePointer(
-              ignoring: !widget.open,
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                excludeFromSemantics: true,
-                onTap: widget.onDismiss,
-                child: const SizedBox.expand(),
+          if (onTogglePane == null)
+            // The open pane of a wide window.
+            SizedBox(
+              height: kFluentPaneHeaderHeight,
+              child: Row(
+                children: [
+                  if (back != null)
+                    Padding(padding: margins, child: back)
+                  else
+                    const SizedBox(width: 16),
+                  if (title != null) Expanded(child: titleText()),
+                ],
               ),
-            ),
-          ),
-          PositionedDirectional(
-            start: 0,
-            top: 0,
-            bottom: 0,
-            child: AnimatedBuilder(
-              animation: _controller,
-              builder: (context, child) {
-                final t = kFluentFastOutSlowIn.transform(_controller.value);
-                final width =
-                    widget.railWidth + (openWidth - widget.railWidth) * t;
-                return Container(
-                  width: width,
-                  clipBehavior: closed ? Clip.none : Clip.antiAlias,
-                  decoration: closed
-                      ? null
-                      : BoxDecoration(
-                          color: tokens.overlayPane,
-                          borderRadius: endCorner,
-                          border: BorderDirectional(
-                            end: BorderSide(color: tokens.overlayStroke),
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Color.fromRGBO(0, 0, 0, 0.14 * t),
-                              blurRadius: 16,
-                              offset: Offset(isRtl ? -2 : 2, 0),
-                            ),
-                          ],
-                        ),
-                  child: child,
-                );
-              },
-              child: FluentPaneModeScope(
-                compact: closed,
-                child: OverflowBox(
-                  alignment: AlignmentDirectional.topStart,
-                  minWidth: closed ? widget.railWidth : openWidth,
-                  maxWidth: closed ? widget.railWidth : openWidth,
-                  child: widget.pane,
+            )
+          else ...[
+            if (back != null)
+              SizedBox(
+                height: kFluentPaneHeaderHeight,
+                child: Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Padding(
+                    padding: const EdgeInsetsDirectional.only(
+                      start: _kItemMarginH,
+                    ),
+                    child: back,
+                  ),
+                ),
+              ),
+            Padding(
+              padding: EdgeInsets.only(
+                top: back == null ? 6 : 0,
+                bottom: _kItemMarginV,
+              ),
+              child: SizedBox(
+                height: 40,
+                child: Row(
+                  children: [
+                    Padding(
+                      padding: margins,
+                      child: FluentSubtleButton(
+                        semanticLabel: settingsMenuLabel(context),
+                        onPressed: onTogglePane,
+                        glyph: FluentGlyph.menu,
+                      ),
+                    ),
+                    if (!compact && title != null) Expanded(child: titleText()),
+                  ],
                 ),
               ),
             ),
-          ),
+          ],
         ],
       ),
     );

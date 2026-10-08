@@ -2,54 +2,23 @@ import 'dart:async';
 
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:settings_ui/settings_ui.dart';
-import 'package:settings_ui/src/tiles/tile_semantics.dart';
+import 'package:settings_ui/src/tiles/platforms/cupertino_settings_switch.dart';
+import 'package:settings_ui/src/tiles/tile_colors.dart';
+import 'package:settings_ui/src/tiles/tile_data.dart';
+import 'package:settings_ui/src/tiles/tile_parts.dart';
 import 'package:settings_ui/src/utils/settings_style.dart';
+import 'package:settings_ui/src/utils/settings_theme.dart';
 
 class IOSSettingsTile extends StatefulWidget {
-  const IOSSettingsTile({
-    required this.tileType,
-    required this.leading,
-    required this.title,
-    required this.titleDescription,
-    required this.description,
-    required this.onPressed,
-    required this.onToggle,
-    required this.value,
-    required this.initialValue,
-    required this.activeSwitchColor,
-    required this.enabled,
-    required this.trailing,
-    this.compact = false,
-    this.titlePadding,
-    this.leadingPadding,
-    this.trailingPadding,
-    this.descriptionPadding,
-    this.titleDescriptionPadding,
+  const IOSSettingsTile(
+    this.tile, {
     this.selected = false,
     this.sidebar = false,
     this.semanticsSelected,
     super.key,
   });
 
-  final SettingsTileType tileType;
-  final Widget? leading;
-  final Widget? title;
-  final Widget? titleDescription;
-  final Widget? description;
-  final Function(BuildContext context)? onPressed;
-  final Function(bool value)? onToggle;
-  final Widget? value;
-  final bool? initialValue;
-  final bool enabled;
-  final bool compact;
-  final Color? activeSwitchColor;
-  final Widget? trailing;
-  final EdgeInsetsGeometry? titlePadding;
-  final EdgeInsetsGeometry? leadingPadding;
-  final EdgeInsetsGeometry? trailingPadding;
-  final EdgeInsetsGeometry? descriptionPadding;
-  final EdgeInsetsGeometry? titleDescriptionPadding;
+  final SettingsTileData tile;
 
   /// Drawn as the selected row of an iPad sidebar: a filled capsule.
   final bool selected;
@@ -67,6 +36,8 @@ class IOSSettingsTile extends StatefulWidget {
 }
 
 class IOSSettingsTileState extends State<IOSSettingsTile> {
+  SettingsTileData get tile => widget.tile;
+
   bool isPressed = false;
 
   /// Clears the pressed tint shortly after a tap.
@@ -74,7 +45,7 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
 
   /// Only an enabled row with `onPressed` reacts to taps, and only then does
   /// it expose a tap action to screen readers.
-  bool get _canPress => widget.enabled && widget.onPressed != null;
+  bool get _canPress => tile.enabled && tile.onPressed != null;
 
   @override
   void didUpdateWidget(IOSSettingsTile oldWidget) {
@@ -100,14 +71,12 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
     // row with onPressed is a button, dimmed when disabled. A switch row
     // without onPressed reads as its switch: "title, switch, on" (with it,
     // the switch is a node of its own, labelled with the title).
-    final isSwitch = widget.tileType == SettingsTileType.switchTile;
-    final isButton = widget.onPressed != null;
+    final isSwitch = tile.isSwitch;
+    final isButton = tile.onPressed != null;
     Widget row = Semantics(
       container: true,
       button: isButton,
-      enabled: isButton || (!isSwitch && !widget.enabled)
-          ? widget.enabled
-          : null,
+      enabled: isButton || (!isSwitch && !tile.enabled) ? tile.enabled : null,
       selected: widget.semanticsSelected,
       child: buildTitle(
         context: context,
@@ -118,11 +87,11 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
     if (isSwitch && !isButton) row = MergeSemantics(child: row);
 
     return IgnorePointer(
-      ignoring: !widget.enabled,
+      ignoring: !tile.enabled,
       child: Column(
         children: [
           row,
-          if (widget.description != null)
+          if (tile.description != null)
             buildDescription(
               context: context,
               theme: theme,
@@ -138,12 +107,7 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
     required SettingsTheme theme,
     required IOSSettingsTileAdditionalInfo additionalInfo,
   }) {
-    Widget content = buildTileContent(context, theme, additionalInfo);
-    // Use the platform from SettingsTheme (respects user's explicit choice)
-    // rather than re-detecting from the system, which ignored platform overrides.
-    if (theme.platform != DevicePlatform.iOS) {
-      content = Material(color: Colors.transparent, child: content);
-    }
+    final content = buildTileContent(context, theme, additionalInfo);
 
     // iPad sidebar rows highlight as a 52pt capsule.
     if (widget.sidebar) {
@@ -184,7 +148,7 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
               ? constraints.maxWidth
               : MediaQuery.sizeOf(context).width,
           padding:
-              widget.descriptionPadding ??
+              tile.descriptionPadding ??
               EdgeInsets.only(
                 left: 16,
                 right: 16,
@@ -201,7 +165,7 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
                 (theme.themeData.tileDescriptionTextStyle ??
                         const TextStyle(fontSize: 13))
                     .copyWith(color: theme.themeData.titleTextColor),
-            child: widget.description!,
+            child: tile.description!,
           ),
         ),
       ),
@@ -213,35 +177,33 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
     required BuildContext context,
     required SettingsTheme theme,
   }) {
+    final themeData = theme.themeData;
     final textScaler = MediaQuery.textScalerOf(context);
     final isRTL = Directionality.of(context) == TextDirection.rtl;
-    final iconColor = widget.selected
-        ? (theme.themeData.selectedTileIconColor ??
-              theme.themeData.leadingIconsColor)
-        : theme.themeData.leadingIconsColor;
 
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (widget.trailing != null)
+        if (tile.trailing != null)
           Padding(
             padding:
-                widget.trailingPadding ??
+                tile.trailingPadding ??
                 const EdgeInsets.symmetric(horizontal: 16),
             child: IconTheme(
               data: IconTheme.of(context).copyWith(
-                color: widget.enabled
-                    ? iconColor
-                    : theme.themeData.inactiveTitleColor,
+                color: themeData.iconColorFor(
+                  enabled: tile.enabled,
+                  selected: widget.selected,
+                ),
               ),
-              child: widget.trailing!,
+              child: tile.trailing!,
             ),
           ),
         // The switch's glass lens paints up to ~12.5pt past its end and ~6pt
         // above and below it. The 16pt end padding and the 52pt row keep it
         // inside the card.
-        if (widget.tileType == SettingsTileType.switchTile)
-          _labelSwitchIfSeparate(
+        if (tile.isSwitch)
+          tile.labelSwitchIfSeparate(
             CupertinoTheme(
               // The switch picks its light or dark colors from this: the
               // list's, which `SettingsList.brightness` can set apart from the
@@ -250,23 +212,28 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
                 context,
               ).copyWith(brightness: SettingsStyleScope.brightnessOf(context)),
               child: CupertinoSettingsSwitch(
-                value: widget.initialValue ?? true,
+                value: tile.initialValue,
                 // A disabled tile's switch takes no focus, keys or taps.
-                onChanged: widget.enabled ? widget.onToggle : null,
-                activeTrackColor: widget.enabled
-                    ? widget.activeSwitchColor
-                    : (theme.themeData.inactiveSwitchColor ??
-                          theme.themeData.inactiveTitleColor),
+                onChanged: tile.enabled ? tile.onToggle : null,
+                activeTrackColor: tile.enabled
+                    ? tile.activeSwitchColor
+                    : (themeData.inactiveSwitchColor ??
+                          themeData.inactiveTitleColor),
               ),
             ),
           ),
         // iPad sidebar rows have no chevron.
-        if (widget.tileType == SettingsTileType.navigationTile &&
-            !widget.sidebar)
+        if (tile.isNavigation && !widget.sidebar)
           Padding(
             padding: const EdgeInsetsDirectional.only(start: 6, end: 2),
             child: IconTheme(
-              data: IconTheme.of(context).copyWith(color: iconColor),
+              // The chevron of a disabled row is not dimmed.
+              data: IconTheme.of(context).copyWith(
+                color: themeData.iconColorFor(
+                  enabled: true,
+                  selected: widget.selected,
+                ),
+              ),
               child: Icon(
                 isRTL
                     ? CupertinoIcons.chevron_back
@@ -279,12 +246,6 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
     );
   }
 
-  /// A row with onPressed and a switch has two actions, so the switch is a
-  /// semantics node of its own. It gets the title as its label.
-  Widget _labelSwitchIfSeparate(Widget child) => widget.onPressed == null
-      ? child
-      : labelTileSwitch(title: widget.title, child: child);
-
   void changePressState({bool isPressed = false}) {
     // A tap recognizer that is dropped mid-press (the tile was disabled)
     // cancels during the build. didUpdateWidget has cleared the tint by then.
@@ -295,45 +256,33 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
     }
   }
 
+  void _handleTap() {
+    changePressState(isPressed: true);
+
+    tile.onPressed!.call(context);
+
+    _releaseTimer?.cancel();
+    _releaseTimer = Timer(
+      const Duration(milliseconds: 100),
+      () => changePressState(isPressed: false),
+    );
+  }
+
   Widget buildTileContent(
     BuildContext context,
     SettingsTheme theme,
     IOSSettingsTileAdditionalInfo additionalInfo,
   ) {
-    final textScaler = MediaQuery.textScalerOf(context);
-    final shouldShowInlineValue =
-        (widget.tileType == SettingsTileType.navigationTile ||
-            widget.tileType == SettingsTileType.simpleTile) &&
-        widget.value != null;
     final themeData = theme.themeData;
-    final selected = widget.selected;
+    final sidebar = widget.sidebar;
     final Color? background;
-    if (widget.sidebar) {
-      background = selected
-          ? themeData.selectedTileColor
-          : isPressed
-          ? themeData.tileHighlightColor
-          : null;
+    if (sidebar && widget.selected) {
+      background = themeData.selectedTileColor;
+    } else if (isPressed) {
+      background = themeData.tileHighlightColor;
     } else {
-      background = isPressed
-          ? themeData.tileHighlightColor
-          : themeData.settingsSectionBackground;
+      background = sidebar ? null : themeData.settingsSectionBackground;
     }
-    final titleColor = !widget.enabled
-        ? themeData.inactiveTitleColor
-        : selected
-        ? (themeData.selectedTileTextColor ?? themeData.settingsTileTextColor)
-        : themeData.settingsTileTextColor;
-    final valueColor = !widget.enabled
-        ? themeData.inactiveTitleColor
-        : selected
-        ? (themeData.selectedTileTextColor ?? themeData.trailingTextColor)
-        : themeData.trailingTextColor;
-    final iconColor = !widget.enabled
-        ? themeData.inactiveTitleColor
-        : selected
-        ? (themeData.selectedTileIconColor ?? themeData.leadingIconsColor)
-        : themeData.leadingIconsColor;
 
     // Without callbacks the detector has no tap recognizer, so a row that
     // does nothing exposes no tap action, and a press that started before
@@ -341,19 +290,7 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
     final canPress = _canPress;
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
-      onTap: canPress
-          ? () {
-              changePressState(isPressed: true);
-
-              widget.onPressed!.call(context);
-
-              _releaseTimer?.cancel();
-              _releaseTimer = Timer(
-                const Duration(milliseconds: 100),
-                () => changePressState(isPressed: false),
-              );
-            }
-          : null,
+      onTap: canPress ? _handleTap : null,
       onTapDown: canPress ? (_) => changePressState(isPressed: true) : null,
       onTapUp: canPress ? (_) => changePressState(isPressed: false) : null,
       onTapCancel: canPress ? () => changePressState(isPressed: false) : null,
@@ -361,19 +298,22 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
         color: background,
         // iPad sidebar: icon 14pt into the row, label 8.5pt after a 28pt
         // icon.
-        padding: EdgeInsetsDirectional.only(start: widget.sidebar ? 14 : 16),
+        padding: EdgeInsetsDirectional.only(start: sidebar ? 14 : 16),
         child: Row(
           children: [
-            if (widget.leading != null)
+            if (tile.leading != null)
               Padding(
                 padding:
-                    widget.leadingPadding ??
-                    EdgeInsetsDirectional.only(
-                      end: widget.sidebar ? 8.5 : 12.0,
-                    ),
+                    tile.leadingPadding ??
+                    EdgeInsetsDirectional.only(end: sidebar ? 8.5 : 12.0),
                 child: IconTheme.merge(
-                  data: IconThemeData(color: iconColor),
-                  child: widget.leading!,
+                  data: IconThemeData(
+                    color: themeData.iconColorFor(
+                      enabled: tile.enabled,
+                      selected: widget.selected,
+                    ),
+                  ),
+                  child: tile.leading!,
                 ),
               ),
             Expanded(
@@ -382,126 +322,102 @@ class IOSSettingsTileState extends State<IOSSettingsTile> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Padding(
-                    padding: EdgeInsetsDirectional.only(
-                      end: widget.sidebar ? 14 : 16,
-                    ),
+                    padding: EdgeInsetsDirectional.only(end: sidebar ? 14 : 16),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Expanded(
-                          child: LayoutBuilder(
-                            // The title fills the row. The value keeps its
-                            // natural width, up to half the row, so neither a
-                            // long title nor a long value can hide the other
-                            // (Issues #186, #203).
-                            builder: (context, constraints) => Row(
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Padding(
-                                        padding:
-                                            widget.titlePadding ??
-                                            // 16 + 17pt text + 16 gives the
-                                            // 52pt row of iOS Settings.
-                                            EdgeInsetsDirectional.only(
-                                              top: textScaler.scale(
-                                                widget.compact ? 8.0 : 16.0,
-                                              ),
-                                              bottom:
-                                                  widget.titleDescription ==
-                                                      null
-                                                  ? textScaler.scale(
-                                                      widget.compact
-                                                          ? 8.0
-                                                          : 16.0,
-                                                    )
-                                                  : textScaler.scale(
-                                                      widget.compact
-                                                          ? 2.0
-                                                          : 4.0,
-                                                    ),
-                                            ),
-                                        child: DefaultTextStyle(
-                                          style:
-                                              (theme.themeData.tileTextStyle ??
-                                                      const TextStyle(
-                                                        fontSize: 17,
-                                                      ))
-                                                  .copyWith(color: titleColor),
-                                          child: widget.title!,
-                                        ),
-                                      ),
-                                      if (widget.titleDescription != null)
-                                        Padding(
-                                          padding:
-                                              widget.titleDescriptionPadding ??
-                                              EdgeInsetsDirectional.only(
-                                                bottom: textScaler.scale(
-                                                  widget.compact ? 8.0 : 16.0,
-                                                ),
-                                              ),
-                                          child: DefaultTextStyle(
-                                            style: TextStyle(
-                                              color: !widget.enabled
-                                                  ? themeData.inactiveTitleColor
-                                                  : selected
-                                                  ? titleColor?.withValues(
-                                                      alpha: 0.8,
-                                                    )
-                                                  : themeData.titleTextColor,
-                                              fontSize: 15,
-                                            ),
-                                            child: widget.titleDescription!,
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                ),
-                                if (shouldShowInlineValue)
-                                  Padding(
-                                    padding: const EdgeInsetsDirectional.only(
-                                      start: 8,
-                                    ),
-                                    child: ConstrainedBox(
-                                      constraints: BoxConstraints(
-                                        maxWidth: constraints.maxWidth / 2,
-                                      ),
-                                      child: DefaultTextStyle(
-                                        style: TextStyle(
-                                          color: valueColor,
-                                          fontSize: 17,
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
-                                        maxLines: 1,
-                                        textAlign: TextAlign.end,
-                                        child: widget.value!,
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
+                          child: _buildTitleAndValue(context, themeData),
                         ),
                         buildTrailing(context: context, theme: theme),
                       ],
                     ),
                   ),
-                  if (widget.description == null &&
+                  if (tile.description == null &&
                       additionalInfo.needToShowDivider &&
-                      !widget.sidebar)
+                      !sidebar)
                     Divider(
                       height: 0,
                       thickness: 0.7,
-                      color: theme.themeData.dividerColor,
+                      color: themeData.dividerColor,
                     ),
                 ],
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// The title over the title description, then the value.
+  Widget _buildTitleAndValue(BuildContext context, SettingsThemeData theme) {
+    final textScaler = MediaQuery.textScalerOf(context);
+    final titleColor = theme.titleColorFor(
+      enabled: tile.enabled,
+      selected: widget.selected,
+    );
+    final Color? valueColor;
+    final Color? titleDescriptionColor;
+    if (!tile.enabled) {
+      valueColor = titleDescriptionColor = theme.inactiveTitleColor;
+    } else if (widget.selected) {
+      valueColor = theme.selectedTileTextColor ?? theme.trailingTextColor;
+      titleDescriptionColor = titleColor?.withValues(alpha: 0.8);
+    } else {
+      valueColor = theme.trailingTextColor;
+      titleDescriptionColor = theme.titleTextColor;
+    }
+    // 16 + 17pt text + 16 gives the 52pt row of iOS Settings.
+    final edgePadding = textScaler.scale(tile.compact ? 8.0 : 16.0);
+
+    return LayoutBuilder(
+      // The title fills the row. The value keeps its natural width, up to
+      // half the row, so neither a long title nor a long value can hide the
+      // other (Issues #186, #203).
+      builder: (context, constraints) => Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                tileText(
+                  tile.title,
+                  padding:
+                      tile.titlePadding ??
+                      EdgeInsetsDirectional.only(
+                        top: edgePadding,
+                        bottom: tile.titleDescription == null
+                            ? edgePadding
+                            : textScaler.scale(tile.compact ? 2.0 : 4.0),
+                      ),
+                  style: (theme.tileTextStyle ?? const TextStyle(fontSize: 17))
+                      .copyWith(color: titleColor),
+                ),
+                if (tile.titleDescription != null)
+                  tileText(
+                    tile.titleDescription!,
+                    padding:
+                        tile.titleDescriptionPadding ??
+                        EdgeInsetsDirectional.only(bottom: edgePadding),
+                    style: TextStyle(
+                      color: titleDescriptionColor,
+                      fontSize: 15,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          if (tile.value != null && !tile.isSwitch)
+            Padding(
+              padding: const EdgeInsetsDirectional.only(start: 8),
+              child: tileValue(
+                tile.value!,
+                style: TextStyle(color: valueColor, fontSize: 17),
+                maxWidth: constraints.maxWidth / 2,
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -521,12 +437,14 @@ class IOSSettingsTileAdditionalInfo extends InheritedWidget {
   });
 
   @override
-  bool updateShouldNotify(IOSSettingsTileAdditionalInfo oldWidget) => true;
+  bool updateShouldNotify(IOSSettingsTileAdditionalInfo oldWidget) =>
+      needToShowDivider != oldWidget.needToShowDivider ||
+      enableTopBorderRadius != oldWidget.enableTopBorderRadius ||
+      enableBottomBorderRadius != oldWidget.enableBottomBorderRadius;
 
   static IOSSettingsTileAdditionalInfo of(BuildContext context) {
     final IOSSettingsTileAdditionalInfo? result = context
         .dependOnInheritedWidgetOfExactType<IOSSettingsTileAdditionalInfo>();
-    // assert(result != null, 'No IOSSettingsTileAdditionalInfo found in context');
     return result ??
         const IOSSettingsTileAdditionalInfo(
           needToShowDivider: true,

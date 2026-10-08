@@ -4,8 +4,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 import 'package:settings_ui/src/tiles/platforms/fluent_settings_switch.dart';
-import 'package:settings_ui/src/tiles/settings_tile.dart';
-import 'package:settings_ui/src/tiles/tile_semantics.dart';
+import 'package:settings_ui/src/tiles/tile_data.dart';
+import 'package:settings_ui/src/tiles/tile_parts.dart';
+import 'package:settings_ui/src/tiles/tile_press.dart';
 import 'package:settings_ui/src/utils/fluent_tokens.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 
@@ -54,68 +55,24 @@ Color _blend(Color foreground, Color background) =>
 /// A setting on its own card, like a Windows 11 Settings row (a Windows
 /// Community Toolkit `SettingsCard`).
 class FluentSettingsTile extends StatefulWidget {
-  const FluentSettingsTile({
-    required this.tileType,
-    required this.leading,
-    required this.title,
-    required this.titleDescription,
-    required this.description,
-    required this.onPressed,
-    required this.onToggle,
-    required this.value,
-    required this.initialValue,
-    required this.activeSwitchColor,
-    required this.enabled,
-    required this.trailing,
-    this.compact = false,
-    this.titlePadding,
-    this.leadingPadding,
-    this.trailingPadding,
-    this.descriptionPadding,
-    this.titleDescriptionPadding,
-    super.key,
-  });
+  const FluentSettingsTile(this.tile, {super.key});
 
-  final SettingsTileType tileType;
-  final Widget? leading;
-  final Widget? title;
-  final Widget? titleDescription;
-  final Widget? description;
-  final Function(BuildContext context)? onPressed;
-  final Function(bool value)? onToggle;
-  final Widget? value;
-  final bool initialValue;
-  final bool enabled;
-  final bool compact;
-  final Color? activeSwitchColor;
-  final Widget? trailing;
-  final EdgeInsetsGeometry? titlePadding;
-  final EdgeInsetsGeometry? leadingPadding;
-  final EdgeInsetsGeometry? trailingPadding;
-  final EdgeInsetsGeometry? descriptionPadding;
-  final EdgeInsetsGeometry? titleDescriptionPadding;
+  final SettingsTileData tile;
 
   @override
   State<FluentSettingsTile> createState() => _FluentSettingsTileState();
 }
 
-class _FluentSettingsTileState extends State<FluentSettingsTile> {
-  late final Map<Type, Action<Intent>> _actions = <Type, Action<Intent>>{
-    ActivateIntent: CallbackAction<ActivateIntent>(
-      onInvoke: (_) => _activate(),
-    ),
-    ButtonActivateIntent: CallbackAction<ButtonActivateIntent>(
-      onInvoke: (_) => _activate(),
-    ),
-  };
+class _FluentSettingsTileState extends State<FluentSettingsTile>
+    with TilePressTracking {
+  SettingsTileData get tile => widget.tile;
+
+  late final Map<Type, Action<Intent>> _actions = tileActivateActions(
+    _activate,
+  );
 
   bool _hovered = false;
-  bool _pressed = false;
   bool _focusHighlight = false;
-
-  /// The pointer that pressed the card, while it is down.
-  int? _pressPointer;
-  Offset _pressOrigin = Offset.zero;
 
   /// Pointers that went down on the switch. Like a WinUI control that
   /// handles the pointer, the switch does not press the card.
@@ -123,233 +80,42 @@ class _FluentSettingsTileState extends State<FluentSettingsTile> {
 
   /// A clickable card (WinUI `IsClickEnabled`): hover, press and keyboard
   /// focus only apply to these.
-  bool get _clickable => widget.enabled && widget.onPressed != null;
-
-  bool get _isSwitch => widget.tileType == SettingsTileType.switchTile;
-
-  bool get _isNavigation => widget.tileType == SettingsTileType.navigationTile;
+  bool get _clickable => tile.enabled && tile.onPressed != null;
 
   @override
   void didUpdateWidget(FluentSettingsTile oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (!_clickable) {
-      _pressed = false;
-      _pressPointer = null;
-    }
+    if (!_clickable) resetPress();
   }
 
   void _activate() {
-    if (_clickable) widget.onPressed!.call(context);
+    if (_clickable) tile.onPressed!.call(context);
   }
 
   void _handlePointerDown(PointerDownEvent event) {
-    if (!_clickable ||
-        _pressPointer != null ||
-        _controlPointers.contains(event.pointer)) {
+    if (!_clickable || pressed || _controlPointers.contains(event.pointer)) {
       return;
     }
     if (event.kind == PointerDeviceKind.mouse &&
         event.buttons != kPrimaryMouseButton) {
       return;
     }
-    _pressPointer = event.pointer;
-    _pressOrigin = event.position;
-    setState(() => _pressed = true);
-  }
-
-  void _handlePointerMove(PointerMoveEvent event) {
-    if (event.pointer != _pressPointer) return;
-    final RenderBox box = context.findRenderObject()! as RenderBox;
-    final bool inside = box.size.contains(box.globalToLocal(event.position));
-    // A finger that moves is scrolling. A mouse stays pressed until it
-    // leaves the card.
-    final bool scrolling =
-        event.kind != PointerDeviceKind.mouse &&
-        (event.position - _pressOrigin).distance >
-            computeHitSlop(event.kind, null);
-    if (!inside || scrolling) _release();
+    startPress(event);
   }
 
   void _handlePointerEnd(PointerEvent event) {
     _controlPointers.remove(event.pointer);
-    if (event.pointer == _pressPointer) _release();
-  }
-
-  void _release() {
-    _pressPointer = null;
-    if (_pressed) setState(() => _pressed = false);
+    handlePressEnd(event);
   }
 
   @override
   Widget build(BuildContext context) {
     final SettingsThemeData theme = SettingsTheme.of(context).themeData;
-    final FluentTokens tokens = FluentTokens.of(
-      FluentTokens.brightnessOf(context),
-    );
-    final bool enabled = widget.enabled;
+    final FluentTokens tokens = fluentTokensOf(context);
     final bool clickable = _clickable;
-    final bool pressed = clickable && _pressed;
-    final bool hovered = clickable && _hovered;
+    final bool pressed = clickable && this.pressed;
 
-    // Card states from SettingsCard.xaml. The border sits over the page
-    // (BackgroundSizing InnerBorderEdge), so its translucent colors are
-    // flattened onto the page color.
-    final Color card = theme.settingsSectionBackground ?? tokens.card;
-    final Color page = theme.settingsListBackground ?? tokens.page;
-    final Color background;
-    final Color borderColor;
-    Color? edgeColor;
-    if (!enabled) {
-      background = _blend(tokens.cardDisabledOverlay, card);
-      borderColor = _blend(tokens.controlStroke, page);
-    } else if (pressed) {
-      background = theme.tileHighlightColor ?? tokens.cardPressed;
-      borderColor = _blend(tokens.controlStroke, page);
-    } else if (hovered) {
-      background = _blend(tokens.cardHoverOverlay, card);
-      borderColor = _blend(tokens.controlStroke, page);
-      edgeColor = _blend(tokens.controlStrokeSecondary, page);
-    } else {
-      background = card;
-      borderColor = theme.dividerColor ?? tokens.cardStroke;
-    }
-
-    // Foregrounds. Pressing turns the header and icon secondary.
-    final Color primary = theme.settingsTileTextColor ?? tokens.textPrimary;
-    final Color secondary =
-        theme.tileDescriptionTextColor ?? tokens.textSecondary;
-    final Color disabledTitle = theme.inactiveTitleColor ?? tokens.textDisabled;
-    final Color disabledSubtitle =
-        theme.inactiveSubtitleColor ?? tokens.textDisabled;
-    final Color iconColor = theme.leadingIconsColor ?? primary;
-
-    final _TileParts parts = _TileParts(
-      leading: widget.leading == null
-          ? null
-          : Padding(
-              padding: widget.leadingPadding ?? _kIconMargin,
-              child: IconTheme.merge(
-                data: IconThemeData(
-                  size: _kIconSize,
-                  color: !enabled
-                      ? disabledTitle
-                      : pressed
-                      ? secondary
-                      : iconColor,
-                ),
-                child: widget.leading!,
-              ),
-            ),
-      header: _buildHeader(
-        theme: theme,
-        titleColor: !enabled
-            ? disabledTitle
-            : pressed
-            ? secondary
-            : primary,
-        descriptionColor: enabled ? secondary : disabledSubtitle,
-      ),
-      value: widget.value == null || _isSwitch
-          ? null
-          : DefaultTextStyle(
-              style: FluentTypography.body.copyWith(
-                color: enabled
-                    ? (theme.trailingTextColor ?? secondary)
-                    : disabledSubtitle,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              child: widget.value!,
-            ),
-      trailing: widget.trailing == null
-          ? null
-          : Padding(
-              padding:
-                  widget.trailingPadding ??
-                  EdgeInsetsDirectional.only(
-                    start: widget.value != null && !_isSwitch
-                        ? _kValueTrailingGap
-                        : 0,
-                    end: _isSwitch ? _kTrailingSwitchGap : 0,
-                  ),
-              child: IconTheme.merge(
-                data: IconThemeData(
-                  size: _kIconSize,
-                  color: enabled ? iconColor : disabledTitle,
-                ),
-                child: DefaultTextStyle(
-                  style: FluentTypography.body.copyWith(
-                    color: enabled ? primary : disabledTitle,
-                  ),
-                  child: widget.trailing!,
-                ),
-              ),
-            ),
-      control: !_isSwitch
-          ? null
-          : Listener(
-              onPointerDown: (event) => _controlPointers.add(event.pointer),
-              child: _labelSwitchIfSeparate(
-                FluentSettingsSwitch(
-                  value: widget.initialValue,
-                  onChanged: enabled ? widget.onToggle : null,
-                  activeTrackColor: widget.activeSwitchColor,
-                ),
-              ),
-            ),
-      chevron: !_isNavigation
-          ? null
-          : Padding(
-              padding: const EdgeInsetsDirectional.only(start: _kChevronMargin),
-              child: CustomPaint(
-                size: const Size.square(_kChevronSize),
-                painter: _ChevronPainter(
-                  color: enabled ? iconColor : disabledTitle,
-                  textDirection: Directionality.of(context),
-                ),
-              ),
-            ),
-    );
-
-    final bool reduceMotion =
-        MediaQuery.maybeDisableAnimationsOf(context) ?? false;
-    final double verticalPadding = widget.compact ? _kPadding / 2 : _kPadding;
-
-    Widget tile = TweenAnimationBuilder<Color?>(
-      // Background changes fade in 83 ms (BrushTransition).
-      tween: ColorTween(end: background),
-      duration: reduceMotion ? Duration.zero : kFluentFasterDuration,
-      builder: (context, color, child) => CustomPaint(
-        painter: _CardPainter(
-          background: color ?? background,
-          borderColor: borderColor,
-          edgeColor: edgeColor,
-          edgeAtBottom: tokens == FluentTokens.light,
-          focusTokens: _focusHighlight && clickable ? tokens : null,
-        ),
-        child: child,
-      ),
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          minHeight: widget.compact ? _kCompactMinHeight : _kMinHeight,
-        ),
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: _kPadding + _kBorderWidth,
-            vertical: verticalPadding + _kBorderWidth,
-          ),
-          child: LayoutBuilder(
-            builder: (context, constraints) => _layout(
-              parts,
-              cardWidth: constraints.maxWidth + 2 * (_kPadding + _kBorderWidth),
-              contentWidth: constraints.maxWidth,
-            ),
-          ),
-        ),
-      ),
-    );
-
-    tile = FocusableActionDetector(
+    final Widget card = FocusableActionDetector(
       enabled: clickable,
       actions: _actions,
       onShowFocusHighlight: (bool value) {
@@ -367,14 +133,20 @@ class _FluentSettingsTileState extends State<FluentSettingsTile> {
         },
         child: Listener(
           onPointerDown: _handlePointerDown,
-          onPointerMove: _handlePointerMove,
+          onPointerMove: handlePressMove,
           onPointerUp: _handlePointerEnd,
           onPointerCancel: _handlePointerEnd,
           child: GestureDetector(
             excludeFromSemantics: true,
             behavior: HitTestBehavior.opaque,
             onTap: clickable ? _activate : null,
-            child: tile,
+            child: _buildCard(
+              theme,
+              tokens,
+              pressed: pressed,
+              hovered: clickable && _hovered,
+              parts: _buildParts(theme, tokens, pressed: pressed),
+            ),
           ),
         ),
       ),
@@ -382,65 +154,193 @@ class _FluentSettingsTileState extends State<FluentSettingsTile> {
 
     // A switch tile reads as the switch ("Wi-Fi, switch, on"). A switch tile
     // that also opens a page keeps its switch as a separate node.
-    final bool isButton = widget.onPressed != null;
-    final bool mergeAll = !_isSwitch || widget.onPressed == null;
+    final bool isButton = tile.onPressed != null;
+    final bool mergeAll = !tile.isSwitch || !isButton;
     Widget semantics = Semantics(
       container: !mergeAll,
       button: isButton,
-      enabled: isButton || !enabled ? enabled : null,
+      enabled: isButton || !tile.enabled ? tile.enabled : null,
       onTap: clickable ? _activate : null,
-      child: tile,
+      child: card,
     );
     if (mergeAll) semantics = MergeSemantics(child: semantics);
 
-    return IgnorePointer(ignoring: !enabled, child: semantics);
+    return IgnorePointer(ignoring: !tile.enabled, child: semantics);
   }
 
-  /// A switch tile that also opens a page keeps its switch as a node of its
-  /// own. The switch then gets the title as its label.
-  Widget _labelSwitchIfSeparate(Widget child) => widget.onPressed == null
-      ? child
-      : labelTileSwitch(title: widget.title, child: child);
-
-  Widget _buildHeader({
-    required SettingsThemeData theme,
-    required Color titleColor,
-    required Color descriptionColor,
+  /// The card in its state from SettingsCard.xaml, around the laid out
+  /// [parts].
+  Widget _buildCard(
+    SettingsThemeData theme,
+    FluentTokens tokens, {
+    required bool pressed,
+    required bool hovered,
+    required _TileParts parts,
   }) {
-    final TextStyle descriptionStyle =
-        (theme.tileDescriptionTextStyle ?? FluentTypography.caption).copyWith(
-          color: descriptionColor,
-        );
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: widget.titlePadding ?? EdgeInsets.zero,
-          child: DefaultTextStyle(
-            style: (theme.tileTextStyle ?? FluentTypography.body).copyWith(
-              color: titleColor,
+    // The border sits over the page (BackgroundSizing InnerBorderEdge), so
+    // its translucent colors are flattened onto the page color.
+    final Color card = theme.settingsSectionBackground ?? tokens.card;
+    final Color page = theme.settingsListBackground ?? tokens.page;
+    final Color background;
+    final Color borderColor;
+    Color? edgeColor;
+    if (!tile.enabled) {
+      background = _blend(tokens.cardDisabledOverlay, card);
+      borderColor = _blend(tokens.controlStroke, page);
+    } else if (pressed) {
+      background = theme.tileHighlightColor ?? tokens.cardPressed;
+      borderColor = _blend(tokens.controlStroke, page);
+    } else if (hovered) {
+      background = _blend(tokens.cardHoverOverlay, card);
+      borderColor = _blend(tokens.controlStroke, page);
+      edgeColor = _blend(tokens.controlStrokeSecondary, page);
+    } else {
+      background = card;
+      borderColor = theme.dividerColor ?? tokens.cardStroke;
+    }
+
+    final bool reduceMotion =
+        MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    final double verticalPadding = tile.compact ? _kPadding / 2 : _kPadding;
+
+    return TweenAnimationBuilder<Color?>(
+      // Background changes fade in 83 ms (BrushTransition).
+      tween: ColorTween(end: background),
+      duration: reduceMotion ? Duration.zero : kFluentFasterDuration,
+      builder: (context, color, child) => CustomPaint(
+        painter: _CardPainter(
+          background: color ?? background,
+          borderColor: borderColor,
+          edgeColor: edgeColor,
+          edgeAtBottom: tokens == FluentTokens.light,
+          focusTokens: _focusHighlight && _clickable ? tokens : null,
+        ),
+        child: child,
+      ),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          minHeight: tile.compact ? _kCompactMinHeight : _kMinHeight,
+        ),
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: _kPadding + _kBorderWidth,
+            vertical: verticalPadding + _kBorderWidth,
+          ),
+          child: LayoutBuilder(
+            builder: (context, constraints) => _layout(
+              parts,
+              cardWidth: constraints.maxWidth + 2 * (_kPadding + _kBorderWidth),
+              contentWidth: constraints.maxWidth,
             ),
-            child: widget.title ?? const SizedBox.shrink(),
           ),
         ),
-        if (widget.titleDescription != null)
-          Padding(
-            padding: widget.titleDescriptionPadding ?? EdgeInsets.zero,
-            child: DefaultTextStyle(
-              style: descriptionStyle,
-              child: widget.titleDescription!,
+      ),
+    );
+  }
+
+  _TileParts _buildParts(
+    SettingsThemeData theme,
+    FluentTokens tokens, {
+    required bool pressed,
+  }) {
+    final bool enabled = tile.enabled;
+    final bool showsValue = tile.value != null && !tile.isSwitch;
+
+    final Color primary = theme.settingsTileTextColor ?? tokens.textPrimary;
+    final Color secondary =
+        theme.tileDescriptionTextColor ?? tokens.textSecondary;
+    final Color disabledTitle = theme.inactiveTitleColor ?? tokens.textDisabled;
+    final Color disabledSubtitle =
+        theme.inactiveSubtitleColor ?? tokens.textDisabled;
+    final Color iconColor = theme.leadingIconsColor ?? primary;
+    final Color endIconColor = enabled ? iconColor : disabledTitle;
+    // Pressing turns the header and icon secondary.
+    final Color titleColor;
+    final Color leadingColor;
+    if (!enabled) {
+      titleColor = leadingColor = disabledTitle;
+    } else if (pressed) {
+      titleColor = leadingColor = secondary;
+    } else {
+      titleColor = primary;
+      leadingColor = iconColor;
+    }
+
+    return _TileParts(
+      leading: tile.leading == null
+          ? null
+          : Padding(
+              padding: tile.leadingPadding ?? _kIconMargin,
+              child: IconTheme.merge(
+                data: IconThemeData(size: _kIconSize, color: leadingColor),
+                child: tile.leading!,
+              ),
             ),
-          ),
-        if (widget.description != null)
-          Padding(
-            padding: widget.descriptionPadding ?? EdgeInsets.zero,
-            child: DefaultTextStyle(
-              style: descriptionStyle,
-              child: widget.description!,
+      header: tileTitleColumn(
+        tile: tile,
+        titleStyle: (theme.tileTextStyle ?? FluentTypography.body).copyWith(
+          color: titleColor,
+        ),
+        subtitleStyle:
+            (theme.tileDescriptionTextStyle ?? FluentTypography.caption)
+                .copyWith(color: enabled ? secondary : disabledSubtitle),
+        subtitlePadding: EdgeInsets.zero,
+      ),
+      value: !showsValue
+          ? null
+          : DefaultTextStyle(
+              style: FluentTypography.body.copyWith(
+                color: enabled
+                    ? (theme.trailingTextColor ?? secondary)
+                    : disabledSubtitle,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              child: tile.value!,
             ),
-          ),
-      ],
+      trailing: tile.trailing == null
+          ? null
+          : Padding(
+              padding:
+                  tile.trailingPadding ??
+                  EdgeInsetsDirectional.only(
+                    start: showsValue ? _kValueTrailingGap : 0,
+                    end: tile.isSwitch ? _kTrailingSwitchGap : 0,
+                  ),
+              child: IconTheme.merge(
+                data: IconThemeData(size: _kIconSize, color: endIconColor),
+                child: DefaultTextStyle(
+                  style: FluentTypography.body.copyWith(
+                    color: enabled ? primary : disabledTitle,
+                  ),
+                  child: tile.trailing!,
+                ),
+              ),
+            ),
+      control: !tile.isSwitch
+          ? null
+          : Listener(
+              onPointerDown: (event) => _controlPointers.add(event.pointer),
+              child: tile.labelSwitchIfSeparate(
+                FluentSettingsSwitch(
+                  value: tile.initialValue,
+                  onChanged: enabled ? tile.onToggle : null,
+                  activeTrackColor: tile.activeSwitchColor,
+                ),
+              ),
+            ),
+      chevron: !tile.isNavigation
+          ? null
+          : Padding(
+              padding: const EdgeInsetsDirectional.only(start: _kChevronMargin),
+              child: CustomPaint(
+                size: const Size.square(_kChevronSize),
+                painter: _ChevronPainter(
+                  color: endIconColor,
+                  textDirection: Directionality.of(context),
+                ),
+              ),
+            ),
     );
   }
 

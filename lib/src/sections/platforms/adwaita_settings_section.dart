@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:settings_ui/src/sections/section_header.dart';
 import 'package:settings_ui/src/tiles/abstract_settings_tile.dart';
 import 'package:settings_ui/src/tiles/platforms/adwaita_settings_tile.dart';
 import 'package:settings_ui/src/tiles/tile_semantics.dart';
@@ -19,14 +20,6 @@ const double kAdwaitaPageTopMargin = 24;
 /// The group title row is at least 34 tall, then 6 above the card.
 const double _kTitleMinHeight = 34;
 const double _kTitleGap = 6;
-
-/// `.heading`: Adwaita Sans 11 pt (14.67 px) bold on an 18 px line.
-const TextStyle _kHeadingStyle = TextStyle(
-  fontSize: 44 / 3,
-  fontWeight: FontWeight.w700,
-  height: 18 / (44 / 3),
-  leadingDistribution: TextLeadingDistribution.even,
-);
 
 /// The width `AdwClamp` gives its child when it has [width] to fill.
 ///
@@ -92,15 +85,10 @@ class AdwaitaSettingsSection extends StatelessWidget {
                 constraints: const BoxConstraints(minHeight: _kTitleMinHeight),
                 child: Align(
                   alignment: AlignmentDirectional.centerStart,
-                  child: Semantics(
-                    container: true,
-                    header: true,
-                    child: DefaultTextStyle(
-                      style: (theme.titleTextStyle ?? _kHeadingStyle).copyWith(
-                        color: theme.titleTextColor,
-                      ),
-                      child: title!,
-                    ),
+                  child: sectionTitle(
+                    title!,
+                    style: (theme.titleTextStyle ?? kAdwaitaHeadingStyle)
+                        .copyWith(color: theme.titleTextColor),
                   ),
                 ),
               ),

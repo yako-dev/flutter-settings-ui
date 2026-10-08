@@ -214,6 +214,11 @@ class FluentTokens {
   }
 }
 
+/// The WinUI theme resources for [context], light or dark as
+/// [FluentTokens.brightnessOf] says.
+FluentTokens fluentTokensOf(BuildContext context) =>
+    FluentTokens.of(FluentTokens.brightnessOf(context));
+
 /// The Windows 11 type ramp (Segoe UI Variable). The font itself comes from
 /// the app: Flutter uses Segoe UI on Windows.
 abstract final class FluentTypography {

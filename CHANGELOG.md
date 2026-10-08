@@ -1,3 +1,27 @@
+## [4.0.2] - [October 8, 2026]
+
+### Internal
+* Reorganized `lib/` so the styles share more code: the four switches, the tiles, the desktop sidebars and the split view. The public API, the look and the behavior are unchanged.
+* Internal files under `package:settings_ui/src/` moved and changed (for example, the platform tile widgets now take one `SettingsTileData`). They were never part of the public API; import `package:settings_ui/settings_ui.dart` only.
+
+### Bug fixes
+* Windows: a tile, a navigation pane item or a `FluentSettingsSwitch` removed from the tree while pressed no longer throws when the pointer is released (`setState() called after dispose()`, `AnimationController.animateTo() called after dispose()`).
+* Windows, Linux: a tile or sidebar row removed while pressed no longer throws "This widget has been unmounted" when the pointer moves.
+* iOS: the page header's back button takes keyboard focus (Tab, then Enter or Space) and shows a focus ring.
+* Web: Enter presses the buttons in the bars of the macOS, Windows and GNOME split views (back, pane toggle, breadcrumb).
+* Desktop sidebars: screen readers read `CustomSettingsTile`s next to each other one by one.
+* Windows: a compact rail item reads as its title's `semanticsLabel`.
+* Linux: a sidebar row without an action reports no enabled state to screen readers.
+* macOS, Linux: a disabled switch in a sidebar row uses `inactiveSwitchColor`, as in a list.
+* Windows: a pane item's `leading` widget and switch keep their state when its focus ring or tooltip appears.
+* Web: an empty `SettingsSection` adds no separator to the split view's menu.
+* `SettingsSplitView`: with two panes, the list pane no longer takes the safe-area padding of the window's far side (the notch of a phone in landscape).
+* iOS: a `SettingsSplitView` that changes `platform` and comes back hides the bar title again at the top of the list.
+* Android, web: a switch tile with `onPressed` but no `onToggle` no longer shows ink or offers a tap action that does nothing.
+* `MacosSettingsSwitch` in a box larger than its track is centered instead of drawn in the top-left corner.
+* `AdwaitaSettingsSwitch` lists `focusNode` and `autofocus` in its diagnostics.
+* `SettingsThemeData` doc comments match the code: only the macOS style takes a color from `titleTextStyle`; the other styles always use `titleTextColor`.
+
 ## [4.0.1] - [September 26, 2026]
 
 * README: a **More from Yako** grid with an animated preview of each of our other packages.

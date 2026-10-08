@@ -1,9 +1,11 @@
-import 'package:flutter/gestures.dart'
-    show PointerDeviceKind, computeHitSlop, kPrimaryButton;
+import 'package:flutter/gestures.dart' show kPrimaryButton;
 import 'package:flutter/widgets.dart';
 import 'package:settings_ui/src/tiles/platforms/adwaita_settings_switch.dart';
 import 'package:settings_ui/src/tiles/platforms/adwaita_symbolic_icons.dart';
-import 'package:settings_ui/src/tiles/settings_tile.dart';
+import 'package:settings_ui/src/tiles/tile_colors.dart';
+import 'package:settings_ui/src/tiles/tile_data.dart';
+import 'package:settings_ui/src/tiles/tile_parts.dart';
+import 'package:settings_ui/src/tiles/tile_press.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 
 // Rows of a GNOME boxed list (`AdwActionRow` in `.boxed-list`, libadwaita
@@ -36,20 +38,30 @@ const double _kIconGap = 12;
 const double _kSubtitleGap = 3;
 
 /// Rows fade their hover and pressed backgrounds in 200 ms, ease-out-quad.
-const Duration _kHighlightDuration = Duration(milliseconds: 200);
-const Curve _kHighlightCurve = Cubic(0.25, 0.46, 0.45, 0.94);
+const Duration kAdwaitaHighlightDuration = Duration(milliseconds: 200);
+const Curve kAdwaitaHighlightCurve = Cubic(0.25, 0.46, 0.45, 0.94);
 
 /// Body text: Adwaita Sans 11 pt (14.67 px) on an 18 px line.
-const double _kBodyFontSize = 44 / 3;
+const double kAdwaitaBodyFontSize = 44 / 3;
 
 /// Row subtitles use the `smaller` size (12.22 px) on a 15 px line.
-const double _kSubtitleFontSize = _kBodyFontSize / 1.2;
+const double _kSubtitleFontSize = kAdwaitaBodyFontSize / 1.2;
 
-/// Row titles: body text. The boxed list also gives it to custom rows.
+/// Row titles and sidebar labels: body text. The boxed list also gives it
+/// to custom rows.
 const TextStyle kAdwaitaBodyStyle = TextStyle(
-  fontSize: _kBodyFontSize,
+  fontSize: kAdwaitaBodyFontSize,
   fontWeight: FontWeight.w400,
-  height: 18 / _kBodyFontSize,
+  height: 18 / kAdwaitaBodyFontSize,
+  leadingDistribution: TextLeadingDistribution.even,
+);
+
+/// `.heading`: body text in bold, for group titles, sidebar headings and
+/// header bar titles.
+const TextStyle kAdwaitaHeadingStyle = TextStyle(
+  fontSize: kAdwaitaBodyFontSize,
+  fontWeight: FontWeight.w700,
+  height: 18 / kAdwaitaBodyFontSize,
   leadingDistribution: TextLeadingDistribution.even,
 );
 
@@ -67,135 +79,68 @@ const Color _kForegroundLight = Color.fromRGBO(0, 0, 6, 0.8);
 const Color _kAccentLight = Color(0xFF0461BE);
 const Color _kAccentDark = Color(0xFF81D0FF);
 
-/// Whether the theme has light text, so the dark GNOME colors apply. The
-/// colors are the foreground color at different strengths, like
-/// `currentColor` in the libadwaita stylesheet.
+/// The GNOME foreground color of [theme]. Hover, pressed and selected
+/// backgrounds are this color at different strengths, like `currentColor`
+/// in the libadwaita stylesheet.
+Color adwaitaForegroundOf(SettingsThemeData theme) =>
+    theme.settingsTileTextColor ?? _kForegroundLight;
+
+/// Whether the theme has light text, so the dark GNOME colors apply.
 bool adwaitaIsDark(SettingsThemeData theme) =>
-    (theme.settingsTileTextColor ?? _kForegroundLight).computeLuminance() > 0.5;
+    adwaitaForegroundOf(theme).computeLuminance() > 0.5;
+
+/// The border of the 2 px focus ring of a row or a button.
+Border adwaitaFocusBorder({required bool isDark}) => Border.all(
+  color: (isDark ? _kAccentDark : _kAccentLight).withValues(alpha: 0.5),
+  width: 2,
+);
 
 class AdwaitaSettingsTile extends StatefulWidget {
-  const AdwaitaSettingsTile({
-    required this.tileType,
-    required this.leading,
-    required this.title,
-    required this.titleDescription,
-    required this.description,
-    required this.onPressed,
-    required this.onToggle,
-    required this.value,
-    required this.initialValue,
-    required this.activeSwitchColor,
-    required this.enabled,
-    required this.trailing,
-    this.compact = false,
-    this.titlePadding,
-    this.leadingPadding,
-    this.trailingPadding,
-    this.descriptionPadding,
-    this.titleDescriptionPadding,
-    super.key,
-  });
+  const AdwaitaSettingsTile(this.tile, {super.key});
 
-  final SettingsTileType tileType;
-  final Widget? leading;
-  final Widget title;
-  final Widget? titleDescription;
-  final Widget? description;
-  final Function(BuildContext context)? onPressed;
-  final Function(bool value)? onToggle;
-  final Widget? value;
-  final bool initialValue;
-  final bool enabled;
-  final bool compact;
-  final Color? activeSwitchColor;
-  final Widget? trailing;
-  final EdgeInsetsGeometry? titlePadding;
-  final EdgeInsetsGeometry? leadingPadding;
-  final EdgeInsetsGeometry? trailingPadding;
-  final EdgeInsetsGeometry? descriptionPadding;
-  final EdgeInsetsGeometry? titleDescriptionPadding;
+  final SettingsTileData tile;
 
   @override
   State<AdwaitaSettingsTile> createState() => _AdwaitaSettingsTileState();
 }
 
-class _AdwaitaSettingsTileState extends State<AdwaitaSettingsTile> {
+class _AdwaitaSettingsTileState extends State<AdwaitaSettingsTile>
+    with TilePressTracking {
+  SettingsTileData get tile => widget.tile;
+
   bool _hovered = false;
-  bool _pressed = false;
   bool _showFocusHighlight = false;
 
-  /// The pointer that pressed the row, while it is down.
-  int? _pressPointer;
-  Offset _pressOrigin = Offset.zero;
-
-  late final Map<Type, Action<Intent>> _actions = <Type, Action<Intent>>{
-    ActivateIntent: CallbackAction<ActivateIntent>(
-      onInvoke: (_) => _activate(),
-    ),
-    ButtonActivateIntent: CallbackAction<ButtonActivateIntent>(
-      onInvoke: (_) => _activate(),
-    ),
-  };
-
-  bool get _isSwitch => widget.tileType == SettingsTileType.switchTile;
+  late final Map<Type, Action<Intent>> _actions = tileActivateActions(
+    _activate,
+  );
 
   bool get _hasAction =>
-      _isSwitch ? widget.onToggle != null : widget.onPressed != null;
+      tile.isSwitch ? tile.onToggle != null : tile.onPressed != null;
 
   /// Like `.activatable` rows: only these highlight, take focus and react.
-  bool get _activatable => widget.enabled && _hasAction;
+  bool get _activatable => tile.enabled && _hasAction;
 
   /// A switch row toggles on a click anywhere in the row, like
   /// `AdwSwitchRow`. It never calls `onPressed`.
   void _activate() {
     if (!_activatable) return;
-    if (_isSwitch) {
-      widget.onToggle!(!widget.initialValue);
+    if (tile.isSwitch) {
+      tile.onToggle!(!tile.initialValue);
     } else {
-      widget.onPressed!(context);
+      tile.onPressed!(context);
     }
   }
 
-  void _setPressed(bool value) {
-    if (_pressed != value && mounted) setState(() => _pressed = value);
-  }
-
   void _handlePointerDown(PointerDownEvent event) {
-    if (event.buttons != kPrimaryButton) return;
-    _pressPointer = event.pointer;
-    _pressOrigin = event.position;
-    _setPressed(true);
-  }
-
-  void _handlePointerMove(PointerMoveEvent event) {
-    if (event.pointer != _pressPointer) return;
-    final box = context.findRenderObject()! as RenderBox;
-    final inside = box.size.contains(box.globalToLocal(event.position));
-    // A finger that moves past the slop is scrolling the list, which takes
-    // the gesture (GTK drops `:active` then too). A mouse stays pressed until
-    // it leaves the row.
-    final scrolling =
-        event.kind != PointerDeviceKind.mouse &&
-        (event.position - _pressOrigin).distance >
-            computeHitSlop(event.kind, null);
-    if (!inside || scrolling) _release();
-  }
-
-  void _handlePointerEnd(PointerEvent event) {
-    if (event.pointer == _pressPointer) _release();
-  }
-
-  void _release() {
-    _pressPointer = null;
-    _setPressed(false);
+    if (event.buttons == kPrimaryButton) startPress(event);
   }
 
   @override
   void didUpdateWidget(AdwaitaSettingsTile oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (!_activatable) {
-      _pressed = false;
-      _pressPointer = null;
+      resetPress();
       _hovered = false;
     }
   }
@@ -205,195 +150,33 @@ class _AdwaitaSettingsTileState extends State<AdwaitaSettingsTile> {
     final theme = SettingsTheme.of(context).themeData;
     final info = AdwaitaSettingsTileAdditionalInfo.of(context);
     final isDark = adwaitaIsDark(theme);
-    final enabled = widget.enabled;
     final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
 
-    final foreground = theme.settingsTileTextColor ?? _kForegroundLight;
-    final iconColor = enabled
-        ? theme.leadingIconsColor
-        : theme.inactiveTitleColor;
-    final titleStyle = (theme.tileTextStyle ?? kAdwaitaBodyStyle).copyWith(
-      color: enabled ? theme.settingsTileTextColor : theme.inactiveTitleColor,
-    );
-    final subtitleStyle = (theme.tileDescriptionTextStyle ?? _kSubtitleStyle)
-        .copyWith(
-          color: enabled
-              ? theme.tileDescriptionTextColor
-              : theme.inactiveSubtitleColor,
-        );
-
-    final pressedColor =
-        theme.tileHighlightColor ??
-        foreground.withValues(alpha: foreground.a * 0.08);
-    // GNOME uses the foreground at 3% on hover and 8% while pressed.
-    final hoverColor = pressedColor.withValues(alpha: pressedColor.a * 3 / 8);
-    final idleColor = pressedColor.withValues(alpha: 0);
-    final background = !_activatable
-        ? idleColor
-        : _pressed
-        ? pressedColor
-        : _hovered
-        ? hoverColor
-        : idleColor;
-
-    final titleBox = Padding(
-      padding: EdgeInsets.symmetric(
-        vertical: widget.compact ? _kTitleBoxPadding / 2 : _kTitleBoxPadding,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: widget.titlePadding ?? EdgeInsets.zero,
-            child: DefaultTextStyle(style: titleStyle, child: widget.title),
-          ),
-          // GNOME rows have one subtitle, under the title. Both
-          // descriptions go there, the title description first.
-          if (widget.titleDescription != null)
-            Padding(
-              padding:
-                  widget.titleDescriptionPadding ??
-                  const EdgeInsets.only(top: _kSubtitleGap),
-              child: DefaultTextStyle(
-                style: subtitleStyle,
-                child: widget.titleDescription!,
-              ),
-            ),
-          if (widget.description != null)
-            Padding(
-              padding:
-                  widget.descriptionPadding ??
-                  const EdgeInsets.only(top: _kSubtitleGap),
-              child: DefaultTextStyle(
-                style: subtitleStyle,
-                child: widget.description!,
-              ),
-            ),
-        ],
-      ),
-    );
-
-    Widget buildSuffixes(double maxValueWidth) {
-      final suffixes = <Widget>[
-        // A value is a dimmed label at the end of the row, like the
-        // secondary label of a GNOME Settings row.
-        if (!_isSwitch && widget.value != null)
-          ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: maxValueWidth),
-            child: DefaultTextStyle(
-              style: (theme.tileDescriptionTextStyle ?? kAdwaitaBodyStyle)
-                  .copyWith(
-                    color: enabled
-                        ? theme.trailingTextColor
-                        : theme.inactiveSubtitleColor,
-                  ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.end,
-              child: widget.value!,
-            ),
-          ),
-        // Text in `trailing` gets the title style, like a label suffix in
-        // GTK, so a combo row value (text + AdwaitaPanDownIcon) needs no
-        // style of its own.
-        if (widget.trailing != null)
-          Padding(
-            padding: widget.trailingPadding ?? EdgeInsets.zero,
-            child: DefaultTextStyle(
-              style: titleStyle,
-              child: IconTheme.merge(
-                data: IconThemeData(color: iconColor, size: _kIconSize),
-                child: widget.trailing!,
-              ),
-            ),
-          ),
-        if (_isSwitch)
-          // The row takes the focus and the clicks, like `AdwSwitchRow`.
-          ExcludeFocus(
-            child: AdwaitaSettingsSwitch(
-              value: widget.initialValue,
-              onChanged: enabled ? widget.onToggle : null,
-              activeTrackColor: enabled
-                  ? widget.activeSwitchColor
-                  : (theme.inactiveSwitchColor ?? widget.activeSwitchColor),
-              brightness: isDark ? Brightness.dark : Brightness.light,
-            ),
-          ),
-        if (widget.tileType == SettingsTileType.navigationTile)
-          AdwaitaGoNextIcon(color: iconColor),
-      ];
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (final suffix in suffixes) ...[
-            const SizedBox(width: _kSpacing),
-            suffix,
-          ],
-        ],
-      );
-    }
-
-    final row = ConstrainedBox(
-      constraints: BoxConstraints(
-        minHeight: widget.compact
-            ? kAdwaitaCompactRowMinHeight
-            : kAdwaitaRowMinHeight,
-      ),
-      child: Padding(
-        padding: const EdgeInsetsDirectional.symmetric(horizontal: _kRowInset),
-        child: LayoutBuilder(
-          builder: (context, constraints) => Row(
-            children: [
-              if (widget.leading != null)
-                Padding(
-                  padding:
-                      widget.leadingPadding ??
-                      const EdgeInsetsDirectional.only(end: _kIconGap),
-                  child: IconTheme.merge(
-                    data: IconThemeData(color: iconColor, size: _kIconSize),
-                    child: widget.leading!,
-                  ),
-                ),
-              Expanded(child: titleBox),
-              // The value may take up to half the row, so neither a long
-              // title nor a long value hides the other.
-              buildSuffixes(constraints.maxWidth / 2),
-            ],
-          ),
-        ),
-      ),
-    );
-
-    final accent = isDark ? _kAccentDark : _kAccentLight;
     const corner = Radius.circular(kAdwaitaCardRadius);
     final highlighted = AnimatedContainer(
-      duration: reduceMotion ? Duration.zero : _kHighlightDuration,
-      curve: _kHighlightCurve,
-      decoration: BoxDecoration(color: background),
+      duration: reduceMotion ? Duration.zero : kAdwaitaHighlightDuration,
+      curve: kAdwaitaHighlightCurve,
+      decoration: BoxDecoration(color: _highlightColor(theme)),
       // A 2 px accent ring just inside the row, following the card corners.
       foregroundDecoration: _showFocusHighlight && _activatable
           ? BoxDecoration(
-              border: Border.all(
-                color: accent.withValues(alpha: 0.5),
-                width: 2,
-              ),
+              border: adwaitaFocusBorder(isDark: isDark),
               borderRadius: BorderRadius.vertical(
                 top: info.isFirst ? corner : Radius.zero,
                 bottom: info.isLast ? corner : Radius.zero,
               ),
             )
           : null,
-      child: row,
+      child: _buildRow(theme, isDark: isDark),
     );
 
     return MergeSemantics(
       child: Semantics(
-        button: !_isSwitch && _hasAction,
-        enabled: _hasAction ? enabled : null,
+        button: !tile.isSwitch && _hasAction,
+        enabled: _hasAction ? tile.enabled : null,
         onTap: _activatable ? _activate : null,
         child: IgnorePointer(
-          ignoring: !enabled,
+          ignoring: !tile.enabled,
           child: FocusableActionDetector(
             enabled: _activatable,
             actions: _actions,
@@ -408,17 +191,142 @@ class _AdwaitaSettingsTileState extends State<AdwaitaSettingsTile> {
             child: Listener(
               // GTK shows `:active` as soon as the button goes down.
               onPointerDown: _activatable ? _handlePointerDown : null,
-              onPointerMove: _handlePointerMove,
-              onPointerUp: _handlePointerEnd,
-              onPointerCancel: _handlePointerEnd,
+              onPointerMove: handlePressMove,
+              onPointerUp: handlePressEnd,
+              onPointerCancel: handlePressEnd,
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 excludeFromSemantics: true,
                 onTap: _activatable ? _activate : null,
-                onTapCancel: _release,
+                onTapCancel: releasePress,
                 child: highlighted,
               ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// GNOME uses the foreground at 3% on hover and 8% while pressed.
+  Color _highlightColor(SettingsThemeData theme) {
+    final foreground = adwaitaForegroundOf(theme);
+    final pressedColor =
+        theme.tileHighlightColor ??
+        foreground.withValues(alpha: foreground.a * 0.08);
+    if (_activatable && pressed) return pressedColor;
+    return pressedColor.withValues(
+      alpha: _activatable && _hovered ? pressedColor.a * 3 / 8 : 0,
+    );
+  }
+
+  Widget _buildRow(SettingsThemeData theme, {required bool isDark}) {
+    final enabled = tile.enabled;
+    final iconColor = theme.iconColorFor(enabled: enabled);
+    final titleStyle = (theme.tileTextStyle ?? kAdwaitaBodyStyle).copyWith(
+      color: theme.titleColorFor(enabled: enabled),
+    );
+    final subtitleStyle = (theme.tileDescriptionTextStyle ?? _kSubtitleStyle)
+        .copyWith(
+          color: enabled
+              ? theme.tileDescriptionTextColor
+              : theme.inactiveSubtitleColor,
+        );
+
+    final titleBox = Padding(
+      padding: EdgeInsets.symmetric(
+        vertical: tile.compact ? _kTitleBoxPadding / 2 : _kTitleBoxPadding,
+      ),
+      // GNOME rows have one subtitle, under the title. Both descriptions go
+      // there, the title description first.
+      child: tileTitleColumn(
+        tile: tile,
+        titleStyle: titleStyle,
+        subtitleStyle: subtitleStyle,
+        subtitlePadding: const EdgeInsets.only(top: _kSubtitleGap),
+      ),
+    );
+
+    Widget buildSuffixes(double maxValueWidth) {
+      final suffixes = <Widget>[
+        // A value is a dimmed label at the end of the row, like the
+        // secondary label of a GNOME Settings row.
+        if (!tile.isSwitch && tile.value != null)
+          tileValue(
+            tile.value!,
+            style: (theme.tileDescriptionTextStyle ?? kAdwaitaBodyStyle)
+                .copyWith(
+                  color: enabled
+                      ? theme.trailingTextColor
+                      : theme.inactiveSubtitleColor,
+                ),
+            maxWidth: maxValueWidth,
+          ),
+        // Text in `trailing` gets the title style, like a label suffix in
+        // GTK, so a combo row value (text + AdwaitaPanDownIcon) needs no
+        // style of its own.
+        if (tile.trailing != null)
+          Padding(
+            padding: tile.trailingPadding ?? EdgeInsets.zero,
+            child: DefaultTextStyle(
+              style: titleStyle,
+              child: IconTheme.merge(
+                data: IconThemeData(color: iconColor, size: _kIconSize),
+                child: tile.trailing!,
+              ),
+            ),
+          ),
+        if (tile.isSwitch)
+          // The row takes the focus and the clicks, like `AdwSwitchRow`.
+          ExcludeFocus(
+            child: AdwaitaSettingsSwitch(
+              value: tile.initialValue,
+              onChanged: enabled ? tile.onToggle : null,
+              activeTrackColor: enabled
+                  ? tile.activeSwitchColor
+                  : (theme.inactiveSwitchColor ?? tile.activeSwitchColor),
+              brightness: isDark ? Brightness.dark : Brightness.light,
+            ),
+          ),
+        if (tile.isNavigation) AdwaitaGoNextIcon(color: iconColor),
+      ];
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (final suffix in suffixes) ...[
+            const SizedBox(width: _kSpacing),
+            suffix,
+          ],
+        ],
+      );
+    }
+
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        minHeight: tile.compact
+            ? kAdwaitaCompactRowMinHeight
+            : kAdwaitaRowMinHeight,
+      ),
+      child: Padding(
+        padding: const EdgeInsetsDirectional.symmetric(horizontal: _kRowInset),
+        child: LayoutBuilder(
+          builder: (context, constraints) => Row(
+            children: [
+              if (tile.leading != null)
+                Padding(
+                  padding:
+                      tile.leadingPadding ??
+                      const EdgeInsetsDirectional.only(end: _kIconGap),
+                  child: IconTheme.merge(
+                    data: IconThemeData(color: iconColor, size: _kIconSize),
+                    child: tile.leading!,
+                  ),
+                ),
+              Expanded(child: titleBox),
+              // The value may take up to half the row, so neither a long
+              // title nor a long value hides the other.
+              buildSuffixes(constraints.maxWidth / 2),
+            ],
           ),
         ),
       ),

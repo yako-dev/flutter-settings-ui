@@ -6,24 +6,22 @@ import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/src/list/settings_list.dart';
 import 'package:settings_ui/src/sections/abstract_settings_section.dart';
 import 'package:settings_ui/src/sections/custom_settings_section.dart';
-import 'package:settings_ui/src/sections/platforms/fluent_settings_section.dart';
 import 'package:settings_ui/src/sections/settings_section.dart';
-import 'package:settings_ui/src/split/adwaita_split.dart';
 import 'package:settings_ui/src/split/fluent_split.dart';
-import 'package:settings_ui/src/split/macos_split.dart';
 import 'package:settings_ui/src/split/settings_destination.dart';
 import 'package:settings_ui/src/split/settings_destination_page.dart';
-import 'package:settings_ui/src/split/settings_page_header.dart';
-import 'package:settings_ui/src/split/sidebar_keyboard.dart';
 import 'package:settings_ui/src/split/split_geometry.dart';
+import 'package:settings_ui/src/split/split_pane_style.dart';
 import 'package:settings_ui/src/split/split_scopes.dart';
 import 'package:settings_ui/src/tiles/settings_tile.dart';
-import 'package:settings_ui/src/utils/content_column.dart';
 import 'package:settings_ui/src/utils/platform_utils.dart';
 import 'package:settings_ui/src/utils/settings_style.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 
 part 'settings_split_controller.dart';
+part 'split_view_focus.dart';
+part 'split_view_panes.dart';
+part 'split_view_routes.dart';
 
 /// A settings screen that shows the list and the selected page side by side
 /// when there is room (iPad, tablets, unfolded foldables, desktop and web),
@@ -217,26 +215,16 @@ class _Entry {
 
 class _SettingsSplitViewState extends State<SettingsSplitView>
     with RestorationMixin {
-  /// The destination the user picked (a tap or [SettingsSplitController]).
-  /// Null means none: two panes show the initial destination, one pane shows
-  /// the list.
-  final RestorableStringN _picked = RestorableStringN(null);
-
   SettingsSplitController? _ownController;
   SettingsSplitController get _controller =>
       widget.controller ?? (_ownController ??= SettingsSplitController());
 
-  final GlobalKey _listKey = GlobalKey(debugLabel: 'SettingsSplitView list');
-  final GlobalKey<NavigatorState> _detailKey = GlobalKey<NavigatorState>(
-    debugLabel: 'SettingsSplitView detail',
-  );
-  final GlobalKey<NavigatorState> _stackKey = GlobalKey<NavigatorState>(
-    debugLabel: 'SettingsSplitView stack',
-  );
-  late final _DetailObserver _detailObserver = _DetailObserver(
-    _handleDetailPush,
-  );
-  late final _StackObserver _stackObserver = _StackObserver(_syncStack);
+  // The destinations and the pick.
+
+  /// The destination the user picked (a tap or [SettingsSplitController]).
+  /// Null means none: two panes show the initial destination, one pane shows
+  /// the list.
+  final RestorableStringN _picked = RestorableStringN(null);
 
   /// Top-level destinations from [SettingsSplitView.sections], in order.
   Map<String, _Entry> _destinations = const {};
@@ -251,6 +239,37 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
   bool _isSplit = false;
   String? _shownId;
 
+  /// What the listeners last heard was shown. Null until the first layout
+  /// is reported, which is not a change of destination.
+  ({String? id, bool isSplit})? _notified;
+  bool _notifyScheduled = false;
+
+  /// The view's place in the window, measured after a frame when a display
+  /// feature may cut a view that doesn't span the window (see [_findHinge]).
+  Offset _measuredOrigin = Offset.zero;
+  bool _originCheckScheduled = false;
+
+  // The two navigators.
+  //
+  // The detail navigator shows the page and what is pushed inside it. With
+  // two panes it sits next to the list. With one pane a second navigator,
+  // the stack, holds the list and, over it, the page that hosts the detail
+  // navigator ([_hostPage]); a route that a list tile pushes itself lands
+  // on the stack too. The fields below are what the view knows about the
+  // two, kept up to date by the observers and the navigators' notifications
+  // (see "What the navigators report"), and what back handling reads (see
+  // "Back").
+  final GlobalKey<NavigatorState> _detailKey = GlobalKey<NavigatorState>(
+    debugLabel: 'SettingsSplitView detail',
+  );
+  final GlobalKey<NavigatorState> _stackKey = GlobalKey<NavigatorState>(
+    debugLabel: 'SettingsSplitView stack',
+  );
+  late final _DetailObserver _detailObserver = _DetailObserver(
+    _handleDetailPush,
+  );
+  late final _StackObserver _stackObserver = _StackObserver(_syncStack);
+
   /// The page at the root of the detail navigator. One pane keeps the last
   /// page there while its route animates out.
   String? _detailRootId;
@@ -258,7 +277,12 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
   /// Bumped when one pane pushes a page over the list; see [_DetailHost].
   int _hostGeneration = 0;
 
+  /// Back belongs to the detail navigator: it has a page to pop, or its top
+  /// page vetoes back.
   bool _detailCanPop = false;
+
+  /// The list pane's back button was pressed: the view lets back through
+  /// until the settings screen has closed, or refused to (see [_leave]).
   bool _leaving = false;
 
   /// One pane: the top route of the stack navigator was pushed from the
@@ -271,18 +295,8 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
   /// vanish when the window widens.
   bool _holdOnePane = false;
 
-  /// Whether the Windows style's compact rail is open over the detail pane.
-  bool _fluentPaneOpen = false;
-  Offset _measuredOrigin = Offset.zero;
-  bool _originCheckScheduled = false;
-
-  bool _notifyScheduled = false;
-  bool _notifiedOnce = false;
-  String? _notifiedId;
-  bool _notifiedSplit = false;
-
-  /// Whether the iOS large title has scrolled under the bar.
-  final ValueNotifier<bool> _largeTitleHidden = ValueNotifier<bool>(false);
+  // The list pane.
+  final GlobalKey _listKey = GlobalKey(debugLabel: 'SettingsSplitView list');
 
   /// Around the list pane, to hand it the keyboard focus.
   final FocusNode _listFocusNode = FocusNode(
@@ -290,6 +304,23 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
     skipTraversal: true,
     canRequestFocus: false,
   );
+
+  /// Tab and Shift+Tab between the panes.
+  late final Map<Type, Action<Intent>> _paneFocusActions =
+      <Type, Action<Intent>>{
+        NextFocusIntent: _PaneFocusAction<NextFocusIntent>(this, true),
+        PreviousFocusIntent: _PaneFocusAction<PreviousFocusIntent>(this, false),
+      };
+
+  /// Whether the iOS large title has scrolled under the bar.
+  final ValueNotifier<bool> _largeTitleHidden = ValueNotifier<bool>(false);
+
+  /// The style family of the last build. Another one draws a new list,
+  /// which starts at the top.
+  SettingsStyleFamily? _styleFamily;
+
+  /// Whether the Windows style's compact rail is open over the detail pane.
+  bool _fluentPaneOpen = false;
 
   @override
   String? get restorationId => widget.restorationId;
@@ -334,6 +365,22 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
   }
 
   // Destinations -----------------------------------------------------------
+
+  /// Reads the destinations of the sections' tiles ahead for this build,
+  /// and forgets the pick if its tile is gone.
+  void _readDestinations() {
+    final previous = _destinations;
+    _destinations = _collectDestinations();
+    final picked = _picked.value;
+    if (picked != null &&
+        previous.containsKey(picked) &&
+        _lookup(picked) == null) {
+      // The picked page's tile is gone (a conditional page): forget the
+      // pick, so the page doesn't come back by itself with the tile. (A
+      // restorable value; writing it doesn't call setState.)
+      _picked.value = null;
+    }
+  }
 
   Map<String, _Entry> _collectDestinations() {
     final result = <String, _Entry>{};
@@ -453,7 +500,15 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
   }
 
   // Back ---------------------------------------------------------------------
+  //
+  // The view's PopScope takes back while [_canHandleBack]. [_handleBack]
+  // then does the first of three things that applies: pops a route pushed
+  // from the list pane (one pane), pops a page pushed inside the detail
+  // pane, or closes the page over the list (one pane). The route's own
+  // PopScope can veto the first two.
 
+  /// Whether the detail pane shows: always with two panes, over the list
+  /// with one.
   bool get _detailVisible => _isSplit || _pickedId != null;
 
   /// Whether the list pane shows: not under a page in one pane.
@@ -493,9 +548,18 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
     }
   }
 
-  void _handleStackPageRemoved(Page<Object?> page) {
-    if (page.key == _hostPageKey) _clearSelection();
+  /// The list pane's back button leaves the settings screen, even when the
+  /// detail pane could go back.
+  void _leave() {
+    setState(() => _leaving = true);
+    SchedulerBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      await Navigator.maybePop(context);
+      if (mounted) setState(() => _leaving = false);
+    });
   }
+
+  // What the navigators report -----------------------------------------------
 
   /// Reads the routes pushed from the list pane in one pane.
   void _syncStack() {
@@ -517,14 +581,15 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
     return true;
   }
 
-  // Named routes pushed from the list pane in one pane come from the app's
-  // navigator, as they do with two panes (where the list pane isn't inside
-  // the view's own navigator).
-  Route<dynamic>? _generateStackRoute(RouteSettings settings) =>
-      Navigator.maybeOf(context)?.widget.onGenerateRoute?.call(settings);
+  /// The key of the page over the list, a new one for each page pushed.
+  ValueKey<String> get _hostPageKey =>
+      ValueKey<String>('settings_split_detail_$_hostGeneration');
 
-  Route<dynamic>? _unknownStackRoute(RouteSettings settings) =>
-      Navigator.maybeOf(context)?.widget.onUnknownRoute?.call(settings);
+  /// The stack navigator popped a page: with the page over the list, the
+  /// pick goes too.
+  void _handleStackPageRemoved(Page<Object?> page) {
+    if (page.key == _hostPageKey) _clearSelection();
+  }
 
   bool _handleDetailNavigation(NavigationNotification notification) {
     // Read the state from the navigator instead of the notification: routes
@@ -543,35 +608,29 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
     return true;
   }
 
-  /// The list pane's back button leaves the settings screen, even when the
-  /// detail pane could go back.
-  void _leave() {
-    setState(() => _leaving = true);
-    SchedulerBinding.instance.addPostFrameCallback((_) async {
-      if (!mounted) return;
-      await Navigator.maybePop(context);
-      if (mounted) setState(() => _leaving = false);
-    });
-  }
+  // Named routes pushed from the list pane in one pane come from the app's
+  // navigator, as they do with two panes (where the list pane isn't inside
+  // the view's own navigator).
+  Route<dynamic>? _generateStackRoute(RouteSettings settings) =>
+      Navigator.maybeOf(context)?.widget.onGenerateRoute?.call(settings);
+
+  Route<dynamic>? _unknownStackRoute(RouteSettings settings) =>
+      Navigator.maybeOf(context)?.widget.onUnknownRoute?.call(settings);
 
   // Notifications ------------------------------------------------------------
 
   void _scheduleNotify() {
     if (_notifyScheduled) return;
-    if (_notifiedOnce &&
-        _shownId == _notifiedId &&
-        _isSplit == _notifiedSplit) {
-      return;
-    }
+    if (_notified == (id: _shownId, isSplit: _isSplit)) return;
     _notifyScheduled = true;
     SchedulerBinding.instance.addPostFrameCallback((_) {
       _notifyScheduled = false;
       if (!mounted) return;
-      final idChanged = _notifiedOnce && _shownId != _notifiedId;
-      _notifiedOnce = true;
-      _notifiedId = _shownId;
-      _notifiedSplit = _isSplit;
-      if (idChanged) widget.onDestinationChanged?.call(_shownId);
+      final previous = _notified;
+      _notified = (id: _shownId, isSplit: _isSplit);
+      if (previous != null && previous.id != _shownId) {
+        widget.onDestinationChanged?.call(_shownId);
+      }
       _controller._notify();
     }, debugLabel: 'SettingsSplitView.notify');
   }
@@ -587,64 +646,70 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
       darkTheme: widget.darkTheme,
       applicationType: widget.applicationType,
     ).resolve(context);
-    final previous = _destinations;
-    _destinations = _collectDestinations();
-    final picked = _picked.value;
-    if (picked != null &&
-        previous.containsKey(picked) &&
-        _lookup(picked) == null) {
-      // The picked page's tile is gone (a conditional page): forget the
-      // pick, so the page doesn't come back by itself with the tile. (A
-      // restorable value; writing it doesn't call setState.)
-      _picked.value = null;
+    final family = settingsStyleFamily(style.platform);
+    if (family != _styleFamily) {
+      // The new style's list starts at the top, so the iOS large title is
+      // on screen again when the view comes back to that style.
+      _styleFamily = family;
+      _largeTitleHidden.value = false;
     }
+    _readDestinations();
     final route = ModalRoute.of(context);
     final canLeave = route?.impliesAppBarDismissal ?? false;
 
     return LayoutBuilder(
-      builder: (context, constraints) {
-        final window = MediaQuery.sizeOf(context);
-        final width = constraints.hasBoundedWidth
-            ? constraints.maxWidth
-            : window.width;
-        final height = constraints.hasBoundedHeight
-            ? constraints.maxHeight
-            : window.height;
-        final textDirection = Directionality.of(context);
+      builder: (context, constraints) => _buildLayout(
+        style,
+        _computeGeometry(context, constraints, style.platform),
+        canLeave,
+      ),
+    );
+  }
 
-        final features = MediaQuery.displayFeaturesOf(context);
-        SeparatingHinge? hinge;
-        if (features.isNotEmpty) {
-          // Display features are in window coordinates. A full-width view
-          // starts at the window's left edge; otherwise measure where it is.
-          final fullWidth = (width - window.width).abs() < 0.5;
-          if (!fullWidth) _scheduleOriginCheck();
-          hinge = findSeparatingHinge(
-            features: features,
-            origin: fullWidth ? Offset.zero : _measuredOrigin,
-            size: Size(width, height),
-          );
-        }
+  /// One or two panes, and how wide, for a view that gets [constraints].
+  SplitGeometry _computeGeometry(
+    BuildContext context,
+    BoxConstraints constraints,
+    DevicePlatform platform,
+  ) {
+    final window = MediaQuery.sizeOf(context);
+    final size = Size(
+      constraints.hasBoundedWidth ? constraints.maxWidth : window.width,
+      constraints.hasBoundedHeight ? constraints.maxHeight : window.height,
+    );
+    final textDirection = Directionality.of(context);
+    final hinge = _findHinge(context, window, size);
+    final geometry = computeSplitGeometry(
+      family: settingsStyleFamily(platform),
+      forceSingle: widget.layout == SettingsSplitLayout.single,
+      forceSplit: widget.layout == SettingsSplitLayout.split,
+      width: size.width,
+      shortestSide: window.shortestSide,
+      desktop: isDesktopPlatform(Theme.of(context).platform),
+      textDirection: textDirection,
+      textScaler: MediaQuery.textScalerOf(context),
+      breakpoint: widget.breakpoint,
+      listPaneWidth: widget.listPaneWidth,
+      hinge: hinge,
+    );
+    // A route pushed from the list pane lives in the one-pane navigator:
+    // keep it (and one pane) until it closes. It covers the view either
+    // way, as it does with two panes.
+    return _holdOnePane ? const SplitGeometry.single() : geometry;
+  }
 
-        var geometry = computeSplitGeometry(
-          family: settingsStyleFamily(style.platform),
-          forceSingle: widget.layout == SettingsSplitLayout.single,
-          forceSplit: widget.layout == SettingsSplitLayout.split,
-          width: width,
-          shortestSide: window.shortestSide,
-          desktop: isDesktopPlatform(Theme.of(context).platform),
-          textDirection: textDirection,
-          textScaler: MediaQuery.textScalerOf(context),
-          breakpoint: widget.breakpoint,
-          listPaneWidth: widget.listPaneWidth,
-          hinge: hinge,
-        );
-        // A route pushed from the list pane lives in the one-pane navigator:
-        // keep it (and one pane) until it closes. It covers the view either
-        // way, as it does with two panes.
-        if (_holdOnePane) geometry = const SplitGeometry.single();
-        return _buildLayout(context, style, geometry, canLeave);
-      },
+  /// The hinge or fold that cuts the view, [size] big, in two screens.
+  SeparatingHinge? _findHinge(BuildContext context, Size window, Size size) {
+    final features = MediaQuery.displayFeaturesOf(context);
+    if (features.isEmpty) return null;
+    // Display features are in window coordinates. A full-width view
+    // starts at the window's left edge; otherwise measure where it is.
+    final fullWidth = (size.width - window.width).abs() < 0.5;
+    if (!fullWidth) _scheduleOriginCheck();
+    return findSeparatingHinge(
+      features: features,
+      origin: fullWidth ? Offset.zero : _measuredOrigin,
+      size: size,
     );
   }
 
@@ -663,44 +728,29 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
     }, debugLabel: 'SettingsSplitView.origin');
   }
 
+  /// The panes as [geometry] lays them out (see `split_view_panes.dart`),
+  /// under what the view puts around both: its scope, Tab between the
+  /// panes, back handling, restoration and the theme.
   Widget _buildLayout(
-    BuildContext context,
     ResolvedSettingsStyle style,
     SplitGeometry geometry,
     bool canLeave,
   ) {
-    final isSplit = geometry.isSplit;
-    final picked = _pickedId;
-    final shownId = isSplit ? (picked ?? _autoId) : picked;
-    if (_laidOut && isSplit != _isSplit) _keepFocusAcrossLayouts();
-    _laidOut = true;
-    _isSplit = isSplit;
-    if (!geometry.compactPane) _fluentPaneOpen = false;
-    _shownId = shownId;
-    if (isSplit || shownId != null) _detailRootId = shownId;
-    _scheduleNotify();
-
-    final Widget panes;
-    if (isSplit) {
-      panes = _buildTwoPanes(style, geometry, canLeave);
-    } else {
-      panes = _buildOnePane(style, canLeave);
-    }
+    _recordLayout(geometry);
+    final paneStyle = SplitPaneStyle.of(style.platform, geometry);
+    final list = _buildListPane(style, paneStyle, canLeave);
+    final panes = geometry.isSplit
+        ? _buildTwoPanes(style, paneStyle, list)
+        : _buildOnePane(style, list);
 
     return SettingsSplitScope(
       controller: _controller,
-      isSplit: isSplit,
-      shownId: shownId,
+      isSplit: _isSplit,
+      shownId: _shownId,
       hostGeneration: _hostGeneration,
       goBack: _handleBack,
       child: Actions(
-        actions: <Type, Action<Intent>>{
-          NextFocusIntent: _PaneFocusAction<NextFocusIntent>(this, true),
-          PreviousFocusIntent: _PaneFocusAction<PreviousFocusIntent>(
-            this,
-            false,
-          ),
-        },
+        actions: _paneFocusActions,
         child: PopScope<Object?>(
           canPop: !_canHandleBack,
           onPopInvokedWithResult: (didPop, result) {
@@ -719,951 +769,27 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
     );
   }
 
-  /// Whether [node] is the focus node of one of the view's navigators,
-  /// which holds the focus until something in a pane takes it.
-  bool _isNavigatorFocus(FocusNode node) =>
-      node == _detailKey.currentState?.focusNode ||
-      node == _stackKey.currentState?.focusNode;
-
-  /// The layout is switching between one and two panes, which rebuilds the
-  /// navigators around the panes: puts the keyboard focus back where it
-  /// was once the new layout is built. A row the new layout draws as a card
-  /// (macOS, Windows) gives it to that card; a page one pane doesn't show
-  /// gives it to its tile.
-  void _keepFocusAcrossLayouts() {
-    final node = FocusManager.instance.primaryFocus;
-    if (node == null) return;
-    bool isIn(FocusNode? pane) =>
-        pane != null && (node == pane || node.ancestors.contains(pane));
-    final inList = isIn(_listFocusNode);
-    final inDetail = !inList && isIn(_detailKey.currentState?.focusNode);
-    if (!inList && !inDetail) return;
-    // The detail navigator's own node: nothing in the page had the focus.
-    final navigatorOnly = _isNavigatorFocus(node);
-    final nodeContext = node.context;
-    final tile = nodeContext != null && nodeContext.mounted
-        ? nodeContext.findAncestorWidgetOfExactType<SettingsTile>()
-        : null;
-    final pageId = _shownId;
-    SchedulerBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      final context = node.context;
-      final alive = context != null && context.mounted && node.canRequestFocus;
-      final FocusNode? target;
-      if (alive && !navigatorOnly && (inDetail || _listShown)) {
-        target = node;
-      } else if (!_listShown) {
-        // One pane shows a page over the list: its route has the focus.
-        return;
-      } else if (inList && tile != null) {
-        target =
-            _listNodeWhere((candidate) => identical(candidate, tile)) ??
-            _listNodeWhere(
-              (candidate) =>
-                  tile.destination != null &&
-                  candidate.destination?.id == tile.destination!.id,
-            );
-      } else {
-        // The page is gone (one pane shows the list), or had no focus.
-        target = _listNodeWhere(
-          (candidate) => pageId != null && candidate.destination?.id == pageId,
-        );
-      }
-      if (target == null) {
-        _focusListPane(first: true);
-      } else if (!target.hasPrimaryFocus) {
-        FocusTraversalPolicy.defaultTraversalRequestFocusCallback(
-          target,
-          alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
-        );
-      }
-    }, debugLabel: 'SettingsSplitView.keepFocus');
+  /// Notes what a layout with [geometry] shows, for back handling, the
+  /// controller and the next layout.
+  void _recordLayout(SplitGeometry geometry) {
+    final isSplit = geometry.isSplit;
+    final picked = _pickedId;
+    final shownId = isSplit ? (picked ?? _autoId) : picked;
+    if (_laidOut && isSplit != _isSplit) _keepFocusAcrossLayouts();
+    _laidOut = true;
+    _isSplit = isSplit;
+    if (!geometry.compactPane) _fluentPaneOpen = false;
+    _shownId = shownId;
+    if (isSplit || shownId != null) _detailRootId = shownId;
+    _scheduleNotify();
   }
 
-  /// The first focusable node in the list pane inside a tile that passes
-  /// [test].
-  FocusNode? _listNodeWhere(bool Function(SettingsTile tile) test) {
-    for (final node in _listFocusNode.traversalDescendants) {
-      final context = node.context;
-      if (context == null || !context.mounted || !node.canRequestFocus) {
-        continue;
-      }
-      final tile = context.findAncestorWidgetOfExactType<SettingsTile>();
-      if (tile != null && test(tile)) return node;
-    }
-    return null;
-  }
-
-  /// Gives the keyboard focus to the first (or last) control of the list
-  /// pane. Returns whether there was one.
-  bool _focusListPane({required bool first}) {
-    final nodes =
-        _listFocusNode.traversalDescendants
-            .where((node) => node.context != null && node.canRequestFocus)
-            .toList()
-          ..sort((a, b) {
-            final byTop = a.rect.top.compareTo(b.rect.top);
-            return byTop != 0 ? byTop : a.rect.left.compareTo(b.rect.left);
-          });
-    if (nodes.isEmpty) return false;
-    (first ? nodes.first : nodes.last).requestFocus();
-    return true;
-  }
-
-  Widget _buildTwoPanes(
-    ResolvedSettingsStyle style,
-    SplitGeometry geometry,
-    bool canLeave,
-  ) {
-    final theme = style.themeData;
-    final family = settingsStyleFamily(style.platform);
-    final isRtl = Directionality.of(context) == TextDirection.rtl;
-
-    // Web: Chrome's 680px column, nearer the menu. iPad and Android: pages
-    // fill the detail pane. The desktop styles keep their own columns.
-    final detail = SettingsContentColumnHint(
-      paneWidth: geometry.detailWidth,
-      endReserve: family == SettingsStyleFamily.web
-          ? webDetailEndReserve(geometry.detailWidth)
-          : 0,
-      fillWidth: family != SettingsStyleFamily.web,
-      child: _buildDetailNavigator(style),
-    );
-
-    // Its own semantics container: the routes of the detail navigator block
-    // the semantics of what was painted before them in their container,
-    // which would hide the list pane.
-    final Widget detailPane = Semantics(
-      container: true,
-      explicitChildNodes: true,
-      child: ClipRect(
-        child: MediaQuery.removePadding(
-          context: context,
-          removeLeft: !isRtl,
-          removeRight: isRtl,
-          child: detail,
-        ),
-      ),
-    );
-
-    Widget listPane = Semantics(
-      container: true,
-      explicitChildNodes: true,
-      child: MediaQuery.removePadding(
-        context: context,
-        removeLeft: isRtl,
-        removeRight: !isRtl,
-        child: _buildListPane(
-          style,
-          isSplit: true,
-          width: geometry.listWidth,
-          canLeave: canLeave,
-          compactPane: geometry.compactPane,
-        ),
-      ),
-    );
-
-    // The line between the panes: a hairline on the macOS sidebar, GNOME's
-    // 1px sidebar border. Windows Settings has none (one Mica surface).
-    final Color? edge = switch (family) {
-      SettingsStyleFamily.macos => macosSidebarEdgeColor(theme),
-      SettingsStyleFamily.adwaita => adwaitaSidebarBorderColor(theme),
-      _ => null,
-    };
-    if (edge != null) {
-      listPane = DecoratedBox(
-        position: DecorationPosition.foreground,
-        decoration: BoxDecoration(
-          border: BorderDirectional(
-            end: BorderSide(
-              color: edge,
-              width: family == SettingsStyleFamily.macos ? 0.5 : 1,
-            ),
-          ),
-        ),
-        child: listPane,
-      );
-    }
-
-    // Tab visits the list pane, then the page, whatever the reading order
-    // of their contents says: the page's first control can sit above the
-    // first row, under a taller pane header.
-    listPane = FocusTraversalOrder(
-      order: const NumericFocusOrder(0),
-      child: listPane,
-    );
-    final orderedDetailPane = FocusTraversalOrder(
-      order: const NumericFocusOrder(1),
-      child: detailPane,
-    );
-
-    final background =
-        theme.listPaneBackground ??
-        theme.settingsListBackground ??
-        const Color(0x00000000);
-
-    if (geometry.compactPane) {
-      final openWidth = math.min(
-        widget.listPaneWidth ?? kFluentOverlayPaneWidth,
-        geometry.listWidth + geometry.detailWidth,
-      );
-      return _orderedPanes(
-        ColoredBox(
-          color: background,
-          child: FluentCompactPaneLayout(
-            open: _fluentPaneOpen,
-            railWidth: geometry.listWidth,
-            openWidth: openWidth,
-            onDismiss: _closeFluentPane,
-            pane: listPane,
-            detail: orderedDetailPane,
-          ),
-        ),
-      );
-    }
-
-    return _orderedPanes(
-      ColoredBox(
-        color: background,
-        child: Row(
-          children: [
-            SizedBox(width: geometry.listWidth, child: listPane),
-            if (geometry.gap > 0) SizedBox(width: geometry.gap),
-            Expanded(child: orderedDetailPane),
-          ],
-        ),
-      ),
-    );
-  }
-
-  static Widget _orderedPanes(Widget child) =>
-      FocusTraversalGroup(policy: OrderedTraversalPolicy(), child: child);
+  // The Windows compact pane -------------------------------------------------
 
   void _toggleFluentPane() =>
       setState(() => _fluentPaneOpen = !_fluentPaneOpen);
 
   void _closeFluentPane() {
     if (_fluentPaneOpen) setState(() => _fluentPaneOpen = false);
-  }
-
-  static const _listPageKey = ValueKey<String>('settings_split_list');
-  ValueKey<String> get _hostPageKey =>
-      ValueKey<String>('settings_split_detail_$_hostGeneration');
-
-  Widget _buildOnePane(ResolvedSettingsStyle style, bool canLeave) {
-    final picked = _pickedId;
-    final pages = <Page<void>>[
-      _PlainPage(
-        key: _listPageKey,
-        restorationId: 'list',
-        child: _buildListPane(
-          style,
-          isSplit: false,
-          width: null,
-          canLeave: canLeave,
-          compactPane: false,
-        ),
-      ),
-      if (picked != null) _hostPage(style, picked),
-    ];
-    return NotificationListener<NavigationNotification>(
-      onNotification: _handleStackNavigation,
-      child: Navigator(
-        key: _stackKey,
-        restorationScopeId: widget.restorationId == null ? null : 'stack',
-        // Tab leaves the navigator's pages for the rest of the app, as in
-        // the app's own navigator (nested ones default to a closed loop).
-        routeTraversalEdgeBehavior: TraversalEdgeBehavior.parentScope,
-        observers: [_stackObserver],
-        pages: pages,
-        onGenerateRoute: _generateStackRoute,
-        onUnknownRoute: _unknownStackRoute,
-        onDidRemovePage: _handleStackPageRemoved,
-      ),
-    );
-  }
-
-  Page<void> _hostPage(ResolvedSettingsStyle style, String id) {
-    final child = PopScope<Object?>(
-      // The page's back swipe (and predictive back) would close it even
-      // while a page pushed inside it could go back, or the page vetoes
-      // back with a PopScope: then back goes through the split view.
-      canPop: !_detailCanPop,
-      onPopInvokedWithResult: (didPop, result) {
-        if (!didPop) _handleBack();
-      },
-      child: _DetailHost(
-        generation: _hostGeneration,
-        background: style.themeData.settingsListBackground,
-        child: _buildDetailNavigator(style),
-      ),
-    );
-    if (settingsUsesCupertinoRoutes(settingsStyleFamily(style.platform))) {
-      return CupertinoPage<void>(
-        key: _hostPageKey,
-        name: id,
-        restorationId: 'detail',
-        child: child,
-      );
-    }
-    return MaterialPage<void>(
-      key: _hostPageKey,
-      name: id,
-      restorationId: 'detail',
-      child: child,
-    );
-  }
-
-  Widget _buildDetailNavigator(ResolvedSettingsStyle style) {
-    return NotificationListener<NavigationNotification>(
-      onNotification: _handleDetailNavigation,
-      child: Navigator(
-        key: _detailKey,
-        restorationScopeId: widget.restorationId == null ? null : 'detail',
-        // Tab moves on from the detail pane to the list pane (a closed loop
-        // would keep the focus in the page). Showing a page picked in the
-        // list leaves the focus in the list, like the platforms' sidebars;
-        // pages opened inside the pane take it (see _DetailObserver).
-        routeTraversalEdgeBehavior: TraversalEdgeBehavior.parentScope,
-        requestFocus: false,
-        observers: [_detailObserver],
-        pages: [_detailRootPage(style)],
-        onDidRemovePage: (_) {},
-      ),
-    );
-  }
-
-  Page<void> _detailRootPage(ResolvedSettingsStyle style) {
-    final id = _detailRootId;
-    final entry = _lookup(id);
-    if (entry == null) {
-      return _PlainPage(
-        key: const ValueKey<String>('settings_split_empty'),
-        child: Material(
-          color: style.themeData.settingsListBackground,
-          child: Builder(
-            builder: (context) =>
-                widget.emptyDetailBuilder?.call(context) ??
-                const SizedBox.expand(),
-          ),
-        ),
-      );
-    }
-    return _PlainPage(
-      key: ValueKey<String>('settings_split_page_$id'),
-      name: id,
-      restorationId: 'page_$id',
-      child: SettingsDestinationPage(
-        destination: entry.destination,
-        title: entry.title,
-        config: style.resolvedConfig,
-        isDetailRoot: true,
-      ),
-    );
-  }
-
-  Widget _buildListPane(
-    ResolvedSettingsStyle style, {
-    required bool isSplit,
-    required double? width,
-    required bool canLeave,
-    required bool compactPane,
-  }) {
-    final theme = style.themeData;
-    final family = settingsStyleFamily(style.platform);
-    final title = widget.title;
-    // The macOS, Windows and GNOME sidebars. GNOME Settings also shows its
-    // sidebar as the first page when it's collapsed.
-    final sidebar = switch (family) {
-      SettingsStyleFamily.macos || SettingsStyleFamily.fluent => isSplit,
-      SettingsStyleFamily.adwaita => true,
-      _ => false,
-    };
-    final background = isSplit || sidebar
-        ? (theme.listPaneBackground ?? theme.settingsListBackground)
-        : theme.settingsListBackground;
-    final onBack = canLeave ? _leave : null;
-
-    // The list pane's own background, for the tiles too (iOS descriptions
-    // are drawn on it).
-    SettingsThemeData withBackground(SettingsThemeData? theme) =>
-        (theme ?? const SettingsThemeData()).merge(
-          theme: SettingsThemeData(settingsListBackground: background),
-        );
-
-    final iosLargeTitle =
-        family == SettingsStyleFamily.cupertino && title != null;
-    final EdgeInsetsGeometry? padding;
-    if (sidebar) {
-      switch (family) {
-        case SettingsStyleFamily.macos:
-          // Room for the first row's focus ring, which the list's viewport
-          // would clip: the list starts that much higher (see below).
-          padding = const EdgeInsets.only(
-            top: kMacosFocusRingWidth,
-            bottom: 10,
-          );
-        case SettingsStyleFamily.fluent:
-          // Windows Settings' open pane starts its items 16 from the
-          // window edge; the rail and the pane opened from it keep
-          // NavigationView's own 4.
-          padding = EdgeInsetsDirectional.only(
-            start: compactPane ? 0 : kFluentPaneGutter,
-            bottom: 8,
-          );
-        default:
-          padding = const EdgeInsets.only(
-            top: kAdwaitaSidebarPaddingTop,
-            bottom: kAdwaitaSidebarPaddingBottom,
-          );
-      }
-    } else if (!isSplit) {
-      padding = null;
-    } else {
-      switch (family) {
-        case SettingsStyleFamily.cupertino:
-          padding = const EdgeInsets.only(bottom: 20);
-        case SettingsStyleFamily.material:
-          padding = const EdgeInsets.only(bottom: 16);
-        default:
-          padding = const EdgeInsets.symmetric(vertical: 8);
-      }
-    }
-
-    final List<AbstractSettingsSection> sections;
-    if (isSplit && family == SettingsStyleFamily.web) {
-      // Chrome's menu separates its groups with a full-width line.
-      sections = _interleave(
-        widget.sections,
-        (_) => const CustomSettingsSection(child: _WebMenuSeparator()),
-      );
-    } else if (sidebar) {
-      sections = _interleave(_shownSections(widget.sections), (next) {
-        switch (family) {
-          case SettingsStyleFamily.macos:
-            return const CustomSettingsSection(child: MacosSidebarSectionGap());
-          case SettingsStyleFamily.fluent:
-            return CustomSettingsSection(
-              child: FluentPaneSeparator(
-                beforeTitle: next is SettingsSection && next.title != null,
-              ),
-            );
-          default:
-            return const CustomSettingsSection(
-              child: AdwaitaSidebarSeparator(),
-            );
-        }
-      });
-    } else {
-      sections = widget.sections;
-    }
-
-    Widget list = SettingsList(
-      platform: style.platform,
-      brightness: widget.brightness,
-      lightTheme: withBackground(widget.lightTheme),
-      darkTheme: withBackground(widget.darkTheme),
-      applicationType: widget.applicationType,
-      contentPadding: padding,
-      sections: [
-        if (iosLargeTitle)
-          CustomSettingsSection(child: SettingsLargeTitle(title: title)),
-        ...sections,
-      ],
-    );
-
-    if (family == SettingsStyleFamily.fluent) {
-      // One pane shows the title as a Windows page title over the list.
-      list = FluentPageTitleAbove(above: !isSplit, child: list);
-    }
-
-    // Keep the same widget structure in both layouts, so the list pane (it
-    // moves between them under a GlobalKey) keeps its scroll position.
-    Widget content;
-    switch (family) {
-      case SettingsStyleFamily.cupertino:
-        content = Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            ValueListenableBuilder<bool>(
-              valueListenable: _largeTitleHidden,
-              builder: (context, hidden, _) => SettingsPageBar(
-                platform: style.platform,
-                title: title,
-                // With a large title in the list, the bar shows the title
-                // only once it scrolled away, like iOS.
-                showTitle: !iosLargeTitle || hidden,
-                onBack: onBack,
-              ),
-            ),
-            Expanded(
-              child: MediaQuery.removePadding(
-                context: context,
-                removeTop: true,
-                child: NotificationListener<ScrollUpdateNotification>(
-                  onNotification: (notification) {
-                    if (notification.depth == 0) {
-                      _largeTitleHidden.value =
-                          notification.metrics.pixels > 40;
-                    }
-                    return false;
-                  },
-                  child: list,
-                ),
-              ),
-            ),
-          ],
-        );
-      case SettingsStyleFamily.material:
-        content = title != null
-            ? SettingsCollapsingTitleView(
-                title: title,
-                onBack: onBack,
-                background: background,
-                body: list,
-              )
-            : Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  SettingsPageBar(
-                    platform: style.platform,
-                    title: null,
-                    onBack: onBack,
-                  ),
-                  Expanded(
-                    child: MediaQuery.removePadding(
-                      context: context,
-                      removeTop: true,
-                      child: list,
-                    ),
-                  ),
-                ],
-              );
-      case SettingsStyleFamily.web:
-      case SettingsStyleFamily.macos:
-      case SettingsStyleFamily.fluent:
-      case SettingsStyleFamily.adwaita:
-        final Widget header;
-        switch (family) {
-          case SettingsStyleFamily.web:
-            header = isSplit
-                ? _WebMenuHeader(title: title, onBack: onBack)
-                : SettingsPageBar(
-                    platform: style.platform,
-                    title: title,
-                    onBack: onBack,
-                  );
-          case SettingsStyleFamily.macos:
-            // The sidebar runs under the title bar; one pane is a page.
-            header = isSplit
-                ? MacosSidebarTopBar(onBack: onBack)
-                : MacosToolbar(title: title, onBack: onBack);
-          case SettingsStyleFamily.fluent:
-            header = isSplit
-                ? FluentPaneHeader(
-                    title: title,
-                    onBack: onBack,
-                    onTogglePane: compactPane ? _toggleFluentPane : null,
-                  )
-                : FluentPageHeader(title: title, onBack: onBack);
-          default:
-            header = AdwaitaHeaderBar(title: title, onBack: onBack);
-        }
-        Widget body = MediaQuery.removePadding(
-          context: context,
-          removeTop: true,
-          child: list,
-        );
-        if (family == SettingsStyleFamily.macos) {
-          // The macOS sidebar list reaches up under the (transparent)
-          // toolbar strip by the width of the focus ring, which its top
-          // padding leaves free, so its first row stays at the strip's
-          // bottom and its ring isn't clipped.
-          body = CustomSingleChildLayout(
-            delegate: _ExtendUpDelegate(
-              isSplit && sidebar ? kMacosFocusRingWidth : 0,
-            ),
-            child: body,
-          );
-        }
-        content = Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            header,
-            Expanded(child: body),
-          ],
-        );
-    }
-
-    // Keyboard navigation of the desktop sidebars, the macOS window focus
-    // and the Windows selection indicator. They wrap the list in both
-    // layouts, so its structure stays the same.
-    switch (family) {
-      case SettingsStyleFamily.macos:
-        content = MacosWindowActivity(
-          child: SettingsSidebarKeyboard(
-            enabled: sidebar,
-            selectionFollowsFocus: true,
-            child: content,
-          ),
-        );
-      case SettingsStyleFamily.fluent:
-        content = FluentNavigationPane(enabled: sidebar, child: content);
-      case SettingsStyleFamily.adwaita:
-        content = SettingsSidebarKeyboard(child: content);
-      case SettingsStyleFamily.cupertino:
-      case SettingsStyleFamily.material:
-      case SettingsStyleFamily.web:
-        break;
-    }
-
-    final hideLeading =
-        isSplit &&
-        family == SettingsStyleFamily.material &&
-        width != null &&
-        width < 380;
-
-    return SettingsSplitListScope(
-      isSplit: isSplit,
-      sidebar: sidebar || isSplit,
-      selectedId: _shownId,
-      onOpen: _openFromTile,
-      onTileBuilt: _handleTileBuilt,
-      hideLeading: hideLeading,
-      child: KeyedSubtree(
-        key: const ValueKey<String>('settings_split_list_pane'),
-        child: Material(
-          key: _listKey,
-          color: background,
-          child: Focus(focusNode: _listFocusNode, child: content),
-        ),
-      ),
-    );
-  }
-}
-
-/// [sections] without the [SettingsSection]s that have no tiles (they show
-/// nothing), so separators between sections don't double up.
-List<AbstractSettingsSection> _shownSections(
-  List<AbstractSettingsSection> sections,
-) => [
-  for (final section in sections)
-    if (section is! SettingsSection || section.tiles.isNotEmpty) section,
-];
-
-/// [sections] with a separator from [separatorBefore] between each two.
-List<AbstractSettingsSection> _interleave(
-  List<AbstractSettingsSection> sections,
-  AbstractSettingsSection Function(AbstractSettingsSection next)
-  separatorBefore,
-) => [
-  for (final (index, section) in sections.indexed) ...[
-    if (index > 0) separatorBefore(section),
-    section,
-  ],
-];
-
-/// Tab and Shift+Tab in a split view. A page without any control leaves
-/// its route's focus scope with nothing to move to, which would keep the
-/// focus there: then the focus goes on to the list pane.
-class _PaneFocusAction<T extends Intent> extends Action<T> {
-  _PaneFocusAction(this.view, this.forward);
-
-  final _SettingsSplitViewState view;
-  final bool forward;
-
-  @override
-  Object? invoke(T intent) {
-    final node = FocusManager.instance.primaryFocus;
-    if (node == null) return null;
-    // Nothing is focused yet: the detail navigator took the focus when it
-    // was built (navigators autofocus). Start in the list pane, like the
-    // platforms' settings apps, not after the navigator in the page.
-    // In one pane, a page shown over the list hides it: stay in the page.
-    final listShown = view._listShown;
-    if (forward &&
-        listShown &&
-        view._isNavigatorFocus(node) &&
-        view._focusListPane(first: true)) {
-      return null;
-    }
-    final moved = forward ? node.nextFocus() : node.previousFocus();
-    if (!moved && listShown) view._focusListPane(first: forward);
-    return null;
-  }
-}
-
-/// Chrome's settings toolbar over the menu: "Settings" in 22px.
-class _WebMenuHeader extends StatelessWidget {
-  const _WebMenuHeader({required this.title, required this.onBack});
-
-  final Widget? title;
-  final VoidCallback? onBack;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = SettingsTheme.of(context).themeData;
-    final title = this.title;
-    return SafeArea(
-      bottom: false,
-      child: SizedBox(
-        height: 56,
-        child: Row(
-          children: [
-            if (onBack != null)
-              Padding(
-                padding: const EdgeInsetsDirectional.only(start: 12),
-                child: IconButton(
-                  onPressed: onBack,
-                  iconSize: 20,
-                  icon: Icon(
-                    Icons.arrow_back,
-                    semanticLabel: settingsBackLabel(context),
-                  ),
-                  color: theme.leadingIconsColor,
-                ),
-              )
-            else
-              const SizedBox(width: 24),
-            if (title != null)
-              Expanded(
-                child: DefaultTextStyle(
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w400,
-                    color: theme.settingsTileTextColor,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  child: Semantics(header: true, child: title),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// The line between groups in Chrome's settings menu.
-class _WebMenuSeparator extends StatelessWidget {
-  const _WebMenuSeparator();
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = SettingsTheme.of(context).themeData;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Container(
-        height: 1,
-        color:
-            theme.dividerColor ??
-            theme.settingsTileTextColor?.withValues(alpha: 0.12),
-      ),
-    );
-  }
-}
-
-/// The page one pane pushes over the list. It holds the detail navigator,
-/// unless a newer page took it while this one animates out.
-class _DetailHost extends StatelessWidget {
-  const _DetailHost({
-    required this.generation,
-    required this.background,
-    required this.child,
-  });
-
-  final int generation;
-  final Color? background;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    final scope = SettingsSplitScope.maybeOf(context);
-    if (scope != null && scope.hostGeneration != generation) {
-      return ColoredBox(color: background ?? const Color(0x00000000));
-    }
-    return child;
-  }
-}
-
-/// Lays its child out [extent] taller and that far up, over what is above.
-class _ExtendUpDelegate extends SingleChildLayoutDelegate {
-  const _ExtendUpDelegate(this.extent);
-
-  final double extent;
-
-  @override
-  BoxConstraints getConstraintsForChild(BoxConstraints constraints) =>
-      constraints.copyWith(
-        minHeight: constraints.minHeight + extent,
-        maxHeight: constraints.maxHeight + extent,
-      );
-
-  @override
-  Offset getPositionForChild(Size size, Size childSize) => Offset(0, -extent);
-
-  @override
-  bool shouldRelayout(_ExtendUpDelegate oldDelegate) =>
-      extent != oldDelegate.extent;
-}
-
-/// A page without a transition: the list under one pane, and the root of
-/// the detail pane, which iPad, Android and Chrome all swap in place.
-class _PlainPage extends Page<void> {
-  const _PlainPage({
-    required LocalKey super.key,
-    super.name,
-    super.restorationId,
-    required this.child,
-  });
-
-  final Widget child;
-
-  @override
-  Route<void> createRoute(BuildContext context) => _PlainPageRoute(this);
-}
-
-class _PlainPageRoute extends PageRoute<void> {
-  _PlainPageRoute(_PlainPage page) : super(settings: page);
-
-  _PlainPage get _page => settings as _PlainPage;
-
-  @override
-  Color? get barrierColor => null;
-
-  @override
-  String? get barrierLabel => null;
-
-  @override
-  bool get maintainState => true;
-
-  @override
-  Duration get transitionDuration => Duration.zero;
-
-  @override
-  Duration get reverseTransitionDuration => Duration.zero;
-
-  @override
-  Widget buildPage(
-    BuildContext context,
-    Animation<double> animation,
-    Animation<double> secondaryAnimation,
-  ) {
-    return Semantics(
-      scopesRoute: true,
-      explicitChildNodes: true,
-      child: _page.child,
-    );
-  }
-}
-
-/// Watches the one-pane navigator for routes pushed from the list pane:
-/// routes without a page, such as a tile's own `Navigator.push`, a menu or
-/// a bottom sheet.
-class _StackObserver extends NavigatorObserver {
-  _StackObserver(this.onChanged);
-
-  /// Called when a route pushed from the list pane has finished animating
-  /// out. Pushes and pops also dispatch a [NavigationNotification].
-  final VoidCallback onChanged;
-
-  /// The navigator's top route.
-  Route<dynamic>? _top;
-
-  /// Routes without a page, until they have animated out.
-  final Set<Route<dynamic>> _pageless = <Route<dynamic>>{};
-
-  bool get topIsPageless {
-    final top = _top;
-    return top != null && top.settings is! Page;
-  }
-
-  bool get hasPageless => _pageless.isNotEmpty;
-
-  @override
-  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    _top = route;
-    if (route.settings is! Page) _pageless.add(route);
-  }
-
-  @override
-  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    if (route == _top) _top = previousRoute;
-    _release(route);
-  }
-
-  @override
-  void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    if (route == _top) _top = previousRoute;
-    _pageless.remove(route);
-  }
-
-  @override
-  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
-    if (oldRoute == _top) _top = newRoute;
-    _pageless.remove(oldRoute);
-    if (newRoute != null && newRoute.settings is! Page) _pageless.add(newRoute);
-  }
-
-  /// Forgets [route] once its exit animation is over.
-  void _release(Route<dynamic> route) {
-    if (!_pageless.contains(route)) return;
-    final animation = route is TransitionRoute<dynamic>
-        ? route.animation
-        : null;
-    if (animation == null || animation.isDismissed) {
-      _pageless.remove(route);
-      return;
-    }
-    void handleStatus(AnimationStatus status) {
-      if (!status.isDismissed) return;
-      animation.removeStatusListener(handleStatus);
-      if (_pageless.remove(route)) onChanged();
-    }
-
-    animation.addStatusListener(handleStatus);
-  }
-}
-
-class _DetailObserver extends NavigatorObserver {
-  _DetailObserver(this.onUserPush);
-
-  final VoidCallback onUserPush;
-
-  /// The detail navigator's top route.
-  Route<dynamic>? top;
-
-  @override
-  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    top = route;
-    if (previousRoute != null && route.settings is! Page) {
-      onUserPush();
-      // The detail navigator doesn't move the focus by itself: give it to a
-      // page opened from inside the pane, as a navigator normally does.
-      if (route is ModalRoute<dynamic>) {
-        SchedulerBinding.instance.addPostFrameCallback((_) {
-          final context = route.subtreeContext;
-          if (route.isActive && route.isCurrent && context != null) {
-            FocusScope.of(context).requestFocus();
-          }
-        });
-      }
-    }
-  }
-
-  @override
-  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    if (route == top) top = previousRoute;
-  }
-
-  @override
-  void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    if (route == top) top = previousRoute;
-  }
-
-  @override
-  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
-    if (oldRoute == top) top = newRoute;
   }
 }

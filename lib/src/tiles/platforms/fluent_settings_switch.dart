@@ -2,9 +2,9 @@ import 'dart:ui' show lerpDouble;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:material_ui/material_ui.dart' show ThemeData;
+import 'package:settings_ui/src/tiles/platforms/settings_switch_base.dart';
 import 'package:settings_ui/src/utils/fluent_tokens.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 
@@ -94,25 +94,22 @@ class FluentSettingsSwitch extends StatefulWidget {
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
-    properties.add(
-      FlagProperty('value', value: value, ifTrue: 'on', ifFalse: 'off'),
+    debugFillSwitchProperties(
+      properties,
+      value: value,
+      onChanged: onChanged,
+      activeTrackColor: activeTrackColor,
+      inactiveTrackColor: inactiveTrackColor,
     );
-    properties.add(
-      ObjectFlagProperty<ValueChanged<bool>>(
-        'onChanged',
-        onChanged,
-        ifNull: 'disabled',
-      ),
-    );
-    properties.add(ColorProperty('activeTrackColor', activeTrackColor));
-    properties.add(ColorProperty('inactiveTrackColor', inactiveTrackColor));
   }
 }
 
-class _FluentSettingsSwitchState extends State<FluentSettingsSwitch>
-    with TickerProviderStateMixin {
+class _FluentSettingsSwitchState
+    extends SettingsSwitchState<FluentSettingsSwitch>
+    with TickerProviderStateMixin, SettingsSwitchKnobDrag {
   /// Knob offset: 0 = OFF, 1 = ON.
-  late final AnimationController _position = AnimationController(
+  @override
+  late final AnimationController position = AnimationController(
     vsync: this,
     duration: kFluentNormalDuration,
     value: widget.value ? 1 : 0,
@@ -135,105 +132,72 @@ class _FluentSettingsSwitchState extends State<FluentSettingsSwitch>
     duration: kFluentFasterDuration,
   );
 
-  late final Map<Type, Action<Intent>> _actions = <Type, Action<Intent>>{
-    ActivateIntent: CallbackAction<ActivateIntent>(onInvoke: (_) => _toggle()),
-    ButtonActivateIntent: CallbackAction<ButtonActivateIntent>(
-      onInvoke: (_) => _toggle(),
-    ),
-  };
-
-  bool _reduceMotion = false;
-  bool _focusHighlight = false;
   bool _hovering = false;
-  bool _dragging = false;
 
   /// The pointer that pressed the switch, while it is down.
   int? _pressPointer;
   Offset _pressOrigin = Offset.zero;
-  double _dragDownX = 0;
-  double _dragStartPosition = 0;
-
-  bool get _enabled => widget.onChanged != null;
-
-  /// +1 in left-to-right layouts, -1 in right-to-left ones.
-  double get _direction =>
-      Directionality.maybeOf(context) == TextDirection.rtl ? -1 : 1;
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
-  }
+  bool get value => widget.value;
+
+  @override
+  ValueChanged<bool>? get onChanged => widget.onChanged;
+
+  @override
+  double get travel => _kTravel;
 
   @override
   void didUpdateWidget(FluentSettingsSwitch oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.value != widget.value) {
-      _animate(_on, widget.value ? 1 : 0);
+      animate(_on, widget.value ? 1 : 0);
       // While dragging, the pointer owns the knob. It snaps on release.
-      if (!_dragging) _moveKnob(widget.value);
+      if (!dragging) _moveKnob(widget.value);
     }
-    if (oldWidget.onChanged != null && !_enabled) {
+    if (oldWidget.onChanged != null && !enabled) {
       // Disabled mid-interaction: drop the press and drag.
-      _dragging = false;
+      dragging = false;
       _pressPointer = null;
       _press.value = 0;
       _hover.value = 0;
       _moveKnob(widget.value);
-    } else if (oldWidget.onChanged == null && _enabled && _hovering) {
-      _animate(_hover, 1);
+    } else if (oldWidget.onChanged == null && enabled && _hovering) {
+      animate(_hover, 1);
     }
   }
 
   @override
   void dispose() {
-    _position.dispose();
+    position.dispose();
     _on.dispose();
     _hover.dispose();
     _press.dispose();
     super.dispose();
   }
 
-  void _animate(AnimationController controller, double target) {
-    if (_reduceMotion) {
-      controller.value = target;
-    } else {
-      controller.animateTo(target);
-    }
-  }
+  void _moveKnob(bool on) =>
+      animate(position, on ? 1 : 0, curve: kFluentFastOutSlowIn);
 
-  void _moveKnob(bool on) {
-    final double target = on ? 1 : 0;
-    if (_reduceMotion) {
-      _position.value = target;
-    } else {
-      _position.animateTo(target, curve: kFluentFastOutSlowIn);
-    }
-  }
-
-  void _setPressed(bool pressed) => _animate(_press, pressed ? 1 : 0);
-
-  void _toggle() {
-    if (!_enabled) return;
-    widget.onChanged!(!widget.value);
-  }
+  @override
+  void setPressed(bool pressed) => animate(_press, pressed ? 1 : 0);
 
   // Pointer: the pressed look follows the pointer like WinUI, from the
   // moment it goes down, not after the tap is recognized.
 
   void _handlePointerDown(PointerDownEvent event) {
-    if (!_enabled || _pressPointer != null) return;
+    if (!enabled || _pressPointer != null) return;
     if (event.kind == PointerDeviceKind.mouse &&
         event.buttons != kPrimaryMouseButton) {
       return;
     }
     _pressPointer = event.pointer;
     _pressOrigin = event.position;
-    _setPressed(true);
+    setPressed(true);
   }
 
   void _handlePointerMove(PointerMoveEvent event) {
-    if (event.pointer != _pressPointer || _dragging) return;
+    if (event.pointer != _pressPointer || dragging) return;
     // A scroll that started on the switch is not a press.
     final double slop = computeHitSlop(event.kind, null);
     if ((event.position.dy - _pressOrigin.dy).abs() > slop) {
@@ -246,72 +210,41 @@ class _FluentSettingsSwitchState extends State<FluentSettingsSwitch>
   void _releasePointer(int pointer) {
     if (pointer != _pressPointer) return;
     _pressPointer = null;
-    if (!_dragging) _setPressed(false);
+    // A pointer that went down on the switch still reports here after the
+    // switch has left the tree, when its controllers are disposed.
+    if (!dragging && mounted) setPressed(false);
   }
 
-  // Dragging.
-
-  void _handleDragDown(DragDownDetails details) {
-    _dragDownX = details.localPosition.dx;
-  }
-
-  void _handleDragStart(DragStartDetails details) {
-    _dragging = true;
-    _dragStartPosition = _position.value;
-    _position.stop();
-    _setPressed(true);
-    _followPointer(details.localPosition.dx);
-  }
-
-  void _handleDragUpdate(DragUpdateDetails details) {
-    if (_dragging) _followPointer(details.localPosition.dx);
-  }
-
-  /// Moves the knob with the pointer, measured from where it went down, so
-  /// the knob does not lag behind by the drag slop.
-  void _followPointer(double x) {
-    final double delta = _direction * (x - _dragDownX);
-    _position.value = (_dragStartPosition + delta / _kTravel).clamp(0.0, 1.0);
-  }
-
-  void _handleDragEnd(DragEndDetails details) => _finishDrag();
-
-  void _handleDragCancel() => _finishDrag();
-
-  void _finishDrag() {
-    if (!_dragging) return;
-    _dragging = false;
-    if (_pressPointer == null) _setPressed(false);
-    final bool value = _position.value >= 0.5;
+  @override
+  void settleDrag(bool value) {
+    if (_pressPointer == null) setPressed(false);
     if (value != widget.value) {
       widget.onChanged?.call(value);
     }
     _moveKnob(value);
     // If the parent does not take the new value, go back to the old one.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted && !_dragging) _moveKnob(widget.value);
+      if (mounted && !dragging) _moveKnob(widget.value);
     });
   }
 
   void _handleHover(bool hovering) {
     if (hovering == _hovering) return;
     _hovering = hovering;
-    _animate(_hover, hovering && _enabled ? 1 : 0);
+    animate(_hover, hovering && enabled ? 1 : 0);
   }
 
   @override
   Widget build(BuildContext context) {
-    final FluentTokens tokens = FluentTokens.of(
-      FluentTokens.brightnessOf(context),
-    );
+    final FluentTokens tokens = fluentTokensOf(context);
     final Color? themeDisabled = context
         .dependOnInheritedWidgetOfExactType<SettingsTheme>()
         ?.themeData
         .inactiveSwitchColor;
     final Color accent = widget.activeTrackColor ?? tokens.accent;
 
-    final _SwitchColors colors = _enabled
-        ? _SwitchColors(
+    final _SwitchColors colors = enabled
+        ? (
             offFill: tokens.switchOffFill,
             offFillHover: tokens.switchOffFillHover,
             offFillPressed: tokens.switchOffFillPressed,
@@ -323,7 +256,7 @@ class _FluentSettingsSwitchState extends State<FluentSettingsSwitch>
                 ? const Color(0xFFFFFFFF)
                 : const Color(0xFF000000),
           )
-        : _SwitchColors(
+        : (
             offFill: const Color(0x00000000),
             offFillHover: const Color(0x00000000),
             offFillPressed: const Color(0x00000000),
@@ -333,107 +266,48 @@ class _FluentSettingsSwitchState extends State<FluentSettingsSwitch>
             onKnob: tokens.switchOnKnobDisabled,
           );
 
-    return Semantics(
-      container: true,
-      toggled: widget.value,
-      enabled: _enabled,
-      onTap: _enabled ? _toggle : null,
-      child: FocusableActionDetector(
-        enabled: _enabled,
-        actions: _actions,
-        onShowFocusHighlight: (bool value) {
-          if (value != _focusHighlight) {
-            setState(() => _focusHighlight = value);
-          }
-        },
-        mouseCursor: _enabled && kIsWeb
-            ? SystemMouseCursors.click
-            : MouseCursor.defer,
-        child: MouseRegion(
-          onEnter: (_) => _handleHover(true),
-          onExit: (_) => _handleHover(false),
-          child: Listener(
-            onPointerDown: _handlePointerDown,
-            onPointerMove: _handlePointerMove,
-            onPointerUp: _handlePointerEnd,
-            onPointerCancel: _handlePointerEnd,
-            child: GestureDetector(
-              excludeFromSemantics: true,
-              behavior: HitTestBehavior.opaque,
-              onTap: _enabled ? _toggle : null,
-              onHorizontalDragDown: _enabled ? _handleDragDown : null,
-              onHorizontalDragStart: _enabled ? _handleDragStart : null,
-              onHorizontalDragUpdate: _enabled ? _handleDragUpdate : null,
-              onHorizontalDragEnd: _enabled ? _handleDragEnd : null,
-              onHorizontalDragCancel: _enabled ? _handleDragCancel : null,
-              child: RepaintBoundary(
-                child: CustomPaint(
-                  size: const Size(_kTrackWidth, _kTrackHeight),
-                  painter: _FluentSwitchPainter(
-                    position: _position,
-                    on: _on,
-                    hover: _hover,
-                    press: _press,
-                    enabled: _enabled,
-                    colors: colors,
-                    textDirection:
-                        Directionality.maybeOf(context) ?? TextDirection.ltr,
-                    focusTokens: _focusHighlight && _enabled ? tokens : null,
-                  ),
-                ),
-              ),
-            ),
-          ),
+    return buildSwitch(
+      semanticsContainer: true,
+      wrapGestures: (Widget gestures) => MouseRegion(
+        onEnter: (_) => _handleHover(true),
+        onExit: (_) => _handleHover(false),
+        child: Listener(
+          onPointerDown: _handlePointerDown,
+          onPointerMove: _handlePointerMove,
+          onPointerUp: _handlePointerEnd,
+          onPointerCancel: _handlePointerEnd,
+          child: gestures,
         ),
+      ),
+      size: const Size(_kTrackWidth, _kTrackHeight),
+      painter: _FluentSwitchPainter(
+        position: position,
+        on: _on,
+        hover: _hover,
+        press: _press,
+        enabled: enabled,
+        colors: colors,
+        textDirection: textDirection,
+        focusTokens: showFocusRing ? tokens : null,
       ),
     );
   }
 }
 
-@immutable
-class _SwitchColors {
-  const _SwitchColors({
-    required this.offFill,
-    required this.offFillHover,
-    required this.offFillPressed,
-    required this.offStroke,
-    required this.offKnob,
-    required this.onFill,
-    required this.onKnob,
-  });
+/// The colors of an enabled or a disabled switch. A record, so two sets
+/// with the same colors are equal.
+typedef _SwitchColors = ({
+  Color offFill,
+  Color offFillHover,
+  Color offFillPressed,
+  Color offStroke,
+  Color offKnob,
+  Color onFill,
+  Color onKnob,
+});
 
-  final Color offFill;
-  final Color offFillHover;
-  final Color offFillPressed;
-  final Color offStroke;
-  final Color offKnob;
-  final Color onFill;
-  final Color onKnob;
-
-  @override
-  bool operator ==(Object other) =>
-      other is _SwitchColors &&
-      other.offFill == offFill &&
-      other.offFillHover == offFillHover &&
-      other.offFillPressed == offFillPressed &&
-      other.offStroke == offStroke &&
-      other.offKnob == offKnob &&
-      other.onFill == onFill &&
-      other.onKnob == onKnob;
-
-  @override
-  int get hashCode => Object.hash(
-    offFill,
-    offFillHover,
-    offFillPressed,
-    offStroke,
-    offKnob,
-    onFill,
-    onKnob,
-  );
-}
-
-class _FluentSwitchPainter extends CustomPainter {
+/// Right-to-left layouts mirror the switch, like FlowDirection does.
+class _FluentSwitchPainter extends SettingsSwitchPainter {
   _FluentSwitchPainter({
     required this.position,
     required this.on,
@@ -441,7 +315,7 @@ class _FluentSwitchPainter extends CustomPainter {
     required this.press,
     required this.enabled,
     required this.colors,
-    required this.textDirection,
+    required super.textDirection,
     required this.focusTokens,
   }) : super(repaint: Listenable.merge([position, on, hover, press]));
 
@@ -451,23 +325,11 @@ class _FluentSwitchPainter extends CustomPainter {
   final Animation<double> press;
   final bool enabled;
   final _SwitchColors colors;
-  final TextDirection textDirection;
   final FluentTokens? focusTokens;
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final Rect track = Rect.fromCenter(
-      center: size.center(Offset.zero),
-      width: _kTrackWidth,
-      height: _kTrackHeight,
-    );
-
-    canvas.save();
-    // Right-to-left layouts mirror the switch, like FlowDirection does.
-    if (textDirection == TextDirection.rtl) {
-      canvas.translate(size.width, 0);
-      canvas.scale(-1, 1);
-    }
+  void paintSwitch(Canvas canvas, Size size) {
+    final Rect track = centerTrack(size, _kTrackWidth, _kTrackHeight);
 
     final double hoverT = enabled ? hover.value : 0;
     final double pressT = enabled ? press.value : 0;
@@ -546,7 +408,6 @@ class _FluentSwitchPainter extends CustomPainter {
         focusTokens!,
       );
     }
-    canvas.restore();
   }
 
   static Color _fade(Color color, double opacity) =>

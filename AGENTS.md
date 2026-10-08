@@ -5,7 +5,7 @@ Instructions for coding agents (Claude Code, Codex and others) working in this r
 
 ## About this project
 
-`settings_ui` is a published Flutter package (pub.dev: `settings_ui`, current version: `4.0.0`) that renders native-looking settings screens for iOS, macOS, Windows, Android, Linux, Fuchsia and the web from a single API. It is used in production by thousands of apps, so treat every public API and default-look change as a breaking change for someone.
+`settings_ui` is a published Flutter package (pub.dev: `settings_ui`, current version: `4.0.2`) that renders native-looking settings screens for iOS, macOS, Windows, Android, Linux, Fuchsia and the web from a single API. It is used in production by thousands of apps, so treat every public API and default-look change as a breaking change for someone.
 
 - Requires Flutter >=3.44 and Dart >=3.12.
 - Built on the decoupled [`material_ui`](https://pub.dev/packages/material_ui) and [`cupertino_ui`](https://pub.dev/packages/cupertino_ui) packages. In `lib/`, `test/` and `example/`, import `package:material_ui/material_ui.dart` and `package:cupertino_ui/cupertino_ui.dart` (plus non-design libraries such as `package:flutter/widgets.dart`, `foundation.dart`, `services.dart`). Never import `package:flutter/material.dart` or `package:flutter/cupertino.dart`: their `Theme`/`CupertinoTheme` are different classes, so the package would stop seeing the app theme.
@@ -56,19 +56,36 @@ Every public widget (`SettingsSection`, `SettingsTile`) is a thin dispatcher. At
 
 ```
 lib/src/tiles/
-  settings_tile.dart              ← dispatcher
+  settings_tile.dart              ← dispatcher: builds one SettingsTileData for the style's tile or sidebar row
+  tile_data.dart                  ← SettingsTileData: the tile's fields as the styles read them, labelSwitchIfSeparate
+  tile_parts.dart                 ← tileText, tileTitleColumn, tileValue: pieces of the rows of several styles
+  tile_colors.dart                ← titleColorFor, iconColorFor: the colors of a disabled or selected tile
+  tile_semantics.dart             ← tileTitleLabel, tileSemanticsNode, toggleRowSemantics
+  tile_press.dart                 ← TilePressTracking (pressed from pointer down) and tileActivateActions
+                                    (Enter/Space), for tiles, sidebar rows, switches and the bars' buttons
+  tile_material_row.dart          ← MaterialTileRow: the row of the Android and web tiles
   platforms/
     android_settings_tile.dart
     ios_settings_tile.dart
     web_settings_tile.dart
-    macos_settings_tile.dart
+    web_settings_menu_item.dart     ← the web tile in a split view's list pane
+    macos_settings_tile.dart        ← also what the macOS sidebar shares: macosIsDark, macosFocusColor, text styles
     fluent_settings_tile.dart
-    adwaita_settings_tile.dart
+    adwaita_settings_tile.dart      ← also what the GNOME section and sidebar share: kAdwaitaBodyFontSize, the
+                                      body and heading styles, adwaitaForegroundOf, adwaitaIsDark, adwaitaFocusBorder
     cupertino_settings_switch.dart  ← public, used by the iOS tile
     macos_settings_switch.dart      ← public, used by the macOS tile
     fluent_settings_switch.dart     ← public, used by the Windows tile
     adwaita_settings_switch.dart    ← public, used by the GNOME tile
-    adwaita_symbolic_icons.dart     ← AdwaitaPanDownIcon public; go-next internal
+    settings_switch_base.dart       ← internal: what the four switches' States and painters share
+    adwaita_symbolic_icons.dart     ← AdwaitaPanDownIcon public; go-next and go-previous internal
+lib/src/sections/
+  settings_section.dart           ← dispatcher
+  section_header.dart             ← sectionTitle, sectionHeader: a section title as a header node
+  platforms/                      ← one <style>_settings_section.dart per style
+lib/src/utils/
+  fluent_tokens.dart              ← the WinUI theme resources (FluentTokens, fluentTokensOf), type ramp and focus visual
+  unresolved_platform.dart        ← throwUnresolvedPlatform, where DevicePlatform.device must not arrive
 ```
 
 Same pattern for `lib/src/sections/`. `lib/src/list/settings_list.dart` resolves the platform, brightness and default padding.
@@ -85,20 +102,21 @@ Layout: `SettingsList` sizes its default padding from its own width (`LayoutBuil
 
 ### `DevicePlatform.device` is a sentinel
 
-`DevicePlatform.device` means "auto-detect" and is valid only as input to `SettingsList`. It must never reach the switch statements in tiles, sections or `ThemeProvider` (they throw). `PlatformUtils.detectPlatform()` resolves it: `kIsWeb` → web, otherwise `Theme.of(context).platform`. Its `default:` branch sends platforms that only exist in Flutter forks (e.g. OpenHarmony) to the iOS style; keep it, or forks stop compiling.
+`DevicePlatform.device` means "auto-detect" and is valid only as input to `SettingsList`. It must never reach the switch statements in tiles, sections or `ThemeProvider` (they throw, with `throwUnresolvedPlatform`). `PlatformUtils.detectPlatform()` resolves it: `kIsWeb` → web, otherwise `Theme.of(context).platform`. Its `default:` branch sends platforms that only exist in Flutter forks (e.g. OpenHarmony) to the iOS style; keep it, or forks stop compiling.
 
 ### Pages and split view (`lib/src/split/`)
 
 - `SettingsTile.navigation(destination:)` calls `openSettingsDestination`: in a split view's list pane it selects the page through `SettingsSplitListScope`; anywhere else it pushes `settingsDestinationRoute` (Cupertino or Material route) on the nearest `Navigator`, so tiles in a detail page push inside the detail pane.
 - `SettingsDestinationPage` draws the header (`SettingsPageBar` for iOS, web and the desktop styles, which dispatches to `MacosToolbar`, `FluentPageHeader` and `AdwaitaHeaderBar`; `SettingsCollapsingTitleView`, a `NestedScrollView`, for Android) and puts `SettingsStyleScope(inherit: true)` above the body, so a `SettingsList` there takes its unset style inputs from the opener. A list's own `SettingsStyleScope` has `inherit: false`, so nested lists keep detecting their style.
+- `SettingsSplitView`'s State is spread over `settings_split_view.dart` (the state, layout and back handling) and its part files: `split_view_panes.dart` (the widgets of the panes), `split_view_routes.dart` (the pages and the navigator observers), `split_view_focus.dart` (the focus between panes and across layouts) and `settings_split_controller.dart`. It builds its panes the same way in every style; what differs between the styles (the list pane's header, padding and separators, the line between the panes, the detail column) is behind `SplitPaneStyle` in `split_pane_style.dart`. The scopes it puts around its panes are in `split_scopes.dart`.
 - `SettingsSplitView` keeps one detail `Navigator` and the list pane under `GlobalKey`s. Two panes put them in a `Row`; one pane puts them in pages of a second `Navigator`, so state survives layout changes. A page pushed over the list that is still animating out hands the detail navigator to the new one (`hostGeneration`).
 - Back: the split view's `PopScope` on the app's route handles back for both navigators (`_handleBack`). In one pane a route pushed from the list pane (a tile's own `Navigator.push`, a menu, a sheet: routes without a page, tracked by `_StackObserver`) pops first, or vetoes; then pages pushed inside the detail pane (a page's own `PopScope` can veto); then the page over the list. That page (`_hostPage`) has its own `PopScope` that blocks its back swipe and predictive back while the detail pane can go back or vetoes, so back goes through the split view. While a route pushed from the list is open or animating out, the view keeps one pane (`_holdOnePane`), even if the window widens. Named routes pushed from the list pane come from the app's navigator.
 - A picked page whose `SettingsSection` tile goes away is forgotten (two panes fall back to the default page, one pane shows the list). Tiles in a `CustomSettingsSection` can't be read ahead: they report their destination as they build (`onTileBuilt`), so their pages follow the tile's rebuilds and restore, but a removed one stays open (documented; the list is built lazily, so a tile that stops building may only have scrolled away).
 - Breakpoints, pane widths and hinges are pure functions in `split_geometry.dart`. The list-pane look (iPad sidebar rows, Chrome menu, Android cards on `surfaceDim`) is chosen by tiles and sections that find a `SettingsSplitListScope` with `isSplit`.
 - `settingsStyleFamily` (in `settings_style.dart`) maps a platform to one of six families (cupertino, material, web, macos, fluent, adwaita); the split view, page headers and routes switch on it. `settingsUsesCupertinoRoutes` picks Cupertino routes for iOS, macOS and GNOME.
-- The desktop sidebars live in `macos_split.dart`, `fluent_split.dart` and `adwaita_split.dart`. When `SettingsSplitListScope.sidebar` is true (`drawsSidebarOf`), `SettingsSection` draws `MacosSidebarSection` / `FluentNavigationSection` / `AdwaitaSidebarSection` and `SettingsTile` draws `MacosSidebarItem` / `FluentNavigationItem` / `AdwaitaSidebarRow`. macOS and Windows draw the sidebar only with two panes; GNOME also in one pane (GNOME Settings shows its sidebar as the first page), with no row selected.
+- The desktop sidebars live in `macos_split.dart`, `fluent_split.dart` and `adwaita_split.dart`. What the three share is in `sidebar_row.dart` (`SidebarRow`, which takes the tile's `SettingsTileData`, and `SidebarRowState`: the row's focus, activation and line), `sidebar_section.dart` (`SidebarSection`: the header node over the rows), `sidebar_button.dart` (`SidebarButton`: the bars' back, pane toggle and breadcrumb buttons) and `sidebar_keyboard.dart` (the arrow keys). The Windows style's other pieces are in `fluent_page_header.dart` (`FluentPageHeader` and its breadcrumb), `fluent_compact_pane.dart` (`FluentCompactPaneLayout`, `FluentPaneModeScope`) and `fluent_controls.dart` (the focus visual and `FluentSubtleButton`); `fluent_split.dart` re-exports the three classes that are read through it. When `SettingsSplitListScope.sidebar` is true (`drawsSidebarOf`), `SettingsSection` draws `MacosSidebarSection` / `FluentNavigationSection` / `AdwaitaSidebarSection` and `SettingsTile` draws `MacosSidebarItem` / `FluentNavigationItem` / `AdwaitaSidebarRow`. macOS and Windows draw the sidebar only with two panes; GNOME also in one pane (GNOME Settings shows its sidebar as the first page), with no row selected.
 - macOS: `MacosWindowActivity` (a `WidgetsBindingObserver`) greys the selection when the app isn't resumed. Windows: below 1008 the list pane is a 48px rail (`SplitGeometry.compactPane`) and `FluentCompactPaneLayout` opens the full pane over the detail; `FluentNavigationPane` holds a registry of item rects so the selected item's pill can slide in from the previous one (`getTransformTo`). `SettingsPageTrail` (an `InheritedWidget` above each destination page) lists the pages above it for the Windows breadcrumb.
-- Keyboard: `SettingsSidebarKeyboard` maps Up and Down to the row above or below, stopping at the first and last rows (macOS also selects the focused row). A click focuses the row (`SidebarRowFocus`), whose focus ring shows only after a key press. A switch row without `onPressed` in the macOS sidebar or the expanded Windows pane lets its switch take the focus. A layout change puts the focus back on the same tile (`_keepFocusAcrossLayouts`). Both navigators use `TraversalEdgeBehavior.parentScope` and the detail one `requestFocus: false`, so Tab leaves a pane; `_PaneFocusAction` moves the focus to the list pane when the detail has nothing focusable. Hover uses `MouseRegion`, not `FocusableActionDetector.onShowHoverHighlight`, which stays off in touch highlight mode (and so in tests).
+- Keyboard: `SettingsSidebarKeyboard` maps Up and Down to the row above or below, stopping at the first and last rows (macOS also selects the focused row). A click focuses the row (`SidebarRowState`), whose focus ring shows only after a key press. A switch row without `onPressed` in the macOS sidebar or the expanded Windows pane lets its switch take the focus. A layout change puts the focus back on the same tile (`_keepFocusAcrossLayouts`). Both navigators use `TraversalEdgeBehavior.parentScope` and the detail one `requestFocus: false`, so Tab leaves a pane; `_PaneFocusAction` moves the focus to the list pane when the detail has nothing focusable. Hover uses `MouseRegion`, not `FocusableActionDetector.onShowHoverHighlight`, which stays off in touch highlight mode (and so in tests).
 - In the detail pane only iOS and Android lists fill the pane (`SettingsContentColumnHint.fillWidth`); the other styles keep their columns.
 - Each pane is its own semantics container: the detail navigator's routes block the semantics of what was painted before them in their container. The list pane tiles and the macOS, Windows and GNOME sidebar rows are semantics containers that carry their own selected flag (`semanticsSelected`); an annotation around them would land on their section's node.
 
@@ -127,7 +145,7 @@ Tap behavior on switch tiles differs on purpose: Android, GNOME and web toggle o
 
 GNOME sizes in sp (the page column, the split view's sidebar and collapse width) grow as much as GNOME's 14.67px body text does (`adwaitaSpScale` in `split_geometry.dart`), not by `TextScaler.scale` of the size itself: Android 14+ scales text non-linearly, so large sizes would barely grow.
 
-Semantics: every tile is a semantics container of its own, a button when it has `onPressed` (dimmed when disabled); sections give other tiles (`CustomSettingsTile`) one too (`tileSemanticsNode`), the iOS and macOS footers (`description`) are nodes of their own, and section titles are header nodes. Without a container, rows whose semantics don't clash (only one has a tap action) merge into their section's node, which reads them all at once. A switch tile reads as one node, "Title, switch, on". Where the row has an action of its own (`onPressed` on iOS, macOS and Windows, in lists and in the macOS and Windows sidebars) the row and the switch are separate nodes, and `labelTileSwitch` (`tiles/tile_semantics.dart`) labels the switch with the title. iOS rows expose a tap action only when they do something (`onPressed` and enabled). `enabled: false` drops a tile's callbacks, so the keyboard can't trigger it either.
+Semantics: every tile is a semantics container of its own, a button when it has `onPressed` (dimmed when disabled); sections give other tiles (`CustomSettingsTile`) one too (`tileSemanticsNode`), the iOS and macOS footers (`description`) are nodes of their own, and section titles are header nodes. Without a container, rows whose semantics don't clash (only one has a tap action) merge into their section's node, which reads them all at once. A switch tile reads as one node, "Title, switch, on". Where the row has an action of its own (`onPressed` on iOS, macOS and Windows, in lists and in the macOS and Windows sidebars) the row and the switch are separate nodes, and `SettingsTileData.labelSwitchIfSeparate` (`tiles/tile_data.dart`) labels the switch with the title. iOS rows expose a tap action only when they do something (`onPressed` and enabled). `enabled: false` drops a tile's callbacks, so the keyboard can't trigger it either.
 
 ### Public API surface (the only exports)
 

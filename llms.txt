@@ -139,7 +139,7 @@ All constructors:
 `SettingsTile.switchTile` only:
 
 - `initialValue` (required): `bool?`. The current value. The tile is controlled and keeps no state of its own.
-- `onToggle` (required, nullable): `Function(bool value)?`. `null` disables the switch.
+- `onToggle` (required, nullable): `Function(bool value)?`. `null` disables the switch; in the Android and web styles the row then ignores taps too.
 - `activeSwitchColor`: `Color?`. On-state color of the switch.
 - It has no `value` parameter.
 
@@ -264,15 +264,15 @@ Override per brightness with `SettingsList(lightTheme: SettingsThemeData(...), d
 - `settingsSectionBackground` (`Color?`): card background.
 - `dividerColor` (`Color?`): line between tiles in the iOS, macOS, GNOME and web styles, card border in the Windows style (Android cards have none).
 - `tileHighlightColor` (`Color?`): pressed row. The GNOME style hovers with 3/8 of its opacity.
-- `titleTextColor` (`Color?`), `titleTextStyle` (`TextStyle?`): section titles. In the iOS style the color also applies to `titleDescription` and `description`.
+- `titleTextColor` (`Color?`), `titleTextStyle` (`TextStyle?`): section titles. In the iOS style the color also applies to `titleDescription` and `description`. Only the macOS style takes a color from `titleTextStyle`; the other styles always use `titleTextColor`.
 - `settingsTileTextColor` (`Color?`), `tileTextStyle` (`TextStyle?`): tile titles.
 - `tileDescriptionTextColor` (`Color?`): `description` and `value` on Android and web; `description` and `titleDescription` in the macOS, Windows and GNOME styles.
 - `tileDescriptionTextStyle` (`TextStyle?`): `description` everywhere, `value` on Android, GNOME and web, and `titleDescription` in the macOS, Windows and GNOME styles.
 - `trailingTextColor` (`Color?`): `value` in the iOS, macOS, Windows and GNOME styles.
 - `leadingIconsColor` (`Color?`): leading and trailing icons, and the chevron (lighter in the macOS style).
 - `inactiveTitleColor` (`Color?`): title and icons of a disabled tile.
-- `inactiveSubtitleColor` (`Color?`): `description` and `value` of a disabled tile on Android, Windows, GNOME and web, `titleDescription` in the macOS style.
-- `inactiveSwitchColor` (`Color?`): switch of a disabled tile. Without it, the macOS style draws a paler accent (System Settings) instead of `inactiveTitleColor`.
+- `inactiveSubtitleColor` (`Color?`): `description` and `value` of a disabled tile on Android, Windows, GNOME and web, `titleDescription` in the macOS, Windows and GNOME styles.
+- `inactiveSwitchColor` (`Color?`): switch of a disabled tile in the iOS, macOS, Windows and GNOME styles. Without it the iOS style uses `inactiveTitleColor`, and the others draw their own disabled switch (macOS: a paler accent, like System Settings). In the Android and web styles a disabled Material `Switch` keeps its own colors.
 - `selectedTileColor`, `selectedTileTextColor`, `selectedTileIconColor` (`Color?`): the selected tile in a `SettingsSplitView`'s list pane.
 - `listPaneBackground` (`Color?`): a `SettingsSplitView`'s list pane with two panes (web: `settingsListBackground`).
 
