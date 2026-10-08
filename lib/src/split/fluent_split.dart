@@ -188,6 +188,10 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
   /// Where the pill slides in from, in this item's coordinates.
   Rect? _pillFrom;
 
+  /// The text direction, as the last build read it: [pillRect] is also
+  /// called after a frame, for another item.
+  late TextDirection _textDirection;
+
   _FluentSelectionIndicator? _indicator;
 
   /// The item under its tooltip; see [build].
@@ -293,18 +297,7 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
   }
 
   /// The pill's rectangle in an item of [size] (margins included).
-  Rect pillRect(Size size) {
-    final isRtl = Directionality.of(context) == TextDirection.rtl;
-    final left = isRtl
-        ? size.width - _kItemMarginH - _kPillWidth
-        : _kItemMarginH;
-    return Rect.fromLTWH(
-      left,
-      (size.height - _kPillHeight) / 2,
-      _kPillWidth,
-      _kPillHeight,
-    );
-  }
+  Rect pillRect(Size size) => _pillRectIn(size, _textDirection);
 
   void _handlePointerDown(PointerDownEvent event) {
     if (pressed) return;
@@ -368,6 +361,7 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
     final theme = SettingsTheme.of(context).themeData;
     final tokens = fluentTokensOf(context);
     final compact = FluentPaneModeScope.compactOf(context);
+    final textDirection = _textDirection = Directionality.of(context);
     final enabled = tile.enabled;
     final clickable = _clickable(compact);
     final (:fill, :foreground, :iconColor) = _colors(
@@ -482,7 +476,7 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
           ? _PillPainter(
               animation: _pill,
               from: _pillFrom,
-              rectFor: pillRect,
+              textDirection: textDirection,
               color: tokens.accent,
             )
           : null,
@@ -579,6 +573,20 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
   }
 }
 
+/// The selection pill's rectangle in an item of [size] (margins included):
+/// at the item's start edge, in the middle of its height.
+Rect _pillRectIn(Size size, TextDirection textDirection) {
+  final left = textDirection == TextDirection.rtl
+      ? size.width - _kItemMarginH - _kPillWidth
+      : _kItemMarginH;
+  return Rect.fromLTWH(
+    left,
+    (size.height - _kPillHeight) / 2,
+    _kPillWidth,
+    _kPillHeight,
+  );
+}
+
 /// Paints the selection pill at its place in the item, or on its way there
 /// from the previously selected item: the edge in front moves first and the
 /// one behind catches up, so the pill stretches as it travels.
@@ -586,20 +594,20 @@ class _PillPainter extends CustomPainter {
   _PillPainter({
     required this.animation,
     required this.from,
-    required this.rectFor,
+    required this.textDirection,
     required this.color,
   }) : super(repaint: animation);
 
   final Animation<double> animation;
   final Rect? from;
-  final Rect Function(Size size) rectFor;
+  final TextDirection textDirection;
   final Color color;
 
   static double _lerp(double a, double b, double t) => a + (b - a) * t;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final to = rectFor(size);
+    final to = _pillRectIn(size, textDirection);
     final from = this.from;
     final t = animation.value;
     var rect = to;
@@ -628,6 +636,7 @@ class _PillPainter extends CustomPainter {
   @override
   bool shouldRepaint(_PillPainter oldDelegate) =>
       oldDelegate.from != from ||
+      oldDelegate.textDirection != textDirection ||
       oldDelegate.color != color ||
       oldDelegate.animation != animation;
 }
