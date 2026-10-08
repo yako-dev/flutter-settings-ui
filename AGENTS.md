@@ -5,7 +5,7 @@ Instructions for coding agents (Claude Code, Codex and others) working in this r
 
 ## About this project
 
-`settings_ui` is a published Flutter package (pub.dev: `settings_ui`, current version: `4.0.0`) that renders native-looking settings screens for iOS, macOS, Windows, Android, Linux, Fuchsia and the web from a single API. It is used in production by thousands of apps, so treat every public API and default-look change as a breaking change for someone.
+`settings_ui` is a published Flutter package (pub.dev: `settings_ui`, current version: `4.0.1`) that renders native-looking settings screens for iOS, macOS, Windows, Android, Linux, Fuchsia and the web from a single API. It is used in production by thousands of apps, so treat every public API and default-look change as a breaking change for someone.
 
 - Requires Flutter >=3.44 and Dart >=3.12.
 - Built on the decoupled [`material_ui`](https://pub.dev/packages/material_ui) and [`cupertino_ui`](https://pub.dev/packages/cupertino_ui) packages. In `lib/`, `test/` and `example/`, import `package:material_ui/material_ui.dart` and `package:cupertino_ui/cupertino_ui.dart` (plus non-design libraries such as `package:flutter/widgets.dart`, `foundation.dart`, `services.dart`). Never import `package:flutter/material.dart` or `package:flutter/cupertino.dart`: their `Theme`/`CupertinoTheme` are different classes, so the package would stop seeing the app theme.
@@ -62,7 +62,7 @@ lib/src/tiles/
   tile_colors.dart                ← titleColorFor, iconColorFor: the colors of a disabled or selected tile
   tile_semantics.dart             ← tileTitleLabel, tileSemanticsNode, toggleRowSemantics
   tile_press.dart                 ← TilePressTracking (pressed from pointer down) and tileActivateActions
-                                    (Enter/Space), for tiles, sidebar rows and switches
+                                    (Enter/Space), for tiles, sidebar rows, switches and the bars' buttons
   tile_material_row.dart          ← MaterialTileRow: the row of the Android and web tiles
   platforms/
     android_settings_tile.dart
