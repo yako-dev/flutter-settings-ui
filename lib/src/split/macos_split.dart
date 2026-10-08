@@ -7,7 +7,6 @@ import 'package:settings_ui/src/split/sidebar_row.dart';
 import 'package:settings_ui/src/split/sidebar_section.dart';
 import 'package:settings_ui/src/tiles/platforms/macos_settings_switch.dart';
 import 'package:settings_ui/src/tiles/platforms/macos_settings_tile.dart';
-import 'package:settings_ui/src/tiles/tile_semantics.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 
 // The macOS 26/27 System Settings split view (a SwiftUI
@@ -170,17 +169,9 @@ class _MacosWindowActiveScope extends InheritedWidget {
 /// accent color (white on the accent). No hover highlight, like AppKit
 /// sidebars. Descriptions and values are not shown.
 class MacosSidebarItem extends SidebarRow {
-  const MacosSidebarItem({
+  const MacosSidebarItem(
+    super.tile, {
     super.key,
-    required super.tileType,
-    required super.leading,
-    required super.title,
-    required super.trailing,
-    required super.onPressed,
-    required super.onToggle,
-    required super.initialValue,
-    required super.activeSwitchColor,
-    required super.enabled,
     required super.selected,
     super.semanticsSelected,
     required this.opensPage,
@@ -208,19 +199,12 @@ class _MacosSidebarItemState extends State<MacosSidebarItem>
   @override
   String get debugLabel => 'MacosSidebarItem';
 
-  bool get _canPress => widget.enabled && widget.onPressed != null;
+  bool get _canPress => tile.enabled && tile.onPressed != null;
 
   @override
   void activateRow() {
-    if (_canPress) widget.onPressed!(context);
+    if (_canPress) tile.onPressed!(context);
   }
-
-  /// A row with onPressed keeps its switch as a node of its own (both have a
-  /// tap action), which then gets the title as its label. Otherwise the
-  /// switch merges into the row: "Title, switch, on".
-  Widget _labelSwitchIfSeparate(Widget child) => widget.onPressed == null
-      ? child
-      : labelTileSwitch(title: widget.title, child: child);
 
   @override
   Widget build(BuildContext context) {
@@ -230,7 +214,7 @@ class _MacosSidebarItemState extends State<MacosSidebarItem>
     final active = MacosWindowActivity.isActiveOf(context);
     final selected = widget.selected;
     final emphasized = selected && active;
-    final enabled = widget.enabled;
+    final enabled = tile.enabled;
 
     final Color? fill = !selected
         ? null
@@ -250,7 +234,7 @@ class _MacosSidebarItemState extends State<MacosSidebarItem>
         ? (theme.selectedTileIconColor ?? textColor)
         : (isDark ? _kSymbolTintDark : _kSymbolTintLight);
 
-    final leading = widget.leading;
+    final leading = tile.leading;
     final line = buildLine(
       leading: leading == null
           ? null
@@ -271,21 +255,24 @@ class _MacosSidebarItemState extends State<MacosSidebarItem>
       trailingStyle: _kLabelStyle.copyWith(color: textColor),
       trailingIconColor: textColor,
       endPadding: const EdgeInsetsDirectional.only(start: 6),
-      toggle: !isSwitch
+      toggle: !tile.isSwitch
           ? null
           : CupertinoTheme(
               data: CupertinoTheme.of(context).copyWith(
                 brightness: isDark ? Brightness.dark : Brightness.light,
               ),
               // The row takes the focus when it can be pressed; otherwise
-              // the switch does, so the keyboard can reach it.
+              // the switch does, so the keyboard can reach it. A row with
+              // onPressed keeps its switch as a node of its own (both have
+              // a tap action), labelled with the title; otherwise the
+              // switch merges into the row: "Title, switch, on".
               child: ExcludeFocus(
                 excluding: _canPress,
-                child: _labelSwitchIfSeparate(
+                child: tile.labelSwitchIfSeparate(
                   MacosSettingsSwitch(
-                    value: widget.initialValue,
-                    onChanged: enabled ? widget.onToggle : null,
-                    activeTrackColor: widget.activeSwitchColor,
+                    value: tile.initialValue,
+                    onChanged: enabled ? tile.onToggle : null,
+                    activeTrackColor: tile.activeSwitchColor,
                   ),
                 ),
               ),

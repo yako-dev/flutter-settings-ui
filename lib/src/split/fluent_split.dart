@@ -11,7 +11,6 @@ import 'package:settings_ui/src/split/sidebar_row.dart';
 import 'package:settings_ui/src/split/sidebar_section.dart';
 import 'package:settings_ui/src/tiles/platforms/fluent_settings_switch.dart';
 import 'package:settings_ui/src/tiles/tile_press.dart';
-import 'package:settings_ui/src/tiles/tile_semantics.dart';
 import 'package:settings_ui/src/utils/fluent_tokens.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 
@@ -159,18 +158,10 @@ class _FluentIndicatorScope extends InheritedWidget {
 /// compact rail the item is 40 wide and shows only its icon, with the label
 /// in a tooltip. Descriptions and values are not shown.
 class FluentNavigationItem extends SidebarRow {
-  const FluentNavigationItem({
+  const FluentNavigationItem(
+    super.tile, {
     super.key,
     required this.id,
-    required super.tileType,
-    required super.leading,
-    required super.title,
-    required super.trailing,
-    required super.onPressed,
-    required super.onToggle,
-    required super.initialValue,
-    required super.activeSwitchColor,
-    required super.enabled,
     required super.selected,
     super.semanticsSelected,
   });
@@ -204,31 +195,27 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
   /// A switch item in the rail has no room for its switch: a tap toggles.
   bool _togglesOnTap(bool compact) =>
       compact &&
-      isSwitch &&
-      widget.onPressed == null &&
-      widget.onToggle != null;
+      tile.isSwitch &&
+      tile.onPressed == null &&
+      tile.onToggle != null;
 
   bool _clickable(bool compact) =>
-      widget.enabled && (widget.onPressed != null || _togglesOnTap(compact));
+      tile.enabled && (tile.onPressed != null || _togglesOnTap(compact));
 
   @override
   void activateRow() {
-    if (!widget.enabled) return;
-    if (widget.onPressed != null) {
-      widget.onPressed!(context);
+    if (!tile.enabled) return;
+    if (tile.onPressed != null) {
+      tile.onPressed!(context);
     } else if (_togglesOnTap(FluentPaneModeScope.compactOf(context))) {
-      widget.onToggle!(!widget.initialValue);
+      tile.onToggle!(!tile.initialValue);
     }
   }
 
   /// A switch item without onPressed reads as one node: "Title, switch,
   /// on" (in the rail too, where a tap toggles). One with onPressed keeps
   /// its switch apart (both have a tap action), labelled with the title.
-  bool get _mergesSwitch => isSwitch && widget.onPressed == null;
-
-  Widget _labelSwitchIfSeparate(Widget child) => _mergesSwitch
-      ? child
-      : labelTileSwitch(title: widget.title, child: child);
+  bool get _mergesSwitch => tile.isSwitch && tile.onPressed == null;
 
   @override
   void initState() {
@@ -262,7 +249,7 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
       if (oldWidget.id != null) _indicator?.unregister(oldWidget.id!, this);
       if (widget.id != null) _indicator?.register(widget.id!, this);
     }
-    if (!widget.enabled) resetPress();
+    if (!tile.enabled) resetPress();
     if (widget.selected && !oldWidget.selected) {
       // Find the old pill once every item has rebuilt.
       WidgetsBinding.instance.addPostFrameCallback((_) => _slidePillIn());
@@ -329,7 +316,7 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
     required bool pressed,
     required bool hovered,
   }) {
-    final enabled = widget.enabled;
+    final enabled = tile.enabled;
     final selected = widget.selected;
     final selectedFill = theme.selectedTileColor ?? tokens.navItemSelected;
     final Color? fill;
@@ -375,7 +362,7 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
     final theme = SettingsTheme.of(context).themeData;
     final tokens = fluentTokensOf(context);
     final compact = FluentPaneModeScope.compactOf(context);
-    final enabled = widget.enabled;
+    final enabled = tile.enabled;
     final clickable = _clickable(compact);
     final (:fill, :foreground, :iconColor) = _colors(
       theme,
@@ -388,12 +375,12 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
       color: foreground,
     );
 
-    final title = widget.title;
+    final title = tile.title;
     final String? tooltip = title is Text
         ? (title.data ?? title.textSpan?.toPlainText())
         : null;
 
-    Widget? icon = widget.leading;
+    Widget? icon = tile.leading;
     if (icon == null && compact && tooltip != null && tooltip.isNotEmpty) {
       // The rail needs something to click: the label's first letter.
       icon = ExcludeSemantics(
@@ -437,15 +424,15 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
                 endPadding: const EdgeInsetsDirectional.only(end: _kLabelEnd),
                 // The item takes the focus when it can be clicked;
                 // otherwise the switch does, so the keyboard can reach it.
-                toggle: !isSwitch
+                toggle: !tile.isSwitch
                     ? null
                     : ExcludeFocus(
                         excluding: clickable,
-                        child: _labelSwitchIfSeparate(
+                        child: tile.labelSwitchIfSeparate(
                           FluentSettingsSwitch(
-                            value: widget.initialValue,
-                            onChanged: enabled ? widget.onToggle : null,
-                            activeTrackColor: widget.activeSwitchColor,
+                            value: tile.initialValue,
+                            onChanged: enabled ? tile.onToggle : null,
+                            activeTrackColor: tile.activeSwitchColor,
                           ),
                         ),
                       ),
@@ -506,7 +493,7 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
       button: clickable && !togglesOnTap,
       enabled: enabled,
       selected: widget.semanticsSelected,
-      toggled: togglesOnTap ? widget.initialValue : null,
+      toggled: togglesOnTap ? tile.initialValue : null,
       onTap: clickable ? activateRow : null,
       label: compact ? tooltip : null,
       child: item,

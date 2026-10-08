@@ -176,32 +176,15 @@ class SettingsTile extends AbstractSettingsTile {
     if (listPane != null && destination != null) {
       listPane.onTileBuilt?.call(destination, title);
     }
+    final inSplitListPane = listPane != null && listPane.isSplit;
+    final selected = listPane?.isSelected(destination) ?? false;
     // Tiles and sidebar rows are semantics containers that say themselves
     // whether they are selected: an annotation around them would land on
     // their section's node.
-    final semanticsSelected =
-        listPane != null && listPane.isSplit && destination != null
-        ? listPane.isSelected(destination)
+    final semanticsSelected = inSplitListPane && destination != null
+        ? selected
         : null;
-    if (listPane != null && listPane.sidebar) {
-      final sidebarItem = _buildSidebarItem(
-        SettingsTheme.of(context).platform,
-        onPressed: _effectiveOnPressed,
-        selected: listPane.isSelected(destination),
-        semanticsSelected: semanticsSelected,
-      );
-      if (sidebarItem != null) return sidebarItem;
-    }
-    return _buildTile(context, listPane, semanticsSelected);
-  }
-
-  Widget _buildTile(
-    BuildContext context,
-    SettingsSplitListScope? listPane,
-    bool? semanticsSelected,
-  ) {
-    final inSplitListPane = listPane != null && listPane.isSplit;
-    final selected = listPane?.isSelected(destination) ?? false;
+    final platform = SettingsTheme.of(context).platform;
     final tile = SettingsTileData(
       tileType: tileType,
       leading: leading,
@@ -223,7 +206,40 @@ class SettingsTile extends AbstractSettingsTile {
       titleDescriptionPadding: titleDescriptionPadding,
     );
 
-    switch (SettingsTheme.of(context).platform) {
+    if (listPane != null && listPane.sidebar) {
+      // The row of a macOS, Windows or GNOME sidebar. The other styles
+      // draw their usual tiles in the list pane.
+      switch (platform) {
+        case DevicePlatform.macOS:
+          return MacosSidebarItem(
+            tile,
+            selected: selected,
+            semanticsSelected: semanticsSelected,
+            opensPage: destination != null,
+          );
+        case DevicePlatform.windows:
+          return FluentNavigationItem(
+            tile,
+            id: destination?.id,
+            selected: selected,
+            semanticsSelected: semanticsSelected,
+          );
+        case DevicePlatform.linux:
+          return AdwaitaSidebarRow(
+            tile,
+            selected: selected,
+            semanticsSelected: semanticsSelected,
+          );
+        case DevicePlatform.iOS:
+        case DevicePlatform.android:
+        case DevicePlatform.fuchsia:
+        case DevicePlatform.web:
+        case DevicePlatform.device:
+          break;
+      }
+    }
+
+    switch (platform) {
       case DevicePlatform.android:
       case DevicePlatform.fuchsia:
         return AndroidSettingsTile(
@@ -256,68 +272,6 @@ class SettingsTile extends AbstractSettingsTile {
         return WebSettingsTile(tile);
       case DevicePlatform.device:
         throwUnresolvedPlatform('SettingsTile.build');
-    }
-  }
-
-  /// The row of a macOS, Windows or GNOME sidebar, or null for the other
-  /// styles.
-  Widget? _buildSidebarItem(
-    DevicePlatform platform, {
-    required Function(BuildContext context)? onPressed,
-    required bool selected,
-    required bool? semanticsSelected,
-  }) {
-    switch (platform) {
-      case DevicePlatform.macOS:
-        return MacosSidebarItem(
-          tileType: tileType,
-          leading: leading,
-          title: title,
-          trailing: trailing,
-          onPressed: onPressed,
-          onToggle: onToggle,
-          initialValue: initialValue ?? false,
-          activeSwitchColor: activeSwitchColor,
-          enabled: enabled,
-          selected: selected,
-          semanticsSelected: semanticsSelected,
-          opensPage: destination != null,
-        );
-      case DevicePlatform.windows:
-        return FluentNavigationItem(
-          id: destination?.id,
-          tileType: tileType,
-          leading: leading,
-          title: title,
-          trailing: trailing,
-          onPressed: onPressed,
-          onToggle: onToggle,
-          initialValue: initialValue ?? false,
-          activeSwitchColor: activeSwitchColor,
-          enabled: enabled,
-          selected: selected,
-          semanticsSelected: semanticsSelected,
-        );
-      case DevicePlatform.linux:
-        return AdwaitaSidebarRow(
-          tileType: tileType,
-          leading: leading,
-          title: title,
-          trailing: trailing,
-          onPressed: onPressed,
-          onToggle: onToggle,
-          initialValue: initialValue ?? false,
-          activeSwitchColor: activeSwitchColor,
-          enabled: enabled,
-          selected: selected,
-          semanticsSelected: semanticsSelected,
-        );
-      case DevicePlatform.iOS:
-      case DevicePlatform.android:
-      case DevicePlatform.fuchsia:
-      case DevicePlatform.web:
-      case DevicePlatform.device:
-        return null;
     }
   }
 }

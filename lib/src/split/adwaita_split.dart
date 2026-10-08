@@ -100,17 +100,9 @@ Color adwaitaSidebarBorderColor(SettingsThemeData theme) => adwaitaIsDark(theme)
 /// Like GNOME rows, a switch row toggles when the row is clicked.
 /// Descriptions and values are not shown.
 class AdwaitaSidebarRow extends SidebarRow {
-  const AdwaitaSidebarRow({
+  const AdwaitaSidebarRow(
+    super.tile, {
     super.key,
-    required super.tileType,
-    required super.leading,
-    required super.title,
-    required super.trailing,
-    required super.onPressed,
-    required super.onToggle,
-    required super.initialValue,
-    required super.activeSwitchColor,
-    required super.enabled,
     required super.selected,
     super.semanticsSelected,
   });
@@ -127,16 +119,16 @@ class _AdwaitaSidebarRowState extends State<AdwaitaSidebarRow>
   String get debugLabel => 'AdwaitaSidebarRow';
 
   bool get _activatable =>
-      widget.enabled &&
-      (isSwitch ? widget.onToggle != null : widget.onPressed != null);
+      tile.enabled &&
+      (tile.isSwitch ? tile.onToggle != null : tile.onPressed != null);
 
   @override
   void activateRow() {
     if (!_activatable) return;
-    if (isSwitch) {
-      widget.onToggle!(!widget.initialValue);
+    if (tile.isSwitch) {
+      tile.onToggle!(!tile.initialValue);
     } else {
-      widget.onPressed!(context);
+      tile.onPressed!(context);
     }
   }
 
@@ -160,7 +152,7 @@ class _AdwaitaSidebarRowState extends State<AdwaitaSidebarRow>
     final textScaler = MediaQuery.textScalerOf(context);
     final foreground = _foregroundOf(theme);
     final isDark = adwaitaIsDark(theme);
-    final enabled = widget.enabled;
+    final enabled = tile.enabled;
     final selected = widget.selected;
     final pressed = _activatable && this.pressed;
     final hovered = _activatable && _hovered;
@@ -191,7 +183,7 @@ class _AdwaitaSidebarRowState extends State<AdwaitaSidebarRow>
         ? (theme.selectedTileIconColor ?? foreground)
         : (theme.leadingIconsColor ?? foreground);
 
-    final leading = widget.leading;
+    final leading = tile.leading;
     final line = buildLine(
       leading: leading == null
           ? null
@@ -209,13 +201,13 @@ class _AdwaitaSidebarRowState extends State<AdwaitaSidebarRow>
       trailingIconColor: iconColor,
       endPadding: const EdgeInsetsDirectional.only(start: 6),
       // The row takes the focus and the clicks, like `AdwSwitchRow`.
-      toggle: !isSwitch
+      toggle: !tile.isSwitch
           ? null
           : ExcludeFocus(
               child: AdwaitaSettingsSwitch(
-                value: widget.initialValue,
-                onChanged: enabled ? widget.onToggle : null,
-                activeTrackColor: widget.activeSwitchColor,
+                value: tile.initialValue,
+                onChanged: enabled ? tile.onToggle : null,
+                activeTrackColor: tile.activeSwitchColor,
                 brightness: isDark ? Brightness.dark : Brightness.light,
               ),
             ),
@@ -251,7 +243,7 @@ class _AdwaitaSidebarRowState extends State<AdwaitaSidebarRow>
       ),
       child: MergeSemantics(
         child: Semantics(
-          button: !isSwitch && widget.onPressed != null,
+          button: !tile.isSwitch && tile.onPressed != null,
           enabled: enabled,
           selected: widget.semanticsSelected,
           onTap: _activatable ? activateRow : null,

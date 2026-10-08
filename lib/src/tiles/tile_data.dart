@@ -2,9 +2,9 @@ import 'package:flutter/widgets.dart';
 import 'package:settings_ui/src/tiles/settings_tile.dart';
 import 'package:settings_ui/src/tiles/tile_semantics.dart';
 
-/// What a [SettingsTile] hands to the tile of its style: its own fields,
-/// with [onPressed] already followed by opening the destination and a null
-/// `initialValue` read as off. Internal.
+/// What a [SettingsTile] hands to the tile or the sidebar row of its style:
+/// its own fields, with [onPressed] already followed by opening the
+/// destination and a null `initialValue` read as off. Internal.
 @immutable
 class SettingsTileData {
   const SettingsTileData({

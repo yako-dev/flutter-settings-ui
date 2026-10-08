@@ -1,35 +1,21 @@
 import 'package:flutter/widgets.dart';
 import 'package:settings_ui/src/split/sidebar_keyboard.dart';
-import 'package:settings_ui/src/tiles/settings_tile.dart';
+import 'package:settings_ui/src/tiles/tile_data.dart';
 import 'package:settings_ui/src/tiles/tile_press.dart';
 
 /// A row of a desktop sidebar: a tile in the list pane of a macOS, Windows
 /// or GNOME style split view. Each style draws its own. Internal.
 abstract class SidebarRow extends StatefulWidget {
-  const SidebarRow({
+  const SidebarRow(
+    this.tile, {
     super.key,
-    required this.tileType,
-    required this.leading,
-    required this.title,
-    required this.trailing,
-    required this.onPressed,
-    required this.onToggle,
-    required this.initialValue,
-    required this.activeSwitchColor,
-    required this.enabled,
     required this.selected,
     this.semanticsSelected,
   });
 
-  final SettingsTileType tileType;
-  final Widget? leading;
-  final Widget title;
-  final Widget? trailing;
-  final Function(BuildContext context)? onPressed;
-  final Function(bool value)? onToggle;
-  final bool initialValue;
-  final Color? activeSwitchColor;
-  final bool enabled;
+  /// The tile the row draws. Its descriptions, value and paddings are not
+  /// shown.
+  final SettingsTileData tile;
   final bool selected;
 
   /// Whether assistive technologies hear the row as selected: null for rows
@@ -40,6 +26,8 @@ abstract class SidebarRow extends StatefulWidget {
 /// What the States of the sidebar rows share: the keyboard focus, the
 /// activation and the row's line. Internal.
 mixin SidebarRowState<T extends SidebarRow> on State<T> {
+  SettingsTileData get tile => widget.tile;
+
   bool _focusHighlight = false;
 
   late final SidebarRowFocus focus = SidebarRowFocus(
@@ -58,8 +46,6 @@ mixin SidebarRowState<T extends SidebarRow> on State<T> {
 
   /// Does what a click on the row does, if it does anything now.
   void activateRow();
-
-  bool get isSwitch => widget.tileType == SettingsTileType.switchTile;
 
   /// Whether the row shows its focus ring (see [SidebarRowFocus]).
   bool get showsFocusRing => focus.showsRing(_focusHighlight);
@@ -91,12 +77,12 @@ mixin SidebarRowState<T extends SidebarRow> on State<T> {
     required EdgeInsetsGeometry endPadding,
     required Widget? toggle,
   }) {
-    final trailing = widget.trailing;
+    final trailing = tile.trailing;
     final title = DefaultTextStyle(
       style: titleStyle,
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
-      child: widget.title,
+      child: tile.title,
     );
     return Row(
       children: [
