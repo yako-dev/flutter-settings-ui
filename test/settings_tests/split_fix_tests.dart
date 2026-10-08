@@ -1016,4 +1016,77 @@ void splitFixTests() {
       });
     }
   });
+
+  group('iOS split view: the title in the bar', () {
+    /// How much of the bar's title shows: 0 while the large title is on
+    /// screen.
+    double barTitleOpacity(WidgetTester tester) => tester
+        .widget<AnimatedOpacity>(
+          find.ancestor(
+            of: _inList(find.text('Settings')).first,
+            matching: find.byType(AnimatedOpacity),
+          ),
+        )
+        .opacity;
+
+    /// Where the large title is, in the list.
+    Rect largeTitle(WidgetTester tester) =>
+        tester.getRect(_inList(find.text('Settings')).last);
+
+    for (final size in [const Size(1280, 800), const Size(400, 800)]) {
+      final panes = size.width > 600 ? 'two panes' : 'one pane';
+      for (final other in [
+        DevicePlatform.android,
+        DevicePlatform.web,
+        DevicePlatform.macOS,
+      ]) {
+        testWidgets('$panes: hidden again after ${other.name} and back', (
+          tester,
+        ) async {
+          await _setSize(tester, size);
+          var platform = DevicePlatform.iOS;
+          late StateSetter setState;
+          await tester.pumpWidget(
+            _app(
+              StatefulBuilder(
+                builder: (context, set) {
+                  setState = set;
+                  return SettingsSplitView(
+                    platform: platform,
+                    title: const Text('Settings'),
+                    emptyDetailBuilder: (_) => const SizedBox.expand(),
+                    sections: [
+                      SettingsSection(
+                        tiles: [
+                          for (var i = 0; i < 40; i++)
+                            SettingsTile(title: Text('Row $i')),
+                        ],
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+          expect(barTitleOpacity(tester), 0);
+          final fresh = largeTitle(tester);
+
+          // The large title scrolls away: the bar shows the title.
+          await tester.drag(_inList(find.text('Row 5')), const Offset(0, -200));
+          await tester.pumpAndSettle();
+          expect(barTitleOpacity(tester), 1);
+
+          setState(() => platform = other);
+          await tester.pumpAndSettle();
+          setState(() => platform = DevicePlatform.iOS);
+          await tester.pumpAndSettle();
+
+          // Like a view that was built in the iOS style.
+          expect(largeTitle(tester), fresh);
+          expect(barTitleOpacity(tester), 0);
+        });
+      }
+    }
+  });
 }

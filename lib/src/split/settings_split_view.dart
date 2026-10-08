@@ -315,6 +315,10 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
   /// Whether the iOS large title has scrolled under the bar.
   final ValueNotifier<bool> _largeTitleHidden = ValueNotifier<bool>(false);
 
+  /// The style family of the last build. Another one draws a new list,
+  /// which starts at the top.
+  SettingsStyleFamily? _styleFamily;
+
   /// Whether the Windows style's compact rail is open over the detail pane.
   bool _fluentPaneOpen = false;
 
@@ -642,6 +646,13 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
       darkTheme: widget.darkTheme,
       applicationType: widget.applicationType,
     ).resolve(context);
+    final family = settingsStyleFamily(style.platform);
+    if (family != _styleFamily) {
+      // The new style's list starts at the top, so the iOS large title is
+      // on screen again when the view comes back to that style.
+      _styleFamily = family;
+      _largeTitleHidden.value = false;
+    }
     _readDestinations();
     final route = ModalRoute.of(context);
     final canLeave = route?.impliesAppBarDismissal ?? false;
