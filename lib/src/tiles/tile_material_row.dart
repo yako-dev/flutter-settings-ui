@@ -48,6 +48,7 @@ class MaterialTileRow extends StatelessWidget {
   /// Minimum row height, scaled with the text.
   final double? minHeight;
 
+  /// Drawn on the switch's thumb.
   final WidgetStateProperty<Icon?>? thumbIcon;
 
   /// Whether a trailing widget next to the switch gets the icon color.
