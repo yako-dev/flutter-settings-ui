@@ -79,24 +79,16 @@ class SettingsDestinationPage extends StatelessWidget {
                   onBack: onBack,
                   body: body,
                 )
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    SettingsPageBar(
-                      platform: style.platform,
-                      title: title,
-                      actions: destination.actions,
-                      onBack: onBack,
-                      parents: parents,
-                    ),
-                    Expanded(
-                      child: MediaQuery.removePadding(
-                        context: context,
-                        removeTop: true,
-                        child: body,
-                      ),
-                    ),
-                  ],
+              : settingsHeaderOverBody(
+                  context,
+                  header: SettingsPageBar(
+                    platform: style.platform,
+                    title: title,
+                    actions: destination.actions,
+                    onBack: onBack,
+                    parents: parents,
+                  ),
+                  body: body,
                 ),
         ),
       ),
