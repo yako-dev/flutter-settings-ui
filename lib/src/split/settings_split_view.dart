@@ -257,7 +257,8 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
   // navigator ([_hostPage]); a route that a list tile pushes itself lands
   // on the stack too. The fields below are what the view knows about the
   // two, kept up to date by the observers and the navigators' notifications
-  // (see "Back").
+  // (see "What the navigators report"), and what back handling reads (see
+  // "Back").
   final GlobalKey<NavigatorState> _detailKey = GlobalKey<NavigatorState>(
     debugLabel: 'SettingsSplitView detail',
   );
@@ -495,7 +496,15 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
   }
 
   // Back ---------------------------------------------------------------------
+  //
+  // The view's PopScope takes back while [_canHandleBack]. [_handleBack]
+  // then does the first of three things that applies: pops a route pushed
+  // from the list pane (one pane), pops a page pushed inside the detail
+  // pane, or closes the page over the list (one pane). The route's own
+  // PopScope can veto the first two.
 
+  /// Whether the detail pane shows: always with two panes, over the list
+  /// with one.
   bool get _detailVisible => _isSplit || _pickedId != null;
 
   /// Whether the list pane shows: not under a page in one pane.
@@ -535,13 +544,18 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
     }
   }
 
-  /// The key of the page over the list, a new one for each page pushed.
-  ValueKey<String> get _hostPageKey =>
-      ValueKey<String>('settings_split_detail_$_hostGeneration');
-
-  void _handleStackPageRemoved(Page<Object?> page) {
-    if (page.key == _hostPageKey) _clearSelection();
+  /// The list pane's back button leaves the settings screen, even when the
+  /// detail pane could go back.
+  void _leave() {
+    setState(() => _leaving = true);
+    SchedulerBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      await Navigator.maybePop(context);
+      if (mounted) setState(() => _leaving = false);
+    });
   }
+
+  // What the navigators report -----------------------------------------------
 
   /// Reads the routes pushed from the list pane in one pane.
   void _syncStack() {
@@ -563,14 +577,15 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
     return true;
   }
 
-  // Named routes pushed from the list pane in one pane come from the app's
-  // navigator, as they do with two panes (where the list pane isn't inside
-  // the view's own navigator).
-  Route<dynamic>? _generateStackRoute(RouteSettings settings) =>
-      Navigator.maybeOf(context)?.widget.onGenerateRoute?.call(settings);
+  /// The key of the page over the list, a new one for each page pushed.
+  ValueKey<String> get _hostPageKey =>
+      ValueKey<String>('settings_split_detail_$_hostGeneration');
 
-  Route<dynamic>? _unknownStackRoute(RouteSettings settings) =>
-      Navigator.maybeOf(context)?.widget.onUnknownRoute?.call(settings);
+  /// The stack navigator popped a page: with the page over the list, the
+  /// pick goes too.
+  void _handleStackPageRemoved(Page<Object?> page) {
+    if (page.key == _hostPageKey) _clearSelection();
+  }
 
   bool _handleDetailNavigation(NavigationNotification notification) {
     // Read the state from the navigator instead of the notification: routes
@@ -589,16 +604,14 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
     return true;
   }
 
-  /// The list pane's back button leaves the settings screen, even when the
-  /// detail pane could go back.
-  void _leave() {
-    setState(() => _leaving = true);
-    SchedulerBinding.instance.addPostFrameCallback((_) async {
-      if (!mounted) return;
-      await Navigator.maybePop(context);
-      if (mounted) setState(() => _leaving = false);
-    });
-  }
+  // Named routes pushed from the list pane in one pane come from the app's
+  // navigator, as they do with two panes (where the list pane isn't inside
+  // the view's own navigator).
+  Route<dynamic>? _generateStackRoute(RouteSettings settings) =>
+      Navigator.maybeOf(context)?.widget.onGenerateRoute?.call(settings);
+
+  Route<dynamic>? _unknownStackRoute(RouteSettings settings) =>
+      Navigator.maybeOf(context)?.widget.onUnknownRoute?.call(settings);
 
   // Notifications ------------------------------------------------------------
 

@@ -85,7 +85,7 @@ abstract class SplitPaneStyle {
 @immutable
 class SplitListPaneParts {
   const SplitListPaneParts({
-    required this.context,
+    required this.viewContext,
     required this.title,
     required this.onBack,
     required this.onTogglePane,
@@ -96,7 +96,7 @@ class SplitListPaneParts {
 
   /// The split view's context. The list gets its `MediaQuery` from here,
   /// not from the pane (see [settingsHeaderOverBody]).
-  final BuildContext context;
+  final BuildContext viewContext;
 
   /// The pane's title, if any.
   final Widget? title;
@@ -140,7 +140,7 @@ class _CupertinoPaneStyle extends SplitPaneStyle {
   Widget buildListPane(SplitListPaneParts pane) {
     final title = pane.title;
     return settingsHeaderOverBody(
-      pane.context,
+      pane.viewContext,
       header: ValueListenableBuilder<bool>(
         valueListenable: pane.largeTitleHidden,
         builder: (context, hidden, _) => SettingsPageBar(
@@ -189,7 +189,7 @@ class _MaterialPaneStyle extends SplitPaneStyle {
       );
     }
     return settingsHeaderOverBody(
-      pane.context,
+      pane.viewContext,
       header: SettingsPageBar(
         platform: platform,
         title: null,
@@ -222,7 +222,7 @@ class _WebPaneStyle extends SplitPaneStyle {
 
   @override
   Widget buildListPane(SplitListPaneParts pane) => settingsHeaderOverBody(
-    pane.context,
+    pane.viewContext,
     header: isSplit
         ? _WebMenuHeader(title: pane.title, onBack: pane.onBack)
         : SettingsPageBar(
@@ -280,7 +280,7 @@ class _MacosPaneStyle extends SplitPaneStyle {
       enabled: isSplit,
       selectionFollowsFocus: true,
       child: settingsHeaderOverBody(
-        pane.context,
+        pane.viewContext,
         // The sidebar runs under the title bar; one pane is a page.
         header: isSplit
             ? MacosSidebarTopBar(onBack: pane.onBack)
@@ -339,7 +339,7 @@ class _FluentPaneStyle extends SplitPaneStyle {
   Widget buildListPane(SplitListPaneParts pane) => FluentNavigationPane(
     enabled: isSplit,
     child: settingsHeaderOverBody(
-      pane.context,
+      pane.viewContext,
       header: isSplit
           ? FluentPaneHeader(
               title: pane.title,
@@ -384,7 +384,7 @@ class _AdwaitaPaneStyle extends SplitPaneStyle {
   @override
   Widget buildListPane(SplitListPaneParts pane) => SettingsSidebarKeyboard(
     child: settingsHeaderOverBody(
-      pane.context,
+      pane.viewContext,
       header: AdwaitaHeaderBar(title: pane.title, onBack: pane.onBack),
       body: pane.list,
     ),

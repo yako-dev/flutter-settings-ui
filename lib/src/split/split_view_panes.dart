@@ -224,7 +224,7 @@ extension _Panes on _SettingsSplitViewState {
 
     final content = paneStyle.buildListPane(
       SplitListPaneParts(
-        context: context,
+        viewContext: context,
         title: widget.title,
         onBack: canLeave ? _leave : null,
         onTogglePane: _toggleFluentPane,
