@@ -210,7 +210,9 @@ class _FluentSettingsSwitchState
   void _releasePointer(int pointer) {
     if (pointer != _pressPointer) return;
     _pressPointer = null;
-    if (!dragging) setPressed(false);
+    // A pointer that went down on the switch still reports here after the
+    // switch has left the tree, when its controllers are disposed.
+    if (!dragging && mounted) setPressed(false);
   }
 
   @override
