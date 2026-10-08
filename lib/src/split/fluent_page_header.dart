@@ -336,56 +336,12 @@ class _RenderBreadcrumb extends RenderBox
     }
   }
 
-  @override
-  Size computeDryLayout(covariant BoxConstraints constraints) {
-    final loose = BoxConstraints(maxHeight: constraints.maxHeight);
-    final sizes = [
-      for (final child in getChildrenAsList()) child.getDryLayout(loose),
-    ];
-    if (!_valid) return constraints.constrain(Size.zero);
-    final (collapsed, titleWidth) = _fit([
-      for (final size in sizes) size.width,
-    ], constraints.maxWidth);
-    var width = titleWidth;
-    var height = sizes.last.height;
-    for (var i = 0; i < sizes.length - 1; i++) {
-      final shown = i < 2 ? collapsed > 0 : (i - 2) ~/ 2 >= collapsed;
-      if (!shown) continue;
-      width += sizes[i].width;
-      height = math.max(height, sizes[i].height);
-    }
-    return constraints.constrain(Size(width, height));
-  }
-
-  @override
-  double computeMinIntrinsicWidth(double height) => 0;
-
-  @override
-  double computeMaxIntrinsicWidth(double height) {
-    var width = 0.0;
-    for (final (index, child) in getChildrenAsList().indexed) {
-      if (index < 2) continue;
-      width += child.getMaxIntrinsicWidth(height);
-    }
-    return width;
-  }
-
-  @override
-  double computeMinIntrinsicHeight(double width) =>
-      computeMaxIntrinsicHeight(width);
-
-  @override
-  double computeMaxIntrinsicHeight(double width) {
-    var height = 0.0;
-    for (final child in getChildrenAsList()) {
-      height = math.max(height, child.getMaxIntrinsicHeight(double.infinity));
-    }
-    return height;
-  }
+  // No intrinsic sizes or dry layout: the header's LayoutBuilder is above
+  // the breadcrumb, and it answers those itself.
 
   @override
   void paint(PaintingContext context, Offset offset) {
-    for (final child in getChildrenAsList()) {
+    for (var child = firstChild; child != null; child = childAfter(child)) {
       final data = child.parentData! as _BreadcrumbParentData;
       if (data.shown) context.paintChild(child, offset + data.offset);
     }
@@ -393,14 +349,15 @@ class _RenderBreadcrumb extends RenderBox
 
   @override
   bool hitTestChildren(BoxHitTestResult result, {required Offset position}) {
-    for (final child in getChildrenAsList().reversed) {
+    for (var child = lastChild; child != null; child = childBefore(child)) {
       final data = child.parentData! as _BreadcrumbParentData;
       if (!data.shown) continue;
+      final target = child;
       final hit = result.addWithPaintOffset(
         offset: data.offset,
         position: position,
         hitTest: (result, transformed) =>
-            child.hitTest(result, position: transformed),
+            target.hitTest(result, position: transformed),
       );
       if (hit) return true;
     }
@@ -409,7 +366,7 @@ class _RenderBreadcrumb extends RenderBox
 
   @override
   void visitChildrenForSemantics(RenderObjectVisitor visitor) {
-    for (final child in getChildrenAsList()) {
+    for (var child = firstChild; child != null; child = childAfter(child)) {
       if ((child.parentData! as _BreadcrumbParentData).shown) visitor(child);
     }
   }
