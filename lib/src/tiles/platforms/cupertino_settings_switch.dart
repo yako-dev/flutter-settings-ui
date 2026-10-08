@@ -488,11 +488,7 @@ class _SwitchPainter extends SettingsSwitchPainter {
 
   @override
   void paintSwitch(Canvas canvas, Size size) {
-    final Rect track = Rect.fromCenter(
-      center: size.center(Offset.zero),
-      width: _kTrackWidth,
-      height: _kTrackHeight,
-    );
+    final Rect track = centerTrack(size, _kTrackWidth, _kTrackHeight);
 
     final Color trackColor = Color.lerp(
       inactiveColor,

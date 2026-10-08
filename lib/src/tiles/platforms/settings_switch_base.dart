@@ -250,6 +250,13 @@ abstract class SettingsSwitchPainter extends CustomPainter {
   /// Paints the left-to-right switch, with OFF at the left end.
   void paintSwitch(Canvas canvas, Size size);
 
+  /// A [width] x [height] track in the middle of [size].
+  Rect centerTrack(Size size, double width, double height) => Rect.fromCenter(
+    center: size.center(Offset.zero),
+    width: width,
+    height: height,
+  );
+
   @override
   void paint(Canvas canvas, Size size) {
     canvas.save();

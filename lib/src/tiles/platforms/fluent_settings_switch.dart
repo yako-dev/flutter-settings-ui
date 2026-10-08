@@ -330,11 +330,7 @@ class _FluentSwitchPainter extends SettingsSwitchPainter {
 
   @override
   void paintSwitch(Canvas canvas, Size size) {
-    final Rect track = Rect.fromCenter(
-      center: size.center(Offset.zero),
-      width: _kTrackWidth,
-      height: _kTrackHeight,
-    );
+    final Rect track = centerTrack(size, _kTrackWidth, _kTrackHeight);
 
     final double hoverT = enabled ? hover.value : 0;
     final double pressT = enabled ? press.value : 0;

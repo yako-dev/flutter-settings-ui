@@ -276,11 +276,7 @@ class _AdwaitaSwitchPainter extends SettingsSwitchPainter {
 
   @override
   void paintSwitch(Canvas canvas, Size size) {
-    final Rect track = Rect.fromCenter(
-      center: size.center(Offset.zero),
-      width: _kTrackWidth,
-      height: _kTrackHeight,
-    );
+    final Rect track = centerTrack(size, _kTrackWidth, _kTrackHeight);
     final RRect trackShape = RRect.fromRectAndRadius(
       track,
       const Radius.circular(_kTrackHeight / 2),
