@@ -33,7 +33,9 @@ mixin TilePressTracking<T extends StatefulWidget> on State<T> {
   }
 
   void handlePressMove(PointerMoveEvent event) {
-    if (event.pointer != _pressPointer) return;
+    // A pointer that went down on the row still reports here after the row
+    // has left the tree, when it has no context and no box.
+    if (event.pointer != _pressPointer || !mounted) return;
     final box = context.findRenderObject()! as RenderBox;
     final inside = box.size.contains(box.globalToLocal(event.position));
     // A finger that moves past the slop is scrolling the list, which takes

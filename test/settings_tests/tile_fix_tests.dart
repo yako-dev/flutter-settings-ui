@@ -43,7 +43,125 @@ Widget _removableSwitch(_SwitchBuilder builder, ValueNotifier<bool> shown) {
   );
 }
 
+/// A list whose second tile, 'Goes', stays in the tree while [shown] is
+/// true.
+Widget _listWithRemovableTile(
+  DevicePlatform platform,
+  ValueNotifier<bool> shown,
+) {
+  return MaterialApp(
+    home: Scaffold(
+      body: ValueListenableBuilder<bool>(
+        valueListenable: shown,
+        builder: (context, isShown, _) => SettingsList(
+          platform: platform,
+          sections: [
+            SettingsSection(
+              tiles: [
+                SettingsTile(title: const Text('Stays'), onPressed: (_) {}),
+                if (isShown)
+                  SettingsTile(title: const Text('Goes'), onPressed: (_) {}),
+              ],
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+/// A split view whose second sidebar row, 'Goes', stays in the tree while
+/// [shown] is true.
+Widget _splitViewWithRemovableRow(
+  DevicePlatform platform,
+  ValueNotifier<bool> shown,
+) {
+  SettingsTile row(String name) => SettingsTile.navigation(
+    title: Text(name),
+    destination: SettingsDestination(
+      id: name,
+      builder: (_) => Text('$name page'),
+    ),
+  );
+  return MaterialApp(
+    home: ValueListenableBuilder<bool>(
+      valueListenable: shown,
+      builder: (context, isShown, _) => SettingsSplitView(
+        platform: platform,
+        sections: [
+          SettingsSection(tiles: [row('Stays'), if (isShown) row('Goes')]),
+        ],
+      ),
+    ),
+  );
+}
+
+/// Presses 'Goes' with a pointer of [kind], removes it after [hold], then
+/// moves the pointer and lifts it.
+Future<void> _removeWhilePressed(
+  WidgetTester tester,
+  ValueNotifier<bool> shown,
+  PointerDeviceKind kind,
+  Duration hold,
+) async {
+  final gesture = await tester.startGesture(
+    tester.getCenter(find.text('Goes')),
+    kind: kind,
+  );
+  await tester.pump(hold);
+  shown.value = false;
+  await tester.pump();
+  expect(find.text('Goes'), findsNothing);
+
+  await gesture.moveBy(const Offset(4, 2));
+  await tester.pump();
+  await gesture.moveBy(const Offset(0, 300));
+  await tester.pump();
+  await gesture.up();
+  await tester.pumpAndSettle();
+  expect(tester.takeException(), isNull);
+}
+
 void tileFixTests() {
+  group('A row removed while it is pressed throws nothing', () {
+    // A tap is recognized as down 100 ms after the pointer: the row goes
+    // away before that, and after it.
+    const holds = {
+      'at once': Duration.zero,
+      'after 200 ms': Duration(milliseconds: 200),
+    };
+    for (final platform in [DevicePlatform.windows, DevicePlatform.linux]) {
+      for (final kind in [PointerDeviceKind.touch, PointerDeviceKind.mouse]) {
+        for (final MapEntry(key: moment, value: hold) in holds.entries) {
+          testWidgets('$platform: a tile with onPressed, pressed by a $kind '
+              'and removed $moment', (tester) async {
+            final shown = ValueNotifier(true);
+            addTearDown(shown.dispose);
+            await tester.pumpWidget(_listWithRemovableTile(platform, shown));
+
+            await _removeWhilePressed(tester, shown, kind, hold);
+          });
+
+          testWidgets('$platform: a sidebar row of a split view, pressed by '
+              'a $kind and removed $moment', (tester) async {
+            tester.view.physicalSize = const Size(1400, 900);
+            tester.view.devicePixelRatio = 1;
+            addTearDown(tester.view.reset);
+            final shown = ValueNotifier(true);
+            addTearDown(shown.dispose);
+            await tester.pumpWidget(
+              _splitViewWithRemovableRow(platform, shown),
+            );
+            await tester.pumpAndSettle();
+            expect(find.text('Stays page'), findsOneWidget);
+
+            await _removeWhilePressed(tester, shown, kind, hold);
+          });
+        }
+      }
+    }
+  });
+
   group('A switch removed in the middle of a gesture throws nothing', () {
     for (final MapEntry(key: name, value: builder)
         in _paintedSwitches.entries) {
