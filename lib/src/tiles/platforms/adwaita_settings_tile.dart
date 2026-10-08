@@ -38,8 +38,8 @@ const double _kIconGap = 12;
 const double _kSubtitleGap = 3;
 
 /// Rows fade their hover and pressed backgrounds in 200 ms, ease-out-quad.
-const Duration _kHighlightDuration = Duration(milliseconds: 200);
-const Curve _kHighlightCurve = Cubic(0.25, 0.46, 0.45, 0.94);
+const Duration kAdwaitaHighlightDuration = Duration(milliseconds: 200);
+const Curve kAdwaitaHighlightCurve = Cubic(0.25, 0.46, 0.45, 0.94);
 
 /// Body text: Adwaita Sans 11 pt (14.67 px) on an 18 px line.
 const double kAdwaitaBodyFontSize = 44 / 3;
@@ -154,8 +154,8 @@ class _AdwaitaSettingsTileState extends State<AdwaitaSettingsTile>
 
     const corner = Radius.circular(kAdwaitaCardRadius);
     final highlighted = AnimatedContainer(
-      duration: reduceMotion ? Duration.zero : _kHighlightDuration,
-      curve: _kHighlightCurve,
+      duration: reduceMotion ? Duration.zero : kAdwaitaHighlightDuration,
+      curve: kAdwaitaHighlightCurve,
       decoration: BoxDecoration(color: _highlightColor(theme)),
       // A 2 px accent ring just inside the row, following the card corners.
       foregroundDecoration: _showFocusHighlight && _activatable

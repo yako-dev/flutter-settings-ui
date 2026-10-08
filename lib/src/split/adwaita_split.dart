@@ -6,6 +6,7 @@ import 'package:settings_ui/src/split/sidebar_row.dart';
 import 'package:settings_ui/src/split/sidebar_section.dart';
 import 'package:settings_ui/src/tiles/platforms/adwaita_settings_switch.dart';
 import 'package:settings_ui/src/tiles/platforms/adwaita_settings_tile.dart';
+import 'package:settings_ui/src/tiles/platforms/adwaita_symbolic_icons.dart';
 import 'package:settings_ui/src/tiles/tile_press.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 
@@ -185,11 +186,8 @@ class _AdwaitaSidebarRowState extends State<AdwaitaSidebarRow>
 
     final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
     final box = AnimatedContainer(
-      // Rows fade their hover and pressed backgrounds in 200 ms.
-      duration: reduceMotion
-          ? Duration.zero
-          : const Duration(milliseconds: 200),
-      curve: const Cubic(0.25, 0.46, 0.45, 0.94),
+      duration: reduceMotion ? Duration.zero : kAdwaitaHighlightDuration,
+      curve: kAdwaitaHighlightCurve,
       constraints: const BoxConstraints(minHeight: kAdwaitaSidebarRowHeight),
       padding: EdgeInsets.symmetric(
         horizontal: _kRowPadding,
@@ -348,7 +346,7 @@ class AdwaitaHeaderBar extends StatelessWidget {
                     child: AdwaitaFlatButton(
                       semanticLabel: settingsBackLabel(context),
                       onPressed: onBack!,
-                      child: _GoPreviousIcon(color: foreground),
+                      child: AdwaitaGoPreviousIcon(color: foreground),
                     ),
                   ),
             middle: title == null
@@ -407,52 +405,4 @@ class AdwaitaFlatButton extends SidebarButton {
       child: ExcludeSemantics(child: child),
     );
   }
-}
-
-/// `go-previous-symbolic`: a 16px chevron drawn with a 2px round stroke,
-/// mirrored in right-to-left layouts.
-class _GoPreviousIcon extends StatelessWidget {
-  const _GoPreviousIcon({required this.color});
-
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      size: const Size.square(_kIconSize),
-      painter: _GoPreviousPainter(
-        color: color,
-        mirrored: Directionality.of(context) == TextDirection.rtl,
-      ),
-    );
-  }
-}
-
-class _GoPreviousPainter extends CustomPainter {
-  const _GoPreviousPainter({required this.color, required this.mirrored});
-
-  final Color color;
-  final bool mirrored;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    const points = [Offset(11, 2), Offset(5, 8), Offset(11, 14)];
-    final scale = size.shortestSide / 16;
-    canvas.drawPath(
-      Path()..addPolygon([
-        for (final p in points)
-          Offset((mirrored ? 16 - p.dx : p.dx) * scale, p.dy * scale),
-      ], false),
-      Paint()
-        ..color = color
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2 * scale
-        ..strokeCap = StrokeCap.round
-        ..strokeJoin = StrokeJoin.round,
-    );
-  }
-
-  @override
-  bool shouldRepaint(_GoPreviousPainter oldDelegate) =>
-      oldDelegate.color != color || oldDelegate.mirrored != mirrored;
 }
