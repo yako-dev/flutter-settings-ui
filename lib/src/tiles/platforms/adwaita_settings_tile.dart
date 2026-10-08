@@ -1,10 +1,11 @@
-import 'package:flutter/gestures.dart'
-    show PointerDeviceKind, computeHitSlop, kPrimaryButton;
+import 'package:flutter/gestures.dart' show kPrimaryButton;
 import 'package:flutter/widgets.dart';
 import 'package:settings_ui/src/tiles/platforms/adwaita_settings_switch.dart';
 import 'package:settings_ui/src/tiles/platforms/adwaita_symbolic_icons.dart';
-import 'package:settings_ui/src/tiles/settings_tile.dart';
+import 'package:settings_ui/src/tiles/tile_colors.dart';
 import 'package:settings_ui/src/tiles/tile_data.dart';
+import 'package:settings_ui/src/tiles/tile_parts.dart';
+import 'package:settings_ui/src/tiles/tile_press.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 
 // Rows of a GNOME boxed list (`AdwActionRow` in `.boxed-list`, libadwaita
@@ -83,30 +84,19 @@ class AdwaitaSettingsTile extends StatefulWidget {
   State<AdwaitaSettingsTile> createState() => _AdwaitaSettingsTileState();
 }
 
-class _AdwaitaSettingsTileState extends State<AdwaitaSettingsTile> {
+class _AdwaitaSettingsTileState extends State<AdwaitaSettingsTile>
+    with TilePressTracking {
   SettingsTileData get tile => widget.tile;
 
   bool _hovered = false;
-  bool _pressed = false;
   bool _showFocusHighlight = false;
 
-  /// The pointer that pressed the row, while it is down.
-  int? _pressPointer;
-  Offset _pressOrigin = Offset.zero;
-
-  late final Map<Type, Action<Intent>> _actions = <Type, Action<Intent>>{
-    ActivateIntent: CallbackAction<ActivateIntent>(
-      onInvoke: (_) => _activate(),
-    ),
-    ButtonActivateIntent: CallbackAction<ButtonActivateIntent>(
-      onInvoke: (_) => _activate(),
-    ),
-  };
-
-  bool get _isSwitch => tile.tileType == SettingsTileType.switchTile;
+  late final Map<Type, Action<Intent>> _actions = tileActivateActions(
+    _activate,
+  );
 
   bool get _hasAction =>
-      _isSwitch ? tile.onToggle != null : tile.onPressed != null;
+      tile.isSwitch ? tile.onToggle != null : tile.onPressed != null;
 
   /// Like `.activatable` rows: only these highlight, take focus and react.
   bool get _activatable => tile.enabled && _hasAction;
@@ -115,53 +105,22 @@ class _AdwaitaSettingsTileState extends State<AdwaitaSettingsTile> {
   /// `AdwSwitchRow`. It never calls `onPressed`.
   void _activate() {
     if (!_activatable) return;
-    if (_isSwitch) {
+    if (tile.isSwitch) {
       tile.onToggle!(!tile.initialValue);
     } else {
       tile.onPressed!(context);
     }
   }
 
-  void _setPressed(bool value) {
-    if (_pressed != value && mounted) setState(() => _pressed = value);
-  }
-
   void _handlePointerDown(PointerDownEvent event) {
-    if (event.buttons != kPrimaryButton) return;
-    _pressPointer = event.pointer;
-    _pressOrigin = event.position;
-    _setPressed(true);
-  }
-
-  void _handlePointerMove(PointerMoveEvent event) {
-    if (event.pointer != _pressPointer) return;
-    final box = context.findRenderObject()! as RenderBox;
-    final inside = box.size.contains(box.globalToLocal(event.position));
-    // A finger that moves past the slop is scrolling the list, which takes
-    // the gesture (GTK drops `:active` then too). A mouse stays pressed until
-    // it leaves the row.
-    final scrolling =
-        event.kind != PointerDeviceKind.mouse &&
-        (event.position - _pressOrigin).distance >
-            computeHitSlop(event.kind, null);
-    if (!inside || scrolling) _release();
-  }
-
-  void _handlePointerEnd(PointerEvent event) {
-    if (event.pointer == _pressPointer) _release();
-  }
-
-  void _release() {
-    _pressPointer = null;
-    _setPressed(false);
+    if (event.buttons == kPrimaryButton) startPress(event);
   }
 
   @override
   void didUpdateWidget(AdwaitaSettingsTile oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (!_activatable) {
-      _pressed = false;
-      _pressPointer = null;
+      resetPress();
       _hovered = false;
     }
   }
@@ -171,15 +130,85 @@ class _AdwaitaSettingsTileState extends State<AdwaitaSettingsTile> {
     final theme = SettingsTheme.of(context).themeData;
     final info = AdwaitaSettingsTileAdditionalInfo.of(context);
     final isDark = adwaitaIsDark(theme);
-    final enabled = tile.enabled;
     final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
 
+    final accent = isDark ? _kAccentDark : _kAccentLight;
+    const corner = Radius.circular(kAdwaitaCardRadius);
+    final highlighted = AnimatedContainer(
+      duration: reduceMotion ? Duration.zero : _kHighlightDuration,
+      curve: _kHighlightCurve,
+      decoration: BoxDecoration(color: _highlightColor(theme)),
+      // A 2 px accent ring just inside the row, following the card corners.
+      foregroundDecoration: _showFocusHighlight && _activatable
+          ? BoxDecoration(
+              border: Border.all(
+                color: accent.withValues(alpha: 0.5),
+                width: 2,
+              ),
+              borderRadius: BorderRadius.vertical(
+                top: info.isFirst ? corner : Radius.zero,
+                bottom: info.isLast ? corner : Radius.zero,
+              ),
+            )
+          : null,
+      child: _buildRow(theme, isDark: isDark),
+    );
+
+    return MergeSemantics(
+      child: Semantics(
+        button: !tile.isSwitch && _hasAction,
+        enabled: _hasAction ? tile.enabled : null,
+        onTap: _activatable ? _activate : null,
+        child: IgnorePointer(
+          ignoring: !tile.enabled,
+          child: FocusableActionDetector(
+            enabled: _activatable,
+            actions: _actions,
+            onShowFocusHighlight: (value) {
+              if (value != _showFocusHighlight) {
+                setState(() => _showFocusHighlight = value);
+              }
+            },
+            onShowHoverHighlight: (value) {
+              if (value != _hovered) setState(() => _hovered = value);
+            },
+            child: Listener(
+              // GTK shows `:active` as soon as the button goes down.
+              onPointerDown: _activatable ? _handlePointerDown : null,
+              onPointerMove: handlePressMove,
+              onPointerUp: handlePressEnd,
+              onPointerCancel: handlePressEnd,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                excludeFromSemantics: true,
+                onTap: _activatable ? _activate : null,
+                onTapCancel: releasePress,
+                child: highlighted,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// GNOME uses the foreground at 3% on hover and 8% while pressed.
+  Color _highlightColor(SettingsThemeData theme) {
     final foreground = theme.settingsTileTextColor ?? _kForegroundLight;
-    final iconColor = enabled
-        ? theme.leadingIconsColor
-        : theme.inactiveTitleColor;
+    final pressedColor =
+        theme.tileHighlightColor ??
+        foreground.withValues(alpha: foreground.a * 0.08);
+    if (_activatable && pressed) return pressedColor;
+    return pressedColor.withValues(
+      alpha: _activatable && _hovered ? pressedColor.a * 3 / 8 : 0,
+    );
+  }
+
+  Widget _buildRow(SettingsThemeData theme, {required bool isDark}) {
+    final enabled = tile.enabled;
+    final iconColor = theme.iconColorFor(enabled: enabled);
     final titleStyle = (theme.tileTextStyle ?? kAdwaitaBodyStyle).copyWith(
-      color: enabled ? theme.settingsTileTextColor : theme.inactiveTitleColor,
+      color: theme.titleColorFor(enabled: enabled),
     );
     final subtitleStyle = (theme.tileDescriptionTextStyle ?? _kSubtitleStyle)
         .copyWith(
@@ -188,55 +217,17 @@ class _AdwaitaSettingsTileState extends State<AdwaitaSettingsTile> {
               : theme.inactiveSubtitleColor,
         );
 
-    final pressedColor =
-        theme.tileHighlightColor ??
-        foreground.withValues(alpha: foreground.a * 0.08);
-    // GNOME uses the foreground at 3% on hover and 8% while pressed.
-    final hoverColor = pressedColor.withValues(alpha: pressedColor.a * 3 / 8);
-    final idleColor = pressedColor.withValues(alpha: 0);
-    final background = !_activatable
-        ? idleColor
-        : _pressed
-        ? pressedColor
-        : _hovered
-        ? hoverColor
-        : idleColor;
-
     final titleBox = Padding(
       padding: EdgeInsets.symmetric(
         vertical: tile.compact ? _kTitleBoxPadding / 2 : _kTitleBoxPadding,
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: tile.titlePadding ?? EdgeInsets.zero,
-            child: DefaultTextStyle(style: titleStyle, child: tile.title),
-          ),
-          // GNOME rows have one subtitle, under the title. Both
-          // descriptions go there, the title description first.
-          if (tile.titleDescription != null)
-            Padding(
-              padding:
-                  tile.titleDescriptionPadding ??
-                  const EdgeInsets.only(top: _kSubtitleGap),
-              child: DefaultTextStyle(
-                style: subtitleStyle,
-                child: tile.titleDescription!,
-              ),
-            ),
-          if (tile.description != null)
-            Padding(
-              padding:
-                  tile.descriptionPadding ??
-                  const EdgeInsets.only(top: _kSubtitleGap),
-              child: DefaultTextStyle(
-                style: subtitleStyle,
-                child: tile.description!,
-              ),
-            ),
-        ],
+      // GNOME rows have one subtitle, under the title. Both descriptions go
+      // there, the title description first.
+      child: tileTitleColumn(
+        tile: tile,
+        titleStyle: titleStyle,
+        subtitleStyle: subtitleStyle,
+        subtitlePadding: const EdgeInsets.only(top: _kSubtitleGap),
       ),
     );
 
@@ -244,21 +235,16 @@ class _AdwaitaSettingsTileState extends State<AdwaitaSettingsTile> {
       final suffixes = <Widget>[
         // A value is a dimmed label at the end of the row, like the
         // secondary label of a GNOME Settings row.
-        if (!_isSwitch && tile.value != null)
-          ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: maxValueWidth),
-            child: DefaultTextStyle(
-              style: (theme.tileDescriptionTextStyle ?? kAdwaitaBodyStyle)
-                  .copyWith(
-                    color: enabled
-                        ? theme.trailingTextColor
-                        : theme.inactiveSubtitleColor,
-                  ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.end,
-              child: tile.value!,
-            ),
+        if (!tile.isSwitch && tile.value != null)
+          tileValue(
+            tile.value!,
+            style: (theme.tileDescriptionTextStyle ?? kAdwaitaBodyStyle)
+                .copyWith(
+                  color: enabled
+                      ? theme.trailingTextColor
+                      : theme.inactiveSubtitleColor,
+                ),
+            maxWidth: maxValueWidth,
           ),
         // Text in `trailing` gets the title style, like a label suffix in
         // GTK, so a combo row value (text + AdwaitaPanDownIcon) needs no
@@ -274,7 +260,7 @@ class _AdwaitaSettingsTileState extends State<AdwaitaSettingsTile> {
               ),
             ),
           ),
-        if (_isSwitch)
+        if (tile.isSwitch)
           // The row takes the focus and the clicks, like `AdwSwitchRow`.
           ExcludeFocus(
             child: AdwaitaSettingsSwitch(
@@ -286,8 +272,7 @@ class _AdwaitaSettingsTileState extends State<AdwaitaSettingsTile> {
               brightness: isDark ? Brightness.dark : Brightness.light,
             ),
           ),
-        if (tile.tileType == SettingsTileType.navigationTile)
-          AdwaitaGoNextIcon(color: iconColor),
+        if (tile.isNavigation) AdwaitaGoNextIcon(color: iconColor),
       ];
       return Row(
         mainAxisSize: MainAxisSize.min,
@@ -300,7 +285,7 @@ class _AdwaitaSettingsTileState extends State<AdwaitaSettingsTile> {
       );
     }
 
-    final row = ConstrainedBox(
+    return ConstrainedBox(
       constraints: BoxConstraints(
         minHeight: tile.compact
             ? kAdwaitaCompactRowMinHeight
@@ -326,65 +311,6 @@ class _AdwaitaSettingsTileState extends State<AdwaitaSettingsTile> {
               // title nor a long value hides the other.
               buildSuffixes(constraints.maxWidth / 2),
             ],
-          ),
-        ),
-      ),
-    );
-
-    final accent = isDark ? _kAccentDark : _kAccentLight;
-    const corner = Radius.circular(kAdwaitaCardRadius);
-    final highlighted = AnimatedContainer(
-      duration: reduceMotion ? Duration.zero : _kHighlightDuration,
-      curve: _kHighlightCurve,
-      decoration: BoxDecoration(color: background),
-      // A 2 px accent ring just inside the row, following the card corners.
-      foregroundDecoration: _showFocusHighlight && _activatable
-          ? BoxDecoration(
-              border: Border.all(
-                color: accent.withValues(alpha: 0.5),
-                width: 2,
-              ),
-              borderRadius: BorderRadius.vertical(
-                top: info.isFirst ? corner : Radius.zero,
-                bottom: info.isLast ? corner : Radius.zero,
-              ),
-            )
-          : null,
-      child: row,
-    );
-
-    return MergeSemantics(
-      child: Semantics(
-        button: !_isSwitch && _hasAction,
-        enabled: _hasAction ? enabled : null,
-        onTap: _activatable ? _activate : null,
-        child: IgnorePointer(
-          ignoring: !enabled,
-          child: FocusableActionDetector(
-            enabled: _activatable,
-            actions: _actions,
-            onShowFocusHighlight: (value) {
-              if (value != _showFocusHighlight) {
-                setState(() => _showFocusHighlight = value);
-              }
-            },
-            onShowHoverHighlight: (value) {
-              if (value != _hovered) setState(() => _hovered = value);
-            },
-            child: Listener(
-              // GTK shows `:active` as soon as the button goes down.
-              onPointerDown: _activatable ? _handlePointerDown : null,
-              onPointerMove: _handlePointerMove,
-              onPointerUp: _handlePointerEnd,
-              onPointerCancel: _handlePointerEnd,
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                excludeFromSemantics: true,
-                onTap: _activatable ? _activate : null,
-                onTapCancel: _release,
-                child: highlighted,
-              ),
-            ),
           ),
         ),
       ),

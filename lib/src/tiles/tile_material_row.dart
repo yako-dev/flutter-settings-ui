@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/src/tiles/tile_colors.dart';
 import 'package:settings_ui/src/tiles/tile_data.dart';
+import 'package:settings_ui/src/tiles/tile_parts.dart';
 import 'package:settings_ui/src/tiles/tile_semantics.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 import 'package:settings_ui/src/utils/theme_provider.dart';
@@ -135,35 +136,29 @@ class MaterialTileRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Padding(
+                tileText(
+                  tile.title,
                   padding: tile.titlePadding ?? EdgeInsets.zero,
-                  child: DefaultTextStyle(
-                    style: (theme.tileTextStyle ?? titleStyle).copyWith(
-                      color: theme.titleColorFor(
-                        enabled: enabled,
-                        selected: selected,
-                      ),
+                  style: (theme.tileTextStyle ?? titleStyle).copyWith(
+                    color: theme.titleColorFor(
+                      enabled: enabled,
+                      selected: selected,
                     ),
-                    child: tile.title,
                   ),
                 ),
                 if (tile.value != null)
-                  Padding(
+                  tileText(
+                    tile.value!,
                     padding: const EdgeInsets.only(top: 4.0),
-                    child: DefaultTextStyle(
-                      style: subtitleStyle,
-                      child: tile.value!,
-                    ),
+                    style: subtitleStyle,
                   )
                 else if (tile.description != null)
-                  Padding(
+                  tileText(
+                    tile.description!,
                     padding:
                         tile.descriptionPadding ??
                         const EdgeInsets.only(top: 4.0),
-                    child: DefaultTextStyle(
-                      style: subtitleStyle,
-                      child: tile.description!,
-                    ),
+                    style: subtitleStyle,
                   ),
               ],
             ),
