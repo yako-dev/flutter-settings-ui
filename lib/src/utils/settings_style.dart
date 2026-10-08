@@ -55,7 +55,7 @@ class SettingsStyleConfig {
     final materialBrightness = Theme.of(context).brightness;
     final cupertinoBrightness =
         CupertinoTheme.of(context).brightness ??
-        MediaQuery.of(context).platformBrightness;
+        MediaQuery.platformBrightnessOf(context);
 
     switch (applicationType) {
       case ApplicationType.material:
