@@ -222,24 +222,31 @@ extension _Panes on _SettingsSplitViewState {
           theme: SettingsThemeData(settingsListBackground: background),
         );
 
-    final content = paneStyle.buildListPane(
-      SplitListPaneParts(
-        viewContext: context,
-        title: widget.title,
-        onBack: canLeave ? _leave : null,
-        onTogglePane: _toggleFluentPane,
-        background: background,
-        largeTitleHidden: _largeTitleHidden,
-        list: SettingsList(
-          platform: style.platform,
-          brightness: widget.brightness,
-          lightTheme: withBackground(widget.lightTheme),
-          darkTheme: withBackground(widget.darkTheme),
-          applicationType: widget.applicationType,
-          contentPadding: paneStyle.listPadding,
-          // A copy: the pane's lazy list must not read the app's list after
-          // the app changed it in place without rebuilding the view.
-          sections: paneStyle.listSections([...widget.sections], widget.title),
+    final title = widget.title;
+    final list = SettingsList(
+      platform: style.platform,
+      brightness: widget.brightness,
+      lightTheme: withBackground(widget.lightTheme),
+      darkTheme: withBackground(widget.darkTheme),
+      applicationType: widget.applicationType,
+      contentPadding: paneStyle.listPadding,
+      // A copy: the pane's lazy list must not read the app's list after
+      // the app changed it in place without rebuilding the view.
+      sections: paneStyle.listSections([...widget.sections], title),
+    );
+
+    // The content is built in the pane, for its `MediaQuery`: with two
+    // panes it has no padding at the end side, which the pane doesn't touch.
+    final content = Builder(
+      builder: (paneContext) => paneStyle.buildListPane(
+        SplitListPaneParts(
+          viewContext: paneContext,
+          title: title,
+          onBack: canLeave ? _leave : null,
+          onTogglePane: _toggleFluentPane,
+          background: background,
+          largeTitleHidden: _largeTitleHidden,
+          list: list,
         ),
       ),
     );

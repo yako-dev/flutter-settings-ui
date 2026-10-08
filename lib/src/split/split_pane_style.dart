@@ -94,8 +94,9 @@ class SplitListPaneParts {
     required this.list,
   });
 
-  /// The split view's context. The list gets its `MediaQuery` from here,
-  /// not from the pane (see [settingsHeaderOverBody]).
+  /// The split view's context in the list pane. The list gets its
+  /// `MediaQuery` from here (see [settingsHeaderOverBody]): the pane's, which
+  /// with two panes has no padding at the end side.
   final BuildContext viewContext;
 
   /// The pane's title, if any.

@@ -24,9 +24,14 @@ Widget _app(
   Widget home, {
   TargetPlatform? platform,
   Map<ShortcutActivator, Intent>? shortcuts,
+  TextDirection? textDirection,
 }) => MaterialApp(
   theme: ThemeData(platform: platform),
   shortcuts: shortcuts,
+  builder: textDirection == null
+      ? null
+      : (context, child) =>
+            Directionality(textDirection: textDirection, child: child!),
   home: home,
 );
 
@@ -883,5 +888,132 @@ void splitFixTests() {
           title: topOf(tester, title),
       }, tops);
     });
+  });
+
+  group('two panes: the window\'s side safe areas', () {
+    // A phone or tablet in landscape: the cutout on one side, the rounded
+    // corners on the other.
+    const sides = 44.0;
+    const bottom = 21.0;
+
+    /// What a tile of the list pane and the page of the detail pane get as
+    /// `MediaQuery.padding`.
+    Future<({EdgeInsets list, EdgeInsets detail})> pump(
+      WidgetTester tester,
+      DevicePlatform platform, {
+      Size size = const Size(1280, 800),
+      TextDirection textDirection = TextDirection.ltr,
+      bool withTitle = true,
+    }) async {
+      await _setSize(tester, size);
+      tester.view.padding = const FakeViewPadding(
+        left: sides,
+        right: sides,
+        bottom: bottom,
+      );
+      tester.view.viewPadding = tester.view.padding;
+      EdgeInsets? list;
+      EdgeInsets? detail;
+      await tester.pumpWidget(
+        _app(
+          SettingsSplitView(
+            platform: platform,
+            title: withTitle ? const Text('Settings') : null,
+            sections: [
+              SettingsSection(
+                tiles: [
+                  SettingsTile.navigation(
+                    leading: const Icon(Icons.wifi),
+                    title: const Text('Network'),
+                    destination: SettingsDestination(
+                      id: 'network',
+                      builder: (context) {
+                        detail = MediaQuery.paddingOf(context);
+                        return const Text('Network body');
+                      },
+                    ),
+                  ),
+                  CustomSettingsTile(
+                    child: Builder(
+                      builder: (context) {
+                        list = MediaQuery.paddingOf(context);
+                        return const SizedBox(height: 10);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          platform: _targetOf(platform),
+          textDirection: textDirection,
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Network body'), findsOneWidget);
+      // Two panes: the list pane does not fill the width.
+      expect(tester.getSize(_listPane).width, lessThan(size.width / 2));
+      return (list: list!, detail: detail!);
+    }
+
+    for (final (platform, withTitle, size) in [
+      (DevicePlatform.iOS, true, const Size(1280, 800)),
+      (DevicePlatform.android, true, const Size(1280, 800)),
+      (DevicePlatform.android, false, const Size(1280, 800)),
+      (DevicePlatform.web, true, const Size(1280, 800)),
+      (DevicePlatform.macOS, true, const Size(1280, 800)),
+      (DevicePlatform.windows, true, const Size(1280, 800)),
+      // The Windows compact rail.
+      (DevicePlatform.windows, true, const Size(800, 700)),
+      (DevicePlatform.linux, true, const Size(1280, 800)),
+    ]) {
+      final what = [
+        platform.name,
+        if (!withTitle) 'without a title',
+        '${size.width.round()} wide',
+      ].join(', ');
+
+      testWidgets('$what: each pane keeps only the side it touches', (
+        tester,
+      ) async {
+        final panes = await pump(
+          tester,
+          platform,
+          size: size,
+          withTitle: withTitle,
+        );
+        // The headers cover the top (there is none here).
+        expect(
+          panes.list,
+          const EdgeInsets.only(left: sides, bottom: bottom),
+          reason: 'the list pane, at the left',
+        );
+        expect(
+          panes.detail,
+          const EdgeInsets.only(right: sides, bottom: bottom),
+          reason: 'the detail pane, at the right',
+        );
+      });
+
+      testWidgets('$what, right to left: the same, mirrored', (tester) async {
+        final panes = await pump(
+          tester,
+          platform,
+          size: size,
+          withTitle: withTitle,
+          textDirection: TextDirection.rtl,
+        );
+        expect(
+          panes.list,
+          const EdgeInsets.only(right: sides, bottom: bottom),
+          reason: 'the list pane, at the right',
+        );
+        expect(
+          panes.detail,
+          const EdgeInsets.only(left: sides, bottom: bottom),
+          reason: 'the detail pane, at the left',
+        );
+      });
+    }
   });
 }
