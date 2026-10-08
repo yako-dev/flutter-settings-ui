@@ -190,6 +190,11 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
 
   _FluentSelectionIndicator? _indicator;
 
+  /// The item under its tooltip; see [build].
+  final GlobalKey _contentKey = GlobalKey(
+    debugLabel: 'FluentNavigationItem content',
+  );
+
   @override
   String get debugLabel => 'FluentNavigationItem';
 
@@ -458,7 +463,9 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
       child: content,
     );
 
-    if (showsFocusRing && clickable) item = fluentFocusRing(tokens, item);
+    // Always there, so what the item shows keeps its State when the ring
+    // comes and goes.
+    item = fluentFocusRing(tokens, item, show: showsFocusRing && clickable);
 
     item = Padding(
       padding: const EdgeInsets.symmetric(
@@ -482,7 +489,12 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
       child: item,
     );
 
-    item = _interactive(item, clickable: clickable);
+    // Under a GlobalKey, so the item moves with its State when the rail's
+    // tooltip comes or goes around it.
+    item = KeyedSubtree(
+      key: _contentKey,
+      child: _interactive(item, clickable: clickable),
+    );
 
     if (compact && tooltip != null) item = _railTooltip(tooltip, tokens, item);
 

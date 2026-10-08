@@ -9,9 +9,14 @@ import 'package:settings_ui/src/utils/settings_theme.dart';
 /// ControlCornerRadius.
 const double kFluentControlRadius = 4;
 
-/// [child] with the WinUI keyboard focus visual around it.
-Widget fluentFocusRing(FluentTokens tokens, Widget child) =>
-    CustomPaint(foregroundPainter: _FocusRingPainter(tokens), child: child);
+/// [child] with the WinUI keyboard focus visual around it. With [show]
+/// false it draws nothing and only keeps [child] at the same place in the
+/// tree, so its State survives the visual coming and going.
+Widget fluentFocusRing(FluentTokens tokens, Widget child, {bool show = true}) =>
+    CustomPaint(
+      foregroundPainter: show ? _FocusRingPainter(tokens) : null,
+      child: child,
+    );
 
 class _FocusRingPainter extends CustomPainter {
   const _FocusRingPainter(this.tokens);

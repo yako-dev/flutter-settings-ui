@@ -112,6 +112,33 @@ List<AbstractSettingsSection> _nestedSections() => [
   ),
 ];
 
+/// An icon with a State that logs when it is created and disposed.
+class _Probe extends StatefulWidget {
+  const _Probe(this.log);
+
+  final List<String> log;
+
+  @override
+  State<_Probe> createState() => _ProbeState();
+}
+
+class _ProbeState extends State<_Probe> {
+  @override
+  void initState() {
+    super.initState();
+    widget.log.add('created');
+  }
+
+  @override
+  void dispose() {
+    widget.log.add('disposed');
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => const Icon(Icons.wifi);
+}
+
 /// Tests for the split view, page header and sidebar bugs fixed after 4.0.1.
 void splitFixTests() {
   group('macOS sidebar: the arrow keys', () {
@@ -712,5 +739,95 @@ void splitFixTests() {
         });
       }
     }
+  });
+
+  group('Windows pane: an item keeps the State of what it shows', () {
+    Future<List<String>> pump(WidgetTester tester, Size size) async {
+      final log = <String>[];
+      await _setSize(tester, size);
+      await tester.pumpWidget(
+        _app(
+          SettingsSplitView(
+            platform: DevicePlatform.windows,
+            sections: [
+              SettingsSection(
+                tiles: [
+                  SettingsTile.navigation(
+                    leading: _Probe(log),
+                    title: const Text('Network'),
+                    destination: SettingsDestination(
+                      id: 'network',
+                      builder: (_) => const Text('Network body'),
+                    ),
+                  ),
+                  SettingsTile.switchTile(
+                    leading: const Icon(Icons.airplanemode_active),
+                    title: const Text('Airplane mode'),
+                    initialValue: true,
+                    onToggle: (_) {},
+                    onPressed: (_) {},
+                  ),
+                  _page('Sound'),
+                ],
+              ),
+            ],
+          ),
+          platform: TargetPlatform.windows,
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(log, ['created']);
+      return log;
+    }
+
+    testWidgets('when its focus ring comes and goes', (tester) async {
+      final log = await pump(tester, const Size(1280, 800));
+      // The switch, and the fades of the items' fills.
+      final toggle = tester.state(_inList(find.byType(FluentSettingsSwitch)));
+      final fills = tester
+          .stateList(_inList(find.byType(TweenAnimationBuilder<Color?>)))
+          .toList();
+      expect(fills, hasLength(3));
+
+      for (final title in ['Network', 'Airplane mode', 'Sound']) {
+        await _tabTo(tester, _tile(title));
+        await tester.pumpAndSettle();
+        expect(log, ['created'], reason: 'the focus on $title');
+        expect(
+          tester.state(_inList(find.byType(FluentSettingsSwitch))),
+          same(toggle),
+          reason: 'the focus on $title',
+        );
+        expect(
+          tester
+              .stateList(_inList(find.byType(TweenAnimationBuilder<Color?>)))
+              .toList(),
+          fills,
+          reason: 'the focus on $title',
+        );
+      }
+    });
+
+    testWidgets('when the rail opens and closes, with its tooltips', (
+      tester,
+    ) async {
+      final log = await pump(tester, const Size(800, 700));
+      final tooltip = find.byWidgetPredicate(
+        (widget) => widget is Tooltip && widget.message == 'Network',
+      );
+      expect(tooltip, findsOneWidget);
+
+      await tester.tap(find.bySemanticsLabel('Open navigation menu'));
+      await tester.pumpAndSettle();
+      expect(_inList(find.text('Network')), findsOneWidget);
+      expect(tooltip, findsNothing);
+      expect(log, ['created']);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await tester.pumpAndSettle();
+      expect(_inList(find.text('Network')), findsNothing);
+      expect(tooltip, findsOneWidget);
+      expect(log, ['created']);
+    });
   });
 }
