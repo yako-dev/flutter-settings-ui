@@ -153,12 +153,11 @@ class MaterialTileRow extends StatelessWidget {
     }
 
     // A disabled tile takes no focus, keys or taps (the IgnorePointer below
-    // only blocks new pointers).
+    // only blocks new pointers). Neither does a switch tile without
+    // onToggle: a tap on its row toggles and never calls onPressed.
     final cantShowAnimation =
         !enabled ||
-        (tile.isSwitch
-            ? tile.onToggle == null && tile.onPressed == null
-            : tile.onPressed == null);
+        (tile.isSwitch ? tile.onToggle == null : tile.onPressed == null);
     return toggleRowSemantics(
       tile: tile,
       selected: semanticsSelected,

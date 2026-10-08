@@ -1,6 +1,9 @@
+import 'dart:ui' show Tristate;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/settings_ui.dart';
@@ -440,6 +443,148 @@ void tileFixTests() {
         );
         expect(style.fontSize, 21);
         expect(style.color, expected.without);
+      });
+    }
+  });
+
+  group('Android and web: a switch row whose tap would do nothing', () {
+    const highlight = Color(0xFF123456);
+
+    // A list with one switch tile, 'Wi-Fi', that is on.
+    Widget listWith({
+      required DevicePlatform platform,
+      required ValueChanged<bool>? onToggle,
+      required void Function(BuildContext)? onPressed,
+    }) => MaterialApp(
+      home: Scaffold(
+        body: SettingsList(
+          platform: platform,
+          lightTheme: const SettingsThemeData(tileHighlightColor: highlight),
+          sections: [
+            SettingsSection(
+              tiles: [
+                SettingsTile.switchTile(
+                  title: const Text('Wi-Fi'),
+                  initialValue: true,
+                  onToggle: onToggle,
+                  onPressed: onPressed,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+
+    SemanticsData rowSemantics(WidgetTester tester) =>
+        tester.getSemantics(find.text('Wi-Fi')).getSemanticsData();
+
+    // Moves a mouse over the title and holds its button down there.
+    Future<TestGesture> pressTitleWithMouse(WidgetTester tester) async {
+      final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      await mouse.addPointer(location: tester.getCenter(find.text('Wi-Fi')));
+      addTearDown(mouse.removePointer);
+      await tester.pump();
+      await mouse.down(tester.getCenter(find.text('Wi-Fi')));
+      // Long enough for the pressed highlight to fade in.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      return mouse;
+    }
+
+    // The ink of the row's Material. Its hover highlight, splash and
+    // pressed highlight are rectangles; the row's content draws none.
+    Object inkOf(WidgetTester tester) =>
+        Material.of(tester.element(find.text('Wi-Fi')));
+    PaintPattern paintsPressedHighlight() => paints
+      ..something(
+        (Symbol method, List<dynamic> arguments) =>
+            method == #drawRect &&
+            (arguments[1] as Paint).color.toARGB32() == highlight.toARGB32(),
+      );
+
+    for (final platform in [
+      DevicePlatform.android,
+      DevicePlatform.fuchsia,
+      DevicePlatform.web,
+    ]) {
+      for (final withOnPressed in [false, true]) {
+        final what = withOnPressed ? 'with onPressed' : 'without onPressed';
+
+        testWidgets('$platform, no onToggle, $what: has no tap action and '
+            'takes no focus', (tester) async {
+          final handle = tester.ensureSemantics();
+          final log = <String>[];
+          await tester.pumpWidget(
+            listWith(
+              platform: platform,
+              onToggle: null,
+              onPressed: withOnPressed ? (_) => log.add('pressed') : null,
+            ),
+          );
+
+          // Still one node that reads "Wi-Fi, switch, on".
+          final data = rowSemantics(tester);
+          expect(data.label, 'Wi-Fi');
+          expect(data.flagsCollection.isToggled, Tristate.isTrue);
+          expect(data.hasAction(SemanticsAction.tap), isFalse);
+          expect(data.hasAction(SemanticsAction.focus), isFalse);
+          expect(data.flagsCollection.isFocused, Tristate.none);
+
+          await tester.tap(find.text('Wi-Fi'));
+          await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+          await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+          await tester.sendKeyEvent(LogicalKeyboardKey.space);
+          await tester.pumpAndSettle();
+          expect(log, isEmpty);
+          handle.dispose();
+        });
+
+        testWidgets('$platform, no onToggle, $what: shows no ink under a '
+            'pressed mouse', (tester) async {
+          await tester.pumpWidget(
+            listWith(
+              platform: platform,
+              onToggle: null,
+              onPressed: withOnPressed ? (_) {} : null,
+            ),
+          );
+
+          final mouse = await pressTitleWithMouse(tester);
+          expect(inkOf(tester), paintsExactlyCountTimes(#drawRect, 0));
+          await mouse.up();
+          await tester.pumpAndSettle();
+
+          // The switch is drawn disabled, as before.
+          expect(tester.widget<Switch>(find.byType(Switch)).onChanged, isNull);
+        });
+      }
+
+      testWidgets('$platform, with onToggle: still has them all', (
+        tester,
+      ) async {
+        final handle = tester.ensureSemantics();
+        final log = <String>[];
+        await tester.pumpWidget(
+          listWith(
+            platform: platform,
+            onToggle: (v) => log.add('toggled $v'),
+            onPressed: (_) => log.add('pressed'),
+          ),
+        );
+
+        final data = rowSemantics(tester);
+        expect(data.label, 'Wi-Fi');
+        expect(data.flagsCollection.isToggled, Tristate.isTrue);
+        expect(data.hasAction(SemanticsAction.tap), isTrue);
+        expect(data.hasAction(SemanticsAction.focus), isTrue);
+
+        final mouse = await pressTitleWithMouse(tester);
+        expect(inkOf(tester), paintsPressedHighlight());
+        await mouse.up();
+        await tester.pumpAndSettle();
+        expect(log, ['toggled false']);
+        handle.dispose();
       });
     }
   });
