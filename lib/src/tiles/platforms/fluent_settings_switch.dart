@@ -2,7 +2,6 @@ import 'dart:ui' show lerpDouble;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:material_ui/material_ui.dart' show ThemeData;
 import 'package:settings_ui/src/tiles/platforms/settings_switch_base.dart';
