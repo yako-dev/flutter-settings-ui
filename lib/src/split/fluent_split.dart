@@ -730,80 +730,18 @@ class FluentPaneHeader extends StatelessWidget {
       child: Semantics(header: true, child: title!),
     );
 
-    final rows = <Widget>[];
-    if (onTogglePane == null) {
-      // The open pane of a wide window.
-      rows.add(
-        SizedBox(
-          height: kFluentPaneHeaderHeight,
-          child: Row(
-            children: [
-              if (onBack != null)
-                Padding(
-                  padding: const EdgeInsetsDirectional.only(
-                    start: _kItemMarginH,
-                    end: _kItemMarginH,
-                  ),
-                  child: FluentSubtleButton(
-                    semanticLabel: settingsBackLabel(context),
-                    onPressed: onBack,
-                    glyph: FluentGlyph.back,
-                  ),
-                )
-              else
-                const SizedBox(width: 16),
-              if (title != null) Expanded(child: titleText()),
-            ],
-          ),
-        ),
-      );
-    } else {
-      if (onBack != null) {
-        rows.add(
-          SizedBox(
-            height: kFluentPaneHeaderHeight,
-            child: Align(
-              alignment: AlignmentDirectional.centerStart,
-              child: Padding(
-                padding: const EdgeInsetsDirectional.only(start: _kItemMarginH),
-                child: FluentSubtleButton(
-                  semanticLabel: settingsBackLabel(context),
-                  onPressed: onBack,
-                  glyph: FluentGlyph.back,
-                ),
-              ),
-            ),
-          ),
-        );
-      }
-      rows.add(
-        Padding(
-          padding: EdgeInsets.only(
-            top: onBack == null ? 6 : 0,
-            bottom: _kItemMarginV,
-          ),
-          child: SizedBox(
-            height: 40,
-            child: Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsetsDirectional.only(
-                    start: _kItemMarginH,
-                    end: _kItemMarginH,
-                  ),
-                  child: FluentSubtleButton(
-                    semanticLabel: settingsMenuLabel(context),
-                    onPressed: onTogglePane,
-                    glyph: FluentGlyph.menu,
-                  ),
-                ),
-                if (!compact && title != null) Expanded(child: titleText()),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
+    final Widget? back = onBack == null
+        ? null
+        : FluentSubtleButton(
+            semanticLabel: settingsBackLabel(context),
+            onPressed: onBack,
+            glyph: FluentGlyph.back,
+          );
+    const margins = EdgeInsetsDirectional.only(
+      start: _kItemMarginH,
+      end: _kItemMarginH,
+    );
+
     // Only the top inset: the pane's items don't move away from a side
     // inset (a display cutout in landscape) either, and the 48 wide rail
     // has no room for one, which would push the buttons out of it.
@@ -814,7 +752,59 @@ class FluentPaneHeader extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: rows,
+        children: [
+          if (onTogglePane == null)
+            // The open pane of a wide window.
+            SizedBox(
+              height: kFluentPaneHeaderHeight,
+              child: Row(
+                children: [
+                  if (back != null)
+                    Padding(padding: margins, child: back)
+                  else
+                    const SizedBox(width: 16),
+                  if (title != null) Expanded(child: titleText()),
+                ],
+              ),
+            )
+          else ...[
+            if (back != null)
+              SizedBox(
+                height: kFluentPaneHeaderHeight,
+                child: Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Padding(
+                    padding: const EdgeInsetsDirectional.only(
+                      start: _kItemMarginH,
+                    ),
+                    child: back,
+                  ),
+                ),
+              ),
+            Padding(
+              padding: EdgeInsets.only(
+                top: back == null ? 6 : 0,
+                bottom: _kItemMarginV,
+              ),
+              child: SizedBox(
+                height: 40,
+                child: Row(
+                  children: [
+                    Padding(
+                      padding: margins,
+                      child: FluentSubtleButton(
+                        semanticLabel: settingsMenuLabel(context),
+                        onPressed: onTogglePane,
+                        glyph: FluentGlyph.menu,
+                      ),
+                    ),
+                    if (!compact && title != null) Expanded(child: titleText()),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

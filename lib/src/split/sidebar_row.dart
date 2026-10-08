@@ -37,8 +37,8 @@ abstract class SidebarRow extends StatefulWidget {
   final bool? semanticsSelected;
 }
 
-/// The keyboard focus and the activation of a [SidebarRow], for its State.
-/// Internal.
+/// What the States of the sidebar rows share: the keyboard focus, the
+/// activation and the row's line. Internal.
 mixin SidebarRowState<T extends SidebarRow> on State<T> {
   bool _focusHighlight = false;
 
