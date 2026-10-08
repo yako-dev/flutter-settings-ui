@@ -1,10 +1,20 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/settings_ui.dart';
 
 /// Tests for the tile and switch bugs fixed after 4.0.1.
+
+const _styles = [
+  DevicePlatform.iOS,
+  DevicePlatform.android,
+  DevicePlatform.web,
+  DevicePlatform.macOS,
+  DevicePlatform.windows,
+  DevicePlatform.linux,
+];
 
 typedef _SwitchBuilder =
     Widget Function(bool value, ValueChanged<bool> onChanged);
@@ -257,6 +267,180 @@ void tileFixTests() {
           expect(switchFinder, offSwitchAt(Offset.zero & metrics.track));
         });
       }
+    }
+  });
+
+  // What the doc comments of SettingsThemeData.titleTextColor and
+  // titleTextStyle say. If one of these fails, change the comments too.
+  group('The color of a section title', () {
+    const themeColor = Color(0xFF010203);
+    const styleColor = Color(0xFF0A0B0C);
+    const descriptionColor = Color(0xFF040506);
+    // The headers of the macOS sidebar are #A0A0A0 in light mode.
+    const macosSidebarGrey = Color(0xFFA0A0A0);
+
+    // The style the title 'Section' is drawn in.
+    TextStyle titleStyleOf(WidgetTester tester) =>
+        tester.renderObject<RenderParagraph>(find.text('Section')).text.style!;
+
+    Future<TextStyle> listTitleStyle(
+      WidgetTester tester,
+      DevicePlatform platform,
+      SettingsThemeData? theme,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SettingsList(
+              // A new list each time, so nothing is left of the last theme.
+              key: UniqueKey(),
+              platform: platform,
+              lightTheme: theme,
+              sections: [
+                SettingsSection(
+                  title: const Text('Section'),
+                  tiles: [SettingsTile(title: const Text('Tile'))],
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+      return titleStyleOf(tester);
+    }
+
+    Future<TextStyle> listPaneTitleStyle(
+      WidgetTester tester,
+      DevicePlatform platform,
+      SettingsThemeData theme,
+    ) async {
+      tester.view.physicalSize = const Size(1400, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: SettingsSplitView(
+            key: UniqueKey(),
+            platform: platform,
+            lightTheme: theme,
+            sections: [
+              SettingsSection(
+                title: const Text('Section'),
+                tiles: [
+                  SettingsTile.navigation(
+                    title: const Text('Tile'),
+                    destination: SettingsDestination(
+                      id: 'page',
+                      builder: (_) => const Text('Page'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      // Two panes: the list pane next to the page.
+      expect(find.text('Page'), findsOneWidget);
+      return titleStyleOf(tester);
+    }
+
+    for (final platform in _styles) {
+      final isMacos = platform == DevicePlatform.macOS;
+
+      testWidgets('$platform: in a list, titleTextColor replaces the color of '
+          'titleTextStyle${isMacos ? ' only when it has none' : ''}', (
+        tester,
+      ) async {
+        final defaults = await listTitleStyle(tester, platform, null);
+        expect(defaults.color, isNot(anyOf(themeColor, styleColor)));
+
+        // Both colors.
+        var style = await listTitleStyle(
+          tester,
+          platform,
+          const SettingsThemeData(
+            titleTextColor: themeColor,
+            titleTextStyle: TextStyle(fontSize: 21, color: styleColor),
+          ),
+        );
+        expect(style.fontSize, 21);
+        expect(style.color, isMacos ? styleColor : themeColor);
+
+        // A color in the style only: the style's default titleTextColor
+        // still replaces it.
+        style = await listTitleStyle(
+          tester,
+          platform,
+          const SettingsThemeData(
+            titleTextStyle: TextStyle(fontSize: 21, color: styleColor),
+          ),
+        );
+        expect(style.fontSize, 21);
+        expect(style.color, isMacos ? styleColor : defaults.color);
+
+        // A style without a color.
+        style = await listTitleStyle(
+          tester,
+          platform,
+          const SettingsThemeData(
+            titleTextColor: themeColor,
+            titleTextStyle: TextStyle(fontSize: 21),
+          ),
+        );
+        expect(style.fontSize, 21);
+        expect(style.color, themeColor);
+      });
+    }
+
+    // In the list pane of a split view: the color with a titleTextStyle
+    // that has one, and with one that has none.
+    const inListPane = {
+      DevicePlatform.iOS: (withStyleColor: themeColor, without: themeColor),
+      DevicePlatform.android: (withStyleColor: themeColor, without: themeColor),
+      DevicePlatform.web: (
+        withStyleColor: descriptionColor,
+        without: descriptionColor,
+      ),
+      DevicePlatform.macOS: (
+        withStyleColor: styleColor,
+        without: macosSidebarGrey,
+      ),
+      DevicePlatform.windows: (
+        withStyleColor: styleColor,
+        without: descriptionColor,
+      ),
+      DevicePlatform.linux: (withStyleColor: styleColor, without: themeColor),
+    };
+    for (final MapEntry(key: platform, value: expected) in inListPane.entries) {
+      testWidgets('$platform: in the list pane of a split view', (
+        tester,
+      ) async {
+        var style = await listPaneTitleStyle(
+          tester,
+          platform,
+          const SettingsThemeData(
+            titleTextColor: themeColor,
+            tileDescriptionTextColor: descriptionColor,
+            titleTextStyle: TextStyle(fontSize: 21, color: styleColor),
+          ),
+        );
+        expect(style.fontSize, 21);
+        expect(style.color, expected.withStyleColor);
+
+        style = await listPaneTitleStyle(
+          tester,
+          platform,
+          const SettingsThemeData(
+            titleTextColor: themeColor,
+            tileDescriptionTextColor: descriptionColor,
+            titleTextStyle: TextStyle(fontSize: 21),
+          ),
+        );
+        expect(style.fontSize, 21);
+        expect(style.color, expected.without);
+      });
     }
   });
 

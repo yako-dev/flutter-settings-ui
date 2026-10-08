@@ -87,31 +87,56 @@ class SettingsThemeData {
 
   /// Section header text color. In the iOS style also `titleDescription` and
   /// `description`.
+  ///
+  /// The iOS, Android, web, Windows and GNOME styles always draw the header
+  /// in this color (the style's own default when it is null), also when
+  /// [titleTextStyle] has a color. The macOS style uses it only when
+  /// [titleTextStyle] has no color.
+  ///
+  /// In the list pane of a [SettingsSplitView] with two panes, the web menu
+  /// and the Windows pane color their headers with
+  /// [tileDescriptionTextColor] instead, and the macOS sidebar with a grey
+  /// of its own. The GNOME sidebar uses this color only when
+  /// [titleTextStyle] has none.
   final Color? titleTextColor;
 
   /// Tile title text color.
   final Color? settingsTileTextColor;
 
-  /// Title and icon color of a disabled tile.
+  /// Title and icon color of a disabled tile. In the iOS style also its
+  /// `value` and `titleDescription`, in the macOS style its `value`.
   final Color? inactiveTitleColor;
 
-  /// `description` and `value` color of a disabled tile (Android, Windows,
-  /// GNOME and web styles), and its `titleDescription` in the macOS style.
+  /// `description`, `titleDescription` and `value` color of a disabled tile
+  /// in the Windows and GNOME styles, its `description` and `value` in the
+  /// Android and web styles, and its `titleDescription` in the macOS style.
   final Color? inactiveSubtitleColor;
 
-  /// Color applied to the switch thumb/track when the tile is disabled.
-  /// Overrides the default [inactiveTitleColor] used for the switch.
-  /// Without it, the macOS style draws a paler accent, like System Settings.
+  /// Color of the switch of a disabled tile: its track when on in the iOS,
+  /// macOS and GNOME styles (drawn paler or half transparent); in the
+  /// Windows style its fill when on, and its outline and knob when off.
+  ///
+  /// Without it, the iOS style uses [inactiveTitleColor], and the macOS,
+  /// Windows and GNOME styles draw their own disabled switch: a paler accent
+  /// like System Settings, the Windows disabled colors, the accent at half
+  /// opacity. In the Android and web styles a disabled Material `Switch`
+  /// keeps its own colors.
   final Color? inactiveSwitchColor;
 
-  /// Override the text style for section titles. When set, [titleTextColor]
-  /// is still applied if [titleTextStyle] does not specify a color.
+  /// Override the text style for section titles.
+  ///
+  /// Its color shows only in the macOS style, and in the headers of the
+  /// macOS, Windows and GNOME sidebars of a [SettingsSplitView]. Everywhere
+  /// else the header's color comes from the theme, whatever color this style
+  /// has: see [titleTextColor].
   final TextStyle? titleTextStyle;
 
   /// Override the text style for tile titles.
   final TextStyle? tileTextStyle;
 
-  /// Override the text style for tile descriptions/values.
+  /// Override the text style of a tile's `description` in every style, of
+  /// its `titleDescription` in the macOS, Windows and GNOME styles, and of
+  /// its `value` in the Android, web and GNOME styles.
   final TextStyle? tileDescriptionTextStyle;
 
   /// Fill of the selected tile in the list pane of a [SettingsSplitView]:
@@ -121,13 +146,15 @@ class SettingsThemeData {
   /// Title and value color of the selected tile in a [SettingsSplitView].
   final Color? selectedTileTextColor;
 
-  /// Leading icon and chevron color of the selected tile in a
-  /// [SettingsSplitView].
+  /// Leading icon color of the selected tile in a [SettingsSplitView], and
+  /// of its trailing icon in the iOS, web, Windows and GNOME styles. A
+  /// selected tile has no chevron.
   final Color? selectedTileIconColor;
 
   /// Background of a [SettingsSplitView]'s list pane when it shows two panes:
-  /// the tinted iPad sidebar, the surface-dim Android homepage. Defaults to
-  /// [settingsListBackground] on the web.
+  /// the tinted iPad sidebar, the surface-dim Android homepage. The GNOME
+  /// sidebar has it in one pane too. Defaults to [settingsListBackground] on
+  /// the web.
   final Color? listPaneBackground;
 
   /// This theme with the non-null fields of [theme] on top.
