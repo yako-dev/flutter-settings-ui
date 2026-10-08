@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -257,6 +258,58 @@ void tileFixTests() {
         });
       }
     }
+  });
+
+  group('AdwaitaSettingsSwitch diagnostics', () {
+    List<DiagnosticsNode> propertiesOf(AdwaitaSettingsSwitch widget) {
+      final builder = DiagnosticPropertiesBuilder();
+      widget.debugFillProperties(builder);
+      return builder.properties;
+    }
+
+    test('list focusNode and autofocus', () {
+      final focusNode = FocusNode(debugLabel: 'switch');
+      addTearDown(focusNode.dispose);
+      final properties = propertiesOf(
+        AdwaitaSettingsSwitch(
+          value: true,
+          onChanged: (_) {},
+          focusNode: focusNode,
+          autofocus: true,
+        ),
+      );
+
+      final byName = {for (final p in properties) p.name: p};
+      expect(byName.keys, containsAll(<String>['focusNode', 'autofocus']));
+      expect(byName['focusNode']!.value, same(focusNode));
+      expect(byName['autofocus']!.value, isTrue);
+      for (final name in ['focusNode', 'autofocus']) {
+        expect(
+          byName[name]!.isFiltered(DiagnosticLevel.info),
+          isFalse,
+          reason: '$name is set, so it shows',
+        );
+      }
+    });
+
+    test('print neither for a switch that sets neither', () {
+      final shown = propertiesOf(
+        AdwaitaSettingsSwitch(value: true, onChanged: (_) {}),
+      ).where((p) => !p.isFiltered(DiagnosticLevel.info)).map((p) => p.name);
+
+      expect(shown, isNot(contains('focusNode')));
+      expect(shown, isNot(contains('autofocus')));
+      // What it printed before stays.
+      expect(
+        shown,
+        containsAll(<String>[
+          'value',
+          'activeTrackColor',
+          'inactiveTrackColor',
+          'brightness',
+        ]),
+      );
+    });
   });
 
   group('A switch removed in the middle of a gesture throws nothing', () {

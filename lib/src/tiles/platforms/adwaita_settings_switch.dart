@@ -118,6 +118,16 @@ class AdwaitaSettingsSwitch extends StatefulWidget {
       inactiveTrackColor: inactiveTrackColor,
     );
     properties.add(EnumProperty<Brightness>('brightness', brightness));
+    properties.add(
+      DiagnosticsProperty<FocusNode>(
+        'focusNode',
+        focusNode,
+        defaultValue: null,
+      ),
+    );
+    properties.add(
+      DiagnosticsProperty<bool>('autofocus', autofocus, defaultValue: false),
+    );
   }
 }
 
