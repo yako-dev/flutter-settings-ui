@@ -250,6 +250,48 @@ class _MacosSidebarItemState extends State<MacosSidebarItem>
         ? (theme.selectedTileIconColor ?? textColor)
         : (isDark ? _kSymbolTintDark : _kSymbolTintLight);
 
+    final leading = widget.leading;
+    final line = buildLine(
+      leading: leading == null
+          ? null
+          : Padding(
+              padding: const EdgeInsetsDirectional.only(
+                start: _kIconStart,
+                end: _kIconGap,
+              ),
+              child: IconTheme.merge(
+                data: IconThemeData(color: iconColor, size: _kIconSize),
+                child: leading,
+              ),
+            ),
+      titleStyle: (theme.tileTextStyle ?? _kLabelStyle).copyWith(
+        color: textColor,
+        fontWeight: selected ? FontWeight.w600 : null,
+      ),
+      trailingStyle: _kLabelStyle.copyWith(color: textColor),
+      trailingIconColor: textColor,
+      endPadding: const EdgeInsetsDirectional.only(start: 6),
+      toggle: !isSwitch
+          ? null
+          : CupertinoTheme(
+              data: CupertinoTheme.of(context).copyWith(
+                brightness: isDark ? Brightness.dark : Brightness.light,
+              ),
+              // The row takes the focus when it can be pressed; otherwise
+              // the switch does, so the keyboard can reach it.
+              child: ExcludeFocus(
+                excluding: _canPress,
+                child: _labelSwitchIfSeparate(
+                  MacosSettingsSwitch(
+                    value: widget.initialValue,
+                    onChanged: enabled ? widget.onToggle : null,
+                    activeTrackColor: widget.activeSwitchColor,
+                  ),
+                ),
+              ),
+            ),
+    );
+
     final focusColor = isDark ? _kFocusDark : _kFocusLight;
     final Widget item = Padding(
       padding: const EdgeInsets.symmetric(horizontal: _kSelectionInset),
@@ -280,12 +322,7 @@ class _MacosSidebarItemState extends State<MacosSidebarItem>
                 horizontal: _kContentInset,
                 vertical: textScaler.scale(4),
               ),
-              child: _content(
-                theme,
-                isDark: isDark,
-                textColor: textColor,
-                iconColor: iconColor,
-              ),
+              child: line,
             ),
           ),
         ),
@@ -312,75 +349,6 @@ class _MacosSidebarItemState extends State<MacosSidebarItem>
           ),
         ),
       ),
-    );
-  }
-
-  /// The row's line: the icon, the label, then the trailing widget and the
-  /// switch.
-  Widget _content(
-    SettingsThemeData theme, {
-    required bool isDark,
-    required Color? textColor,
-    required Color? iconColor,
-  }) {
-    final labelStyle = (theme.tileTextStyle ?? _kLabelStyle).copyWith(
-      color: textColor,
-      fontWeight: widget.selected ? FontWeight.w600 : null,
-    );
-    return Row(
-      children: [
-        if (widget.leading != null)
-          Padding(
-            padding: const EdgeInsetsDirectional.only(
-              start: _kIconStart,
-              end: _kIconGap,
-            ),
-            child: IconTheme.merge(
-              data: IconThemeData(color: iconColor, size: _kIconSize),
-              child: widget.leading!,
-            ),
-          ),
-        Expanded(
-          child: DefaultTextStyle(
-            style: labelStyle,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            child: widget.title,
-          ),
-        ),
-        if (widget.trailing != null)
-          Padding(
-            padding: const EdgeInsetsDirectional.only(start: 6),
-            child: IconTheme.merge(
-              data: IconThemeData(color: textColor, size: 16),
-              child: DefaultTextStyle(
-                style: _kLabelStyle.copyWith(color: textColor),
-                child: widget.trailing!,
-              ),
-            ),
-          ),
-        if (isSwitch)
-          Padding(
-            padding: const EdgeInsetsDirectional.only(start: 6),
-            child: CupertinoTheme(
-              data: CupertinoTheme.of(context).copyWith(
-                brightness: isDark ? Brightness.dark : Brightness.light,
-              ),
-              // The row takes the focus when it can be pressed; otherwise
-              // the switch does, so the keyboard can reach it.
-              child: ExcludeFocus(
-                excluding: _canPress,
-                child: _labelSwitchIfSeparate(
-                  MacosSettingsSwitch(
-                    value: widget.initialValue,
-                    onChanged: widget.enabled ? widget.onToggle : null,
-                    activeTrackColor: widget.activeSwitchColor,
-                  ),
-                ),
-              ),
-            ),
-          ),
-      ],
     );
   }
 }

@@ -84,6 +84,49 @@ mixin SidebarRowState<T extends SidebarRow> on State<T> {
     if (value != _focusHighlight) setState(() => _focusHighlight = value);
   }
 
+  /// The row's line: [leading] (the icon, where the style puts it), the
+  /// title on one line, then the trailing widget and [toggle] (the switch
+  /// of a switch row), each in [endPadding]. With [leadingOnly], nothing
+  /// after [leading].
+  Widget buildLine({
+    required Widget? leading,
+    required TextStyle titleStyle,
+    EdgeInsetsGeometry? titlePadding,
+    required TextStyle trailingStyle,
+    required Color? trailingIconColor,
+    required EdgeInsetsGeometry endPadding,
+    required Widget? toggle,
+    bool leadingOnly = false,
+  }) {
+    if (leadingOnly) return Row(children: [?leading]);
+    final trailing = widget.trailing;
+    final title = DefaultTextStyle(
+      style: titleStyle,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      child: widget.title,
+    );
+    return Row(
+      children: [
+        ?leading,
+        Expanded(
+          child: titlePadding == null
+              ? title
+              : Padding(padding: titlePadding, child: title),
+        ),
+        if (trailing != null)
+          Padding(
+            padding: endPadding,
+            child: IconTheme.merge(
+              data: IconThemeData(color: trailingIconColor, size: 16),
+              child: DefaultTextStyle(style: trailingStyle, child: trailing),
+            ),
+          ),
+        if (toggle != null) Padding(padding: endPadding, child: toggle),
+      ],
+    );
+  }
+
   @override
   void dispose() {
     focus.dispose();

@@ -323,17 +323,15 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
     _press.start(event);
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final theme = SettingsTheme.of(context).themeData;
-    final tokens = fluentTokensOf(context);
-    final compact = FluentPaneModeScope.compactOf(context);
+  /// The item's fill, label color and icon color in its current state.
+  ({Color? fill, Color foreground, Color iconColor}) _colors(
+    SettingsThemeData theme,
+    FluentTokens tokens, {
+    required bool pressed,
+    required bool hovered,
+  }) {
     final enabled = widget.enabled;
-    final clickable = _clickable(compact);
     final selected = widget.selected;
-    final pressed = clickable && _press.pressed;
-    final hovered = clickable && _hovered;
-
     final selectedFill = theme.selectedTileColor ?? tokens.navItemSelected;
     final Color? fill;
     if (!enabled) {
@@ -370,6 +368,22 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
         : selected
         ? (theme.selectedTileIconColor ?? primary)
         : (theme.leadingIconsColor ?? primary);
+    return (fill: fill, foreground: foreground, iconColor: iconColor);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = SettingsTheme.of(context).themeData;
+    final tokens = fluentTokensOf(context);
+    final compact = FluentPaneModeScope.compactOf(context);
+    final enabled = widget.enabled;
+    final clickable = _clickable(compact);
+    final (:fill, :foreground, :iconColor) = _colors(
+      theme,
+      tokens,
+      pressed: clickable && _press.pressed,
+      hovered: clickable && _hovered,
+    );
 
     final labelStyle = (theme.tileTextStyle ?? FluentTypography.body).copyWith(
       color: foreground,
@@ -396,12 +410,42 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
       constraints: const BoxConstraints(minHeight: kFluentPaneItemMinHeight),
       child: Padding(
         padding: EdgeInsets.symmetric(vertical: textScaler.scale(2)),
-        child: _content(
-          icon: icon,
-          iconColor: iconColor,
-          labelStyle: labelStyle,
-          compact: compact,
-          clickable: clickable,
+        child: buildLine(
+          leading: SizedBox(
+            width: _kIconColumn,
+            child: icon == null
+                ? null
+                : Center(
+                    child: IconTheme.merge(
+                      data: IconThemeData(color: iconColor, size: _kIconSize),
+                      child: icon,
+                    ),
+                  ),
+          ),
+          // The rail shows only the icon.
+          leadingOnly: compact,
+          titleStyle: labelStyle,
+          titlePadding: const EdgeInsetsDirectional.only(
+            start: _kLabelStart,
+            end: _kLabelEnd,
+          ),
+          trailingStyle: labelStyle,
+          trailingIconColor: iconColor,
+          endPadding: const EdgeInsetsDirectional.only(end: _kLabelEnd),
+          // The item takes the focus when it can be clicked; otherwise the
+          // switch does, so the keyboard can reach it.
+          toggle: compact || !isSwitch
+              ? null
+              : ExcludeFocus(
+                  excluding: clickable,
+                  child: _labelSwitchIfSeparate(
+                    FluentSettingsSwitch(
+                      value: widget.initialValue,
+                      onChanged: enabled ? widget.onToggle : null,
+                      activeTrackColor: widget.activeSwitchColor,
+                    ),
+                  ),
+                ),
         ),
       ),
     );
@@ -436,7 +480,7 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
     // The pill paints over the item (and, while it slides, over its
     // neighbors), in the accent color.
     item = CustomPaint(
-      foregroundPainter: selected
+      foregroundPainter: widget.selected
           ? _PillPainter(
               animation: _pill,
               from: _pillFrom,
@@ -495,75 +539,6 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
     if (_mergesSwitch) semantics = MergeSemantics(child: semantics);
 
     return IgnorePointer(ignoring: !enabled, child: semantics);
-  }
-
-  /// The item's line: the icon in its column and, in the open pane, the
-  /// label, the trailing widget and the switch.
-  Widget _content({
-    required Widget? icon,
-    required Color iconColor,
-    required TextStyle labelStyle,
-    required bool compact,
-    required bool clickable,
-  }) {
-    return Row(
-      children: [
-        SizedBox(
-          width: _kIconColumn,
-          child: icon == null
-              ? null
-              : Center(
-                  child: IconTheme.merge(
-                    data: IconThemeData(color: iconColor, size: _kIconSize),
-                    child: icon,
-                  ),
-                ),
-        ),
-        if (!compact) ...[
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsetsDirectional.only(
-                start: _kLabelStart,
-                end: _kLabelEnd,
-              ),
-              child: DefaultTextStyle(
-                style: labelStyle,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                child: widget.title,
-              ),
-            ),
-          ),
-          if (widget.trailing != null)
-            Padding(
-              padding: const EdgeInsetsDirectional.only(end: _kLabelEnd),
-              child: IconTheme.merge(
-                data: IconThemeData(color: iconColor, size: _kIconSize),
-                child: DefaultTextStyle(
-                  style: labelStyle,
-                  child: widget.trailing!,
-                ),
-              ),
-            ),
-          if (isSwitch)
-            Padding(
-              padding: const EdgeInsetsDirectional.only(end: _kLabelEnd),
-              // The item takes the focus when it can be clicked;
-              // otherwise the switch does, so the keyboard can reach it.
-              child: ExcludeFocus(
-                excluding: clickable,
-                child: _labelSwitchIfSeparate(
-                  FluentSettingsSwitch(
-                    value: widget.initialValue,
-                    onChanged: widget.enabled ? widget.onToggle : null,
-                    activeTrackColor: widget.activeSwitchColor,
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ],
-    );
   }
 
   /// The rail shows an item's label in a tooltip next to it.

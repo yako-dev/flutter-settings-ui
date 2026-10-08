@@ -192,6 +192,36 @@ class _AdwaitaSidebarRowState extends State<AdwaitaSidebarRow>
         ? (theme.selectedTileIconColor ?? foreground)
         : (theme.leadingIconsColor ?? foreground);
 
+    final leading = widget.leading;
+    final line = buildLine(
+      leading: leading == null
+          ? null
+          : Padding(
+              padding: const EdgeInsetsDirectional.only(end: _kIconGap),
+              child: IconTheme.merge(
+                data: IconThemeData(color: iconColor, size: _kIconSize),
+                child: leading,
+              ),
+            ),
+      titleStyle: (theme.tileTextStyle ?? _kLabelStyle).copyWith(
+        color: textColor,
+      ),
+      trailingStyle: _kLabelStyle.copyWith(color: textColor),
+      trailingIconColor: iconColor,
+      endPadding: const EdgeInsetsDirectional.only(start: 6),
+      // The row takes the focus and the clicks, like `AdwSwitchRow`.
+      toggle: !isSwitch
+          ? null
+          : ExcludeFocus(
+              child: AdwaitaSettingsSwitch(
+                value: widget.initialValue,
+                onChanged: enabled ? widget.onToggle : null,
+                activeTrackColor: widget.activeSwitchColor,
+                brightness: isDark ? Brightness.dark : Brightness.light,
+              ),
+            ),
+    );
+
     final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
     final box = AnimatedContainer(
       // Rows fade their hover and pressed backgrounds in 200 ms.
@@ -211,12 +241,7 @@ class _AdwaitaSidebarRowState extends State<AdwaitaSidebarRow>
       foregroundDecoration: showsFocusRing && _activatable
           ? _focusRing(isDark)
           : null,
-      child: _content(
-        theme,
-        isDark: isDark,
-        textColor: textColor,
-        iconColor: iconColor,
-      ),
+      child: line,
     );
 
     return Padding(
@@ -265,62 +290,6 @@ class _AdwaitaSidebarRowState extends State<AdwaitaSidebarRow>
           ),
         ),
       ),
-    );
-  }
-
-  /// The row's line: the icon, the label, then the trailing widget and the
-  /// switch.
-  Widget _content(
-    SettingsThemeData theme, {
-    required bool isDark,
-    required Color textColor,
-    required Color iconColor,
-  }) {
-    return Row(
-      children: [
-        if (widget.leading != null)
-          Padding(
-            padding: const EdgeInsetsDirectional.only(end: _kIconGap),
-            child: IconTheme.merge(
-              data: IconThemeData(color: iconColor, size: _kIconSize),
-              child: widget.leading!,
-            ),
-          ),
-        Expanded(
-          child: DefaultTextStyle(
-            style: (theme.tileTextStyle ?? _kLabelStyle).copyWith(
-              color: textColor,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            child: widget.title,
-          ),
-        ),
-        if (widget.trailing != null)
-          Padding(
-            padding: const EdgeInsetsDirectional.only(start: 6),
-            child: IconTheme.merge(
-              data: IconThemeData(color: iconColor, size: _kIconSize),
-              child: DefaultTextStyle(
-                style: _kLabelStyle.copyWith(color: textColor),
-                child: widget.trailing!,
-              ),
-            ),
-          ),
-        if (isSwitch)
-          Padding(
-            padding: const EdgeInsetsDirectional.only(start: 6),
-            // The row takes the focus and the clicks, like `AdwSwitchRow`.
-            child: ExcludeFocus(
-              child: AdwaitaSettingsSwitch(
-                value: widget.initialValue,
-                onChanged: widget.enabled ? widget.onToggle : null,
-                activeTrackColor: widget.activeSwitchColor,
-                brightness: isDark ? Brightness.dark : Brightness.light,
-              ),
-            ),
-          ),
-      ],
     );
   }
 }
