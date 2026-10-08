@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:settings_ui/src/sections/section_header.dart';
 import 'package:settings_ui/src/tiles/abstract_settings_tile.dart';
 import 'package:settings_ui/src/tiles/platforms/adwaita_settings_tile.dart';
 import 'package:settings_ui/src/tiles/tile_semantics.dart';
@@ -92,14 +93,10 @@ class AdwaitaSettingsSection extends StatelessWidget {
                 constraints: const BoxConstraints(minHeight: _kTitleMinHeight),
                 child: Align(
                   alignment: AlignmentDirectional.centerStart,
-                  child: Semantics(
-                    container: true,
-                    header: true,
-                    child: DefaultTextStyle(
-                      style: (theme.titleTextStyle ?? _kHeadingStyle).copyWith(
-                        color: theme.titleTextColor,
-                      ),
-                      child: title!,
+                  child: sectionTitle(
+                    title!,
+                    style: (theme.titleTextStyle ?? _kHeadingStyle).copyWith(
+                      color: theme.titleTextColor,
                     ),
                   ),
                 ),

@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:settings_ui/src/sections/section_header.dart';
 import 'package:settings_ui/src/tiles/abstract_settings_tile.dart';
 import 'package:settings_ui/src/tiles/settings_tile.dart';
 import 'package:settings_ui/src/tiles/tile_semantics.dart';
@@ -48,7 +49,8 @@ class FluentSettingsSection extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             if (title != null)
-              Padding(
+              sectionHeader(
+                title: title!,
                 padding:
                     titlePadding ??
                     EdgeInsetsDirectional.only(
@@ -56,15 +58,8 @@ class FluentSettingsSection extends StatelessWidget {
                       top: afterPageTitle ? 19 : 30,
                       bottom: 6,
                     ),
-                child: Semantics(
-                  container: true,
-                  header: true,
-                  child: DefaultTextStyle(
-                    style: (theme.titleTextStyle ?? FluentTypography.bodyStrong)
-                        .copyWith(color: theme.titleTextColor),
-                    child: title!,
-                  ),
-                ),
+                style: (theme.titleTextStyle ?? FluentTypography.bodyStrong)
+                    .copyWith(color: theme.titleTextColor),
               ),
             for (var i = 0; i < tiles.length; i++)
               Padding(

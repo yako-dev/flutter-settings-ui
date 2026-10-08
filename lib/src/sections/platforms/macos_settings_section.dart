@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/src/sections/abstract_settings_section.dart';
+import 'package:settings_ui/src/sections/section_header.dart';
 import 'package:settings_ui/src/sections/settings_section.dart';
 import 'package:settings_ui/src/tiles/abstract_settings_tile.dart';
 import 'package:settings_ui/src/tiles/platforms/macos_settings_tile.dart';
@@ -59,7 +60,8 @@ class MacosSettingsSection extends StatelessWidget {
     if (title != null) {
       final style = theme.titleTextStyle ?? kMacosHeaderStyle;
       children.add(
-        Padding(
+        sectionHeader(
+          title: title!,
           padding:
               titlePadding ??
               EdgeInsetsDirectional.only(
@@ -67,14 +69,7 @@ class MacosSettingsSection extends StatelessWidget {
                 end: kMacosRowInset,
                 bottom: textScaler.scale(headerBottomGap),
               ),
-          child: Semantics(
-            container: true,
-            header: true,
-            child: DefaultTextStyle(
-              style: style.copyWith(color: style.color ?? theme.titleTextColor),
-              child: title!,
-            ),
-          ),
+          style: style.copyWith(color: style.color ?? theme.titleTextColor),
         ),
       );
     }
