@@ -219,26 +219,16 @@ class _Entry {
 
 class _SettingsSplitViewState extends State<SettingsSplitView>
     with RestorationMixin {
-  /// The destination the user picked (a tap or [SettingsSplitController]).
-  /// Null means none: two panes show the initial destination, one pane shows
-  /// the list.
-  final RestorableStringN _picked = RestorableStringN(null);
-
   SettingsSplitController? _ownController;
   SettingsSplitController get _controller =>
       widget.controller ?? (_ownController ??= SettingsSplitController());
 
-  final GlobalKey _listKey = GlobalKey(debugLabel: 'SettingsSplitView list');
-  final GlobalKey<NavigatorState> _detailKey = GlobalKey<NavigatorState>(
-    debugLabel: 'SettingsSplitView detail',
-  );
-  final GlobalKey<NavigatorState> _stackKey = GlobalKey<NavigatorState>(
-    debugLabel: 'SettingsSplitView stack',
-  );
-  late final _DetailObserver _detailObserver = _DetailObserver(
-    _handleDetailPush,
-  );
-  late final _StackObserver _stackObserver = _StackObserver(_syncStack);
+  // The destinations and the pick.
+
+  /// The destination the user picked (a tap or [SettingsSplitController]).
+  /// Null means none: two panes show the initial destination, one pane shows
+  /// the list.
+  final RestorableStringN _picked = RestorableStringN(null);
 
   /// Top-level destinations from [SettingsSplitView.sections], in order.
   Map<String, _Entry> _destinations = const {};
@@ -253,6 +243,36 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
   bool _isSplit = false;
   String? _shownId;
 
+  /// What the listeners last heard was shown. Null until the first layout
+  /// is reported, which is not a change of destination.
+  ({String? id, bool isSplit})? _notified;
+  bool _notifyScheduled = false;
+
+  /// The view's place in the window, measured after a frame when a display
+  /// feature may cut a view that doesn't span the window (see [_findHinge]).
+  Offset _measuredOrigin = Offset.zero;
+  bool _originCheckScheduled = false;
+
+  // The two navigators.
+  //
+  // The detail navigator shows the page and what is pushed inside it. With
+  // two panes it sits next to the list. With one pane a second navigator,
+  // the stack, holds the list and, over it, the page that hosts the detail
+  // navigator ([_hostPage]); a route that a list tile pushes itself lands
+  // on the stack too. The fields below are what the view knows about the
+  // two, kept up to date by the observers and the navigators' notifications
+  // (see "Back").
+  final GlobalKey<NavigatorState> _detailKey = GlobalKey<NavigatorState>(
+    debugLabel: 'SettingsSplitView detail',
+  );
+  final GlobalKey<NavigatorState> _stackKey = GlobalKey<NavigatorState>(
+    debugLabel: 'SettingsSplitView stack',
+  );
+  late final _DetailObserver _detailObserver = _DetailObserver(
+    _handleDetailPush,
+  );
+  late final _StackObserver _stackObserver = _StackObserver(_syncStack);
+
   /// The page at the root of the detail navigator. One pane keeps the last
   /// page there while its route animates out.
   String? _detailRootId;
@@ -260,7 +280,12 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
   /// Bumped when one pane pushes a page over the list; see [_DetailHost].
   int _hostGeneration = 0;
 
+  /// Back belongs to the detail navigator: it has a page to pop, or its top
+  /// page vetoes back.
   bool _detailCanPop = false;
+
+  /// The list pane's back button was pressed: the view lets back through
+  /// until the settings screen has closed, or refused to (see [_leave]).
   bool _leaving = false;
 
   /// One pane: the top route of the stack navigator was pushed from the
@@ -273,18 +298,8 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
   /// vanish when the window widens.
   bool _holdOnePane = false;
 
-  /// Whether the Windows style's compact rail is open over the detail pane.
-  bool _fluentPaneOpen = false;
-  Offset _measuredOrigin = Offset.zero;
-  bool _originCheckScheduled = false;
-
-  bool _notifyScheduled = false;
-  bool _notifiedOnce = false;
-  String? _notifiedId;
-  bool _notifiedSplit = false;
-
-  /// Whether the iOS large title has scrolled under the bar.
-  final ValueNotifier<bool> _largeTitleHidden = ValueNotifier<bool>(false);
+  // The list pane.
+  final GlobalKey _listKey = GlobalKey(debugLabel: 'SettingsSplitView list');
 
   /// Around the list pane, to hand it the keyboard focus.
   final FocusNode _listFocusNode = FocusNode(
@@ -292,6 +307,19 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
     skipTraversal: true,
     canRequestFocus: false,
   );
+
+  /// Tab and Shift+Tab between the panes.
+  late final Map<Type, Action<Intent>> _paneFocusActions =
+      <Type, Action<Intent>>{
+        NextFocusIntent: _PaneFocusAction<NextFocusIntent>(this, true),
+        PreviousFocusIntent: _PaneFocusAction<PreviousFocusIntent>(this, false),
+      };
+
+  /// Whether the iOS large title has scrolled under the bar.
+  final ValueNotifier<bool> _largeTitleHidden = ValueNotifier<bool>(false);
+
+  /// Whether the Windows style's compact rail is open over the detail pane.
+  bool _fluentPaneOpen = false;
 
   @override
   String? get restorationId => widget.restorationId;
@@ -336,6 +364,22 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
   }
 
   // Destinations -----------------------------------------------------------
+
+  /// Reads the destinations of the sections' tiles ahead for this build,
+  /// and forgets the pick if its tile is gone.
+  void _readDestinations() {
+    final previous = _destinations;
+    _destinations = _collectDestinations();
+    final picked = _picked.value;
+    if (picked != null &&
+        previous.containsKey(picked) &&
+        _lookup(picked) == null) {
+      // The picked page's tile is gone (a conditional page): forget the
+      // pick, so the page doesn't come back by itself with the tile. (A
+      // restorable value; writing it doesn't call setState.)
+      _picked.value = null;
+    }
+  }
 
   Map<String, _Entry> _collectDestinations() {
     final result = <String, _Entry>{};
@@ -560,20 +604,16 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
 
   void _scheduleNotify() {
     if (_notifyScheduled) return;
-    if (_notifiedOnce &&
-        _shownId == _notifiedId &&
-        _isSplit == _notifiedSplit) {
-      return;
-    }
+    if (_notified == (id: _shownId, isSplit: _isSplit)) return;
     _notifyScheduled = true;
     SchedulerBinding.instance.addPostFrameCallback((_) {
       _notifyScheduled = false;
       if (!mounted) return;
-      final idChanged = _notifiedOnce && _shownId != _notifiedId;
-      _notifiedOnce = true;
-      _notifiedId = _shownId;
-      _notifiedSplit = _isSplit;
-      if (idChanged) widget.onDestinationChanged?.call(_shownId);
+      final previous = _notified;
+      _notified = (id: _shownId, isSplit: _isSplit);
+      if (previous != null && previous.id != _shownId) {
+        widget.onDestinationChanged?.call(_shownId);
+      }
       _controller._notify();
     }, debugLabel: 'SettingsSplitView.notify');
   }
@@ -589,64 +629,63 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
       darkTheme: widget.darkTheme,
       applicationType: widget.applicationType,
     ).resolve(context);
-    final previous = _destinations;
-    _destinations = _collectDestinations();
-    final picked = _picked.value;
-    if (picked != null &&
-        previous.containsKey(picked) &&
-        _lookup(picked) == null) {
-      // The picked page's tile is gone (a conditional page): forget the
-      // pick, so the page doesn't come back by itself with the tile. (A
-      // restorable value; writing it doesn't call setState.)
-      _picked.value = null;
-    }
+    _readDestinations();
     final route = ModalRoute.of(context);
     final canLeave = route?.impliesAppBarDismissal ?? false;
 
     return LayoutBuilder(
-      builder: (context, constraints) {
-        final window = MediaQuery.sizeOf(context);
-        final width = constraints.hasBoundedWidth
-            ? constraints.maxWidth
-            : window.width;
-        final height = constraints.hasBoundedHeight
-            ? constraints.maxHeight
-            : window.height;
-        final textDirection = Directionality.of(context);
+      builder: (context, constraints) => _buildLayout(
+        style,
+        _computeGeometry(context, constraints, style.platform),
+        canLeave,
+      ),
+    );
+  }
 
-        final features = MediaQuery.displayFeaturesOf(context);
-        SeparatingHinge? hinge;
-        if (features.isNotEmpty) {
-          // Display features are in window coordinates. A full-width view
-          // starts at the window's left edge; otherwise measure where it is.
-          final fullWidth = (width - window.width).abs() < 0.5;
-          if (!fullWidth) _scheduleOriginCheck();
-          hinge = findSeparatingHinge(
-            features: features,
-            origin: fullWidth ? Offset.zero : _measuredOrigin,
-            size: Size(width, height),
-          );
-        }
+  /// One or two panes, and how wide, for a view that gets [constraints].
+  SplitGeometry _computeGeometry(
+    BuildContext context,
+    BoxConstraints constraints,
+    DevicePlatform platform,
+  ) {
+    final window = MediaQuery.sizeOf(context);
+    final size = Size(
+      constraints.hasBoundedWidth ? constraints.maxWidth : window.width,
+      constraints.hasBoundedHeight ? constraints.maxHeight : window.height,
+    );
+    final textDirection = Directionality.of(context);
+    final hinge = _findHinge(context, window, size);
+    final geometry = computeSplitGeometry(
+      family: settingsStyleFamily(platform),
+      forceSingle: widget.layout == SettingsSplitLayout.single,
+      forceSplit: widget.layout == SettingsSplitLayout.split,
+      width: size.width,
+      shortestSide: window.shortestSide,
+      desktop: isDesktopPlatform(Theme.of(context).platform),
+      textDirection: textDirection,
+      textScaler: MediaQuery.textScalerOf(context),
+      breakpoint: widget.breakpoint,
+      listPaneWidth: widget.listPaneWidth,
+      hinge: hinge,
+    );
+    // A route pushed from the list pane lives in the one-pane navigator:
+    // keep it (and one pane) until it closes. It covers the view either
+    // way, as it does with two panes.
+    return _holdOnePane ? const SplitGeometry.single() : geometry;
+  }
 
-        var geometry = computeSplitGeometry(
-          family: settingsStyleFamily(style.platform),
-          forceSingle: widget.layout == SettingsSplitLayout.single,
-          forceSplit: widget.layout == SettingsSplitLayout.split,
-          width: width,
-          shortestSide: window.shortestSide,
-          desktop: isDesktopPlatform(Theme.of(context).platform),
-          textDirection: textDirection,
-          textScaler: MediaQuery.textScalerOf(context),
-          breakpoint: widget.breakpoint,
-          listPaneWidth: widget.listPaneWidth,
-          hinge: hinge,
-        );
-        // A route pushed from the list pane lives in the one-pane navigator:
-        // keep it (and one pane) until it closes. It covers the view either
-        // way, as it does with two panes.
-        if (_holdOnePane) geometry = const SplitGeometry.single();
-        return _buildLayout(context, style, geometry, canLeave);
-      },
+  /// The hinge or fold that cuts the view, [size] big, in two screens.
+  SeparatingHinge? _findHinge(BuildContext context, Size window, Size size) {
+    final features = MediaQuery.displayFeaturesOf(context);
+    if (features.isEmpty) return null;
+    // Display features are in window coordinates. A full-width view
+    // starts at the window's left edge; otherwise measure where it is.
+    final fullWidth = (size.width - window.width).abs() < 0.5;
+    if (!fullWidth) _scheduleOriginCheck();
+    return findSeparatingHinge(
+      features: features,
+      origin: fullWidth ? Offset.zero : _measuredOrigin,
+      size: size,
     );
   }
 
@@ -666,43 +705,23 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
   }
 
   Widget _buildLayout(
-    BuildContext context,
     ResolvedSettingsStyle style,
     SplitGeometry geometry,
     bool canLeave,
   ) {
-    final isSplit = geometry.isSplit;
-    final picked = _pickedId;
-    final shownId = isSplit ? (picked ?? _autoId) : picked;
-    if (_laidOut && isSplit != _isSplit) _keepFocusAcrossLayouts();
-    _laidOut = true;
-    _isSplit = isSplit;
-    if (!geometry.compactPane) _fluentPaneOpen = false;
-    _shownId = shownId;
-    if (isSplit || shownId != null) _detailRootId = shownId;
-    _scheduleNotify();
-
-    final Widget panes;
-    if (isSplit) {
-      panes = _buildTwoPanes(style, geometry, canLeave);
-    } else {
-      panes = _buildOnePane(style, canLeave);
-    }
+    _recordLayout(geometry);
+    final panes = geometry.isSplit
+        ? _buildTwoPanes(style, geometry, canLeave)
+        : _buildOnePane(style, canLeave);
 
     return SettingsSplitScope(
       controller: _controller,
-      isSplit: isSplit,
-      shownId: shownId,
+      isSplit: _isSplit,
+      shownId: _shownId,
       hostGeneration: _hostGeneration,
       goBack: _handleBack,
       child: Actions(
-        actions: <Type, Action<Intent>>{
-          NextFocusIntent: _PaneFocusAction<NextFocusIntent>(this, true),
-          PreviousFocusIntent: _PaneFocusAction<PreviousFocusIntent>(
-            this,
-            false,
-          ),
-        },
+        actions: _paneFocusActions,
         child: PopScope<Object?>(
           canPop: !_canHandleBack,
           onPopInvokedWithResult: (didPop, result) {
@@ -719,6 +738,21 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
         ),
       ),
     );
+  }
+
+  /// Notes what a layout with [geometry] shows, for back handling, the
+  /// controller and the next layout.
+  void _recordLayout(SplitGeometry geometry) {
+    final isSplit = geometry.isSplit;
+    final picked = _pickedId;
+    final shownId = isSplit ? (picked ?? _autoId) : picked;
+    if (_laidOut && isSplit != _isSplit) _keepFocusAcrossLayouts();
+    _laidOut = true;
+    _isSplit = isSplit;
+    if (!geometry.compactPane) _fluentPaneOpen = false;
+    _shownId = shownId;
+    if (isSplit || shownId != null) _detailRootId = shownId;
+    _scheduleNotify();
   }
 
   Widget _buildTwoPanes(
