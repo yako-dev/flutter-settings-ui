@@ -471,4 +471,74 @@ void splitFixTests() {
       });
     }
   });
+
+  group('Windows compact rail: what an item reads as', () {
+    testWidgets('the title\'s semanticsLabel, like in the open pane', (
+      tester,
+    ) async {
+      final handle = tester.ensureSemantics();
+      await _setSize(tester, const Size(800, 700));
+      SettingsDestination page(String id) =>
+          SettingsDestination(id: id, builder: (_) => Text('$id body'));
+      await tester.pumpWidget(
+        _app(
+          SettingsSplitView(
+            platform: DevicePlatform.windows,
+            sections: [
+              SettingsSection(
+                tiles: [
+                  SettingsTile.navigation(
+                    leading: const Icon(Icons.wifi),
+                    title: const Text('Wi-Fi', semanticsLabel: 'Wireless'),
+                    destination: page('wifi'),
+                  ),
+                  SettingsTile.navigation(
+                    leading: const Icon(Icons.bluetooth),
+                    title: RichText(
+                      text: const TextSpan(
+                        text: 'BT',
+                        semanticsLabel: 'Bluetooth',
+                        style: TextStyle(color: Color(0xFF000000)),
+                      ),
+                    ),
+                    destination: page('bluetooth'),
+                  ),
+                  SettingsTile.navigation(
+                    leading: const Icon(Icons.volume_up),
+                    title: const Text('Sound'),
+                    destination: page('sound'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          platform: TargetPlatform.windows,
+        ),
+      );
+      await tester.pumpAndSettle();
+      String labelOf(Finder finder) =>
+          tester.getSemantics(_inList(finder)).getSemanticsData().label;
+
+      // The rail shows the icons only.
+      expect(_inList(find.text('Wi-Fi')), findsNothing);
+      expect(labelOf(find.byIcon(Icons.wifi)), 'Wireless');
+      expect(labelOf(find.byIcon(Icons.bluetooth)), 'Bluetooth');
+      expect(labelOf(find.byIcon(Icons.volume_up)), 'Sound');
+      // The tooltip stands in for the label the open pane draws.
+      expect(
+        find.byWidgetPredicate(
+          (widget) => widget is Tooltip && widget.message == 'Wi-Fi',
+        ),
+        findsOneWidget,
+      );
+
+      // The open pane reads the same.
+      await tester.tap(find.bySemanticsLabel('Open navigation menu'));
+      await tester.pumpAndSettle();
+      expect(labelOf(find.text('Wi-Fi')), 'Wireless');
+      expect(labelOf(find.byIcon(Icons.bluetooth)), 'Bluetooth');
+      expect(labelOf(find.text('Sound')), 'Sound');
+      handle.dispose();
+    });
+  });
 }

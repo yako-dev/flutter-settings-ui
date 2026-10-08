@@ -11,6 +11,7 @@ import 'package:settings_ui/src/split/sidebar_row.dart';
 import 'package:settings_ui/src/split/sidebar_section.dart';
 import 'package:settings_ui/src/tiles/platforms/fluent_settings_switch.dart';
 import 'package:settings_ui/src/tiles/tile_press.dart';
+import 'package:settings_ui/src/tiles/tile_semantics.dart';
 import 'package:settings_ui/src/utils/fluent_tokens.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 
@@ -495,7 +496,9 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
       selected: widget.semanticsSelected,
       toggled: togglesOnTap ? tile.initialValue : null,
       onTap: clickable ? activateRow : null,
-      label: compact ? tooltip : null,
+      // The rail doesn't draw the title: the item reads as the title
+      // would, so its semantics label wins over its text.
+      label: compact ? tileTitleLabel(title) : null,
       child: item,
     );
     if (_mergesSwitch) semantics = MergeSemantics(child: semantics);
