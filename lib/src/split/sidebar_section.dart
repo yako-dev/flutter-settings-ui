@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:settings_ui/src/tiles/tile_semantics.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 
 /// A group of a desktop sidebar (macOS, Windows or GNOME style): its rows,
@@ -35,7 +36,7 @@ abstract class SidebarSection extends StatelessWidget {
       children: [
         if (header != null)
           Semantics(container: true, header: true, child: header),
-        ...tiles,
+        for (final tile in tiles) tileSemanticsNode(tile),
       ],
     );
   }

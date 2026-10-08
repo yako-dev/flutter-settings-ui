@@ -1,3 +1,4 @@
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -386,5 +387,88 @@ void splitFixTests() {
       await tester.pumpAndSettle();
       expect(find.text('Sound body'), findsNothing);
     });
+  });
+
+  group('custom tiles next to each other are semantics nodes of their '
+      'own', () {
+    List<AbstractSettingsSection> sections() => [
+      SettingsSection(
+        title: const Text('Head'),
+        tiles: [
+          _page('Network'),
+          const CustomSettingsTile(child: Text('First custom')),
+          const CustomSettingsTile(child: Text('Second custom')),
+          const CustomSettingsTile(child: Text('Third custom')),
+        ],
+      ),
+    ];
+
+    /// The labels a screen reader reads, one per node it visits.
+    List<String> labelsRead(WidgetTester tester) {
+      final labels = <String>[];
+      void visit(SemanticsNode node) {
+        final label = node.getSemanticsData().label;
+        if (!node.isMergedIntoParent && label.isNotEmpty) labels.add(label);
+        node.visitChildren((child) {
+          visit(child);
+          return true;
+        });
+      }
+
+      visit(
+        tester
+            .binding
+            .renderViews
+            .first
+            .owner!
+            .semanticsOwner!
+            .rootSemanticsNode!,
+      );
+      return labels;
+    }
+
+    void expectOwnNodes(WidgetTester tester) {
+      expect(
+        labelsRead(tester).where((label) => label.contains('custom')),
+        unorderedEquals(['First custom', 'Second custom', 'Third custom']),
+      );
+    }
+
+    for (final platform in [DevicePlatform.iOS, DevicePlatform.web]) {
+      testWidgets('$platform: in a list', (tester) async {
+        final handle = tester.ensureSemantics();
+        await tester.pumpWidget(
+          _app(
+            Scaffold(
+              body: SettingsList(platform: platform, sections: sections()),
+            ),
+          ),
+        );
+        expectOwnNodes(tester);
+        handle.dispose();
+      });
+    }
+
+    for (final platform in [
+      DevicePlatform.iOS,
+      DevicePlatform.macOS,
+      DevicePlatform.windows,
+      DevicePlatform.linux,
+    ]) {
+      testWidgets('$platform: in a split view\'s list pane', (tester) async {
+        final handle = tester.ensureSemantics();
+        await _setSize(tester, const Size(1400, 900));
+        await tester.pumpWidget(
+          _app(
+            SettingsSplitView(platform: platform, sections: sections()),
+            platform: _targetOf(platform),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(_inList(find.text('First custom')), findsOneWidget);
+        expectOwnNodes(tester);
+        handle.dispose();
+      });
+    }
   });
 }
