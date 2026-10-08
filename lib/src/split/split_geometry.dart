@@ -2,6 +2,8 @@ import 'dart:math' as math;
 import 'dart:ui' show DisplayFeature, DisplayFeatureState, DisplayFeatureType;
 
 import 'package:flutter/widgets.dart';
+import 'package:settings_ui/src/tiles/platforms/adwaita_settings_tile.dart'
+    show kAdwaitaBodyFontSize;
 import 'package:settings_ui/src/utils/settings_style.dart';
 
 /// iPad Settings keeps its sidebar at 320pt in both orientations
@@ -58,14 +60,12 @@ const double kAdwaitaSidebarMaxWidth = 280;
 /// ...and the view collapses to one pane at `max-width: 550sp`.
 const double kAdwaitaCollapseWidth = 550;
 
-/// GNOME's body text, 11pt (14.67px).
-const double _kAdwaitaBodyFontSize = 44 / 3;
-
 /// How much GNOME's sp sizes grow with the text size: as much as its body
-/// text. A non-linear [TextScaler] (Android 14 and later) grows large sizes
-/// less than text, so scaling 180 or 550 directly would barely move them.
+/// text (11pt, 14.67px). A non-linear [TextScaler] (Android 14 and later)
+/// grows large sizes less than text, so scaling 180 or 550 directly would
+/// barely move them.
 double adwaitaSpScale(TextScaler textScaler) =>
-    textScaler.scale(_kAdwaitaBodyFontSize) / _kAdwaitaBodyFontSize;
+    textScaler.scale(kAdwaitaBodyFontSize) / kAdwaitaBodyFontSize;
 
 /// Where the panes go, for one layout pass. Internal.
 @immutable

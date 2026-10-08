@@ -42,16 +42,26 @@ const Duration _kHighlightDuration = Duration(milliseconds: 200);
 const Curve _kHighlightCurve = Cubic(0.25, 0.46, 0.45, 0.94);
 
 /// Body text: Adwaita Sans 11 pt (14.67 px) on an 18 px line.
-const double _kBodyFontSize = 44 / 3;
+const double kAdwaitaBodyFontSize = 44 / 3;
 
 /// Row subtitles use the `smaller` size (12.22 px) on a 15 px line.
-const double _kSubtitleFontSize = _kBodyFontSize / 1.2;
+const double _kSubtitleFontSize = kAdwaitaBodyFontSize / 1.2;
 
-/// Row titles: body text. The boxed list also gives it to custom rows.
+/// Row titles and sidebar labels: body text. The boxed list also gives it
+/// to custom rows.
 const TextStyle kAdwaitaBodyStyle = TextStyle(
-  fontSize: _kBodyFontSize,
+  fontSize: kAdwaitaBodyFontSize,
   fontWeight: FontWeight.w400,
-  height: 18 / _kBodyFontSize,
+  height: 18 / kAdwaitaBodyFontSize,
+  leadingDistribution: TextLeadingDistribution.even,
+);
+
+/// `.heading`: body text in bold, for group titles, sidebar headings and
+/// header bar titles.
+const TextStyle kAdwaitaHeadingStyle = TextStyle(
+  fontSize: kAdwaitaBodyFontSize,
+  fontWeight: FontWeight.w700,
+  height: 18 / kAdwaitaBodyFontSize,
   leadingDistribution: TextLeadingDistribution.even,
 );
 
@@ -69,11 +79,21 @@ const Color _kForegroundLight = Color.fromRGBO(0, 0, 6, 0.8);
 const Color _kAccentLight = Color(0xFF0461BE);
 const Color _kAccentDark = Color(0xFF81D0FF);
 
-/// Whether the theme has light text, so the dark GNOME colors apply. The
-/// colors are the foreground color at different strengths, like
-/// `currentColor` in the libadwaita stylesheet.
+/// The GNOME foreground color of [theme]. Hover, pressed and selected
+/// backgrounds are this color at different strengths, like `currentColor`
+/// in the libadwaita stylesheet.
+Color adwaitaForegroundOf(SettingsThemeData theme) =>
+    theme.settingsTileTextColor ?? _kForegroundLight;
+
+/// Whether the theme has light text, so the dark GNOME colors apply.
 bool adwaitaIsDark(SettingsThemeData theme) =>
-    (theme.settingsTileTextColor ?? _kForegroundLight).computeLuminance() > 0.5;
+    adwaitaForegroundOf(theme).computeLuminance() > 0.5;
+
+/// The border of the 2 px focus ring of a row or a button.
+Border adwaitaFocusBorder({required bool isDark}) => Border.all(
+  color: (isDark ? _kAccentDark : _kAccentLight).withValues(alpha: 0.5),
+  width: 2,
+);
 
 class AdwaitaSettingsTile extends StatefulWidget {
   const AdwaitaSettingsTile(this.tile, {super.key});
@@ -132,7 +152,6 @@ class _AdwaitaSettingsTileState extends State<AdwaitaSettingsTile>
     final isDark = adwaitaIsDark(theme);
     final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
 
-    final accent = isDark ? _kAccentDark : _kAccentLight;
     const corner = Radius.circular(kAdwaitaCardRadius);
     final highlighted = AnimatedContainer(
       duration: reduceMotion ? Duration.zero : _kHighlightDuration,
@@ -141,10 +160,7 @@ class _AdwaitaSettingsTileState extends State<AdwaitaSettingsTile>
       // A 2 px accent ring just inside the row, following the card corners.
       foregroundDecoration: _showFocusHighlight && _activatable
           ? BoxDecoration(
-              border: Border.all(
-                color: accent.withValues(alpha: 0.5),
-                width: 2,
-              ),
+              border: adwaitaFocusBorder(isDark: isDark),
               borderRadius: BorderRadius.vertical(
                 top: info.isFirst ? corner : Radius.zero,
                 bottom: info.isLast ? corner : Radius.zero,
@@ -194,7 +210,7 @@ class _AdwaitaSettingsTileState extends State<AdwaitaSettingsTile>
 
   /// GNOME uses the foreground at 3% on hover and 8% while pressed.
   Color _highlightColor(SettingsThemeData theme) {
-    final foreground = theme.settingsTileTextColor ?? _kForegroundLight;
+    final foreground = adwaitaForegroundOf(theme);
     final pressedColor =
         theme.tileHighlightColor ??
         foreground.withValues(alpha: foreground.a * 0.08);

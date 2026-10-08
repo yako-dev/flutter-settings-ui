@@ -38,23 +38,6 @@ const double kAdwaitaSidebarPaddingBottom = 4;
 const double _kButtonSize = 34;
 const double _kBarPadding = 6;
 
-/// Body text: 11pt (14.67px) on an 18px line; bold for titles.
-const double _kBodyFontSize = 44 / 3;
-
-const TextStyle _kLabelStyle = TextStyle(
-  fontSize: _kBodyFontSize,
-  fontWeight: FontWeight.w400,
-  height: 18 / _kBodyFontSize,
-  leadingDistribution: TextLeadingDistribution.even,
-);
-
-const TextStyle _kTitleStyle = TextStyle(
-  fontSize: _kBodyFontSize,
-  fontWeight: FontWeight.w700,
-  height: 18 / _kBodyFontSize,
-  leadingDistribution: TextLeadingDistribution.even,
-);
-
 /// Row backgrounds, as shares of the foreground color: hover 7%, selected
 /// 10%, selected and hovered 13%, pressed 16% (selected and pressed 19%).
 const double _kHover = 0.07;
@@ -62,26 +45,13 @@ const double _kSelectedHover = 0.13;
 const double _kPressed = 0.16;
 const double _kSelectedPressed = 0.19;
 
-/// `--accent-color`; focus rings use it at 50%.
-const Color _kAccentLight = Color(0xFF0461BE);
-const Color _kAccentDark = Color(0xFF81D0FF);
-
-/// The GNOME foreground color in light mode, `rgba(0, 0, 6, 0.8)`.
-const Color _kForegroundLight = Color.fromRGBO(0, 0, 6, 0.8);
-
-Color _foregroundOf(SettingsThemeData theme) =>
-    theme.settingsTileTextColor ?? _kForegroundLight;
-
 Color _share(Color foreground, double share) =>
     foreground.withValues(alpha: foreground.a * share);
 
 /// The 2px focus ring of a row or a header bar button.
 BoxDecoration _focusRing(bool isDark) => BoxDecoration(
   borderRadius: BorderRadius.circular(_kRowRadius),
-  border: Border.all(
-    color: (isDark ? _kAccentDark : _kAccentLight).withValues(alpha: 0.5),
-    width: 2,
-  ),
+  border: adwaitaFocusBorder(isDark: isDark),
 );
 
 /// `--sidebar-border-color`, the 1px line on the sidebar's content side.
@@ -150,7 +120,7 @@ class _AdwaitaSidebarRowState extends State<AdwaitaSidebarRow>
   Widget build(BuildContext context) {
     final theme = SettingsTheme.of(context).themeData;
     final textScaler = MediaQuery.textScalerOf(context);
-    final foreground = _foregroundOf(theme);
+    final foreground = adwaitaForegroundOf(theme);
     final isDark = adwaitaIsDark(theme);
     final enabled = tile.enabled;
     final selected = widget.selected;
@@ -194,10 +164,10 @@ class _AdwaitaSidebarRowState extends State<AdwaitaSidebarRow>
                 child: leading,
               ),
             ),
-      titleStyle: (theme.tileTextStyle ?? _kLabelStyle).copyWith(
+      titleStyle: (theme.tileTextStyle ?? kAdwaitaBodyStyle).copyWith(
         color: textColor,
       ),
-      trailingStyle: _kLabelStyle.copyWith(color: textColor),
+      trailingStyle: kAdwaitaBodyStyle.copyWith(color: textColor),
       trailingIconColor: iconColor,
       endPadding: const EdgeInsetsDirectional.only(start: 6),
       // The row takes the focus and the clicks, like `AdwSwitchRow`.
@@ -302,7 +272,7 @@ class AdwaitaSidebarSection extends SidebarSection {
     SettingsThemeData theme,
     Widget title,
   ) {
-    final style = theme.titleTextStyle ?? _kTitleStyle;
+    final style = theme.titleTextStyle ?? kAdwaitaHeadingStyle;
     return Padding(
       padding:
           titlePadding ??
@@ -314,7 +284,8 @@ class AdwaitaSidebarSection extends SidebarSection {
           ),
       child: DefaultTextStyle(
         style: style.copyWith(
-          color: style.color ?? theme.titleTextColor ?? _foregroundOf(theme),
+          color:
+              style.color ?? theme.titleTextColor ?? adwaitaForegroundOf(theme),
         ),
         child: title,
       ),
@@ -335,7 +306,7 @@ class AdwaitaSidebarSeparator extends StatelessWidget {
       padding: const EdgeInsets.all(_kRowMarginH),
       child: SizedBox(
         height: 1,
-        child: ColoredBox(color: _share(_foregroundOf(theme), 0.15)),
+        child: ColoredBox(color: _share(adwaitaForegroundOf(theme), 0.15)),
       ),
     );
   }
@@ -360,7 +331,7 @@ class AdwaitaHeaderBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = SettingsTheme.of(context).themeData;
-    final foreground = _foregroundOf(theme);
+    final foreground = adwaitaForegroundOf(theme);
     final title = this.title;
     final actions = this.actions;
     return SafeArea(
@@ -385,7 +356,7 @@ class AdwaitaHeaderBar extends StatelessWidget {
                 : Semantics(
                     header: true,
                     child: DefaultTextStyle(
-                      style: _kTitleStyle.copyWith(color: foreground),
+                      style: kAdwaitaHeadingStyle.copyWith(color: foreground),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       child: title,
@@ -417,7 +388,7 @@ class AdwaitaFlatButton extends SidebarButton {
   @override
   Widget buildButton(BuildContext context, SidebarButtonStates states) {
     final theme = SettingsTheme.of(context).themeData;
-    final foreground = _foregroundOf(theme);
+    final foreground = adwaitaForegroundOf(theme);
     return Container(
       width: _kButtonSize,
       height: _kButtonSize,

@@ -21,14 +21,6 @@ const double kAdwaitaPageTopMargin = 24;
 const double _kTitleMinHeight = 34;
 const double _kTitleGap = 6;
 
-/// `.heading`: Adwaita Sans 11 pt (14.67 px) bold on an 18 px line.
-const TextStyle _kHeadingStyle = TextStyle(
-  fontSize: 44 / 3,
-  fontWeight: FontWeight.w700,
-  height: 18 / (44 / 3),
-  leadingDistribution: TextLeadingDistribution.even,
-);
-
 /// The width `AdwClamp` gives its child when it has [width] to fill.
 ///
 /// Up to [tighteningThreshold] the child gets all of it. From there the
@@ -95,9 +87,8 @@ class AdwaitaSettingsSection extends StatelessWidget {
                   alignment: AlignmentDirectional.centerStart,
                   child: sectionTitle(
                     title!,
-                    style: (theme.titleTextStyle ?? _kHeadingStyle).copyWith(
-                      color: theme.titleTextColor,
-                    ),
+                    style: (theme.titleTextStyle ?? kAdwaitaHeadingStyle)
+                        .copyWith(color: theme.titleTextColor),
                   ),
                 ),
               ),
