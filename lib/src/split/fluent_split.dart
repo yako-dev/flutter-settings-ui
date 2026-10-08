@@ -15,11 +15,11 @@ import 'package:settings_ui/src/utils/fluent_tokens.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 
 export 'package:settings_ui/src/split/fluent_compact_pane.dart'
-    show FluentCompactPaneLayout, FluentPaneModeScope;
+    show FluentCompactPaneLayout;
 export 'package:settings_ui/src/split/fluent_controls.dart'
-    show FluentGlyph, FluentSubtleButton;
+    show FluentSubtleButton;
 export 'package:settings_ui/src/split/fluent_page_header.dart'
-    show FluentPageHeader, fluentPageSideMargin, kFluentTitleStyle;
+    show FluentPageHeader;
 
 // The WinUI 3 `NavigationView` of Windows 11 Settings (left pane), from
 // microsoft-ui-xaml's NavigationView_themeresources.xaml, measured against
