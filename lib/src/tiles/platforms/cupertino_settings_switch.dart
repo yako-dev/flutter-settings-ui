@@ -225,19 +225,30 @@ class _CupertinoSettingsSwitchState
 
   // Animations.
 
-  void _pressLens() {
-    if (reduceMotion) return;
-    _pressed = true;
-    _press.animateWith(
+  /// Runs [spring] on [controller], from where it is to [target].
+  static void _spring(
+    AnimationController controller,
+    SpringDescription spring,
+    double target,
+    double velocity,
+    Tolerance tolerance,
+  ) {
+    controller.animateWith(
       SpringSimulation(
-        _kPressSpring,
-        _press.value,
-        1,
-        _press.velocity,
-        tolerance: _kPressTolerance,
+        spring,
+        controller.value,
+        target,
+        velocity,
+        tolerance: tolerance,
         snapToEnd: true,
       ),
     );
+  }
+
+  void _pressLens() {
+    if (reduceMotion) return;
+    _pressed = true;
+    _spring(_press, _kPressSpring, 1, _press.velocity, _kPressTolerance);
   }
 
   void _releaseLens() {
@@ -251,16 +262,7 @@ class _CupertinoSettingsSwitchState
     // too short to grow the lens leaves little tint.
     _tint.value = (_press.value / 0.5).clamp(0.0, 1.0);
     _tint.animateTo(0, duration: _kTintDuration, curve: Curves.easeInOut);
-    _press.animateWith(
-      SpringSimulation(
-        _kReleaseSpring,
-        _press.value,
-        0,
-        _press.velocity,
-        tolerance: _kPressTolerance,
-        snapToEnd: true,
-      ),
-    );
+    _spring(_press, _kReleaseSpring, 0, _press.velocity, _kPressTolerance);
   }
 
   void _animatePosition(double target, {double velocity = 0}) {
@@ -268,16 +270,7 @@ class _CupertinoSettingsSwitchState
       _position.value = target;
       return;
     }
-    _position.animateWith(
-      SpringSimulation(
-        _kPositionSpring,
-        _position.value,
-        target,
-        velocity,
-        tolerance: _kPositionTolerance,
-        snapToEnd: true,
-      ),
-    );
+    _spring(_position, _kPositionSpring, target, velocity, _kPositionTolerance);
   }
 
   void _animateTrack(bool on) => animate(
@@ -439,13 +432,14 @@ class _CupertinoSettingsSwitchState
             ?.themeData
             .settingsSectionBackground ??
         (isDark ? _kCellDark : _kCellLight);
-    final Color focusColor =
-        HSLColor.fromColor(
-              activeColor.withValues(alpha: kCupertinoFocusColorOpacity),
-            )
-            .withLightness(kCupertinoFocusColorBrightness)
-            .withSaturation(kCupertinoFocusColorSaturation)
-            .toColor();
+    final Color? focusColor = showFocusRing
+        ? HSLColor.fromColor(
+                activeColor.withValues(alpha: kCupertinoFocusColorOpacity),
+              )
+              .withLightness(kCupertinoFocusColorBrightness)
+              .withSaturation(kCupertinoFocusColorSaturation)
+              .toColor()
+        : null;
 
     return buildSwitch(
       onTapDown: _handleTapDown,
@@ -462,7 +456,7 @@ class _CupertinoSettingsSwitchState
         backdropColor: backdropColor,
         isDark: isDark,
         textDirection: textDirection,
-        focusColor: showFocusRing ? focusColor : null,
+        focusColor: focusColor,
       ),
     );
   }
@@ -534,7 +528,7 @@ class _SwitchPainter extends SettingsSwitchPainter {
     final double frost = 1 - _smoothstep(0.6, 1.0, p);
 
     if (glass > 0) {
-      _paintLens(canvas, track, thumb, trackColor, p, glass, frost);
+      _paintLens(canvas, track, thumb, trackColor, glass, frost);
     }
     if (thumbOpacity > 0) {
       final Color fill = Color.lerp(
@@ -554,7 +548,6 @@ class _SwitchPainter extends SettingsSwitchPainter {
     Rect track,
     Rect lens,
     Color trackColor,
-    double p,
     double glass,
     double frost,
   ) {
