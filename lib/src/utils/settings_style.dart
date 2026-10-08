@@ -4,6 +4,7 @@ import 'package:settings_ui/src/list/settings_list.dart';
 import 'package:settings_ui/src/utils/platform_utils.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 import 'package:settings_ui/src/utils/theme_provider.dart';
+import 'package:settings_ui/src/utils/unresolved_platform.dart';
 
 /// The style inputs of a [SettingsList] or `SettingsSplitView`: platform,
 /// brightness override, themes and application type. Internal.
@@ -154,10 +155,7 @@ SettingsStyleFamily settingsStyleFamily(DevicePlatform platform) {
     case DevicePlatform.web:
       return SettingsStyleFamily.web;
     case DevicePlatform.device:
-      throw Exception(
-        'You can\'t use the DevicePlatform.device in this context. '
-        'Incorrect platform: settingsStyleFamily',
-      );
+      throwUnresolvedPlatform('settingsStyleFamily');
   }
 }
 

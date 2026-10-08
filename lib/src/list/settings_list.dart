@@ -12,6 +12,7 @@ import 'package:settings_ui/src/utils/content_column.dart';
 import 'package:settings_ui/src/utils/platform_utils.dart';
 import 'package:settings_ui/src/utils/settings_style.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
+import 'package:settings_ui/src/utils/unresolved_platform.dart';
 
 /// Where a [SettingsList] reads light or dark mode from when
 /// [SettingsList.brightness] is null.
@@ -150,9 +151,11 @@ class SettingsList extends StatelessWidget {
     final style = config.resolve(context);
     final platform = style.platform;
     final themeData = style.themeData;
-    // A Windows list right under a page title starts closer to it.
+    // A Windows list right under a page title starts closer to it: its
+    // first section that shows anything is told so.
     final underPageTitle =
         platform == DevicePlatform.windows && FluentPageTitleAbove.of(context);
+    final afterPageTitleIndex = underPageTitle ? _firstShownIndex : null;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -186,7 +189,7 @@ class SettingsList extends StatelessWidget {
                       contentPadding ??
                       _defaultPadding(context, platform, width),
                   itemBuilder: (BuildContext context, int index) {
-                    if (underPageTitle && index == _firstShownIndex) {
+                    if (index == afterPageTitleIndex) {
                       return FluentSectionContext(
                         afterPageTitle: true,
                         child: sections[index],
@@ -324,10 +327,7 @@ class SettingsList extends StatelessWidget {
         topPadding = 20;
         bottomPadding = 20;
       case DevicePlatform.device:
-        throw Exception(
-          'You can\'t use the DevicePlatform.device in this context. '
-          'Incorrect platform: SettingsList.calculateDefaultPadding',
-        );
+        throwUnresolvedPlatform('SettingsList.calculateDefaultPadding');
     }
 
     final centeredSidePadding = (availableWidth - contentWidth) / 2;
@@ -356,34 +356,27 @@ class SettingsList extends StatelessWidget {
   /// Sections without tiles show nothing, so they are skipped.
   bool _previousEndsWithFooter(int index) {
     for (var i = index - 1; i >= 0; i--) {
-      final section = sections[i];
-      if (section is SettingsSection && section.tiles.isEmpty) continue;
-      return macosSectionEndsWithFooter(section);
+      if (_isShown(sections[i])) return macosSectionEndsWithFooter(sections[i]);
     }
     return false;
   }
 
+  /// Whether [section] shows anything: a [SettingsSection] without tiles
+  /// doesn't.
+  static bool _isShown(AbstractSettingsSection section) =>
+      !(section is SettingsSection && section.tiles.isEmpty);
+
   /// The index of the first section that shows anything.
   int get _firstShownIndex {
-    for (var i = 0; i < sections.length; i++) {
-      final section = sections[i];
-      if (section is SettingsSection && section.tiles.isEmpty) continue;
-      return i;
-    }
-    return 0;
+    final index = sections.indexWhere(_isShown);
+    return index < 0 ? 0 : index;
   }
 
   /// Whether the first section that shows anything is a [SettingsSection]
   /// with a title.
   bool get _startsWithHeader {
-    for (final section in sections) {
-      if (section is SettingsSection) {
-        if (section.tiles.isEmpty) continue;
-        return section.title != null;
-      }
-      return false;
-    }
-    return false;
+    final first = sections.where(_isShown).firstOrNull;
+    return first is SettingsSection && first.title != null;
   }
 
   /// The brightness this list uses: [brightness], or the app theme's as

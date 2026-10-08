@@ -4,6 +4,7 @@ import 'package:settings_ui/src/utils/fluent_tokens.dart';
 import 'package:settings_ui/src/utils/platform_utils.dart';
 import 'package:settings_ui/src/utils/settings_style.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
+import 'package:settings_ui/src/utils/unresolved_platform.dart';
 
 // iPadOS 27 Settings, measured in the simulator: the sidebar's tint and the
 // filled capsule of the selected row.
@@ -33,10 +34,7 @@ class ThemeProvider {
       case DevicePlatform.web:
         return _webTheme(context: context, brightness: brightness);
       case DevicePlatform.device:
-        throw Exception(
-          'You can\'t use the DevicePlatform.device in this context. '
-          'Incorrect platform: ThemeProvider.getTheme',
-        );
+        throwUnresolvedPlatform('ThemeProvider.getTheme');
     }
   }
 
@@ -92,6 +90,19 @@ class ThemeProvider {
     );
   }
 
+  /// The Material 3 text, icon and highlight colors that the Android and
+  /// web styles both take from the active [ColorScheme].
+  static SettingsThemeData _materialTheme(ColorScheme colorScheme) {
+    return SettingsThemeData(
+      tileHighlightColor: colorScheme.secondaryContainer,
+      settingsTileTextColor: colorScheme.onSurface,
+      tileDescriptionTextColor: colorScheme.onSurfaceVariant,
+      leadingIconsColor: colorScheme.onSurfaceVariant,
+      inactiveTitleColor: colorScheme.onSurface.withValues(alpha: 0.38),
+      inactiveSubtitleColor: colorScheme.onSurface.withValues(alpha: 0.22),
+    );
+  }
+
   /// Derives Material 3 colors from the active [ColorScheme], like Android
   /// 16+ settings: a tinted page with lighter cards for the tiles.
   static SettingsThemeData _androidTheme({
@@ -99,44 +110,21 @@ class ThemeProvider {
     required Brightness brightness,
   }) {
     final colorScheme = colorSchemeOf(context, brightness);
-    final isLight = brightness == Brightness.light;
-
     final listBackground = colorScheme.surfaceContainer;
-    final sectionBackground = isLight
-        ? colorScheme.surfaceBright
-        : colorScheme.surfaceContainerHighest;
 
-    final titleTextColor = colorScheme.primary;
-
-    final settingsTileTextColor = colorScheme.onSurface;
-
-    final tileDescriptionTextColor = colorScheme.onSurfaceVariant;
-
-    final leadingIconsColor = colorScheme.onSurfaceVariant;
-
-    final tileHighlightColor = colorScheme.secondaryContainer;
-
-    final inactiveTitleColor = colorScheme.onSurface.withValues(alpha: 0.38);
-
-    final inactiveSubtitleColor = colorScheme.onSurface.withValues(alpha: 0.22);
-
-    return SettingsThemeData(
-      tileHighlightColor: tileHighlightColor,
+    return _materialTheme(colorScheme).copyWith(
       settingsListBackground: listBackground,
-      settingsSectionBackground: sectionBackground,
-      titleTextColor: titleTextColor,
-      settingsTileTextColor: settingsTileTextColor,
-      tileDescriptionTextColor: tileDescriptionTextColor,
-      leadingIconsColor: leadingIconsColor,
-      inactiveTitleColor: inactiveTitleColor,
-      inactiveSubtitleColor: inactiveSubtitleColor,
+      settingsSectionBackground: brightness == Brightness.light
+          ? colorScheme.surfaceBright
+          : colorScheme.surfaceContainerHighest,
+      titleTextColor: colorScheme.primary,
       // AOSP two-pane Settings: the homepage cards sit on surface dim, and
       // the selected card takes the detail pane's color (the page
       // background), so it looks joined to the page next to it.
       listPaneBackground: colorScheme.surfaceDim,
       selectedTileColor: listBackground,
-      selectedTileTextColor: settingsTileTextColor,
-      selectedTileIconColor: leadingIconsColor,
+      selectedTileTextColor: colorScheme.onSurface,
+      selectedTileIconColor: colorScheme.onSurfaceVariant,
     );
   }
 
@@ -349,27 +337,13 @@ class ThemeProvider {
     final listBackground = isLight
         ? colorScheme.surfaceContainerLowest
         : colorScheme.surface;
-    final sectionBackground = isLight
-        ? colorScheme.surfaceContainerLowest
-        : colorScheme.surfaceContainerLow;
-    final titleTextColor = colorScheme.onSurface;
-    final settingsTileTextColor = colorScheme.onSurface;
-    final tileDescriptionTextColor = colorScheme.onSurfaceVariant;
-    final leadingIconsColor = colorScheme.onSurfaceVariant;
-    final tileHighlightColor = colorScheme.secondaryContainer;
-    final inactiveTitleColor = colorScheme.onSurface.withValues(alpha: 0.38);
-    final inactiveSubtitleColor = colorScheme.onSurface.withValues(alpha: 0.22);
 
-    return SettingsThemeData(
-      tileHighlightColor: tileHighlightColor,
+    return _materialTheme(colorScheme).copyWith(
       settingsListBackground: listBackground,
-      settingsSectionBackground: sectionBackground,
-      titleTextColor: titleTextColor,
-      settingsTileTextColor: settingsTileTextColor,
-      tileDescriptionTextColor: tileDescriptionTextColor,
-      leadingIconsColor: leadingIconsColor,
-      inactiveTitleColor: inactiveTitleColor,
-      inactiveSubtitleColor: inactiveSubtitleColor,
+      settingsSectionBackground: isLight
+          ? colorScheme.surfaceContainerLowest
+          : colorScheme.surfaceContainerLow,
+      titleTextColor: colorScheme.onSurface,
       // Chrome's settings menu: a light tint of the accent with accent text
       // (#E8F0FE / #1967D2), and the light accent with dark text in dark
       // mode (#8AB4F8 / #202124).

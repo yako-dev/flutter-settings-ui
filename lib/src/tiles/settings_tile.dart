@@ -16,6 +16,7 @@ import 'package:settings_ui/src/tiles/platforms/web_settings_tile.dart';
 import 'package:settings_ui/src/tiles/tile_data.dart';
 import 'package:settings_ui/src/utils/platform_utils.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
+import 'package:settings_ui/src/utils/unresolved_platform.dart';
 
 enum SettingsTileType { simpleTile, switchTile, navigationTile }
 
@@ -254,10 +255,7 @@ class SettingsTile extends AbstractSettingsTile {
         }
         return WebSettingsTile(tile);
       case DevicePlatform.device:
-        throw Exception(
-          'You can\'t use the DevicePlatform.device in this context. '
-          'Incorrect platform: SettingsTile.build',
-        );
+        throwUnresolvedPlatform('SettingsTile.build');
     }
   }
 
