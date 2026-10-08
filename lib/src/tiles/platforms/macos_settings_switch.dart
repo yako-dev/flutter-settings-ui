@@ -1,5 +1,6 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/foundation.dart';
+import 'package:settings_ui/src/tiles/platforms/settings_switch_base.dart';
 
 /// The two switch sizes that System Settings uses on macOS 26 and 27.
 enum MacosSettingsSwitchSize {
@@ -162,69 +163,48 @@ class MacosSettingsSwitch extends StatefulWidget {
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
-    properties.add(
-      FlagProperty('value', value: value, ifTrue: 'on', ifFalse: 'off'),
+    debugFillSwitchProperties(
+      properties,
+      value: value,
+      onChanged: onChanged,
+      activeTrackColor: activeTrackColor,
+      inactiveTrackColor: inactiveTrackColor,
     );
-    properties.add(
-      ObjectFlagProperty<ValueChanged<bool>>(
-        'onChanged',
-        onChanged,
-        ifNull: 'disabled',
-      ),
-    );
-    properties.add(ColorProperty('activeTrackColor', activeTrackColor));
-    properties.add(ColorProperty('inactiveTrackColor', inactiveTrackColor));
     properties.add(EnumProperty<MacosSettingsSwitchSize>('size', size));
   }
 }
 
-class _MacosSettingsSwitchState extends State<MacosSettingsSwitch>
-    with SingleTickerProviderStateMixin {
+class _MacosSettingsSwitchState extends SettingsSwitchState<MacosSettingsSwitch>
+    with SingleTickerProviderStateMixin, SettingsSwitchKnobDrag {
   /// 0 = knob at the OFF end, 1 = knob at the ON end.
-  late final AnimationController _position = AnimationController(
+  @override
+  late final AnimationController position = AnimationController(
     vsync: this,
     value: widget.value ? 1 : 0,
   );
 
-  late final Map<Type, Action<Intent>> _actions = <Type, Action<Intent>>{
-    ActivateIntent: CallbackAction<ActivateIntent>(
-      onInvoke: (_) => _handleTap(),
-    ),
-    ButtonActivateIntent: CallbackAction<ButtonActivateIntent>(
-      onInvoke: (_) => _handleTap(),
-    ),
-  };
-
-  bool _reduceMotion = false;
-  bool _showFocusHighlight = false;
   bool _pressed = false;
-  bool _dragging = false;
-  double _dragDownX = 0;
-  double _dragStartPosition = 0;
 
-  bool get _enabled => widget.onChanged != null;
+  @override
+  bool get value => widget.value;
+
+  @override
+  ValueChanged<bool>? get onChanged => widget.onChanged;
 
   _Metrics get _metrics => _Metrics.of(widget.size);
 
-  /// +1 in left-to-right layouts, -1 in right-to-left ones.
-  double get _direction =>
-      Directionality.maybeOf(context) == TextDirection.rtl ? -1 : 1;
-
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
-  }
+  double get travel => _metrics.travel;
 
   @override
   void didUpdateWidget(MacosSettingsSwitch oldWidget) {
     super.didUpdateWidget(oldWidget);
     // While dragging, the pointer owns the knob. It settles on release.
-    if (oldWidget.value != widget.value && !_dragging) {
+    if (oldWidget.value != widget.value && !dragging) {
       _animateTo(widget.value);
     }
-    if (!_enabled && (_dragging || _pressed)) {
-      _dragging = false;
+    if (!enabled && (dragging || _pressed)) {
+      dragging = false;
       _pressed = false;
       _animateTo(widget.value);
     }
@@ -232,67 +212,34 @@ class _MacosSettingsSwitchState extends State<MacosSettingsSwitch>
 
   @override
   void dispose() {
-    _position.dispose();
+    position.dispose();
     super.dispose();
   }
 
   void _animateTo(bool value) {
     final double target = value ? 1 : 0;
-    if (_reduceMotion) {
-      _position.value = target;
-      return;
-    }
-    _position.animateTo(
+    animate(
+      position,
       target,
-      duration: _kToggleDuration * (_position.value - target).abs(),
+      duration: _kToggleDuration * (position.value - target).abs(),
       curve: Curves.easeInOut,
     );
   }
 
-  void _setPressed(bool pressed) {
+  @override
+  void setPressed(bool pressed) {
     if (_pressed != pressed) setState(() => _pressed = pressed);
   }
 
-  void _handleTap() {
-    if (!_enabled) return;
-    widget.onChanged!(!widget.value);
-  }
-
-  void _handleDragDown(DragDownDetails details) {
-    _dragDownX = details.localPosition.dx;
-  }
-
-  void _handleDragStart(DragStartDetails details) {
-    _dragging = true;
-    _position.stop();
-    _dragStartPosition = _position.value;
-    _setPressed(true);
-    _followPointer(details.localPosition.dx);
-  }
-
-  void _handleDragUpdate(DragUpdateDetails details) {
-    if (_dragging) _followPointer(details.localPosition.dx);
-  }
-
-  /// Moves the knob with the pointer, counted from where it went down.
-  void _followPointer(double x) {
-    final double delta = _direction * (x - _dragDownX) / _metrics.travel;
-    _position.value = (_dragStartPosition + delta).clamp(0.0, 1.0);
-  }
-
-  void _handleDragEnd(DragEndDetails details) => _finishDrag();
-
-  void _finishDrag() {
-    if (!_dragging) return;
-    _dragging = false;
-    _setPressed(false);
-    final bool newValue = _position.value >= 0.5;
+  @override
+  void settleDrag(bool newValue) {
+    setPressed(false);
     _animateTo(newValue);
     if (newValue != widget.value) {
       widget.onChanged?.call(newValue);
       // If the parent does not take the new value, go back to the old one.
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && !_dragging && widget.value != newValue) {
+        if (mounted && !dragging && widget.value != newValue) {
           _animateTo(widget.value);
         }
       });
@@ -301,69 +248,35 @@ class _MacosSettingsSwitchState extends State<MacosSettingsSwitch>
 
   @override
   Widget build(BuildContext context) {
-    final Brightness brightness =
-        CupertinoTheme.maybeBrightnessOf(context) ??
-        MediaQuery.maybePlatformBrightnessOf(context) ??
-        Brightness.light;
-    final bool isDark = brightness == Brightness.dark;
+    final bool isDark = switchBrightnessOf(context) == Brightness.dark;
 
-    return Semantics(
-      toggled: widget.value,
-      enabled: _enabled,
-      onTap: _enabled ? _handleTap : null,
-      child: FocusableActionDetector(
-        enabled: _enabled,
-        actions: _actions,
-        onShowFocusHighlight: (bool value) {
-          if (value != _showFocusHighlight) {
-            setState(() => _showFocusHighlight = value);
-          }
-        },
-        mouseCursor: _enabled && kIsWeb
-            ? SystemMouseCursors.click
-            : MouseCursor.defer,
-        child: GestureDetector(
-          excludeFromSemantics: true,
-          behavior: HitTestBehavior.opaque,
-          onTapDown: _enabled ? (_) => _setPressed(true) : null,
-          onTapUp: _enabled ? (_) => _setPressed(false) : null,
-          onTapCancel: _enabled ? () => _setPressed(false) : null,
-          onTap: _enabled ? _handleTap : null,
-          onHorizontalDragDown: _enabled ? _handleDragDown : null,
-          onHorizontalDragStart: _enabled ? _handleDragStart : null,
-          onHorizontalDragUpdate: _enabled ? _handleDragUpdate : null,
-          onHorizontalDragEnd: _enabled ? _handleDragEnd : null,
-          onHorizontalDragCancel: _enabled ? _finishDrag : null,
-          child: RepaintBoundary(
-            child: CustomPaint(
-              size: _metrics.trackSize,
-              painter: _MacosSwitchPainter(
-                position: _position,
-                metrics: _metrics,
-                activeColor:
-                    widget.activeTrackColor ??
-                    (isDark ? _kOnTrackDark : _kOnTrackLight),
-                inactiveColor:
-                    widget.inactiveTrackColor ??
-                    (isDark ? _kOffTrackDark : _kOffTrackLight),
-                isDark: isDark,
-                enabled: _enabled,
-                pressed: _pressed,
-                textDirection:
-                    Directionality.maybeOf(context) ?? TextDirection.ltr,
-                focusColor: _showFocusHighlight && _enabled
-                    ? (isDark ? _kFocusDark : _kFocusLight)
-                    : null,
-              ),
-            ),
-          ),
-        ),
+    return buildSwitch(
+      onTapDown: (_) => setPressed(true),
+      onTapUp: (_) => setPressed(false),
+      onTapCancel: () => setPressed(false),
+      size: _metrics.trackSize,
+      painter: _MacosSwitchPainter(
+        position: position,
+        metrics: _metrics,
+        activeColor:
+            widget.activeTrackColor ??
+            (isDark ? _kOnTrackDark : _kOnTrackLight),
+        inactiveColor:
+            widget.inactiveTrackColor ??
+            (isDark ? _kOffTrackDark : _kOffTrackLight),
+        isDark: isDark,
+        enabled: enabled,
+        pressed: _pressed,
+        textDirection: textDirection,
+        focusColor: showFocusRing
+            ? (isDark ? _kFocusDark : _kFocusLight)
+            : null,
       ),
     );
   }
 }
 
-class _MacosSwitchPainter extends CustomPainter {
+class _MacosSwitchPainter extends SettingsSwitchPainter {
   _MacosSwitchPainter({
     required this.position,
     required this.metrics,
@@ -372,7 +285,7 @@ class _MacosSwitchPainter extends CustomPainter {
     required this.isDark,
     required this.enabled,
     required this.pressed,
-    required this.textDirection,
+    required super.textDirection,
     required this.focusColor,
   }) : super(repaint: position);
 
@@ -383,21 +296,12 @@ class _MacosSwitchPainter extends CustomPainter {
   final bool isDark;
   final bool enabled;
   final bool pressed;
-  final TextDirection textDirection;
   final Color? focusColor;
 
   @override
-  void paint(Canvas canvas, Size size) {
+  void paintSwitch(Canvas canvas, Size size) {
     final double t = position.value.clamp(0.0, 1.0);
     final Rect track = Offset.zero & metrics.trackSize;
-
-    canvas.save();
-    // The look is symmetric left to right, so right-to-left layouts just
-    // mirror the canvas.
-    if (textDirection == TextDirection.rtl) {
-      canvas.translate(size.width, 0);
-      canvas.scale(-1, 1);
-    }
 
     Color trackColor = Color.lerp(inactiveColor, activeColor, t)!;
     if (!enabled) {
@@ -454,7 +358,6 @@ class _MacosSwitchPainter extends CustomPainter {
       knobColor = Color.lerp(knobColor, _kBlack, isDark ? 0.08 : 0.06)!;
     }
     canvas.drawRRect(_capsule(knob), Paint()..color = knobColor);
-    canvas.restore();
   }
 
   @override

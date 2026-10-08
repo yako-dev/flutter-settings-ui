@@ -1,5 +1,6 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/foundation.dart';
+import 'package:settings_ui/src/tiles/platforms/settings_switch_base.dart';
 
 // GtkSwitch as styled by libadwaita 1.10 (GNOME 51). All sizes are in
 // logical pixels (1 CSS px).
@@ -109,26 +110,23 @@ class AdwaitaSettingsSwitch extends StatefulWidget {
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
-    properties.add(
-      FlagProperty('value', value: value, ifTrue: 'on', ifFalse: 'off'),
+    debugFillSwitchProperties(
+      properties,
+      value: value,
+      onChanged: onChanged,
+      activeTrackColor: activeTrackColor,
+      inactiveTrackColor: inactiveTrackColor,
     );
-    properties.add(
-      ObjectFlagProperty<ValueChanged<bool>>(
-        'onChanged',
-        onChanged,
-        ifNull: 'disabled',
-      ),
-    );
-    properties.add(ColorProperty('activeTrackColor', activeTrackColor));
-    properties.add(ColorProperty('inactiveTrackColor', inactiveTrackColor));
     properties.add(EnumProperty<Brightness>('brightness', brightness));
   }
 }
 
-class _AdwaitaSettingsSwitchState extends State<AdwaitaSettingsSwitch>
-    with TickerProviderStateMixin {
+class _AdwaitaSettingsSwitchState
+    extends SettingsSwitchState<AdwaitaSettingsSwitch>
+    with TickerProviderStateMixin, SettingsSwitchKnobDrag {
   /// Knob position: 0 = OFF, 1 = ON.
-  late final AnimationController _position = AnimationController(
+  @override
+  late final AnimationController position = AnimationController(
     vsync: this,
     duration: _kDuration,
     value: widget.value ? 1 : 0,
@@ -152,36 +150,14 @@ class _AdwaitaSettingsSwitchState extends State<AdwaitaSettingsSwitch>
     duration: _kDuration,
   );
 
-  late final Map<Type, Action<Intent>> _actions = <Type, Action<Intent>>{
-    ActivateIntent: CallbackAction<ActivateIntent>(
-      onInvoke: (_) => _handleTap(),
-    ),
-    ButtonActivateIntent: CallbackAction<ButtonActivateIntent>(
-      onInvoke: (_) => _handleTap(),
-    ),
-  };
-
-  bool _reduceMotion = false;
-  bool _showFocusHighlight = false;
-  bool _dragging = false;
-
-  /// Where the pointer went down, and the knob position when the drag
-  /// started. The knob follows the pointer from there, not from where the
-  /// drag was recognized (a touch slop of 18 px later, most of the travel).
-  double _dragDownX = 0;
-  double _dragStartPosition = 0;
-
-  bool get _enabled => widget.onChanged != null;
-
-  /// +1 in left-to-right layouts, -1 in right-to-left ones.
-  double get _direction =>
-      Directionality.maybeOf(context) == TextDirection.rtl ? -1 : 1;
+  @override
+  bool get value => widget.value;
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
-  }
+  ValueChanged<bool>? get onChanged => widget.onChanged;
+
+  @override
+  double get travel => _kTravel;
 
   @override
   void didUpdateWidget(AdwaitaSettingsSwitch oldWidget) {
@@ -189,12 +165,12 @@ class _AdwaitaSettingsSwitchState extends State<AdwaitaSettingsSwitch>
     if (oldWidget.value != widget.value) {
       _animate(_checked, widget.value ? 1 : 0);
       // While dragging, the pointer owns the knob. It snaps on release.
-      if (!_dragging) _animate(_position, widget.value ? 1 : 0);
+      if (!dragging) _animate(position, widget.value ? 1 : 0);
     }
-    if (!_enabled) {
-      if (_dragging) {
-        _dragging = false;
-        _animate(_position, widget.value ? 1 : 0);
+    if (!enabled) {
+      if (dragging) {
+        dragging = false;
+        _animate(position, widget.value ? 1 : 0);
       }
       if (_hover.value != 0) _hover.value = 0;
       if (_active.value != 0) _active.value = 0;
@@ -203,152 +179,80 @@ class _AdwaitaSettingsSwitchState extends State<AdwaitaSettingsSwitch>
 
   @override
   void dispose() {
-    _position.dispose();
+    position.dispose();
     _checked.dispose();
     _hover.dispose();
     _active.dispose();
     super.dispose();
   }
 
-  void _animate(AnimationController controller, double target) {
-    if (_reduceMotion) {
-      controller.value = target;
-    } else {
-      controller.animateTo(target, curve: _kCurve);
-    }
-  }
+  void _animate(AnimationController controller, double target) =>
+      animate(controller, target, curve: _kCurve);
 
-  void _handleTap() {
-    if (!_enabled) return;
-    widget.onChanged!(!widget.value);
-  }
-
-  void _handleTapDown(TapDownDetails details) => _animate(_active, 1);
+  @override
+  void setPressed(bool pressed) => _animate(_active, pressed ? 1 : 0);
 
   void _handleTapEnd() {
-    if (!_dragging) _animate(_active, 0);
+    if (!dragging) setPressed(false);
   }
 
-  void _handleDragDown(DragDownDetails details) {
-    _dragDownX = details.localPosition.dx;
-  }
-
-  void _handleDragStart(DragStartDetails details) {
-    _dragging = true;
-    _position.stop();
-    _dragStartPosition = _position.value;
-    _animate(_active, 1);
-    _followPointer(details.localPosition.dx);
-  }
-
-  void _handleDragUpdate(DragUpdateDetails details) {
-    if (_dragging) _followPointer(details.localPosition.dx);
-  }
-
-  /// Moves the knob with the pointer, counted from where it went down.
-  void _followPointer(double x) {
-    final double delta = _direction * (x - _dragDownX) / _kTravel;
-    _position.value = (_dragStartPosition + delta).clamp(0.0, 1.0);
-  }
-
-  void _handleDragEnd([DragEndDetails? details]) {
-    if (!_dragging) return;
-    _dragging = false;
-    _animate(_active, 0);
+  @override
+  void settleDrag(bool value) {
+    setPressed(false);
     // GtkSwitch keeps the side the knob was let go on.
-    final bool value = _position.value >= 0.5;
     if (value != widget.value) widget.onChanged?.call(value);
     // If the parent does not rebuild with the new value, the knob goes back.
-    _animate(_position, widget.value ? 1 : 0);
+    _animate(position, widget.value ? 1 : 0);
     if (value != widget.value) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && !_dragging) _animate(_position, widget.value ? 1 : 0);
+        if (mounted && !dragging) _animate(position, widget.value ? 1 : 0);
       });
     }
   }
 
   void _handleHover(bool hovering) {
-    if (hovering && !_enabled) return;
+    if (hovering && !enabled) return;
     _animate(_hover, hovering ? 1 : 0);
   }
 
   @override
   Widget build(BuildContext context) {
-    final Brightness brightness =
-        widget.brightness ??
-        CupertinoTheme.of(context).brightness ??
-        MediaQuery.maybePlatformBrightnessOf(context) ??
-        Brightness.light;
-    final bool isDark = brightness == Brightness.dark;
+    final bool isDark =
+        (widget.brightness ?? switchBrightnessOf(context)) == Brightness.dark;
     final Color accent = widget.activeTrackColor ?? _kAccentBackground;
     final Color focusColor =
         (widget.activeTrackColor ?? (isDark ? _kAccentDark : _kAccentLight))
             .withValues(alpha: 0.5);
 
-    return Semantics(
-      toggled: widget.value,
-      enabled: _enabled,
-      onTap: _enabled ? _handleTap : null,
-      child: FocusableActionDetector(
-        enabled: _enabled,
-        focusNode: widget.focusNode,
-        autofocus: widget.autofocus,
-        actions: _actions,
-        onShowFocusHighlight: (bool value) {
-          if (value != _showFocusHighlight) {
-            setState(() => _showFocusHighlight = value);
-          }
-        },
-        onShowHoverHighlight: _handleHover,
-        mouseCursor: _enabled && kIsWeb
-            ? SystemMouseCursors.click
-            : MouseCursor.defer,
-        child: GestureDetector(
-          excludeFromSemantics: true,
-          behavior: HitTestBehavior.opaque,
-          onTapDown: _enabled ? _handleTapDown : null,
-          onTap: _enabled
-              ? () {
-                  _handleTapEnd();
-                  _handleTap();
-                }
-              : null,
-          onTapCancel: _enabled ? _handleTapEnd : null,
-          onHorizontalDragDown: _enabled ? _handleDragDown : null,
-          onHorizontalDragStart: _enabled ? _handleDragStart : null,
-          onHorizontalDragUpdate: _enabled ? _handleDragUpdate : null,
-          onHorizontalDragEnd: _enabled ? _handleDragEnd : null,
-          onHorizontalDragCancel: _enabled ? _handleDragEnd : null,
-          child: Opacity(
-            // `switch:disabled { filter: opacity(0.5) }`
-            opacity: _enabled ? 1 : 0.5,
-            child: RepaintBoundary(
-              child: CustomPaint(
-                size: const Size(_kTrackWidth, _kTrackHeight),
-                painter: _AdwaitaSwitchPainter(
-                  position: _position,
-                  checked: _checked,
-                  hover: _hover,
-                  active: _active,
-                  activeColor: accent,
-                  inactiveColor: widget.inactiveTrackColor,
-                  isDark: isDark,
-                  textDirection:
-                      Directionality.maybeOf(context) ?? TextDirection.ltr,
-                  focusColor: _showFocusHighlight && _enabled
-                      ? focusColor
-                      : null,
-                ),
-              ),
-            ),
-          ),
-        ),
+    return buildSwitch(
+      focusNode: widget.focusNode,
+      autofocus: widget.autofocus,
+      onShowHoverHighlight: _handleHover,
+      onTapDown: (_) => setPressed(true),
+      onTap: () {
+        _handleTapEnd();
+        handleTap();
+      },
+      onTapCancel: _handleTapEnd,
+      // `switch:disabled { filter: opacity(0.5) }`
+      disabledOpacity: 0.5,
+      size: const Size(_kTrackWidth, _kTrackHeight),
+      painter: _AdwaitaSwitchPainter(
+        position: position,
+        checked: _checked,
+        hover: _hover,
+        active: _active,
+        activeColor: accent,
+        inactiveColor: widget.inactiveTrackColor,
+        isDark: isDark,
+        textDirection: textDirection,
+        focusColor: showFocusRing ? focusColor : null,
       ),
     );
   }
 }
 
-class _AdwaitaSwitchPainter extends CustomPainter {
+class _AdwaitaSwitchPainter extends SettingsSwitchPainter {
   _AdwaitaSwitchPainter({
     required this.position,
     required this.checked,
@@ -357,7 +261,7 @@ class _AdwaitaSwitchPainter extends CustomPainter {
     required this.activeColor,
     required this.inactiveColor,
     required this.isDark,
-    required this.textDirection,
+    required super.textDirection,
     required this.focusColor,
   }) : super(repaint: Listenable.merge([position, checked, hover, active]));
 
@@ -368,11 +272,10 @@ class _AdwaitaSwitchPainter extends CustomPainter {
   final Color activeColor;
   final Color? inactiveColor;
   final bool isDark;
-  final TextDirection textDirection;
   final Color? focusColor;
 
   @override
-  void paint(Canvas canvas, Size size) {
+  void paintSwitch(Canvas canvas, Size size) {
     final Rect track = Rect.fromCenter(
       center: size.center(Offset.zero),
       width: _kTrackWidth,
@@ -382,14 +285,6 @@ class _AdwaitaSwitchPainter extends CustomPainter {
       track,
       const Radius.circular(_kTrackHeight / 2),
     );
-
-    canvas.save();
-    // The switch is symmetric, so right-to-left layouts mirror the canvas:
-    // ON is then on the left.
-    if (textDirection == TextDirection.rtl) {
-      canvas.translate(size.width, 0);
-      canvas.scale(-1, 1);
-    }
 
     final double h = hover.value;
     final double a = active.value;
@@ -451,8 +346,6 @@ class _AdwaitaSwitchPainter extends CustomPainter {
         ? Color.lerp(_kKnobOffDark, _kKnob, _max3(on, h, a))!
         : _kKnob;
     canvas.drawCircle(knobCenter, _kKnobSize / 2, Paint()..color = knob);
-
-    canvas.restore();
   }
 
   @override
