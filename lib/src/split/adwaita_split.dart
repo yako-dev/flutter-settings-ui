@@ -444,42 +444,36 @@ class AdwaitaHeaderBar extends StatelessWidget {
 
 /// A flat 34x34 header bar button with 9px corners: the foreground at 7%
 /// on hover and 16% while pressed, and the accent focus ring. Internal.
-class AdwaitaFlatButton extends StatelessWidget {
+class AdwaitaFlatButton extends SidebarButton {
   const AdwaitaFlatButton({
     super.key,
-    required this.semanticLabel,
-    required this.onPressed,
+    required String super.semanticLabel,
+    required VoidCallback super.onPressed,
     required this.child,
   });
 
-  final String semanticLabel;
-  final VoidCallback onPressed;
   final Widget child;
 
   @override
-  Widget build(BuildContext context) {
+  Widget buildButton(BuildContext context, SidebarButtonStates states) {
     final theme = SettingsTheme.of(context).themeData;
     final foreground = _foregroundOf(theme);
-    return SidebarButton(
-      semanticLabel: semanticLabel,
-      onPressed: onPressed,
-      builder: (context, states) => Container(
-        width: _kButtonSize,
-        height: _kButtonSize,
-        decoration: BoxDecoration(
-          color: states.pressed
-              ? _share(foreground, _kPressed)
-              : states.hovered
-              ? _share(foreground, _kHover)
-              : null,
-          borderRadius: BorderRadius.circular(_kRowRadius),
-        ),
-        foregroundDecoration: states.focused
-            ? _focusRing(adwaitaIsDark(theme))
+    return Container(
+      width: _kButtonSize,
+      height: _kButtonSize,
+      decoration: BoxDecoration(
+        color: states.pressed
+            ? _share(foreground, _kPressed)
+            : states.hovered
+            ? _share(foreground, _kHover)
             : null,
-        alignment: Alignment.center,
-        child: ExcludeSemantics(child: child),
+        borderRadius: BorderRadius.circular(_kRowRadius),
       ),
+      foregroundDecoration: states.focused
+          ? _focusRing(adwaitaIsDark(theme))
+          : null,
+      alignment: Alignment.center,
+      child: ExcludeSemantics(child: child),
     );
   }
 }

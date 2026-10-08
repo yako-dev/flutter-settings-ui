@@ -1,21 +1,21 @@
 import 'package:flutter/widgets.dart';
 
-/// What a [SidebarButton] is doing, for its builder to draw.
+/// What a [SidebarButton] is doing, for [SidebarButton.buildButton] to draw.
 typedef SidebarButtonStates = ({bool hovered, bool pressed, bool focused});
 
 /// A button of the desktop split views' bars (back, forward, pane toggle,
 /// breadcrumb): a semantics button that Enter and Space activate, and its
-/// hover, pressed and keyboard focus states, which [builder] draws.
-/// Internal.
-class SidebarButton extends StatefulWidget {
+/// hover, pressed and keyboard focus states. Each style draws its own
+/// ([buildButton]). Internal.
+abstract class SidebarButton extends StatefulWidget {
   const SidebarButton({
     super.key,
     this.semanticLabel,
     required this.onPressed,
     this.hasEnabledState = false,
     this.tracksHover = true,
+    this.tracksPressed = true,
     this.mouseCursor = MouseCursor.defer,
-    required this.builder,
   });
 
   final String? semanticLabel;
@@ -27,14 +27,16 @@ class SidebarButton extends StatefulWidget {
   /// can be disabled.
   final bool hasEnabledState;
 
-  /// False for a button that draws no hover state (the macOS capsule).
+  /// False for a button that draws no hover state (the macOS capsule), or
+  /// no pressed state (a breadcrumb crumb): it doesn't rebuild for them.
   final bool tracksHover;
+  final bool tracksPressed;
 
   final MouseCursor mouseCursor;
 
-  /// Draws the button in its current states.
-  final Widget Function(BuildContext context, SidebarButtonStates states)
-  builder;
+  /// Draws the button in its current [states].
+  @protected
+  Widget buildButton(BuildContext context, SidebarButtonStates states);
 
   @override
   State<SidebarButton> createState() => _SidebarButtonState();
@@ -59,14 +61,15 @@ class _SidebarButtonState extends State<SidebarButton> {
   Widget build(BuildContext context) {
     final onPressed = widget.onPressed;
     final enabled = onPressed != null;
+    final tracksPressed = enabled && widget.tracksPressed;
     Widget button = GestureDetector(
       behavior: HitTestBehavior.opaque,
       excludeFromSemantics: true,
-      onTapDown: enabled ? (_) => _setPressed(true) : null,
-      onTapUp: enabled ? (_) => _setPressed(false) : null,
-      onTapCancel: enabled ? () => _setPressed(false) : null,
+      onTapDown: tracksPressed ? (_) => _setPressed(true) : null,
+      onTapUp: tracksPressed ? (_) => _setPressed(false) : null,
+      onTapCancel: tracksPressed ? () => _setPressed(false) : null,
       onTap: onPressed,
-      child: widget.builder(context, (
+      child: widget.buildButton(context, (
         hovered: _hovered,
         pressed: _pressed,
         focused: _focusHighlight,

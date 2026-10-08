@@ -154,6 +154,14 @@ class _FluentBreadcrumbState extends State<_FluentBreadcrumb> {
         : _titleLine(title, widget.primary);
     if (parents.isEmpty) return titleWidget;
 
+    // A crumb goes back to its page. [label] replaces the page's title.
+    Widget crumb(SettingsPageTrailEntry entry, {Widget? label}) => _Crumb(
+      onPressed: () => popToSettingsPage(context, entry),
+      label: label ?? entry.title,
+      color: widget.secondary,
+      hoverColor: widget.primary,
+    );
+
     final last = parents[math.max(0, collapsed - 1)];
     final lastTitle = last.title;
     return _BreadcrumbLayout(
@@ -163,10 +171,8 @@ class _FluentBreadcrumbState extends State<_FluentBreadcrumb> {
       children: [
         ExcludeFocus(
           excluding: collapsed == 0,
-          child: _Crumb(
-            entry: last,
-            color: widget.secondary,
-            hoverColor: widget.primary,
+          child: crumb(
+            last,
             label: Text(
               '…',
               semanticsLabel: lastTitle is Text ? lastTitle.data : null,
@@ -175,14 +181,7 @@ class _FluentBreadcrumbState extends State<_FluentBreadcrumb> {
         ),
         _BreadcrumbChevron(color: widget.secondary),
         for (final (index, parent) in parents.indexed) ...[
-          ExcludeFocus(
-            excluding: index < collapsed,
-            child: _Crumb(
-              entry: parent,
-              color: widget.secondary,
-              hoverColor: widget.primary,
-            ),
-          ),
+          ExcludeFocus(excluding: index < collapsed, child: crumb(parent)),
           _BreadcrumbChevron(color: widget.secondary),
         ],
         titleWidget,
@@ -418,36 +417,28 @@ class _RenderBreadcrumb extends RenderBox
 
 /// A parent page in the breadcrumb: secondary text that turns primary on
 /// hover and goes back to its page when clicked.
-class _Crumb extends StatelessWidget {
+class _Crumb extends SidebarButton {
   const _Crumb({
-    required this.entry,
+    required VoidCallback super.onPressed,
+    required this.label,
     required this.color,
     required this.hoverColor,
-    this.label,
-  });
+  }) : super(tracksPressed: false, mouseCursor: SystemMouseCursors.click);
 
-  final SettingsPageTrailEntry entry;
+  /// The page's title, or "…" for the collapsed crumbs.
+  final Widget label;
   final Color color;
   final Color hoverColor;
 
-  /// Shown instead of the page's title (the "…" crumb).
-  final Widget? label;
-
   @override
-  Widget build(BuildContext context) {
-    return SidebarButton(
-      onPressed: () => popToSettingsPage(context, entry),
-      mouseCursor: SystemMouseCursors.click,
-      builder: (context, states) {
-        final crumb = _titleLine(
-          label ?? entry.title,
-          states.hovered || states.focused ? hoverColor : color,
-        );
-        return states.focused
-            ? fluentFocusRing(fluentTokensOf(context), crumb)
-            : crumb;
-      },
+  Widget buildButton(BuildContext context, SidebarButtonStates states) {
+    final crumb = _titleLine(
+      label,
+      states.hovered || states.focused ? hoverColor : color,
     );
+    return states.focused
+        ? fluentFocusRing(fluentTokensOf(context), crumb)
+        : crumb;
   }
 }
 

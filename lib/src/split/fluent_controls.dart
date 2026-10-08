@@ -47,53 +47,44 @@ enum FluentGlyph {
 /// A 40x36 subtle button of the Windows pane and title bar (back, pane
 /// toggle): transparent at rest, SubtleFillSecondary on hover,
 /// SubtleFillTertiary with a secondary glyph while pressed. Internal.
-class FluentSubtleButton extends StatelessWidget {
+class FluentSubtleButton extends SidebarButton {
   const FluentSubtleButton({
     super.key,
-    required this.semanticLabel,
-    required this.onPressed,
+    required String super.semanticLabel,
+    required VoidCallback super.onPressed,
     required this.glyph,
   });
 
-  final String semanticLabel;
-  final VoidCallback onPressed;
   final FluentGlyph glyph;
 
   @override
-  Widget build(BuildContext context) {
+  Widget buildButton(BuildContext context, SidebarButtonStates states) {
     final theme = SettingsTheme.of(context).themeData;
     final tokens = fluentTokensOf(context);
     final primary = theme.settingsTileTextColor ?? tokens.textPrimary;
     final secondary = theme.tileDescriptionTextColor ?? tokens.textSecondary;
-    final textDirection = Directionality.of(context);
-    return SidebarButton(
-      semanticLabel: semanticLabel,
-      onPressed: onPressed,
-      builder: (context, states) {
-        final button = Container(
-          width: 40,
-          height: 36,
-          decoration: BoxDecoration(
-            color: states.pressed
-                ? tokens.navItemPressed
-                : states.hovered
-                ? tokens.navItemSelected
-                : null,
-            borderRadius: BorderRadius.circular(kFluentControlRadius),
-          ),
-          alignment: Alignment.center,
-          child: CustomPaint(
-            size: const Size.square(16),
-            painter: _GlyphPainter(
-              glyph: glyph,
-              color: states.pressed ? secondary : primary,
-              textDirection: textDirection,
-            ),
-          ),
-        );
-        return states.focused ? fluentFocusRing(tokens, button) : button;
-      },
+    final button = Container(
+      width: 40,
+      height: 36,
+      decoration: BoxDecoration(
+        color: states.pressed
+            ? tokens.navItemPressed
+            : states.hovered
+            ? tokens.navItemSelected
+            : null,
+        borderRadius: BorderRadius.circular(kFluentControlRadius),
+      ),
+      alignment: Alignment.center,
+      child: CustomPaint(
+        size: const Size.square(16),
+        painter: _GlyphPainter(
+          glyph: glyph,
+          color: states.pressed ? secondary : primary,
+          textDirection: Directionality.of(context),
+        ),
+      ),
     );
+    return states.focused ? fluentFocusRing(tokens, button) : button;
   }
 }
 

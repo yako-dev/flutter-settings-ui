@@ -610,40 +610,32 @@ class MacosNavigationCapsule extends StatelessWidget {
 }
 
 /// One half of the capsule: it tints while pressed and has no hover state.
-class _CapsuleButton extends StatelessWidget {
+class _CapsuleButton extends SidebarButton {
   const _CapsuleButton({
-    required this.label,
-    required this.onPressed,
+    required String label,
+    required super.onPressed,
     required this.isDark,
     required this.child,
-  });
+  }) : super(semanticLabel: label, hasEnabledState: true, tracksHover: false);
 
-  final String label;
-  final VoidCallback? onPressed;
   final bool isDark;
   final Widget child;
 
   @override
-  Widget build(BuildContext context) {
-    return SidebarButton(
-      semanticLabel: label,
-      onPressed: onPressed,
-      hasEnabledState: true,
-      tracksHover: false,
-      builder: (context, states) => Container(
-        height: 36,
-        decoration: BoxDecoration(
-          color: states.pressed
-              ? (isDark ? const Color(0x1FFFFFFF) : const Color(0x14000000))
-              : null,
-          borderRadius: BorderRadius.circular(18),
-          border: states.focused
-              ? Border.all(color: isDark ? _kFocusDark : _kFocusLight, width: 3)
-              : null,
-        ),
-        alignment: Alignment.center,
-        child: ExcludeSemantics(child: child),
+  Widget buildButton(BuildContext context, SidebarButtonStates states) {
+    return Container(
+      height: 36,
+      decoration: BoxDecoration(
+        color: states.pressed
+            ? (isDark ? const Color(0x1FFFFFFF) : const Color(0x14000000))
+            : null,
+        borderRadius: BorderRadius.circular(18),
+        border: states.focused
+            ? Border.all(color: isDark ? _kFocusDark : _kFocusLight, width: 3)
+            : null,
       ),
+      alignment: Alignment.center,
+      child: ExcludeSemantics(child: child),
     );
   }
 }
