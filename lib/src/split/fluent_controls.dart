@@ -3,15 +3,11 @@ import 'package:settings_ui/src/split/sidebar_button.dart';
 import 'package:settings_ui/src/utils/fluent_tokens.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 
-// What the pane, the page header and the overlay of the Windows style split
-// view share: the theme resources, the focus visual and the subtle button.
+// What the pane and the page header of the Windows style split view share:
+// the focus visual and the subtle button.
 
 /// ControlCornerRadius.
 const double kFluentControlRadius = 4;
-
-/// The WinUI theme resources for [context].
-FluentTokens fluentTokensOf(BuildContext context) =>
-    FluentTokens.of(FluentTokens.brightnessOf(context));
 
 /// [child] with the WinUI keyboard focus visual around it.
 Widget fluentFocusRing(FluentTokens tokens, Widget child) =>

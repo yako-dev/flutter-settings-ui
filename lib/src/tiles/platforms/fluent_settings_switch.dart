@@ -234,9 +234,7 @@ class _FluentSettingsSwitchState
 
   @override
   Widget build(BuildContext context) {
-    final FluentTokens tokens = FluentTokens.of(
-      FluentTokens.brightnessOf(context),
-    );
+    final FluentTokens tokens = fluentTokensOf(context);
     final Color? themeDisabled = context
         .dependOnInheritedWidgetOfExactType<SettingsTheme>()
         ?.themeData

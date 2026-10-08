@@ -2,7 +2,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'package:settings_ui/src/split/fluent_controls.dart';
 import 'package:settings_ui/src/utils/fluent_tokens.dart';
 
 /// Tells the items of a Windows pane whether it is the compact icon rail.

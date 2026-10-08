@@ -6,6 +6,7 @@ import 'package:settings_ui/src/split/fluent_controls.dart';
 import 'package:settings_ui/src/split/settings_page_header.dart';
 import 'package:settings_ui/src/split/settings_page_trail.dart';
 import 'package:settings_ui/src/split/sidebar_button.dart';
+import 'package:settings_ui/src/utils/fluent_tokens.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 
 // The page header of the Windows style (Windows 11 Settings): the page

@@ -111,9 +111,7 @@ class _FluentSettingsTileState extends State<FluentSettingsTile>
   @override
   Widget build(BuildContext context) {
     final SettingsThemeData theme = SettingsTheme.of(context).themeData;
-    final FluentTokens tokens = FluentTokens.of(
-      FluentTokens.brightnessOf(context),
-    );
+    final FluentTokens tokens = fluentTokensOf(context);
     final bool clickable = _clickable;
     final bool pressed = clickable && this.pressed;
 
