@@ -325,7 +325,7 @@ class _MacosSidebarItemState extends State<MacosSidebarItem>
         selected: widget.semanticsSelected,
         child: FocusableActionDetector(
           enabled: _canPress,
-          focusNode: focus.node,
+          focusNode: focusNode,
           actions: _actions,
           onShowFocusHighlight: handleFocusHighlight,
           child: GestureDetector(

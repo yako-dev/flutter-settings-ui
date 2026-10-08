@@ -1,5 +1,5 @@
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'package:settings_ui/src/split/sidebar_keyboard.dart';
 import 'package:settings_ui/src/tiles/tile_data.dart';
 import 'package:settings_ui/src/tiles/tile_press.dart';
 
@@ -25,18 +25,25 @@ abstract class SidebarRow extends StatefulWidget {
 
 /// What the States of the sidebar rows share: the keyboard focus, the
 /// activation and the row's line. Internal.
+///
+/// A click gives the row the focus, as `NSTableView`, `NavigationView` and
+/// `GtkListBox` do, so the arrow keys and Tab go on from the clicked row.
+/// Its focus ring stays hidden until a key is pressed (the rings are for
+/// keyboard users), also when the focus comes back to the row, for
+/// example after going back from the page it opened in one pane.
 mixin SidebarRowState<T extends SidebarRow> on State<T> {
   SettingsTileData get tile => widget.tile;
 
+  /// For the row's `FocusableActionDetector`.
+  late final FocusNode focusNode = FocusNode(debugLabel: debugLabel);
+
   bool _focusHighlight = false;
 
-  late final SidebarRowFocus focus = SidebarRowFocus(
-    debugLabel: debugLabel,
-    onChanged: rebuild,
-  );
+  /// A click gave the row the focus, and no key was pressed since.
+  bool _focusedByPointer = false;
 
   /// Enter and Space activate the row. For the row's
-  /// `FocusableActionDetector`, with [focus]'s node.
+  /// `FocusableActionDetector`, with [focusNode].
   late final Map<Type, Action<Intent>> actions = tileActivateActions(
     activateRow,
   );
@@ -47,17 +54,38 @@ mixin SidebarRowState<T extends SidebarRow> on State<T> {
   /// Does what a click on the row does, if it does anything now.
   void activateRow();
 
-  /// Whether the row shows its focus ring (see [SidebarRowFocus]).
-  bool get showsFocusRing => focus.showsRing(_focusHighlight);
+  /// Whether the row shows its focus ring.
+  bool get showsFocusRing => _focusHighlight && !_focusedByPointer;
 
-  void rebuild() {
+  void _rebuild() {
     if (mounted) setState(() {});
   }
 
   /// A click or a tap: the row takes the focus and activates.
   void handleTap() {
-    focus.focusFromPointer();
+    _focusFromPointer();
     activateRow();
+  }
+
+  void _focusFromPointer() {
+    if (!focusNode.canRequestFocus) return;
+    if (!focusNode.hasPrimaryFocus) focusNode.requestFocus();
+    if (_focusedByPointer) return;
+    _focusedByPointer = true;
+    HardwareKeyboard.instance.addHandler(_handleKeyEvent);
+    _rebuild();
+  }
+
+  bool _handleKeyEvent(KeyEvent event) {
+    _stopWaitingForKey();
+    _rebuild();
+    return false;
+  }
+
+  void _stopWaitingForKey() {
+    if (!_focusedByPointer) return;
+    _focusedByPointer = false;
+    HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
   }
 
   /// For the `onShowFocusHighlight` of the row's `FocusableActionDetector`.
@@ -107,7 +135,8 @@ mixin SidebarRowState<T extends SidebarRow> on State<T> {
 
   @override
   void dispose() {
-    focus.dispose();
+    _stopWaitingForKey();
+    focusNode.dispose();
     super.dispose();
   }
 }

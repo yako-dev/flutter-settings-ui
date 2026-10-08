@@ -507,7 +507,7 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
   Widget _interactive(Widget child, {required bool clickable}) {
     return FocusableActionDetector(
       enabled: clickable,
-      focusNode: focus.node,
+      focusNode: focusNode,
       actions: actions,
       onShowFocusHighlight: handleFocusHighlight,
       mouseCursor: clickable && kIsWeb

@@ -251,7 +251,7 @@ class _AdwaitaSidebarRowState extends State<AdwaitaSidebarRow>
             ignoring: !enabled,
             child: FocusableActionDetector(
               enabled: _activatable,
-              focusNode: focus.node,
+              focusNode: focusNode,
               actions: actions,
               onShowFocusHighlight: handleFocusHighlight,
               child: MouseRegion(
