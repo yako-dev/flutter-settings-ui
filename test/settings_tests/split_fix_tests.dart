@@ -830,4 +830,58 @@ void splitFixTests() {
       expect(log, ['created']);
     });
   });
+
+  group('web split view menu: an empty section', () {
+    final separators = _inList(
+      find.byWidgetPredicate(
+        (widget) => widget.runtimeType.toString() == '_WebMenuSeparator',
+      ),
+    );
+
+    Future<void> pump(
+      WidgetTester tester,
+      List<AbstractSettingsSection> sections,
+    ) async {
+      await _setSize(tester, const Size(1280, 800));
+      await tester.pumpWidget(
+        _app(
+          SettingsSplitView(platform: DevicePlatform.web, sections: sections),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    double topOf(WidgetTester tester, String title) =>
+        tester.getTopLeft(_inList(find.text(title))).dy;
+
+    testWidgets('adds no separator', (tester) async {
+      SettingsSection group(String name) =>
+          SettingsSection(tiles: [_page(name)]);
+      const empty = SettingsSection(tiles: []);
+
+      await pump(tester, [group('Network'), group('Sound'), group('About')]);
+      expect(separators, findsNWidgets(2));
+      final tops = {
+        for (final title in ['Network', 'Sound', 'About'])
+          title: topOf(tester, title),
+      };
+
+      // Between two groups, before the first and after the last.
+      await pump(tester, [
+        empty,
+        group('Network'),
+        empty,
+        group('Sound'),
+        empty,
+        empty,
+        group('About'),
+        empty,
+      ]);
+      expect(separators, findsNWidgets(2));
+      expect({
+        for (final title in ['Network', 'Sound', 'About'])
+          title: topOf(tester, title),
+      }, tops);
+    });
+  });
 }

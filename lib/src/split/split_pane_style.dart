@@ -215,7 +215,7 @@ class _WebPaneStyle extends SplitPaneStyle {
   ) => isSplit
       // Chrome's menu separates its groups with a full-width line.
       ? _interleave(
-          sections,
+          _shownSections(sections),
           (_) => const CustomSettingsSection(child: _WebMenuSeparator()),
         )
       : sections;
