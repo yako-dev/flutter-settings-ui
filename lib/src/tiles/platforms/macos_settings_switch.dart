@@ -301,7 +301,11 @@ class _MacosSwitchPainter extends SettingsSwitchPainter {
   @override
   void paintSwitch(Canvas canvas, Size size) {
     final double t = position.value.clamp(0.0, 1.0);
-    final Rect track = Offset.zero & metrics.trackSize;
+    final Rect track = centerTrack(
+      size,
+      metrics.trackWidth,
+      metrics.trackHeight,
+    );
 
     Color trackColor = Color.lerp(inactiveColor, activeColor, t)!;
     if (!enabled) {

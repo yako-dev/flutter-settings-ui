@@ -162,6 +162,103 @@ void tileFixTests() {
     }
   });
 
+  group('MacosSettingsSwitch centers its track in a larger box', () {
+    const trackColor = Color(0xFF112233);
+    const knobColor = Color(0xFFFFFFFF);
+    // The track and the knob of each size, as its docs give them.
+    const sizes = {
+      MacosSettingsSwitchSize.regular: (
+        track: Size(36, 16),
+        knob: Size(21, 13),
+      ),
+      MacosSettingsSwitchSize.large: (track: Size(44, 20), knob: Size(26, 16)),
+    };
+
+    RRect capsule(Rect rect) =>
+        RRect.fromRectAndRadius(rect, Radius.circular(rect.height / 2));
+
+    Widget app(TextDirection direction, Widget child) => MaterialApp(
+      home: Directionality(
+        textDirection: direction,
+        child: Center(child: child),
+      ),
+    );
+
+    for (final MapEntry(key: size, value: metrics) in sizes.entries) {
+      // The gap between the knob and the edge of the track.
+      final inset = (metrics.track.height - metrics.knob.height) / 2;
+
+      // What an OFF switch paints when its track is at [track], before a
+      // right-to-left layout mirrors it: the track, then the knob's shadow
+      // and the knob at the start of the track.
+      PaintPattern offSwitchAt(Rect track) => paints
+        ..rrect(rrect: capsule(track), color: trackColor)
+        ..rrect()
+        ..rrect(
+          rrect: capsule((track.topLeft + Offset(inset, inset)) & metrics.knob),
+          color: knobColor,
+        );
+
+      for (final direction in TextDirection.values) {
+        testWidgets('$size, $direction: in an 80x40 box', (tester) async {
+          await tester.pumpWidget(
+            app(
+              direction,
+              SizedBox(
+                width: 80,
+                height: 40,
+                child: MacosSettingsSwitch(
+                  value: false,
+                  onChanged: (_) {},
+                  size: size,
+                  inactiveTrackColor: trackColor,
+                ),
+              ),
+            ),
+          );
+          final switchFinder = find.byType(MacosSettingsSwitch);
+          expect(tester.getSize(switchFinder), const Size(80, 40));
+
+          final track = Rect.fromCenter(
+            center: const Offset(40, 20),
+            width: metrics.track.width,
+            height: metrics.track.height,
+          );
+          expect(switchFinder, offSwitchAt(track));
+          if (direction == TextDirection.rtl) {
+            // Mirrored around the middle of the box, so the track stays in
+            // the middle and the knob of an OFF switch is at its right end.
+            expect(
+              switchFinder,
+              paints
+                ..translate(x: 80.0, y: 0.0)
+                ..scale(x: -1.0, y: 1.0)
+                ..rrect(rrect: capsule(track), color: trackColor),
+            );
+          }
+        });
+
+        testWidgets('$size, $direction: at its own size the track fills the '
+            'box', (tester) async {
+          await tester.pumpWidget(
+            app(
+              direction,
+              MacosSettingsSwitch(
+                value: false,
+                onChanged: (_) {},
+                size: size,
+                inactiveTrackColor: trackColor,
+              ),
+            ),
+          );
+          final switchFinder = find.byType(MacosSettingsSwitch);
+          expect(tester.getSize(switchFinder), metrics.track);
+          expect(switchFinder, offSwitchAt(Offset.zero & metrics.track));
+        });
+      }
+    }
+  });
+
   group('A switch removed in the middle of a gesture throws nothing', () {
     for (final MapEntry(key: name, value: builder)
         in _paintedSwitches.entries) {
