@@ -237,7 +237,9 @@ extension _Panes on _SettingsSplitViewState {
           darkTheme: withBackground(widget.darkTheme),
           applicationType: widget.applicationType,
           contentPadding: paneStyle.listPadding,
-          sections: paneStyle.listSections(widget.sections, widget.title),
+          // A copy: the pane's lazy list must not read the app's list after
+          // the app changed it in place without rebuilding the view.
+          sections: paneStyle.listSections([...widget.sections], widget.title),
         ),
       ),
     );
