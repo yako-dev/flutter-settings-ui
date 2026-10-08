@@ -76,24 +76,47 @@ class _PlainPageRoute extends PageRoute<void> {
   }
 }
 
+/// Knows its navigator's top route.
+class _TopRouteObserver extends NavigatorObserver {
+  /// The navigator's top route.
+  Route<dynamic>? top;
+
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    top = route;
+  }
+
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    if (route == top) top = previousRoute;
+  }
+
+  @override
+  void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    if (route == top) top = previousRoute;
+  }
+
+  @override
+  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
+    if (oldRoute == top) top = newRoute;
+  }
+}
+
 /// Watches the one-pane navigator for routes pushed from the list pane:
 /// routes without a page, such as a tile's own `Navigator.push`, a menu or
 /// a bottom sheet.
-class _StackObserver extends NavigatorObserver {
+class _StackObserver extends _TopRouteObserver {
   _StackObserver(this.onChanged);
 
   /// Called when a route pushed from the list pane has finished animating
   /// out. Pushes and pops also dispatch a [NavigationNotification].
   final VoidCallback onChanged;
 
-  /// The navigator's top route.
-  Route<dynamic>? _top;
-
   /// Routes without a page, until they have animated out.
   final Set<Route<dynamic>> _pageless = <Route<dynamic>>{};
 
   bool get topIsPageless {
-    final top = _top;
+    final top = this.top;
     return top != null && top.settings is! Page;
   }
 
@@ -101,25 +124,25 @@ class _StackObserver extends NavigatorObserver {
 
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    _top = route;
+    super.didPush(route, previousRoute);
     if (route.settings is! Page) _pageless.add(route);
   }
 
   @override
   void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    if (route == _top) _top = previousRoute;
+    super.didPop(route, previousRoute);
     _release(route);
   }
 
   @override
   void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    if (route == _top) _top = previousRoute;
+    super.didRemove(route, previousRoute);
     _pageless.remove(route);
   }
 
   @override
   void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
-    if (oldRoute == _top) _top = newRoute;
+    super.didReplace(newRoute: newRoute, oldRoute: oldRoute);
     _pageless.remove(oldRoute);
     if (newRoute != null && newRoute.settings is! Page) _pageless.add(newRoute);
   }
@@ -144,17 +167,15 @@ class _StackObserver extends NavigatorObserver {
   }
 }
 
-class _DetailObserver extends NavigatorObserver {
+/// Watches the detail navigator for pages opened from inside the pane.
+class _DetailObserver extends _TopRouteObserver {
   _DetailObserver(this.onUserPush);
 
   final VoidCallback onUserPush;
 
-  /// The detail navigator's top route.
-  Route<dynamic>? top;
-
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    top = route;
+    super.didPush(route, previousRoute);
     if (previousRoute != null && route.settings is! Page) {
       onUserPush();
       // The detail navigator doesn't move the focus by itself: give it to a
@@ -168,20 +189,5 @@ class _DetailObserver extends NavigatorObserver {
         });
       }
     }
-  }
-
-  @override
-  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    if (route == top) top = previousRoute;
-  }
-
-  @override
-  void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    if (route == top) top = previousRoute;
-  }
-
-  @override
-  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
-    if (oldRoute == top) top = newRoute;
   }
 }
