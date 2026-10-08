@@ -1,3 +1,12 @@
+## [Unreleased]
+
+### Internal
+* Reorganized `lib/` so the styles share more code: the four switches, the tiles, the desktop sidebars and the split view. The public API, the look and the behavior are unchanged.
+* Internal files under `package:settings_ui/src/` moved and changed (for example, the platform tile widgets now take one `SettingsTileData`). They were never part of the public API; import `package:settings_ui/settings_ui.dart` only.
+
+### Bug fixes
+* Windows: a tile or a navigation pane item removed from the tree while pressed no longer throws `setState() called after dispose()` when the pointer is released.
+
 ## [4.0.1] - [September 26, 2026]
 
 * README: a **More from Yako** grid with an animated preview of each of our other packages.
