@@ -86,9 +86,8 @@ mixin SidebarRowState<T extends SidebarRow> on State<T> {
 
   /// The row's line: [leading] (the icon, where the style puts it), the
   /// title on one line, then the trailing widget and [toggle] (the switch
-  /// of a switch row), each in [endPadding]. With [leadingOnly], nothing
-  /// after [leading].
-  Widget buildLine({
+  /// of a switch row), each in [endPadding].
+  Row buildLine({
     required Widget? leading,
     required TextStyle titleStyle,
     EdgeInsetsGeometry? titlePadding,
@@ -96,9 +95,7 @@ mixin SidebarRowState<T extends SidebarRow> on State<T> {
     required Color? trailingIconColor,
     required EdgeInsetsGeometry endPadding,
     required Widget? toggle,
-    bool leadingOnly = false,
   }) {
-    if (leadingOnly) return Row(children: [?leading]);
     final trailing = widget.trailing;
     final title = DefaultTextStyle(
       style: titleStyle,

@@ -405,48 +405,52 @@ class _FluentNavigationItemState extends State<FluentNavigationItem>
       );
     }
 
+    final iconColumn = SizedBox(
+      width: _kIconColumn,
+      child: icon == null
+          ? null
+          : Center(
+              child: IconTheme.merge(
+                data: IconThemeData(color: iconColor, size: _kIconSize),
+                child: icon,
+              ),
+            ),
+    );
     final textScaler = MediaQuery.textScalerOf(context);
     final content = ConstrainedBox(
       constraints: const BoxConstraints(minHeight: kFluentPaneItemMinHeight),
       child: Padding(
         padding: EdgeInsets.symmetric(vertical: textScaler.scale(2)),
-        child: buildLine(
-          leading: SizedBox(
-            width: _kIconColumn,
-            child: icon == null
-                ? null
-                : Center(
-                    child: IconTheme.merge(
-                      data: IconThemeData(color: iconColor, size: _kIconSize),
-                      child: icon,
-                    ),
-                  ),
-          ),
-          // The rail shows only the icon.
-          leadingOnly: compact,
-          titleStyle: labelStyle,
-          titlePadding: const EdgeInsetsDirectional.only(
-            start: _kLabelStart,
-            end: _kLabelEnd,
-          ),
-          trailingStyle: labelStyle,
-          trailingIconColor: iconColor,
-          endPadding: const EdgeInsetsDirectional.only(end: _kLabelEnd),
-          // The item takes the focus when it can be clicked; otherwise the
-          // switch does, so the keyboard can reach it.
-          toggle: compact || !isSwitch
-              ? null
-              : ExcludeFocus(
-                  excluding: clickable,
-                  child: _labelSwitchIfSeparate(
-                    FluentSettingsSwitch(
-                      value: widget.initialValue,
-                      onChanged: enabled ? widget.onToggle : null,
-                      activeTrackColor: widget.activeSwitchColor,
-                    ),
-                  ),
+        // The rail shows only the icon. Its line is a Row like the open
+        // pane's, so an item without a tooltip is updated in place when the
+        // pane opens.
+        child: compact
+            ? Row(children: [iconColumn])
+            : buildLine(
+                leading: iconColumn,
+                titleStyle: labelStyle,
+                titlePadding: const EdgeInsetsDirectional.only(
+                  start: _kLabelStart,
+                  end: _kLabelEnd,
                 ),
-        ),
+                trailingStyle: labelStyle,
+                trailingIconColor: iconColor,
+                endPadding: const EdgeInsetsDirectional.only(end: _kLabelEnd),
+                // The item takes the focus when it can be clicked;
+                // otherwise the switch does, so the keyboard can reach it.
+                toggle: !isSwitch
+                    ? null
+                    : ExcludeFocus(
+                        excluding: clickable,
+                        child: _labelSwitchIfSeparate(
+                          FluentSettingsSwitch(
+                            value: widget.initialValue,
+                            onChanged: enabled ? widget.onToggle : null,
+                            activeTrackColor: widget.activeSwitchColor,
+                          ),
+                        ),
+                      ),
+              ),
       ),
     );
 
