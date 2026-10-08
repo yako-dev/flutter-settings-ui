@@ -235,8 +235,45 @@ class _MacosSettingsTileState extends State<MacosSettingsTile> {
     SettingsThemeData theme,
     MacosSettingsTileScope? scope,
   ) {
-    final textScaler = MediaQuery.textScalerOf(context);
     final isDark = macosIsDark(context, theme);
+    final verticalPadding = MediaQuery.textScalerOf(
+      context,
+    ).scale(kMacosRowVerticalPadding / (tile.compact ? 2 : 1));
+    Widget row = ConstrainedBox(
+      constraints: BoxConstraints(
+        minHeight: tile.leading == null
+            ? 0
+            : kMacosIconRowMinHeight - (tile.compact ? 12 : 0),
+      ),
+      child: Padding(
+        padding: EdgeInsetsDirectional.symmetric(
+          horizontal: kMacosRowInset,
+          vertical: verticalPadding,
+        ),
+        child: _buildContent(context, theme, isDark: isDark),
+      ),
+    );
+
+    if (_pressed) {
+      row = ColoredBox(
+        color: theme.tileHighlightColor ?? const Color(0x00000000),
+        child: row,
+      );
+    }
+    if (_showFocusHighlight && _canPress) {
+      row = _buildFocusRing(scope, isDark: isDark, child: row);
+    }
+    return _buildInteraction(row);
+  }
+
+  /// The leading widget, the title over the subtitle, the value, the
+  /// controls and the chevron.
+  Widget _buildContent(
+    BuildContext context,
+    SettingsThemeData theme, {
+    required bool isDark,
+  }) {
+    final textScaler = MediaQuery.textScalerOf(context);
     final enabled = tile.enabled;
     // With a subtitle, the value and the controls stay on the title line.
     final crossAxisAlignment = tile.titleDescription != null
@@ -254,6 +291,9 @@ class _MacosSettingsTileState extends State<MacosSettingsTile> {
     final lineHeight =
         textScaler.scale(titleStyle.fontSize ?? 13) *
         (titleStyle.height ?? 16 / 13);
+    final valueStyle = kMacosBodyStyle.copyWith(
+      color: enabled ? theme.trailingTextColor : theme.inactiveTitleColor,
+    );
     final baseSubtitleStyle =
         theme.tileDescriptionTextStyle ?? kMacosCaptionStyle;
     final subtitleStyle = baseSubtitleStyle.copyWith(
@@ -279,7 +319,7 @@ class _MacosSettingsTileState extends State<MacosSettingsTile> {
       lineHeight: lineHeight,
     );
 
-    Widget content = Row(
+    return Row(
       children: [
         if (tile.leading != null)
           Padding(
@@ -304,11 +344,7 @@ class _MacosSettingsTileState extends State<MacosSettingsTile> {
                     padding: const EdgeInsetsDirectional.only(start: 8),
                     child: tileValue(
                       tile.value!,
-                      style: kMacosBodyStyle.copyWith(
-                        color: enabled
-                            ? theme.trailingTextColor
-                            : theme.inactiveTitleColor,
-                      ),
+                      style: valueStyle,
                       maxWidth: constraints.maxWidth / 2,
                     ),
                   ),
@@ -345,35 +381,6 @@ class _MacosSettingsTileState extends State<MacosSettingsTile> {
           ),
       ],
     );
-
-    final verticalPadding = textScaler.scale(
-      kMacosRowVerticalPadding / (tile.compact ? 2 : 1),
-    );
-    content = ConstrainedBox(
-      constraints: BoxConstraints(
-        minHeight: tile.leading == null
-            ? 0
-            : kMacosIconRowMinHeight - (tile.compact ? 12 : 0),
-      ),
-      child: Padding(
-        padding: EdgeInsetsDirectional.symmetric(
-          horizontal: kMacosRowInset,
-          vertical: verticalPadding,
-        ),
-        child: content,
-      ),
-    );
-
-    if (_pressed) {
-      content = ColoredBox(
-        color: theme.tileHighlightColor ?? const Color(0x00000000),
-        child: content,
-      );
-    }
-    if (_showFocusHighlight && _canPress) {
-      content = _buildFocusRing(scope, isDark: isDark, child: content);
-    }
-    return _buildInteraction(content);
   }
 
   /// The trailing widget and the switch, which line up with the title's

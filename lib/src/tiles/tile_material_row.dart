@@ -86,29 +86,6 @@ class MaterialTileRow extends StatelessWidget {
               ? selectedSubtitleColor ?? theme.tileDescriptionTextColor
               : theme.inactiveSubtitleColor,
         );
-    // Trailing icons and the chevron keep their color in a selected tile.
-    Widget tinted(Widget child) => IconTheme(
-      data: IconTheme.of(
-        context,
-      ).copyWith(color: theme.iconColorFor(enabled: enabled)),
-      child: child,
-    );
-
-    // A disabled tile takes no focus, keys or taps (the IgnorePointer below
-    // only blocks new pointers).
-    final cantShowAnimation =
-        !enabled ||
-        (tile.isSwitch
-            ? tile.onToggle == null && tile.onPressed == null
-            : tile.onPressed == null);
-    final toggle = Switch(
-      value: tile.initialValue,
-      onChanged: enabled ? tile.onToggle : null,
-      thumbIcon: thumbIcon,
-      activeThumbColor: enabled
-          ? tile.activeSwitchColor
-          : (theme.inactiveSwitchColor ?? theme.inactiveTitleColor),
-    );
 
     Widget row = Row(
       children: [
@@ -164,35 +141,7 @@ class MaterialTileRow extends StatelessWidget {
             ),
           ),
         ),
-        if (tile.isSwitch && tile.trailing != null)
-          Row(
-            children: [
-              tintsSwitchTrailing ? tinted(tile.trailing!) : tile.trailing!,
-              Padding(
-                padding: EdgeInsetsDirectional.only(end: switchEndInset),
-                child: toggle,
-              ),
-            ],
-          )
-        else if (tile.isSwitch)
-          Padding(
-            padding: EdgeInsetsDirectional.only(start: 16, end: switchEndInset),
-            child: toggle,
-          )
-        else if (tile.trailing != null)
-          Padding(
-            padding:
-                tile.trailingPadding ??
-                const EdgeInsets.symmetric(horizontal: 16),
-            child: tinted(tile.trailing!),
-          ),
-        if (chevron && tile.isNavigation)
-          Padding(
-            padding: const EdgeInsetsDirectional.only(start: 8, end: 16),
-            child: tinted(
-              Icon(Icons.chevron_right, size: textScaler.scale(20)),
-            ),
-          ),
+        ..._buildEnd(context, theme),
       ],
     );
     if (minHeight != null) {
@@ -202,6 +151,13 @@ class MaterialTileRow extends StatelessWidget {
       );
     }
 
+    // A disabled tile takes no focus, keys or taps (the IgnorePointer below
+    // only blocks new pointers).
+    final cantShowAnimation =
+        !enabled ||
+        (tile.isSwitch
+            ? tile.onToggle == null && tile.onPressed == null
+            : tile.onPressed == null);
     return toggleRowSemantics(
       tile: tile,
       selected: semanticsSelected,
@@ -229,5 +185,61 @@ class MaterialTileRow extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// The end of the row: the switch (after the trailing widget) or the
+  /// trailing widget, then the chevron.
+  List<Widget> _buildEnd(BuildContext context, SettingsThemeData theme) {
+    final enabled = tile.enabled;
+    // Trailing icons and the chevron keep their color in a selected tile.
+    Widget tinted(Widget child) => IconTheme(
+      data: IconTheme.of(
+        context,
+      ).copyWith(color: theme.iconColorFor(enabled: enabled)),
+      child: child,
+    );
+    late final toggle = Switch(
+      value: tile.initialValue,
+      onChanged: enabled ? tile.onToggle : null,
+      thumbIcon: thumbIcon,
+      activeThumbColor: enabled
+          ? tile.activeSwitchColor
+          : (theme.inactiveSwitchColor ?? theme.inactiveTitleColor),
+    );
+
+    return [
+      if (tile.isSwitch && tile.trailing != null)
+        Row(
+          children: [
+            tintsSwitchTrailing ? tinted(tile.trailing!) : tile.trailing!,
+            Padding(
+              padding: EdgeInsetsDirectional.only(end: switchEndInset),
+              child: toggle,
+            ),
+          ],
+        )
+      else if (tile.isSwitch)
+        Padding(
+          padding: EdgeInsetsDirectional.only(start: 16, end: switchEndInset),
+          child: toggle,
+        )
+      else if (tile.trailing != null)
+        Padding(
+          padding:
+              tile.trailingPadding ??
+              const EdgeInsets.symmetric(horizontal: 16),
+          child: tinted(tile.trailing!),
+        ),
+      if (chevron && tile.isNavigation)
+        Padding(
+          padding: const EdgeInsetsDirectional.only(start: 8, end: 16),
+          child: tinted(
+            Icon(
+              Icons.chevron_right,
+              size: MediaQuery.textScalerOf(context).scale(20),
+            ),
+          ),
+        ),
+    ];
   }
 }
