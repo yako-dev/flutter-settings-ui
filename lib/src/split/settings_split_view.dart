@@ -6,19 +6,14 @@ import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/src/list/settings_list.dart';
 import 'package:settings_ui/src/sections/abstract_settings_section.dart';
 import 'package:settings_ui/src/sections/custom_settings_section.dart';
-import 'package:settings_ui/src/sections/platforms/fluent_settings_section.dart';
 import 'package:settings_ui/src/sections/settings_section.dart';
-import 'package:settings_ui/src/split/adwaita_split.dart';
 import 'package:settings_ui/src/split/fluent_split.dart';
-import 'package:settings_ui/src/split/macos_split.dart';
 import 'package:settings_ui/src/split/settings_destination.dart';
 import 'package:settings_ui/src/split/settings_destination_page.dart';
-import 'package:settings_ui/src/split/settings_page_header.dart';
-import 'package:settings_ui/src/split/sidebar_keyboard.dart';
 import 'package:settings_ui/src/split/split_geometry.dart';
+import 'package:settings_ui/src/split/split_pane_style.dart';
 import 'package:settings_ui/src/split/split_scopes.dart';
 import 'package:settings_ui/src/tiles/settings_tile.dart';
-import 'package:settings_ui/src/utils/content_column.dart';
 import 'package:settings_ui/src/utils/platform_utils.dart';
 import 'package:settings_ui/src/utils/settings_style.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
@@ -710,9 +705,11 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
     bool canLeave,
   ) {
     _recordLayout(geometry);
+    final paneStyle = SplitPaneStyle.of(style.platform, geometry);
+    final list = _buildListPane(style, paneStyle, canLeave);
     final panes = geometry.isSplit
-        ? _buildTwoPanes(style, geometry, canLeave)
-        : _buildOnePane(style, canLeave);
+        ? _buildTwoPanes(style, paneStyle, list)
+        : _buildOnePane(style, list);
 
     return SettingsSplitScope(
       controller: _controller,
@@ -755,25 +752,17 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
     _scheduleNotify();
   }
 
+  // Panes --------------------------------------------------------------------
+
+  /// The [list] pane next to the detail navigator.
   Widget _buildTwoPanes(
     ResolvedSettingsStyle style,
-    SplitGeometry geometry,
-    bool canLeave,
+    SplitPaneStyle paneStyle,
+    Widget list,
   ) {
     final theme = style.themeData;
-    final family = settingsStyleFamily(style.platform);
+    final geometry = paneStyle.geometry;
     final isRtl = Directionality.of(context) == TextDirection.rtl;
-
-    // Web: Chrome's 680px column, nearer the menu. iPad and Android: pages
-    // fill the detail pane. The desktop styles keep their own columns.
-    final detail = SettingsContentColumnHint(
-      paneWidth: geometry.detailWidth,
-      endReserve: family == SettingsStyleFamily.web
-          ? webDetailEndReserve(geometry.detailWidth)
-          : 0,
-      fillWidth: family != SettingsStyleFamily.web,
-      child: _buildDetailNavigator(style),
-    );
 
     // Its own semantics container: the routes of the detail navigator block
     // the semantics of what was painted before them in their container,
@@ -786,7 +775,7 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
           context: context,
           removeLeft: !isRtl,
           removeRight: isRtl,
-          child: detail,
+          child: paneStyle.detailColumn(_buildDetailNavigator(style)),
         ),
       ),
     );
@@ -798,34 +787,17 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
         context: context,
         removeLeft: isRtl,
         removeRight: !isRtl,
-        child: _buildListPane(
-          style,
-          isSplit: true,
-          width: geometry.listWidth,
-          canLeave: canLeave,
-          compactPane: geometry.compactPane,
-        ),
+        child: list,
       ),
     );
 
     // The line between the panes: a hairline on the macOS sidebar, GNOME's
     // 1px sidebar border. Windows Settings has none (one Mica surface).
-    final Color? edge = switch (family) {
-      SettingsStyleFamily.macos => macosSidebarEdgeColor(theme),
-      SettingsStyleFamily.adwaita => adwaitaSidebarBorderColor(theme),
-      _ => null,
-    };
+    final edge = paneStyle.paneEdge(theme);
     if (edge != null) {
       listPane = DecoratedBox(
         position: DecorationPosition.foreground,
-        decoration: BoxDecoration(
-          border: BorderDirectional(
-            end: BorderSide(
-              color: edge,
-              width: family == SettingsStyleFamily.macos ? 0.5 : 1,
-            ),
-          ),
-        ),
+        decoration: BoxDecoration(border: BorderDirectional(end: edge)),
         child: listPane,
       );
     }
@@ -842,47 +814,36 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
       child: detailPane,
     );
 
-    final background =
-        theme.listPaneBackground ??
-        theme.settingsListBackground ??
-        const Color(0x00000000);
-
-    if (geometry.compactPane) {
-      final openWidth = math.min(
-        widget.listPaneWidth ?? kFluentOverlayPaneWidth,
-        geometry.listWidth + geometry.detailWidth,
-      );
-      return _orderedPanes(
-        ColoredBox(
-          color: background,
-          child: FluentCompactPaneLayout(
-            open: _fluentPaneOpen,
-            railWidth: geometry.listWidth,
-            openWidth: openWidth,
-            onDismiss: _closeFluentPane,
-            pane: listPane,
-            detail: orderedDetailPane,
-          ),
-        ),
-      );
-    }
-
-    return _orderedPanes(
-      ColoredBox(
-        color: background,
-        child: Row(
-          children: [
-            SizedBox(width: geometry.listWidth, child: listPane),
-            if (geometry.gap > 0) SizedBox(width: geometry.gap),
-            Expanded(child: orderedDetailPane),
-          ],
-        ),
+    return FocusTraversalGroup(
+      policy: OrderedTraversalPolicy(),
+      child: ColoredBox(
+        color:
+            theme.listPaneBackground ??
+            theme.settingsListBackground ??
+            const Color(0x00000000),
+        // The Windows style's icon rail opens over the detail pane.
+        child: geometry.compactPane
+            ? FluentCompactPaneLayout(
+                open: _fluentPaneOpen,
+                railWidth: geometry.listWidth,
+                openWidth: math.min(
+                  widget.listPaneWidth ?? kFluentOverlayPaneWidth,
+                  geometry.listWidth + geometry.detailWidth,
+                ),
+                onDismiss: _closeFluentPane,
+                pane: listPane,
+                detail: orderedDetailPane,
+              )
+            : Row(
+                children: [
+                  SizedBox(width: geometry.listWidth, child: listPane),
+                  if (geometry.gap > 0) SizedBox(width: geometry.gap),
+                  Expanded(child: orderedDetailPane),
+                ],
+              ),
       ),
     );
   }
-
-  static Widget _orderedPanes(Widget child) =>
-      FocusTraversalGroup(policy: OrderedTraversalPolicy(), child: child);
 
   void _toggleFluentPane() =>
       setState(() => _fluentPaneOpen = !_fluentPaneOpen);
@@ -895,20 +856,11 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
   ValueKey<String> get _hostPageKey =>
       ValueKey<String>('settings_split_detail_$_hostGeneration');
 
-  Widget _buildOnePane(ResolvedSettingsStyle style, bool canLeave) {
+  /// The stack navigator: the [list] pane and, over it, the picked page.
+  Widget _buildOnePane(ResolvedSettingsStyle style, Widget list) {
     final picked = _pickedId;
     final pages = <Page<void>>[
-      _PlainPage(
-        key: _listPageKey,
-        restorationId: 'list',
-        child: _buildListPane(
-          style,
-          isSplit: false,
-          width: null,
-          canLeave: canLeave,
-          compactPane: false,
-        ),
-      ),
+      _PlainPage(key: _listPageKey, restorationId: 'list', child: list),
       if (picked != null) _hostPage(style, picked),
     ];
     return NotificationListener<NavigationNotification>(
@@ -1007,27 +959,20 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
     );
   }
 
+  /// The list pane: the sections in a [SettingsList] under the style's
+  /// header, the same in both layouts. What differs between the styles
+  /// comes from [paneStyle].
   Widget _buildListPane(
-    ResolvedSettingsStyle style, {
-    required bool isSplit,
-    required double? width,
-    required bool canLeave,
-    required bool compactPane,
-  }) {
+    ResolvedSettingsStyle style,
+    SplitPaneStyle paneStyle,
+    bool canLeave,
+  ) {
     final theme = style.themeData;
-    final family = settingsStyleFamily(style.platform);
-    final title = widget.title;
-    // The macOS, Windows and GNOME sidebars. GNOME Settings also shows its
-    // sidebar as the first page when it's collapsed.
-    final sidebar = switch (family) {
-      SettingsStyleFamily.macos || SettingsStyleFamily.fluent => isSplit,
-      SettingsStyleFamily.adwaita => true,
-      _ => false,
-    };
+    final isSplit = paneStyle.isSplit;
+    final sidebar = paneStyle.sidebar;
     final background = isSplit || sidebar
         ? (theme.listPaneBackground ?? theme.settingsListBackground)
         : theme.settingsListBackground;
-    final onBack = canLeave ? _leave : null;
 
     // The list pane's own background, for the tiles too (iOS descriptions
     // are drawn on it).
@@ -1036,237 +981,25 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
           theme: SettingsThemeData(settingsListBackground: background),
         );
 
-    final iosLargeTitle =
-        family == SettingsStyleFamily.cupertino && title != null;
-    final EdgeInsetsGeometry? padding;
-    if (sidebar) {
-      switch (family) {
-        case SettingsStyleFamily.macos:
-          // Room for the first row's focus ring, which the list's viewport
-          // would clip: the list starts that much higher (see below).
-          padding = const EdgeInsets.only(
-            top: kMacosFocusRingWidth,
-            bottom: 10,
-          );
-        case SettingsStyleFamily.fluent:
-          // Windows Settings' open pane starts its items 16 from the
-          // window edge; the rail and the pane opened from it keep
-          // NavigationView's own 4.
-          padding = EdgeInsetsDirectional.only(
-            start: compactPane ? 0 : kFluentPaneGutter,
-            bottom: 8,
-          );
-        default:
-          padding = const EdgeInsets.only(
-            top: kAdwaitaSidebarPaddingTop,
-            bottom: kAdwaitaSidebarPaddingBottom,
-          );
-      }
-    } else if (!isSplit) {
-      padding = null;
-    } else {
-      switch (family) {
-        case SettingsStyleFamily.cupertino:
-          padding = const EdgeInsets.only(bottom: 20);
-        case SettingsStyleFamily.material:
-          padding = const EdgeInsets.only(bottom: 16);
-        default:
-          padding = const EdgeInsets.symmetric(vertical: 8);
-      }
-    }
-
-    final List<AbstractSettingsSection> sections;
-    if (isSplit && family == SettingsStyleFamily.web) {
-      // Chrome's menu separates its groups with a full-width line.
-      sections = _interleave(
-        widget.sections,
-        (_) => const CustomSettingsSection(child: _WebMenuSeparator()),
-      );
-    } else if (sidebar) {
-      sections = _interleave(_shownSections(widget.sections), (next) {
-        switch (family) {
-          case SettingsStyleFamily.macos:
-            return const CustomSettingsSection(child: MacosSidebarSectionGap());
-          case SettingsStyleFamily.fluent:
-            return CustomSettingsSection(
-              child: FluentPaneSeparator(
-                beforeTitle: next is SettingsSection && next.title != null,
-              ),
-            );
-          default:
-            return const CustomSettingsSection(
-              child: AdwaitaSidebarSeparator(),
-            );
-        }
-      });
-    } else {
-      sections = widget.sections;
-    }
-
-    Widget list = SettingsList(
-      platform: style.platform,
-      brightness: widget.brightness,
-      lightTheme: withBackground(widget.lightTheme),
-      darkTheme: withBackground(widget.darkTheme),
-      applicationType: widget.applicationType,
-      contentPadding: padding,
-      sections: [
-        if (iosLargeTitle)
-          CustomSettingsSection(child: SettingsLargeTitle(title: title)),
-        ...sections,
-      ],
+    final content = paneStyle.buildListPane(
+      SplitListPaneParts(
+        context: context,
+        title: widget.title,
+        onBack: canLeave ? _leave : null,
+        onTogglePane: _toggleFluentPane,
+        background: background,
+        largeTitleHidden: _largeTitleHidden,
+        list: SettingsList(
+          platform: style.platform,
+          brightness: widget.brightness,
+          lightTheme: withBackground(widget.lightTheme),
+          darkTheme: withBackground(widget.darkTheme),
+          applicationType: widget.applicationType,
+          contentPadding: paneStyle.listPadding,
+          sections: paneStyle.listSections(widget.sections, widget.title),
+        ),
+      ),
     );
-
-    if (family == SettingsStyleFamily.fluent) {
-      // One pane shows the title as a Windows page title over the list.
-      list = FluentPageTitleAbove(above: !isSplit, child: list);
-    }
-
-    // Keep the same widget structure in both layouts, so the list pane (it
-    // moves between them under a GlobalKey) keeps its scroll position.
-    Widget content;
-    switch (family) {
-      case SettingsStyleFamily.cupertino:
-        content = Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            ValueListenableBuilder<bool>(
-              valueListenable: _largeTitleHidden,
-              builder: (context, hidden, _) => SettingsPageBar(
-                platform: style.platform,
-                title: title,
-                // With a large title in the list, the bar shows the title
-                // only once it scrolled away, like iOS.
-                showTitle: !iosLargeTitle || hidden,
-                onBack: onBack,
-              ),
-            ),
-            Expanded(
-              child: MediaQuery.removePadding(
-                context: context,
-                removeTop: true,
-                child: NotificationListener<ScrollUpdateNotification>(
-                  onNotification: (notification) {
-                    if (notification.depth == 0) {
-                      _largeTitleHidden.value =
-                          notification.metrics.pixels > 40;
-                    }
-                    return false;
-                  },
-                  child: list,
-                ),
-              ),
-            ),
-          ],
-        );
-      case SettingsStyleFamily.material:
-        content = title != null
-            ? SettingsCollapsingTitleView(
-                title: title,
-                onBack: onBack,
-                background: background,
-                body: list,
-              )
-            : Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  SettingsPageBar(
-                    platform: style.platform,
-                    title: null,
-                    onBack: onBack,
-                  ),
-                  Expanded(
-                    child: MediaQuery.removePadding(
-                      context: context,
-                      removeTop: true,
-                      child: list,
-                    ),
-                  ),
-                ],
-              );
-      case SettingsStyleFamily.web:
-      case SettingsStyleFamily.macos:
-      case SettingsStyleFamily.fluent:
-      case SettingsStyleFamily.adwaita:
-        final Widget header;
-        switch (family) {
-          case SettingsStyleFamily.web:
-            header = isSplit
-                ? _WebMenuHeader(title: title, onBack: onBack)
-                : SettingsPageBar(
-                    platform: style.platform,
-                    title: title,
-                    onBack: onBack,
-                  );
-          case SettingsStyleFamily.macos:
-            // The sidebar runs under the title bar; one pane is a page.
-            header = isSplit
-                ? MacosSidebarTopBar(onBack: onBack)
-                : MacosToolbar(title: title, onBack: onBack);
-          case SettingsStyleFamily.fluent:
-            header = isSplit
-                ? FluentPaneHeader(
-                    title: title,
-                    onBack: onBack,
-                    onTogglePane: compactPane ? _toggleFluentPane : null,
-                  )
-                : FluentPageHeader(title: title, onBack: onBack);
-          default:
-            header = AdwaitaHeaderBar(title: title, onBack: onBack);
-        }
-        Widget body = MediaQuery.removePadding(
-          context: context,
-          removeTop: true,
-          child: list,
-        );
-        if (family == SettingsStyleFamily.macos) {
-          // The macOS sidebar list reaches up under the (transparent)
-          // toolbar strip by the width of the focus ring, which its top
-          // padding leaves free, so its first row stays at the strip's
-          // bottom and its ring isn't clipped.
-          body = CustomSingleChildLayout(
-            delegate: _ExtendUpDelegate(
-              isSplit && sidebar ? kMacosFocusRingWidth : 0,
-            ),
-            child: body,
-          );
-        }
-        content = Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            header,
-            Expanded(child: body),
-          ],
-        );
-    }
-
-    // Keyboard navigation of the desktop sidebars, the macOS window focus
-    // and the Windows selection indicator. They wrap the list in both
-    // layouts, so its structure stays the same.
-    switch (family) {
-      case SettingsStyleFamily.macos:
-        content = MacosWindowActivity(
-          child: SettingsSidebarKeyboard(
-            enabled: sidebar,
-            selectionFollowsFocus: true,
-            child: content,
-          ),
-        );
-      case SettingsStyleFamily.fluent:
-        content = FluentNavigationPane(enabled: sidebar, child: content);
-      case SettingsStyleFamily.adwaita:
-        content = SettingsSidebarKeyboard(child: content);
-      case SettingsStyleFamily.cupertino:
-      case SettingsStyleFamily.material:
-      case SettingsStyleFamily.web:
-        break;
-    }
-
-    final hideLeading =
-        isSplit &&
-        family == SettingsStyleFamily.material &&
-        width != null &&
-        width < 380;
 
     return SettingsSplitListScope(
       isSplit: isSplit,
@@ -1274,7 +1007,7 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
       selectedId: _shownId,
       onOpen: _openFromTile,
       onTileBuilt: _handleTileBuilt,
-      hideLeading: hideLeading,
+      hideLeading: paneStyle.hidesLeading,
       child: KeyedSubtree(
         key: const ValueKey<String>('settings_split_list_pane'),
         child: Material(
@@ -1285,117 +1018,4 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
       ),
     );
   }
-}
-
-/// [sections] without the [SettingsSection]s that have no tiles (they show
-/// nothing), so separators between sections don't double up.
-List<AbstractSettingsSection> _shownSections(
-  List<AbstractSettingsSection> sections,
-) => [
-  for (final section in sections)
-    if (section is! SettingsSection || section.tiles.isNotEmpty) section,
-];
-
-/// [sections] with a separator from [separatorBefore] between each two.
-List<AbstractSettingsSection> _interleave(
-  List<AbstractSettingsSection> sections,
-  AbstractSettingsSection Function(AbstractSettingsSection next)
-  separatorBefore,
-) => [
-  for (final (index, section) in sections.indexed) ...[
-    if (index > 0) separatorBefore(section),
-    section,
-  ],
-];
-
-/// Chrome's settings toolbar over the menu: "Settings" in 22px.
-class _WebMenuHeader extends StatelessWidget {
-  const _WebMenuHeader({required this.title, required this.onBack});
-
-  final Widget? title;
-  final VoidCallback? onBack;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = SettingsTheme.of(context).themeData;
-    final title = this.title;
-    return SafeArea(
-      bottom: false,
-      child: SizedBox(
-        height: 56,
-        child: Row(
-          children: [
-            if (onBack != null)
-              Padding(
-                padding: const EdgeInsetsDirectional.only(start: 12),
-                child: IconButton(
-                  onPressed: onBack,
-                  iconSize: 20,
-                  icon: Icon(
-                    Icons.arrow_back,
-                    semanticLabel: settingsBackLabel(context),
-                  ),
-                  color: theme.leadingIconsColor,
-                ),
-              )
-            else
-              const SizedBox(width: 24),
-            if (title != null)
-              Expanded(
-                child: DefaultTextStyle(
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w400,
-                    color: theme.settingsTileTextColor,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  child: Semantics(header: true, child: title),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// The line between groups in Chrome's settings menu.
-class _WebMenuSeparator extends StatelessWidget {
-  const _WebMenuSeparator();
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = SettingsTheme.of(context).themeData;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Container(
-        height: 1,
-        color:
-            theme.dividerColor ??
-            theme.settingsTileTextColor?.withValues(alpha: 0.12),
-      ),
-    );
-  }
-}
-
-/// Lays its child out [extent] taller and that far up, over what is above.
-class _ExtendUpDelegate extends SingleChildLayoutDelegate {
-  const _ExtendUpDelegate(this.extent);
-
-  final double extent;
-
-  @override
-  BoxConstraints getConstraintsForChild(BoxConstraints constraints) =>
-      constraints.copyWith(
-        minHeight: constraints.minHeight + extent,
-        maxHeight: constraints.maxHeight + extent,
-      );
-
-  @override
-  Offset getPositionForChild(Size size, Size childSize) => Offset(0, -extent);
-
-  @override
-  bool shouldRelayout(_ExtendUpDelegate oldDelegate) =>
-      extent != oldDelegate.extent;
 }
