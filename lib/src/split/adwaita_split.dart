@@ -89,9 +89,10 @@ class _AdwaitaSidebarRowState extends State<AdwaitaSidebarRow>
   @override
   String get debugLabel => 'AdwaitaSidebarRow';
 
-  bool get _activatable =>
-      tile.enabled &&
-      (tile.isSwitch ? tile.onToggle != null : tile.onPressed != null);
+  bool get _hasAction =>
+      tile.isSwitch ? tile.onToggle != null : tile.onPressed != null;
+
+  bool get _activatable => tile.enabled && _hasAction;
 
   @override
   void activateRow() {
@@ -212,7 +213,8 @@ class _AdwaitaSidebarRowState extends State<AdwaitaSidebarRow>
       child: MergeSemantics(
         child: Semantics(
           button: !tile.isSwitch && tile.onPressed != null,
-          enabled: enabled,
+          // A row that does nothing has no enabled state, like a list row.
+          enabled: _hasAction ? enabled : null,
           selected: widget.semanticsSelected,
           onTap: _activatable ? activateRow : null,
           child: IgnorePointer(

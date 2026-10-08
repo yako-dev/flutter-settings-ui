@@ -1,3 +1,5 @@
+import 'dart:ui' show Tristate;
+
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -540,5 +542,82 @@ void splitFixTests() {
       expect(labelOf(find.text('Sound')), 'Sound');
       handle.dispose();
     });
+  });
+
+  group('GNOME sidebar: a row\'s enabled state', () {
+    List<AbstractSettingsTile> tiles() => [
+      _page('Network'),
+      SettingsTile(title: const Text('Version')),
+      SettingsTile(title: const Text('Locked'), enabled: false),
+      SettingsTile(title: const Text('Sign out'), onPressed: (_) {}),
+      SettingsTile(
+        title: const Text('Managed'),
+        enabled: false,
+        onPressed: (_) {},
+      ),
+      SettingsTile.switchTile(
+        title: const Text('Wi-Fi'),
+        initialValue: true,
+        onToggle: (_) {},
+      ),
+    ];
+    const titles = [
+      'Network',
+      'Version',
+      'Locked',
+      'Sign out',
+      'Managed',
+      'Wi-Fi',
+    ];
+
+    Map<String, Tristate> enabledStates(WidgetTester tester) => {
+      for (final title in titles)
+        title: tester
+            .getSemantics(find.text(title))
+            .getSemanticsData()
+            .flagsCollection
+            .isEnabled,
+    };
+
+    for (final size in [const Size(1280, 800), const Size(400, 800)]) {
+      final panes = size.width > 550 ? 'two panes' : 'one pane';
+      testWidgets('$panes: none for a row without an action, like a list '
+          'row', (tester) async {
+        final handle = tester.ensureSemantics();
+        await _setSize(tester, size);
+
+        // What the rows of a GNOME list say.
+        await tester.pumpWidget(
+          _app(
+            Scaffold(
+              body: SettingsList(
+                platform: DevicePlatform.linux,
+                sections: [SettingsSection(tiles: tiles())],
+              ),
+            ),
+            platform: TargetPlatform.linux,
+          ),
+        );
+        final inList = enabledStates(tester);
+        expect(inList['Version'], Tristate.none);
+        expect(inList['Sign out'], Tristate.isTrue);
+        expect(inList['Managed'], Tristate.isFalse);
+
+        await tester.pumpWidget(
+          _app(
+            SettingsSplitView(
+              platform: DevicePlatform.linux,
+              emptyDetailBuilder: (_) => const SizedBox.expand(),
+              sections: [SettingsSection(tiles: tiles())],
+            ),
+            platform: TargetPlatform.linux,
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(_inList(find.text('Version')), findsOneWidget);
+        expect(enabledStates(tester), inList);
+        handle.dispose();
+      });
+    }
   });
 }
