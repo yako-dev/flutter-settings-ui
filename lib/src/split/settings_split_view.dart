@@ -24,6 +24,8 @@ import 'package:settings_ui/src/utils/settings_style.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 
 part 'settings_split_controller.dart';
+part 'split_view_focus.dart';
+part 'split_view_routes.dart';
 
 /// A settings screen that shows the list and the selected page side by side
 /// when there is room (iPad, tablets, unfolded foldables, desktop and web),
@@ -719,97 +721,6 @@ class _SettingsSplitViewState extends State<SettingsSplitView>
     );
   }
 
-  /// Whether [node] is the focus node of one of the view's navigators,
-  /// which holds the focus until something in a pane takes it.
-  bool _isNavigatorFocus(FocusNode node) =>
-      node == _detailKey.currentState?.focusNode ||
-      node == _stackKey.currentState?.focusNode;
-
-  /// The layout is switching between one and two panes, which rebuilds the
-  /// navigators around the panes: puts the keyboard focus back where it
-  /// was once the new layout is built. A row the new layout draws as a card
-  /// (macOS, Windows) gives it to that card; a page one pane doesn't show
-  /// gives it to its tile.
-  void _keepFocusAcrossLayouts() {
-    final node = FocusManager.instance.primaryFocus;
-    if (node == null) return;
-    bool isIn(FocusNode? pane) =>
-        pane != null && (node == pane || node.ancestors.contains(pane));
-    final inList = isIn(_listFocusNode);
-    final inDetail = !inList && isIn(_detailKey.currentState?.focusNode);
-    if (!inList && !inDetail) return;
-    // The detail navigator's own node: nothing in the page had the focus.
-    final navigatorOnly = _isNavigatorFocus(node);
-    final nodeContext = node.context;
-    final tile = nodeContext != null && nodeContext.mounted
-        ? nodeContext.findAncestorWidgetOfExactType<SettingsTile>()
-        : null;
-    final pageId = _shownId;
-    SchedulerBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      final context = node.context;
-      final alive = context != null && context.mounted && node.canRequestFocus;
-      final FocusNode? target;
-      if (alive && !navigatorOnly && (inDetail || _listShown)) {
-        target = node;
-      } else if (!_listShown) {
-        // One pane shows a page over the list: its route has the focus.
-        return;
-      } else if (inList && tile != null) {
-        target =
-            _listNodeWhere((candidate) => identical(candidate, tile)) ??
-            _listNodeWhere(
-              (candidate) =>
-                  tile.destination != null &&
-                  candidate.destination?.id == tile.destination!.id,
-            );
-      } else {
-        // The page is gone (one pane shows the list), or had no focus.
-        target = _listNodeWhere(
-          (candidate) => pageId != null && candidate.destination?.id == pageId,
-        );
-      }
-      if (target == null) {
-        _focusListPane(first: true);
-      } else if (!target.hasPrimaryFocus) {
-        FocusTraversalPolicy.defaultTraversalRequestFocusCallback(
-          target,
-          alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
-        );
-      }
-    }, debugLabel: 'SettingsSplitView.keepFocus');
-  }
-
-  /// The first focusable node in the list pane inside a tile that passes
-  /// [test].
-  FocusNode? _listNodeWhere(bool Function(SettingsTile tile) test) {
-    for (final node in _listFocusNode.traversalDescendants) {
-      final context = node.context;
-      if (context == null || !context.mounted || !node.canRequestFocus) {
-        continue;
-      }
-      final tile = context.findAncestorWidgetOfExactType<SettingsTile>();
-      if (tile != null && test(tile)) return node;
-    }
-    return null;
-  }
-
-  /// Gives the keyboard focus to the first (or last) control of the list
-  /// pane. Returns whether there was one.
-  bool _focusListPane({required bool first}) {
-    final nodes =
-        _listFocusNode.traversalDescendants
-            .where((node) => node.context != null && node.canRequestFocus)
-            .toList()
-          ..sort((a, b) {
-            final byTop = a.rect.top.compareTo(b.rect.top);
-            return byTop != 0 ? byTop : a.rect.left.compareTo(b.rect.left);
-          });
-    if (nodes.isEmpty) return false;
-    (first ? nodes.first : nodes.last).requestFocus();
-    return true;
-  }
-
   Widget _buildTwoPanes(
     ResolvedSettingsStyle style,
     SplitGeometry geometry,
@@ -1363,36 +1274,6 @@ List<AbstractSettingsSection> _interleave(
   ],
 ];
 
-/// Tab and Shift+Tab in a split view. A page without any control leaves
-/// its route's focus scope with nothing to move to, which would keep the
-/// focus there: then the focus goes on to the list pane.
-class _PaneFocusAction<T extends Intent> extends Action<T> {
-  _PaneFocusAction(this.view, this.forward);
-
-  final _SettingsSplitViewState view;
-  final bool forward;
-
-  @override
-  Object? invoke(T intent) {
-    final node = FocusManager.instance.primaryFocus;
-    if (node == null) return null;
-    // Nothing is focused yet: the detail navigator took the focus when it
-    // was built (navigators autofocus). Start in the list pane, like the
-    // platforms' settings apps, not after the navigator in the page.
-    // In one pane, a page shown over the list hides it: stay in the page.
-    final listShown = view._listShown;
-    if (forward &&
-        listShown &&
-        view._isNavigatorFocus(node) &&
-        view._focusListPane(first: true)) {
-      return null;
-    }
-    final moved = forward ? node.nextFocus() : node.previousFocus();
-    if (!moved && listShown) view._focusListPane(first: forward);
-    return null;
-  }
-}
-
 /// Chrome's settings toolbar over the menu: "Settings" in 22px.
 class _WebMenuHeader extends StatelessWidget {
   const _WebMenuHeader({required this.title, required this.onBack});
@@ -1464,29 +1345,6 @@ class _WebMenuSeparator extends StatelessWidget {
   }
 }
 
-/// The page one pane pushes over the list. It holds the detail navigator,
-/// unless a newer page took it while this one animates out.
-class _DetailHost extends StatelessWidget {
-  const _DetailHost({
-    required this.generation,
-    required this.background,
-    required this.child,
-  });
-
-  final int generation;
-  final Color? background;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    final scope = SettingsSplitScope.maybeOf(context);
-    if (scope != null && scope.hostGeneration != generation) {
-      return ColoredBox(color: background ?? const Color(0x00000000));
-    }
-    return child;
-  }
-}
-
 /// Lays its child out [extent] taller and that far up, over what is above.
 class _ExtendUpDelegate extends SingleChildLayoutDelegate {
   const _ExtendUpDelegate(this.extent);
@@ -1506,164 +1364,4 @@ class _ExtendUpDelegate extends SingleChildLayoutDelegate {
   @override
   bool shouldRelayout(_ExtendUpDelegate oldDelegate) =>
       extent != oldDelegate.extent;
-}
-
-/// A page without a transition: the list under one pane, and the root of
-/// the detail pane, which iPad, Android and Chrome all swap in place.
-class _PlainPage extends Page<void> {
-  const _PlainPage({
-    required LocalKey super.key,
-    super.name,
-    super.restorationId,
-    required this.child,
-  });
-
-  final Widget child;
-
-  @override
-  Route<void> createRoute(BuildContext context) => _PlainPageRoute(this);
-}
-
-class _PlainPageRoute extends PageRoute<void> {
-  _PlainPageRoute(_PlainPage page) : super(settings: page);
-
-  _PlainPage get _page => settings as _PlainPage;
-
-  @override
-  Color? get barrierColor => null;
-
-  @override
-  String? get barrierLabel => null;
-
-  @override
-  bool get maintainState => true;
-
-  @override
-  Duration get transitionDuration => Duration.zero;
-
-  @override
-  Duration get reverseTransitionDuration => Duration.zero;
-
-  @override
-  Widget buildPage(
-    BuildContext context,
-    Animation<double> animation,
-    Animation<double> secondaryAnimation,
-  ) {
-    return Semantics(
-      scopesRoute: true,
-      explicitChildNodes: true,
-      child: _page.child,
-    );
-  }
-}
-
-/// Watches the one-pane navigator for routes pushed from the list pane:
-/// routes without a page, such as a tile's own `Navigator.push`, a menu or
-/// a bottom sheet.
-class _StackObserver extends NavigatorObserver {
-  _StackObserver(this.onChanged);
-
-  /// Called when a route pushed from the list pane has finished animating
-  /// out. Pushes and pops also dispatch a [NavigationNotification].
-  final VoidCallback onChanged;
-
-  /// The navigator's top route.
-  Route<dynamic>? _top;
-
-  /// Routes without a page, until they have animated out.
-  final Set<Route<dynamic>> _pageless = <Route<dynamic>>{};
-
-  bool get topIsPageless {
-    final top = _top;
-    return top != null && top.settings is! Page;
-  }
-
-  bool get hasPageless => _pageless.isNotEmpty;
-
-  @override
-  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    _top = route;
-    if (route.settings is! Page) _pageless.add(route);
-  }
-
-  @override
-  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    if (route == _top) _top = previousRoute;
-    _release(route);
-  }
-
-  @override
-  void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    if (route == _top) _top = previousRoute;
-    _pageless.remove(route);
-  }
-
-  @override
-  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
-    if (oldRoute == _top) _top = newRoute;
-    _pageless.remove(oldRoute);
-    if (newRoute != null && newRoute.settings is! Page) _pageless.add(newRoute);
-  }
-
-  /// Forgets [route] once its exit animation is over.
-  void _release(Route<dynamic> route) {
-    if (!_pageless.contains(route)) return;
-    final animation = route is TransitionRoute<dynamic>
-        ? route.animation
-        : null;
-    if (animation == null || animation.isDismissed) {
-      _pageless.remove(route);
-      return;
-    }
-    void handleStatus(AnimationStatus status) {
-      if (!status.isDismissed) return;
-      animation.removeStatusListener(handleStatus);
-      if (_pageless.remove(route)) onChanged();
-    }
-
-    animation.addStatusListener(handleStatus);
-  }
-}
-
-class _DetailObserver extends NavigatorObserver {
-  _DetailObserver(this.onUserPush);
-
-  final VoidCallback onUserPush;
-
-  /// The detail navigator's top route.
-  Route<dynamic>? top;
-
-  @override
-  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    top = route;
-    if (previousRoute != null && route.settings is! Page) {
-      onUserPush();
-      // The detail navigator doesn't move the focus by itself: give it to a
-      // page opened from inside the pane, as a navigator normally does.
-      if (route is ModalRoute<dynamic>) {
-        SchedulerBinding.instance.addPostFrameCallback((_) {
-          final context = route.subtreeContext;
-          if (route.isActive && route.isCurrent && context != null) {
-            FocusScope.of(context).requestFocus();
-          }
-        });
-      }
-    }
-  }
-
-  @override
-  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    if (route == top) top = previousRoute;
-  }
-
-  @override
-  void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    if (route == top) top = previousRoute;
-  }
-
-  @override
-  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
-    if (oldRoute == top) top = newRoute;
-  }
 }
