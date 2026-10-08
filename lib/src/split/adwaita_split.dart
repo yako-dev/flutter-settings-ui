@@ -2,6 +2,7 @@ import 'package:flutter/gestures.dart'
     show PointerDeviceKind, computeHitSlop, kPrimaryButton;
 import 'package:flutter/widgets.dart';
 import 'package:settings_ui/src/split/settings_page_header.dart';
+import 'package:settings_ui/src/split/sidebar_button.dart';
 import 'package:settings_ui/src/split/sidebar_keyboard.dart';
 import 'package:settings_ui/src/tiles/platforms/adwaita_settings_switch.dart';
 import 'package:settings_ui/src/tiles/platforms/adwaita_settings_tile.dart';
@@ -73,6 +74,15 @@ Color _foregroundOf(SettingsThemeData theme) =>
 
 Color _share(Color foreground, double share) =>
     foreground.withValues(alpha: foreground.a * share);
+
+/// The 2px focus ring of a row or a header bar button.
+BoxDecoration _focusRing(bool isDark) => BoxDecoration(
+  borderRadius: BorderRadius.circular(_kRowRadius),
+  border: Border.all(
+    color: (isDark ? _kAccentDark : _kAccentLight).withValues(alpha: 0.5),
+    width: 2,
+  ),
+);
 
 /// `--sidebar-border-color`, the 1px line on the sidebar's content side.
 Color adwaitaSidebarBorderColor(SettingsThemeData theme) => adwaitaIsDark(theme)
@@ -306,7 +316,6 @@ class _AdwaitaSidebarRowState extends State<AdwaitaSidebarRow> {
       ],
     );
 
-    final accent = isDark ? _kAccentDark : _kAccentLight;
     final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
     final box = AnimatedContainer(
       // Rows fade their hover and pressed backgrounds in 200 ms.
@@ -324,13 +333,7 @@ class _AdwaitaSidebarRowState extends State<AdwaitaSidebarRow> {
         borderRadius: BorderRadius.circular(_kRowRadius),
       ),
       foregroundDecoration: _focus.showsRing(_focusHighlight) && _activatable
-          ? BoxDecoration(
-              borderRadius: BorderRadius.circular(_kRowRadius),
-              border: Border.all(
-                color: accent.withValues(alpha: 0.5),
-                width: 2,
-              ),
-            )
+          ? _focusRing(isDark)
           : null,
       child: row,
     );
@@ -525,7 +528,7 @@ class AdwaitaHeaderBar extends StatelessWidget {
 
 /// A flat 34x34 header bar button with 9px corners: the foreground at 7%
 /// on hover and 16% while pressed, and the accent focus ring. Internal.
-class AdwaitaFlatButton extends StatefulWidget {
+class AdwaitaFlatButton extends StatelessWidget {
   const AdwaitaFlatButton({
     super.key,
     required this.semanticLabel,
@@ -538,74 +541,28 @@ class AdwaitaFlatButton extends StatefulWidget {
   final Widget child;
 
   @override
-  State<AdwaitaFlatButton> createState() => _AdwaitaFlatButtonState();
-}
-
-class _AdwaitaFlatButtonState extends State<AdwaitaFlatButton> {
-  bool _hovered = false;
-  bool _pressed = false;
-  bool _focusHighlight = false;
-
-  void _setPressed(bool value) {
-    if (mounted && _pressed != value) setState(() => _pressed = value);
-  }
-
-  @override
   Widget build(BuildContext context) {
     final theme = SettingsTheme.of(context).themeData;
     final foreground = _foregroundOf(theme);
-    final accent = adwaitaIsDark(theme) ? _kAccentDark : _kAccentLight;
-    return Semantics(
-      container: true,
-      button: true,
-      label: widget.semanticLabel,
-      onTap: widget.onPressed,
-      child: FocusableActionDetector(
-        actions: <Type, Action<Intent>>{
-          ActivateIntent: CallbackAction<ActivateIntent>(
-            onInvoke: (_) => widget.onPressed(),
-          ),
-        },
-        onShowFocusHighlight: (value) {
-          if (value != _focusHighlight) {
-            setState(() => _focusHighlight = value);
-          }
-        },
-        child: MouseRegion(
-          onEnter: (_) => setState(() => _hovered = true),
-          onExit: (_) => setState(() => _hovered = false),
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            excludeFromSemantics: true,
-            onTapDown: (_) => _setPressed(true),
-            onTapUp: (_) => _setPressed(false),
-            onTapCancel: () => _setPressed(false),
-            onTap: widget.onPressed,
-            child: Container(
-              width: _kButtonSize,
-              height: _kButtonSize,
-              decoration: BoxDecoration(
-                color: _pressed
-                    ? _share(foreground, _kPressed)
-                    : _hovered
-                    ? _share(foreground, _kHover)
-                    : null,
-                borderRadius: BorderRadius.circular(_kRowRadius),
-              ),
-              foregroundDecoration: _focusHighlight
-                  ? BoxDecoration(
-                      borderRadius: BorderRadius.circular(_kRowRadius),
-                      border: Border.all(
-                        color: accent.withValues(alpha: 0.5),
-                        width: 2,
-                      ),
-                    )
-                  : null,
-              alignment: Alignment.center,
-              child: ExcludeSemantics(child: widget.child),
-            ),
-          ),
+    return SidebarButton(
+      semanticLabel: semanticLabel,
+      onPressed: onPressed,
+      builder: (context, states) => Container(
+        width: _kButtonSize,
+        height: _kButtonSize,
+        decoration: BoxDecoration(
+          color: states.pressed
+              ? _share(foreground, _kPressed)
+              : states.hovered
+              ? _share(foreground, _kHover)
+              : null,
+          borderRadius: BorderRadius.circular(_kRowRadius),
         ),
+        foregroundDecoration: states.focused
+            ? _focusRing(adwaitaIsDark(theme))
+            : null,
+        alignment: Alignment.center,
+        child: ExcludeSemantics(child: child),
       ),
     );
   }

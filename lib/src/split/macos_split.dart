@@ -1,6 +1,7 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:settings_ui/src/split/settings_page_header.dart';
+import 'package:settings_ui/src/split/sidebar_button.dart';
 import 'package:settings_ui/src/split/sidebar_keyboard.dart';
 import 'package:settings_ui/src/tiles/platforms/macos_settings_switch.dart';
 import 'package:settings_ui/src/tiles/platforms/macos_settings_tile.dart';
@@ -650,7 +651,8 @@ class MacosNavigationCapsule extends StatelessWidget {
   }
 }
 
-class _CapsuleButton extends StatefulWidget {
+/// One half of the capsule: it tints while pressed and has no hover state.
+class _CapsuleButton extends StatelessWidget {
   const _CapsuleButton({
     required this.label,
     required this.onPressed,
@@ -664,65 +666,25 @@ class _CapsuleButton extends StatefulWidget {
   final Widget child;
 
   @override
-  State<_CapsuleButton> createState() => _CapsuleButtonState();
-}
-
-class _CapsuleButtonState extends State<_CapsuleButton> {
-  bool _pressed = false;
-  bool _focusHighlight = false;
-
-  void _setPressed(bool value) {
-    if (_pressed != value) setState(() => _pressed = value);
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final onPressed = widget.onPressed;
-    return Semantics(
-      container: true,
-      button: true,
-      enabled: onPressed != null,
-      label: widget.label,
-      onTap: onPressed,
-      child: FocusableActionDetector(
-        enabled: onPressed != null,
-        actions: <Type, Action<Intent>>{
-          ActivateIntent: CallbackAction<ActivateIntent>(
-            onInvoke: (_) => onPressed?.call(),
-          ),
-        },
-        onShowFocusHighlight: (value) {
-          if (value != _focusHighlight) {
-            setState(() => _focusHighlight = value);
-          }
-        },
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          excludeFromSemantics: true,
-          onTapDown: onPressed == null ? null : (_) => _setPressed(true),
-          onTapUp: onPressed == null ? null : (_) => _setPressed(false),
-          onTapCancel: onPressed == null ? null : () => _setPressed(false),
-          onTap: onPressed,
-          child: Container(
-            height: 36,
-            decoration: BoxDecoration(
-              color: _pressed
-                  ? (widget.isDark
-                        ? const Color(0x1FFFFFFF)
-                        : const Color(0x14000000))
-                  : null,
-              borderRadius: BorderRadius.circular(18),
-              border: _focusHighlight
-                  ? Border.all(
-                      color: widget.isDark ? _kFocusDark : _kFocusLight,
-                      width: 3,
-                    )
-                  : null,
-            ),
-            alignment: Alignment.center,
-            child: ExcludeSemantics(child: widget.child),
-          ),
+    return SidebarButton(
+      semanticLabel: label,
+      onPressed: onPressed,
+      hasEnabledState: true,
+      tracksHover: false,
+      builder: (context, states) => Container(
+        height: 36,
+        decoration: BoxDecoration(
+          color: states.pressed
+              ? (isDark ? const Color(0x1FFFFFFF) : const Color(0x14000000))
+              : null,
+          borderRadius: BorderRadius.circular(18),
+          border: states.focused
+              ? Border.all(color: isDark ? _kFocusDark : _kFocusLight, width: 3)
+              : null,
         ),
+        alignment: Alignment.center,
+        child: ExcludeSemantics(child: child),
       ),
     );
   }

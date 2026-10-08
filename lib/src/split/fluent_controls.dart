@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:settings_ui/src/split/sidebar_button.dart';
 import 'package:settings_ui/src/utils/fluent_tokens.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 
@@ -46,7 +47,7 @@ enum FluentGlyph {
 /// A 40x36 subtle button of the Windows pane and title bar (back, pane
 /// toggle): transparent at rest, SubtleFillSecondary on hover,
 /// SubtleFillTertiary with a secondary glyph while pressed. Internal.
-class FluentSubtleButton extends StatefulWidget {
+class FluentSubtleButton extends StatelessWidget {
   const FluentSubtleButton({
     super.key,
     required this.semanticLabel,
@@ -59,77 +60,39 @@ class FluentSubtleButton extends StatefulWidget {
   final FluentGlyph glyph;
 
   @override
-  State<FluentSubtleButton> createState() => _FluentSubtleButtonState();
-}
-
-class _FluentSubtleButtonState extends State<FluentSubtleButton> {
-  bool _hovered = false;
-  bool _pressed = false;
-  bool _focusHighlight = false;
-
-  void _setPressed(bool value) {
-    if (_pressed != value) setState(() => _pressed = value);
-  }
-
-  @override
   Widget build(BuildContext context) {
     final theme = SettingsTheme.of(context).themeData;
     final tokens = fluentTokensOf(context);
     final primary = theme.settingsTileTextColor ?? tokens.textPrimary;
     final secondary = theme.tileDescriptionTextColor ?? tokens.textSecondary;
-    final fill = _pressed
-        ? tokens.navItemPressed
-        : _hovered
-        ? tokens.navItemSelected
-        : null;
-    Widget button = Container(
-      width: 40,
-      height: 36,
-      decoration: BoxDecoration(
-        color: fill,
-        borderRadius: BorderRadius.circular(kFluentControlRadius),
-      ),
-      alignment: Alignment.center,
-      child: CustomPaint(
-        size: const Size.square(16),
-        painter: _GlyphPainter(
-          glyph: widget.glyph,
-          color: _pressed ? secondary : primary,
-          textDirection: Directionality.of(context),
-        ),
-      ),
-    );
-    if (_focusHighlight) button = fluentFocusRing(tokens, button);
-    return Semantics(
-      container: true,
-      button: true,
-      label: widget.semanticLabel,
-      onTap: widget.onPressed,
-      child: FocusableActionDetector(
-        actions: <Type, Action<Intent>>{
-          ActivateIntent: CallbackAction<ActivateIntent>(
-            onInvoke: (_) => widget.onPressed(),
+    final textDirection = Directionality.of(context);
+    return SidebarButton(
+      semanticLabel: semanticLabel,
+      onPressed: onPressed,
+      builder: (context, states) {
+        final button = Container(
+          width: 40,
+          height: 36,
+          decoration: BoxDecoration(
+            color: states.pressed
+                ? tokens.navItemPressed
+                : states.hovered
+                ? tokens.navItemSelected
+                : null,
+            borderRadius: BorderRadius.circular(kFluentControlRadius),
           ),
-        },
-        onShowFocusHighlight: (value) {
-          if (value != _focusHighlight) {
-            setState(() => _focusHighlight = value);
-          }
-        },
-        child: MouseRegion(
-          onEnter: (_) => setState(() => _hovered = true),
-          onExit: (_) => setState(() => _hovered = false),
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            excludeFromSemantics: true,
-            onTapDown: (_) => _setPressed(true),
-            onTapUp: (_) => _setPressed(false),
-            onTapCancel: () => _setPressed(false),
-            onTap: widget.onPressed,
-            child: button,
+          alignment: Alignment.center,
+          child: CustomPaint(
+            size: const Size.square(16),
+            painter: _GlyphPainter(
+              glyph: glyph,
+              color: states.pressed ? secondary : primary,
+              textDirection: textDirection,
+            ),
           ),
-        ),
-      ),
+        );
+        return states.focused ? fluentFocusRing(tokens, button) : button;
+      },
     );
   }
 }

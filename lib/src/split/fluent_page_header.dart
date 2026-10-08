@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:settings_ui/src/split/fluent_controls.dart';
 import 'package:settings_ui/src/split/settings_page_header.dart';
 import 'package:settings_ui/src/split/settings_page_trail.dart';
+import 'package:settings_ui/src/split/sidebar_button.dart';
 import 'package:settings_ui/src/utils/settings_theme.dart';
 
 // The page header of the Windows style (Windows 11 Settings): the page
@@ -99,6 +100,15 @@ class FluentPageHeader extends StatelessWidget {
   }
 }
 
+/// The page's title or a crumb, on one line in [color].
+Widget _titleLine(Widget child, Color color) => DefaultTextStyle(
+  style: kFluentTitleStyle.copyWith(color: color),
+  maxLines: 1,
+  softWrap: false,
+  overflow: TextOverflow.ellipsis,
+  child: child,
+);
+
 /// The page title of a Windows page on one line: the crumbs of the pages
 /// above it, then its title, like WinUI's `BreadcrumbBar` in Windows
 /// Settings. When they don't fit, the crumbs nearest the start collapse
@@ -139,16 +149,9 @@ class _FluentBreadcrumbState extends State<_FluentBreadcrumb> {
     final parents = widget.parents;
     final title = widget.title;
     final collapsed = math.min(_collapsed, parents.length);
-    Widget line(Widget child, Color color) => DefaultTextStyle(
-      style: kFluentTitleStyle.copyWith(color: color),
-      maxLines: 1,
-      softWrap: false,
-      overflow: TextOverflow.ellipsis,
-      child: child,
-    );
     final titleWidget = title == null
         ? const SizedBox.shrink()
-        : line(title, widget.primary);
+        : _titleLine(title, widget.primary);
     if (parents.isEmpty) return titleWidget;
 
     final last = parents[math.max(0, collapsed - 1)];
@@ -415,7 +418,7 @@ class _RenderBreadcrumb extends RenderBox
 
 /// A parent page in the breadcrumb: secondary text that turns primary on
 /// hover and goes back to its page when clicked.
-class _Crumb extends StatefulWidget {
+class _Crumb extends StatelessWidget {
   const _Crumb({
     required this.entry,
     required this.color,
@@ -431,56 +434,19 @@ class _Crumb extends StatefulWidget {
   final Widget? label;
 
   @override
-  State<_Crumb> createState() => _CrumbState();
-}
-
-class _CrumbState extends State<_Crumb> {
-  bool _hovered = false;
-  bool _focusHighlight = false;
-
-  void _activate() => popToSettingsPage(context, widget.entry);
-
-  @override
   Widget build(BuildContext context) {
-    Widget crumb = DefaultTextStyle(
-      style: kFluentTitleStyle.copyWith(
-        color: _hovered || _focusHighlight ? widget.hoverColor : widget.color,
-      ),
-      maxLines: 1,
-      softWrap: false,
-      overflow: TextOverflow.ellipsis,
-      child: widget.label ?? widget.entry.title,
-    );
-    if (_focusHighlight) {
-      crumb = fluentFocusRing(fluentTokensOf(context), crumb);
-    }
-    return Semantics(
-      container: true,
-      button: true,
-      onTap: _activate,
-      child: FocusableActionDetector(
-        actions: <Type, Action<Intent>>{
-          ActivateIntent: CallbackAction<ActivateIntent>(
-            onInvoke: (_) => _activate(),
-          ),
-        },
-        mouseCursor: SystemMouseCursors.click,
-        onShowFocusHighlight: (value) {
-          if (value != _focusHighlight) {
-            setState(() => _focusHighlight = value);
-          }
-        },
-        child: MouseRegion(
-          onEnter: (_) => setState(() => _hovered = true),
-          onExit: (_) => setState(() => _hovered = false),
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            excludeFromSemantics: true,
-            onTap: _activate,
-            child: crumb,
-          ),
-        ),
-      ),
+    return SidebarButton(
+      onPressed: () => popToSettingsPage(context, entry),
+      mouseCursor: SystemMouseCursors.click,
+      builder: (context, states) {
+        final crumb = _titleLine(
+          label ?? entry.title,
+          states.hovered || states.focused ? hoverColor : color,
+        );
+        return states.focused
+            ? fluentFocusRing(fluentTokensOf(context), crumb)
+            : crumb;
+      },
     );
   }
 }
